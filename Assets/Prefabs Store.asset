@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 966bffeef2409b949b7456d92277d1cf, type: 3}
+  m_Name: Prefabs Store
+  m_EditorClassIdentifier: 
+  Block: {fileID: -8857820850559761650, guid: 29931b6639b832b40a107df3aa74326d, type: 3}
+  Ladder: {fileID: 8492024675780455207, guid: 02aba0cea4c47ae4ca4a653880f5c44b, type: 3}
