@@ -27,9 +27,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
 
         foreach (var pair in levelSource.Placeables(PrefabsStore))
         {
-            var p = Instantiate(pair.Item1, transform);
-            p.transform.localPosition = pair.Item2;
-            Map.Add(p);
+            pair.Item1.Instantiate(Map, transform, pair.Item2);
         }
 
         if (AdditionalPlaceables != null)

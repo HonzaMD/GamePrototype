@@ -203,7 +203,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 918441463602597636}
-  - component: {fileID: 6713594594101608147}
+  - component: {fileID: 6234838626796341899}
   m_Layer: 0
   m_Name: LSegment
   m_TagString: Untagged
@@ -229,7 +229,7 @@ Transform:
   m_Father: {fileID: 918441464927980898}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6713594594101608147
+--- !u!114 &6234838626796341899
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -238,7 +238,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 918441463602597637}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
+  m_Script: {fileID: 11500000, guid: 1ad0247e1f1923e4a8cb8cfdae4f1a68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   PosOffset: {x: -0.05, y: 0}
@@ -246,6 +246,7 @@ MonoBehaviour:
   Size: {x: 0.1, y: 0.5}
   Ksid: 4
   CellBlocking: 64
+  SegmentIndex: 0
 --- !u!1 &918441464549123508
 GameObject:
   m_ObjectHideFlags: 0
@@ -498,3 +499,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bd1831bfdc29d149b0e8b5ef7fc7e8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Start: {x: 0, y: 0, z: 0}
+  End: {x: 0, y: 0, z: 0}

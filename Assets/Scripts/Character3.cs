@@ -33,6 +33,9 @@ public class Character3 : CharacterBase
 	private float[] legArmStatus = new float[4];
 	private bool LegOnGround => legArmStatus[0] == 2 || legArmStatus[1] == 2;
 	private bool ArmCatched => legArmStatus[2] == 2 || legArmStatus[3] == 2;
+	private float[] legZ;
+
+	private Vector3 legUpDir = Vector3.up;
 
 	public SphereCollider LegSphere;
 	public SphereCollider ArmSphere;
@@ -42,6 +45,9 @@ public class Character3 : CharacterBase
 	private Vector2 desiredVelocity;
 	private bool desiredJump;
 	private float lastJumpTime;
+
+	private float zMoveTimeout;
+	private float desiredZMove;
 
 	private bool desiredCatch;
 
@@ -64,6 +70,8 @@ public class Character3 : CharacterBase
 		body = GetComponent<Rigidbody>();
 		armCellRadius.x = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.x);
 		armCellRadius.y = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.y);
+
+		legZ = Legs.Select(l => l.position.z).ToArray();
 	}
 
 	public override void GameUpdate()
@@ -74,7 +82,7 @@ public class Character3 : CharacterBase
 		Camera.SetTransform(delta);
 
 		bool jumpButton = Input.GetButtonDown("Jump");
-		bool catchButton = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+		bool catchButton = Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftAlt);
 
 		desiredCatch = catchButton;
 
@@ -97,6 +105,9 @@ public class Character3 : CharacterBase
 
 		AdjustLegsArms();
 
+		if (zMoveTimeout > 0)
+			zMoveTimeout -= Time.deltaTime * 3f;
+
 		if (ArmCatched)
 			desiredJump = false;
 
@@ -113,6 +124,13 @@ public class Character3 : CharacterBase
 			desiredVelocity.x = inX * maxSpeed * speedMode;
 			desiredVelocity.y = 0;
 		}
+
+
+		if (zMoveTimeout <= 0 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+		{
+			desiredZMove = transform.position.z == 0 ? Map.CellSize.z : -Map.CellSize.z;
+			zMoveTimeout = 1;
+		}
 	}
 
 	private void AdjustLegsArms()
@@ -124,7 +142,7 @@ public class Character3 : CharacterBase
 		TryRemoveArm(2);
 		TryRemoveArm(3);
 
-		if (body.velocity.y <= 0 && SelectFreeLeg(out var index))
+		if (Vector3.Dot(body.velocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
 		{
 			TryPlaceLeg(index);
 		}
@@ -215,6 +233,42 @@ public class Character3 : CharacterBase
 			RemoveLeg(1);
 	}
 
+	private void RemoveAllLegsArms()
+	{
+		for (int f = 0; f < Legs.Length; f++)
+		{
+			if (legArmStatus[f] == 2)
+				RemoveLeg(f);
+		}
+	}
+
+	private void ActivateSomeLegsArms()
+	{
+		if (legArmStatus[0] > 0 && legArmStatus[1] > 0 && !LegOnGround)
+		{
+			if (legArmStatus[0] < legArmStatus[1])
+			{
+				legArmStatus[0] = 0;
+			}
+			else
+			{
+				legArmStatus[1] = 0;
+			}
+		}
+
+		if (legArmStatus[1] > 0 && legArmStatus[2] > 0 && !ArmCatched)
+		{
+			if (legArmStatus[1] < legArmStatus[2])
+			{
+				legArmStatus[1] = 0;
+			}
+			else
+			{
+				legArmStatus[2] = 0;
+			}
+		}
+	}
+
 	private void TryPlaceLeg(int index)
 	{
 		if (legArmStatus[OtherIndex(index)] == 2)
@@ -258,7 +312,7 @@ public class Character3 : CharacterBase
 
 	private void PlaceLeg(int index, ref RaycastHit hitInfo)
 	{
-		Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Legs[index].position.z);
+		Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, legZ[index] + transform.position.z);
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 		Legs[index].gameObject.SetActive(true);
 		legArmStatus[index] = 2;
@@ -266,7 +320,7 @@ public class Character3 : CharacterBase
 
 	private void PlaceLeg(int index, Vector3 point, Vector3 normal)
 	{
-		Legs[index].position = new Vector3(point.x, point.y, Legs[index].position.z);
+		Legs[index].position = new Vector3(point.x, point.y, legZ[index] + transform.position.z);
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, normal);
 		Legs[index].gameObject.SetActive(true);
 		legArmStatus[index] = 2;
@@ -361,12 +415,16 @@ public class Character3 : CharacterBase
 		{
 			var force = Vector2.ClampMagnitude(desiredVelocity - body.velocity.XY(), maxAcceleration);
 			body.AddForce(force, ForceMode.VelocityChange);
+			legUpDir = Vector3.up;
 		}
 		else
 		{
-			var xVel = body.velocity.x;
+			Quaternion legRot = GetLegRotation();
+			var xAxis = legRot * Vector3.right;
+			legUpDir = legRot * Vector3.up;
+			var xVel = Vector3.Dot(xAxis, body.velocity);
 			var force = Mathf.Clamp(desiredVelocity.x - xVel, -maxAcceleration, maxAcceleration);
-			body.AddForce(force, 0, 0, ForceMode.VelocityChange);
+			body.AddForce(xAxis * force, ForceMode.VelocityChange);
 		}
 
 		body.AddForce(GetArmsHoldForce(), ForceMode.VelocityChange);
@@ -395,6 +453,29 @@ public class Character3 : CharacterBase
 
 		if (!jumpStarted)
 			body.AddForce(GetDrag());
+
+		if (desiredZMove != 0)
+		{
+			var p = transform.position;
+			p.z += desiredZMove;
+			transform.position = p;
+			desiredZMove = 0;
+			RemoveAllLegsArms();
+			ActivateSomeLegsArms();
+		}
+	}
+
+	private Quaternion GetLegRotation()
+	{
+		if (Physics.Raycast(LegSphere.transform.position, -legUpDir, out var hitInfo, LegSphere.radius * 1.3f))
+		{
+			if (hitInfo.normal.y >= minGroundDotProduct)
+			{ 
+				return Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+			}
+		}
+
+		return Quaternion.identity;
 	}
 
 	private Vector3 GetDrag()

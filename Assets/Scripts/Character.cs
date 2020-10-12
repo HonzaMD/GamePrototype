@@ -122,7 +122,6 @@ public class Character : CharacterBase
 		animator.SetBool(isRunnningId, isRunning);
 		animator.SetBool(isJumping, !onGround);
 		animator.SetFloat(crouching, crouchingVal);
-		Debug.Log(crouchingVal);
 	}
 
 	void FixedUpdate()

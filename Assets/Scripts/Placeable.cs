@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Core;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -23,7 +24,7 @@ public enum CellBLocking
     AllPartCells = Cell0Part | Cell1Part | Cell2Part,
 }
 
-public class Placeable : MonoBehaviour
+public class Placeable : MonoBehaviour, ILevelPlaceabe
 {
     public Vector2 PosOffset;
     [HideInInspector]
@@ -42,6 +43,13 @@ public class Placeable : MonoBehaviour
     public virtual KsidEnum TriggerTargets => KsidEnum.Unknown;
     public virtual void AddTarget(Placeable p) { }
     public virtual void RemoveTarget(Placeable p) { }
+
+    void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
+    {
+        var p = Instantiate(this, parent);
+        p.transform.localPosition = pos;
+        map.Add(p);
+    }
 
     public bool IsTrigger => (CellBlocking & CellBLocking.Trigger) != 0;
 }

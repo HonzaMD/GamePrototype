@@ -12,5 +12,6 @@ namespace Assets.Scripts.Utils
         public static Vector2 XY(this Vector3 v) => new Vector2(v.x, v.y);
         public static Vector2 XZ(this Vector3 v) => new Vector2(v.x, v.z);
         public static Vector2 YZ(this Vector3 v) => new Vector2(v.y, v.z);
+        public static Vector3 AddZ(this Vector2 v, float z) => new Vector3(v.x, v.y, z);
     }
 }

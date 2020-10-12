@@ -14,7 +14,7 @@ namespace Assets.Scripts.Map
         private readonly int sizey;
         private readonly Cell[] cells;
 
-        public readonly static Vector3 CellSize = new Vector3(0.5f, 0.5f, 1.5f);
+        public readonly static Vector3 CellSize = new Vector3(0.5f, 0.5f, 0.5f);
         public readonly static Vector2 CellSize2d = CellSize.XY();
         public readonly static Vector2 CellSize2dInv = new Vector2(1f / CellSize2d.x, 1f / CellSize2d.y);
 

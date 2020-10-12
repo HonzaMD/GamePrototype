@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Ladder : MonoBehaviour
+public class Ladder : Plank
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 }
