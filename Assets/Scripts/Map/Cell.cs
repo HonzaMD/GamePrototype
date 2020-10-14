@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.Map
 {
-    struct Cell
+    public struct Cell
     {
         private Placeable first;
         public CellBLocking Blocking { get; private set; }       

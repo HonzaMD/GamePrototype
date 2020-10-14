@@ -52,8 +52,10 @@ public class Character3 : CharacterBase
 	private bool desiredCatch;
 
 	private Vector2Int armCellRadius;
+	private int armCatchLayerMask;
 
 	private static List<Vector2> armCandidates = new List<Vector2>();
+	private static List<Placeable> placeables = new List<Placeable>();
 
 	//public Character3()
 	//{
@@ -72,6 +74,7 @@ public class Character3 : CharacterBase
 		armCellRadius.y = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.y);
 
 		legZ = Legs.Select(l => l.position.z).ToArray();
+		armCatchLayerMask = LayerMask.GetMask("Default", "Catches");
 	}
 
 	public override void GameUpdate()
@@ -113,7 +116,7 @@ public class Character3 : CharacterBase
 
 		float inX = Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1);
 		float inY = Mathf.Clamp(Input.GetAxis("Vertical"), -1, 1);
-		var speedMode = /*ArmCatched ||*/ (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 0.5f : 1f;
+		var speedMode =  (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 0.5f : ArmCatched ? 0.6f : 1f;
 
 		if (ArmCatched)
 		{
@@ -318,6 +321,14 @@ public class Character3 : CharacterBase
 		legArmStatus[index] = 2;
 	}
 
+	private void PlaceLeg3d(int index, ref RaycastHit hitInfo)
+	{
+		Legs[index].position = hitInfo.point;
+		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+		Legs[index].gameObject.SetActive(true);
+		legArmStatus[index] = 2;
+	}
+
 	private void PlaceLeg(int index, Vector3 point, Vector3 normal)
 	{
 		Legs[index].position = new Vector3(point.x, point.y, legZ[index] + transform.position.z);
@@ -348,6 +359,35 @@ public class Character3 : CharacterBase
 	private void TryPlaceArm(int index)
 	{
 		var map = Game.Instance.Level.Map;
+		bool otherPlaced = ArmCatched;
+		var center = ArmSphere.transform.position.XY();
+
+		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
+		map.Get(placeables, center - radius2, 2 * radius2, KsidEnum.Catch);
+
+		foreach (var p in placeables)
+		{
+			if (p.TryGetComponent<Collider>(out var col))
+			{
+				var center3d = ArmSphere.transform.position + new Vector3(0, 0, legZ[index]);
+				var pos = col.ClosestPoint(center3d);
+				if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center3d) >= 0)
+				{
+					if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, armCatchLayerMask))
+					{
+						if ((hitInfo.point - pos).sqrMagnitude < 0.001)
+						{
+							PlaceLeg3d(index, ref hitInfo);
+							placeables.Clear();
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		placeables.Clear();
+
 		var c = map.WorldToCell(ArmSphere.transform.position.XY());
 		var c1 = c - armCellRadius;
 		var c2 = c + armCellRadius + Vector2Int.one;
@@ -378,8 +418,6 @@ public class Character3 : CharacterBase
 			}
 		}
 
-		bool otherPlaced = ArmCatched;
-		var center = ArmSphere.transform.position.XY();
 		foreach (var pos in armCandidates)
 		{
 			if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center) >= 0)
@@ -392,7 +430,7 @@ public class Character3 : CharacterBase
 
 	private bool RayCastArm(int index, Vector3 candidate, float radius)
 	{
-		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius))
+		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, armCatchLayerMask))
 		{
 			if ((hitInfo.point - candidate).sqrMagnitude < 0.001)
 			{
@@ -447,8 +485,9 @@ public class Character3 : CharacterBase
 		else
 		{
 			float legF = Mathf.Max(GetLegForce(0), GetLegForce(1));
+			body.AddForce(legUpDir * legF, ForceMode.VelocityChange);
 			float legSF = GetLegSideForce();
-			body.AddForce(legSF, legF, 0, ForceMode.VelocityChange);
+			body.AddForce(legSF, 0, 0, ForceMode.VelocityChange);
 		}
 
 		if (!jumpStarted)
@@ -490,7 +529,7 @@ public class Character3 : CharacterBase
 			var legDir = LegSphere.transform.position.XY() - Legs[index].position.XY();
 			float force = (LegSphere.radius - legDir.magnitude) / LegSphere.radius;
 			force *= LegForce;
-			force += body.velocity.y * -0.3f;
+			force += Vector3.Dot(legUpDir, body.velocity) * -0.3f;
 			return force;
 		}
 		return 0;

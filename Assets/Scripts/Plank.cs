@@ -32,7 +32,7 @@ public class Plank : MonoBehaviour
             var pos = segments[0].transform.localPosition;
             pos.y = segmentsStart + i * SegmentSize.y;
             seg.transform.localPosition = pos;
-            map.Add(seg);
+            SegmentAdd(map, seg);
         }
     }
 
@@ -52,12 +52,12 @@ public class Plank : MonoBehaviour
                 var pos = segments[0].transform.localPosition;
                 pos.y = segmentsStart + i * SegmentSize.y;
                 seg.transform.localPosition = pos;
-                map.Move(seg);
+                SegmentMove(map, seg);
             }
             else
             {
                 var seg = segments[i];
-                map.Remove(seg);
+                SegmentRemove(map, seg);
                 if (i > 0)
                     Destroy(seg.gameObject);
             }
@@ -70,10 +70,25 @@ public class Plank : MonoBehaviour
         for (int i = 0; i < segments.Length; i++)
         {
             var seg = segments[i];
-            map.Remove(seg);
+            SegmentRemove(map, seg);
             if (i > 0)
                 Destroy(seg.gameObject);
         }
+    }
+
+    protected virtual void SegmentAdd(Map map, PlankSegment seg)
+    {
+        map.Add(seg);
+    }
+
+    protected virtual void SegmentRemove(Map map, PlankSegment seg)
+    {
+        map.Remove(seg);
+    }
+
+    protected virtual void SegmentMove(Map map, PlankSegment seg)
+    {
+        map.Move(seg);
     }
 
     private void Init(out int segmentCount, out float segmentsStart)
@@ -92,20 +107,20 @@ public class Plank : MonoBehaviour
         transform.rotation = Quaternion.FromToRotation(Vector3.up, End - Start);
         transform.position = Start;
 
-        InitCollider(length);
+        InitCollider(length, segmentsStart);
         InitRotatedSizes();
 
         segmentCount = Mathf.CeilToInt(length / SegmentSize.y);
     }
 
-    private void InitCollider(float length)
+    private void InitCollider(float length, float segmentsStart)
     {
         var collider = GetComponent<BoxCollider>();
         var cSize = collider.size;
-        cSize.y = length;
+        cSize.y = length - segmentsStart;
         collider.size = cSize;
         var cCenter = collider.center;
-        cCenter.y = length / 2;
+        cCenter.y = (length + segmentsStart) / 2;
         collider.center = cCenter;
     }
 

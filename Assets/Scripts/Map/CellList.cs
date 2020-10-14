@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.Map
 {
-    struct CellListInfo
+    public struct CellListInfo
     {
         private const int SizeMask = 0x3F;
         

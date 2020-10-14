@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
-    class Map
+    public class Map
     {
         private readonly int posx;
         private readonly int posy;
