@@ -44,6 +44,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
     {
     }
 
+#if UNITY_EDITOR
     void OnEnable()
     {
         AssemblyReloadEvents.afterAssemblyReload += AssemblyReloadEvents_afterAssemblyReload;
@@ -70,6 +71,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
             mapContentToserialize = null;
         }
     }
+#endif
 
     public void OnBeforeSerialize()
     {

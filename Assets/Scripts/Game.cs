@@ -4,6 +4,7 @@ using Assets.Scripts.Map;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityTemplateProjects;
 
@@ -11,7 +12,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 {
     public static Game Instance { get; private set; }
 
-    public CharacterBase Character;
+    public Character3 Character;
     public SimpleCameraController Camera;
     public Level Level;
     public Ksids Ksids { get; private set; }
@@ -40,6 +41,15 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             else
                 Camera.DeactivateControl();
         }
+
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.BackQuote))
+        {
+            EditorWindow window = EditorWindow.focusedWindow;
+            // Assume the game view is focused.
+            window.maximized = !window.maximized;
+        }
+#endif
 
         if (!cameraMode)
             Character.GameUpdate();
