@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Core;
+﻿using Assets.Scripts;
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -49,6 +50,10 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
         var p = Instantiate(this, parent);
         p.transform.localPosition = pos;
         map.Add(p);
+        if (p.TryGetComponent<IActiveObject>(out var ao))
+        {
+            Game.Instance.ActivateObject(ao);
+        }
     }
 
     public bool IsTrigger => (CellBlocking & CellBLocking.Trigger) != 0;

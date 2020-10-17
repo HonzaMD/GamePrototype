@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be4f2a26e99f6f14aab6dc6337379350, type: 3}
+  m_Name: SmallMonster Settings
+  m_EditorClassIdentifier: 
+  maxSpeed: 1
+  maxAcceleration: 0.3
+  jumpHeight: 0.6
+  LegTimeout: 5
+  LegForce: 0.7
+  LegForceDampening: 0.3
+  LegSideLimit: 1
+  DragCoef: 1
+  MaxArmHoldVel: 1
+  ArmInForceCoef: 0.5
+  minGroundDotProduct: 0.76604444
+  armCatchLayerMask: 257

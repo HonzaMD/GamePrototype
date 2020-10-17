@@ -62,6 +62,7 @@ namespace Assets.Scripts.Map
                 case ' ': return null;
                 case 'L':
                 case 'R': return SearchLadder(ch, x, y, prefabsStore);
+                case 'm': return prefabsStore.SmallMonster;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

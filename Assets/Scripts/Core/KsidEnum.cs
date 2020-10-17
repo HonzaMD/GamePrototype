@@ -13,5 +13,6 @@ namespace Assets.Scripts.Core
         Character,
         Catch,
         Ladder,
+        SmallMonster,
     }
 }

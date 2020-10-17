@@ -10,22 +10,7 @@ using UnityEngine;
 
 public abstract class ChLegsArms : MonoBehaviour
 {
-	[SerializeField, Range(0f, 100f)]
-	public float maxSpeed = 5f;
-
-	[SerializeField, Range(0f, 100f)]
-	float maxAcceleration = 0.3f;
-
-	[SerializeField, Range(0f, 10f)]
-	float jumpHeight = 1.2f;
-
-	public float LegForce = 1.5f;
-	public float LegSideLimit = 3;
-	public float DragCoef = 1f;
-	public float MaxArmHoldVel = 1f;
-
-	const float maxGroundAngle = 40f;
-	private float minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+	public ChSettings Settings;
 
 	public Transform[] Legs;
 	private float[] legArmStatus = new float[4];
@@ -37,17 +22,15 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	public SphereCollider LegSphere;
 	public SphereCollider ArmSphere;
+	private Vector2Int armCellRadius;
 
 	protected Rigidbody body;
+	
 	protected Vector2 desiredVelocity;
 	protected bool desiredJump;
-
 	protected float desiredZMove;
-
 	protected bool desiredCatch;
 
-	private Vector2Int armCellRadius;
-	private int armCatchLayerMask;
 
 	private static List<Vector2> armCandidates = new List<Vector2>();
 	private static List<Placeable> placeables = new List<Placeable>();
@@ -59,7 +42,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		armCellRadius.y = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.y);
 
 		legZ = Legs.Select(l => l.position.z).ToArray();
-		armCatchLayerMask = LayerMask.GetMask("Default", "Catches");
+		Settings.armCatchLayerMask = LayerMask.GetMask("Default", "Catches");
 	}
 
 	protected void AdjustLegsArms()
@@ -88,7 +71,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		for (int f = 0; f < legArmStatus.Length; f++)
 		{
 			if (legArmStatus[f] <= 1)
-				legArmStatus[f] -= Time.deltaTime * maxSpeed * 1.3f;
+				legArmStatus[f] -= Time.deltaTime * Settings.LegTimeout;
 		}
 	}
 
@@ -151,6 +134,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	private void RemoveLeg(int index)
 	{
 		Legs[index].gameObject.SetActive(false);
+		Legs[index].SetParent(transform, true);
 		legArmStatus[index] = 1;
 	}
 
@@ -210,7 +194,7 @@ public abstract class ChLegsArms : MonoBehaviour
 				return;
 		}
 
-		Vector3 direction = Vector3.down * maxSpeed + body.velocity;
+		Vector3 direction = Vector3.down * Settings.maxSpeed + body.velocity;
 		if (RayCastLeg(index, direction, LegSphere.radius))
 			return;
 
@@ -230,7 +214,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (Physics.Raycast(LegSphere.transform.position, direction, out var hitInfo, radius))
 		{
-			if (hitInfo.normal.y >= minGroundDotProduct)
+			if (hitInfo.normal.y >= Settings.minGroundDotProduct)
 			{
 				PlaceLeg(index, ref hitInfo);
 				return true;
@@ -241,6 +225,7 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void PlaceLeg(int index, ref RaycastHit hitInfo)
 	{
+		Legs[index].SetParent(FindPlaceableTransform(hitInfo.transform), true);
 		Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, legZ[index] + transform.position.z);
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 		Legs[index].gameObject.SetActive(true);
@@ -249,19 +234,27 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void PlaceLeg3d(int index, ref RaycastHit hitInfo)
 	{
+		Legs[index].SetParent(FindPlaceableTransform(hitInfo.transform), true);
 		Legs[index].position = hitInfo.point;
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 		Legs[index].gameObject.SetActive(true);
 		legArmStatus[index] = 2;
 	}
 
-	private void PlaceLeg(int index, Vector3 point, Vector3 normal)
+	private Transform FindPlaceableTransform(Transform t)
 	{
-		Legs[index].position = new Vector3(point.x, point.y, legZ[index] + transform.position.z);
-		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, normal);
-		Legs[index].gameObject.SetActive(true);
-		legArmStatus[index] = 2;
+		while (t.parent != null && !t.TryGetComponent<Placeable>(out _))
+			t = t.parent;
+		return t;
 	}
+
+	//private void PlaceLeg(int index, Vector3 point, Vector3 normal)
+	//{
+	//	Legs[index].position = new Vector3(point.x, point.y, legZ[index] + transform.position.z);
+	//	Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, normal);
+	//	Legs[index].gameObject.SetActive(true);
+	//	legArmStatus[index] = 2;
+	//}
 
 	private bool SelectFreeLeg(out int index) => SelectFreeLegArm(out index, 0, 1);
 	private bool SelectFreeArm(out int index) => SelectFreeLegArm(out index, 2, 3);
@@ -293,13 +286,14 @@ public abstract class ChLegsArms : MonoBehaviour
 
 		foreach (var p in placeables)
 		{
-			if (p.TryGetComponent<Collider>(out var col))
+			var col = p.GetComponentInChildren<Collider>();
+			if (col != null)
 			{
 				var center3d = ArmSphere.transform.position + new Vector3(0, 0, legZ[index]);
 				var pos = col.ClosestPoint(center3d);
 				if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center3d) >= 0)
 				{
-					if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, armCatchLayerMask))
+					if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask))
 					{
 						if ((hitInfo.point - pos).sqrMagnitude < 0.001)
 						{
@@ -356,7 +350,7 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private bool RayCastArm(int index, Vector3 candidate, float radius)
 	{
-		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, armCatchLayerMask))
+		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask))
 		{
 			if ((hitInfo.point - candidate).sqrMagnitude < 0.001)
 			{
@@ -364,11 +358,11 @@ public abstract class ChLegsArms : MonoBehaviour
 				return true;
 			}
 		}
-		else if ((ArmSphere.transform.position - candidate).sqrMagnitude <= radius * radius)
-		{
-			PlaceLeg(index, candidate, (candidate - ArmSphere.transform.position).normalized);
-			return true;
-		}
+		//else if ((ArmSphere.transform.position - candidate).sqrMagnitude <= radius * radius)
+		//{
+		//	PlaceLeg(index, candidate, (candidate - ArmSphere.transform.position).normalized);
+		//	return true;
+		//}
 		return false;
 	}
 
@@ -377,7 +371,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (ArmCatched)
 		{
-			var force = Vector2.ClampMagnitude(desiredVelocity - body.velocity.XY(), maxAcceleration);
+			var force = Vector2.ClampMagnitude(desiredVelocity - body.velocity.XY(), Settings.maxAcceleration);
 			body.AddForce(force, ForceMode.VelocityChange);
 			legUpDir = Vector3.up;
 		}
@@ -387,7 +381,7 @@ public abstract class ChLegsArms : MonoBehaviour
 			var xAxis = legRot * Vector3.right;
 			legUpDir = legRot * Vector3.up;
 			var xVel = Vector3.Dot(xAxis, body.velocity);
-			var force = Mathf.Clamp(desiredVelocity.x - xVel, -maxAcceleration, maxAcceleration);
+			var force = Mathf.Clamp(desiredVelocity.x - xVel, -Settings.maxAcceleration, Settings.maxAcceleration);
 			body.AddForce(xAxis * force, ForceMode.VelocityChange);
 		}
 
@@ -398,7 +392,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			if (LegOnGround)
 			{
-				body.AddForce(0, Mathf.Sqrt(-2f * Physics.gravity.y * jumpHeight) - body.velocity.y, 0, ForceMode.VelocityChange);
+				body.AddForce(0, Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.velocity.y, 0, ForceMode.VelocityChange);
 				desiredJump = false;
 				jumpStarted = true;
 				RemoveAllLegs();
@@ -434,7 +428,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (Physics.Raycast(LegSphere.transform.position, -legUpDir, out var hitInfo, LegSphere.radius * 1.3f))
 		{
-			if (hitInfo.normal.y >= minGroundDotProduct)
+			if (hitInfo.normal.y >= Settings.minGroundDotProduct)
 			{
 				return Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 			}
@@ -445,7 +439,7 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private Vector3 GetDrag()
 	{
-		return body.velocity * -body.velocity.magnitude * DragCoef;
+		return body.velocity * -body.velocity.magnitude * Settings.DragCoef;
 	}
 
 	private float GetLegForce(int index)
@@ -454,8 +448,8 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			var legDir = LegSphere.transform.position.XY() - Legs[index].position.XY();
 			float force = (LegSphere.radius - legDir.magnitude) / LegSphere.radius;
-			force *= LegForce;
-			force += Vector3.Dot(legUpDir, body.velocity) * -0.3f;
+			force *= Settings.LegForce;
+			force += Vector3.Dot(legUpDir, body.velocity) * -Settings.LegForceDampening;
 			return force;
 		}
 		return 0;
@@ -466,7 +460,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		float force = 0;
 		force += GetLegSideForce(0);
 		force += GetLegSideForce(1);
-		float limit = LegSideLimit - Math.Min(Math.Abs(desiredVelocity.x), LegSideLimit);
+		float limit = Settings.LegSideLimit - Math.Min(Math.Abs(desiredVelocity.x), Settings.LegSideLimit);
 		return Mathf.Clamp(force, -limit, limit);
 	}
 
@@ -475,7 +469,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		if (legArmStatus[index] == 2)
 		{
 			var delta = (LegSphere.transform.position.x - Legs[index].position.x) / LegSphere.radius;
-			return delta * delta * delta * LegSideLimit;
+			return delta * delta * delta * Settings.LegSideLimit;
 		}
 		return 0;
 	}
@@ -498,8 +492,8 @@ public abstract class ChLegsArms : MonoBehaviour
 			var armDirNorm = armDir.normalized;
 			var holdVel = Vector2.Dot(armDirNorm, forceToReduce);
 			var inForce = armDir.magnitude / ArmSphere.radius;
-			inForce *= inForce * 0.5f;
-			holdVel = Mathf.Clamp(holdVel + inForce, -MaxArmHoldVel, MaxArmHoldVel);
+			inForce *= inForce * Settings.ArmInForceCoef;
+			holdVel = Mathf.Clamp(holdVel + inForce, -Settings.MaxArmHoldVel, Settings.MaxArmHoldVel);
 			result += -holdVel * armDirNorm;
 			forceToReduce += result;
 		}

@@ -18,7 +18,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
     private List<Placeable> mapContentToserialize;
     private MapSettings mapSettings;
 
-    void Awake()
+    void Start()
     {
         CellList.CheckEmpty();
 

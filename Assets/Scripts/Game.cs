@@ -18,6 +18,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Ksids Ksids { get; private set; }
 
     private List<Trigger> triggers = new List<Trigger>();
+    private HashSet<IActiveObject> activeObjects = new HashSet<IActiveObject>();
     private bool cameraMode;
 
     void Update()
@@ -51,9 +52,19 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 #endif
 
+        UpdateObjects();
+
         if (!cameraMode)
             Character.GameUpdate();
         Camera.GameUpdate();
+    }
+
+    private void UpdateObjects()
+    {
+        foreach (var o in activeObjects)
+        {
+            o.GameUpdate();
+        }
     }
 
     private void UpdateTriggers()
@@ -69,6 +80,9 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     {
         triggers.Add(trigger);
     }
+
+    public void ActivateObject(IActiveObject o) => activeObjects.Add(o);
+    public void DeactivateObject(IActiveObject o) => activeObjects.Remove(o);
 
     private void Awake()
     {

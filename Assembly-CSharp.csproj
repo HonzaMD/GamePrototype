@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Placeable.cs" />
+    <Compile Include="Assets\Scripts\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Ladder.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
@@ -79,7 +80,9 @@
     <Compile Include="Assets\Scripts\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Level.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
-    <Compile Include="Assets\Scripts\ChLegsArms.cs" />
+    <Compile Include="Assets\Scripts\ChSettings.cs" />
+    <Compile Include="Assets\Scripts\SmallMonster.cs" />
+    <Compile Include="Assets\Scripts\IActiveObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

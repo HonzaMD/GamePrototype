@@ -11,7 +11,7 @@ using UnityEngine.Animations.Rigging;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(Placeable), typeof(Rigidbody))]
-public class Character3 : ChLegsArms
+public class Character3 : ChLegsArms, IActiveObject
 {
 	[HideInInspector]
 	public SimpleCameraController Camera { get; set; }
@@ -70,11 +70,11 @@ public class Character3 : ChLegsArms
 
 		if (ArmCatched)
 		{
-			desiredVelocity = new Vector2(inX, inY) * maxSpeed * speedMode;
+			desiredVelocity = new Vector2(inX, inY) * Settings.maxSpeed * speedMode;
 		}
 		else
 		{
-			desiredVelocity.x = inX * maxSpeed * speedMode;
+			desiredVelocity.x = inX * Settings.maxSpeed * speedMode;
 			desiredVelocity.y = 0;
 		}
 

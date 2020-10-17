@@ -93,7 +93,6 @@ GameObject:
   - component: {fileID: 918441463478813758}
   - component: {fileID: 918441463478813759}
   - component: {fileID: 918441463478813752}
-  - component: {fileID: 420835001277051223}
   m_Layer: 8
   m_Name: Chyt1
   m_TagString: Untagged
@@ -108,12 +107,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 918441463478813754}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.125, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.06, y: 0.06, z: 0.4}
   m_Children: []
-  m_Father: {fileID: 918441463602597636}
-  m_RootOrder: 2
+  m_Father: {fileID: 224885441960915451}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &918441463478813758
 MeshFilter:
@@ -177,23 +176,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &420835001277051223
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 918441463478813754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PosOffset: {x: -0.03, y: -0.03}
-  PlacedPosition: {x: 0, y: 0}
-  Size: {x: 0.06, y: 0.06}
-  Ksid: 3
-  CellBlocking: 64
 --- !u!1 &918441463602597637
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,8 +206,8 @@ Transform:
   m_Children:
   - {fileID: 918441463326546469}
   - {fileID: 918441464549123499}
-  - {fileID: 918441463478813753}
-  - {fileID: 918441464814352363}
+  - {fileID: 224885441960915451}
+  - {fileID: 4967069887771595756}
   m_Father: {fileID: 918441464927980898}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -340,7 +322,6 @@ GameObject:
   - component: {fileID: 918441464814352360}
   - component: {fileID: 918441464814352361}
   - component: {fileID: 918441464814352362}
-  - component: {fileID: 7737982453279009154}
   m_Layer: 8
   m_Name: Chyt2
   m_TagString: Untagged
@@ -355,12 +336,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 918441464814352372}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.375, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.06, y: 0.06, z: 0.4}
   m_Children: []
-  m_Father: {fileID: 918441463602597636}
-  m_RootOrder: 3
+  m_Father: {fileID: 4967069887771595756}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &918441464814352360
 MeshFilter:
@@ -424,23 +405,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7737982453279009154
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 918441464814352372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PosOffset: {x: -0.03, y: -0.03}
-  PlacedPosition: {x: 0, y: 0}
-  Size: {x: 0.06, y: 0.06}
-  Ksid: 3
-  CellBlocking: 64
 --- !u!1 &918441464927980908
 GameObject:
   m_ObjectHideFlags: 0
@@ -501,3 +465,101 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Start: {x: 0, y: 0, z: 0}
   End: {x: 0, y: 0, z: 0}
+--- !u!1 &1003090861249858526
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4967069887771595756}
+  - component: {fileID: 4004178152689812434}
+  m_Layer: 8
+  m_Name: ChytRoot2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4967069887771595756
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003090861249858526}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.375, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 918441464814352363}
+  m_Father: {fileID: 918441463602597636}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4004178152689812434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003090861249858526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PosOffset: {x: -0.03, y: -0.03}
+  PlacedPosition: {x: 0, y: 0}
+  Size: {x: 0.06, y: 0.06}
+  Ksid: 3
+  CellBlocking: 64
+--- !u!1 &6896273033994119791
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 224885441960915451}
+  - component: {fileID: 6627290441369843209}
+  m_Layer: 8
+  m_Name: ChytRoor1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &224885441960915451
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6896273033994119791}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.125, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 918441463478813753}
+  m_Father: {fileID: 918441463602597636}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6627290441369843209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6896273033994119791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PosOffset: {x: -0.03, y: -0.03}
+  PlacedPosition: {x: 0, y: 0}
+  Size: {x: 0.06, y: 0.06}
+  Ksid: 3
+  CellBlocking: 64
