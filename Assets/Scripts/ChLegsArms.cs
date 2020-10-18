@@ -25,6 +25,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	private Vector2Int armCellRadius;
 
 	protected Rigidbody body;
+	protected Placeable placeable;
 	
 	protected Vector2 desiredVelocity;
 	protected bool desiredJump;
@@ -38,6 +39,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	protected void AwakeB()
 	{
 		body = GetComponent<Rigidbody>();
+		placeable = GetComponent<Placeable>();
 		armCellRadius.x = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.x);
 		armCellRadius.y = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.y);
 
@@ -47,6 +49,8 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	protected void AdjustLegsArms()
 	{
+		Game.Map.Move(placeable);
+
 		DoTimeouts();
 
 		TryRemoveLeg(0);
@@ -277,7 +281,7 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void TryPlaceArm(int index)
 	{
-		var map = Game.Instance.Level.Map;
+		var map = Game.Map;
 		bool otherPlaced = ArmCatched;
 		var center = ArmSphere.transform.position.XY();
 

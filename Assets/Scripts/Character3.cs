@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityTemplateProjects;
 
-[RequireComponent(typeof(Placeable), typeof(Rigidbody))]
+[RequireComponent(typeof(PlaceableCellPart), typeof(Rigidbody))]
 public class Character3 : ChLegsArms, IActiveObject
 {
 	[HideInInspector]

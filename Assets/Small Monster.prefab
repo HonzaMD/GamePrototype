@@ -926,8 +926,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8390175372396615594}
   - component: {fileID: 8390175372396615592}
-  - component: {fileID: 8390175372396615599}
   - component: {fileID: -6319615523608067790}
+  - component: {fileID: 8893168322709713060}
   m_Layer: 0
   m_Name: Small Monster
   m_TagString: Untagged
@@ -970,23 +970,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 120
   m_CollisionDetection: 0
---- !u!114 &8390175372396615599
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8390175372396615598}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PosOffset: {x: 0, y: 0}
-  PlacedPosition: {x: 0, y: 0}
-  Size: {x: 0.5, y: 0.5}
-  Ksid: 5
-  CellBlocking: 64
 --- !u!114 &-6319615523608067790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1007,6 +990,24 @@ MonoBehaviour:
   - {fileID: 5057740291242110320}
   LegSphere: {fileID: 8390175372771104848}
   ArmSphere: {fileID: 8390175371901419850}
+  desiredDirection: -1
+--- !u!114 &8893168322709713060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8390175372396615598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d489571c8bc121e4682fa4314ab5a982, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PosOffset: {x: -0.15, y: -0.15}
+  PlacedPosition: {x: 0, y: 0}
+  Size: {x: 0.3, y: 0.3}
+  Ksid: 5
+  CellBlocking: 64
 --- !u!1 &8390175372771104854
 GameObject:
   m_ObjectHideFlags: 0
@@ -1075,7 +1076,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8390175372962697695}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0.25, y: 0.3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8390175372771104855}

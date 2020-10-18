@@ -30,4 +30,6 @@ public class ChSettings : ScriptableObject
 	public float minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
 
 	public int armCatchLayerMask;
+
+	public bool monsterMoveOnGround = true;
 }

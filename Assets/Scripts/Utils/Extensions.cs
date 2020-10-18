@@ -9,16 +9,16 @@ namespace Assets.Scripts.Utils
 {
     public static class Extensions
     {
-        public static CellBLocking ToFullBlock(this Transform transform)
+        public static CellBlocking ToFullBlock(this Transform transform)
         {
             var z = transform.position.z;
-            return z < 0 ? CellBLocking.Cell0 : z == 0 ? CellBLocking.Cell1 : CellBLocking.Cell2;
+            return z < 0 ? CellBlocking.Cell0 : z == 0 ? CellBlocking.Cell1 : CellBlocking.Cell2;
         }
 
-        public static CellBLocking ToPartBlock(this Transform transform)
+        public static CellBlocking ToPartBlock(this Transform transform)
         {
             var z = transform.position.z;
-            return z < 0 ? CellBLocking.Cell0Part : z == 0 ? CellBLocking.Cell1Part : CellBLocking.Cell2Part;
+            return z < 0 ? CellBlocking.Cell0Part : z == 0 ? CellBlocking.Cell1Part : CellBlocking.Cell2Part;
         }
     }
 }

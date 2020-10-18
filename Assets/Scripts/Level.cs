@@ -24,6 +24,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
 
         var levelSource = new Level1();
         Map = levelSource.CreateMap(Game.Ksids);
+        Game.Map = Map;
 
         foreach (var pair in levelSource.Placeables(PrefabsStore))
         {
@@ -63,6 +64,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
                 throw new InvalidOperationException("Divnost, cekal jsem ze Map bude null!");
             CellList.CheckEmpty();
             Map = new Map(mapSettings, Game.Ksids);
+            Game.Map = Map;
 
             foreach (var p in mapContentToserialize)
             {

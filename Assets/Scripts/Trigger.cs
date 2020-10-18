@@ -24,7 +24,7 @@ namespace Assets.Scripts
 
         public Trigger()
         {
-            CellBlocking = CellBLocking.Trigger;
+            CellBlocking = CellBlocking.Trigger;
         }
 
         public override KsidEnum TriggerTargets => Targets;

@@ -11,6 +11,7 @@ using UnityTemplateProjects;
 public class Game : MonoBehaviour, ISerializationCallbackReceiver
 {
     public static Game Instance { get; private set; }
+    public static Map Map;
 
     public Character3 Character;
     public SimpleCameraController Camera;

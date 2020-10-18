@@ -513,7 +513,7 @@ MonoBehaviour:
   PlacedPosition: {x: 0, y: 0}
   Size: {x: 0.06, y: 0.06}
   Ksid: 3
-  CellBlocking: 64
+  CellBlocking: 0
 --- !u!1 &6896273033994119791
 GameObject:
   m_ObjectHideFlags: 0
@@ -562,4 +562,4 @@ MonoBehaviour:
   PlacedPosition: {x: 0, y: 0}
   Size: {x: 0.06, y: 0.06}
   Ksid: 3
-  CellBlocking: 64
+  CellBlocking: 0

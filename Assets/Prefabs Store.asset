@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Block: {fileID: -8857820850559761650, guid: 29931b6639b832b40a107df3aa74326d, type: 3}
   Ladder: {fileID: 8492024675780455207, guid: 02aba0cea4c47ae4ca4a653880f5c44b, type: 3}
-  SmallMonster: {fileID: 8390175372396615599, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
+  SmallMonster: {fileID: 8893168322709713060, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
     type: 3}

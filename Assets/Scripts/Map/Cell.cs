@@ -8,7 +8,7 @@ namespace Assets.Scripts.Map
     public struct Cell
     {
         private Placeable first;
-        public CellBLocking Blocking { get; private set; }       
+        public CellBlocking Blocking { get; private set; }       
         private CellListInfo listInfo;
 
         public static Cell Empty;
@@ -74,7 +74,7 @@ namespace Assets.Scripts.Map
             {
                 if (size > 1)
                 {
-                    Blocking = CellBLocking.Free;
+                    Blocking = CellBlocking.Free;
                     var arr = CellList.GetData(listInfo, out int offset);
                     size--;
 
@@ -91,7 +91,7 @@ namespace Assets.Scripts.Map
                 {
                     first = null;
                     listInfo.Size = 0;
-                    Blocking = CellBLocking.Free;
+                    Blocking = CellBlocking.Free;
                 }
             }
             else if (size > 1)
@@ -119,11 +119,22 @@ namespace Assets.Scripts.Map
 
         public void RecomputeBlocking()
         {
-            Blocking = CellBLocking.Free;
+            Blocking = CellBlocking.Free;
             foreach (var placeable in this)
             {
                 Blocking |= placeable.CellBlocking;
             }
+        }
+
+        public CellBlocking BlockingExcept(Placeable exclude)
+        {
+            var ret = CellBlocking.Free;
+            foreach (var placeable in this)
+            {
+                if (placeable != exclude)
+                    ret |= placeable.CellBlocking;
+            }
+            return ret;
         }
 
         public Enumerator GetEnumerator() => new Enumerator(listInfo, first);

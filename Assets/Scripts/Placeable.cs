@@ -9,7 +9,7 @@ using UnityEngine;
 
 
 [Flags]
-public enum CellBLocking
+public enum CellBlocking
 {
     Free            = 0b0000,
     Trigger         = 0b0001,
@@ -32,7 +32,7 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
     public Vector2 PlacedPosition;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
     public KsidEnum Ksid;
-    public CellBLocking CellBlocking = CellBLocking.AllCells;
+    public CellBlocking CellBlocking = CellBlocking.AllCells;
     [HideInInspector, NonSerialized]
     public int Tag;
 
@@ -56,5 +56,5 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
         }
     }
 
-    public bool IsTrigger => (CellBlocking & CellBLocking.Trigger) != 0;
+    public bool IsTrigger => (CellBlocking & CellBlocking.Trigger) != 0;
 }

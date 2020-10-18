@@ -242,9 +242,13 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public CellBLocking GetCellBlocking(Vector2 pos)
+        public CellBlocking GetCellBlocking(Vector2 pos)
         {
-            return WorldToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBLocking.Free;
+            return WorldToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBlocking.Free;
+        }
+        public CellBlocking GetCellBlocking(Vector2 pos, Placeable exclude)
+        {
+            return WorldToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellBlocking.Free;
         }
 
         public ref Cell GetCell(Vector2 pos)
@@ -272,9 +276,13 @@ namespace Assets.Scripts.Map
             return false;
         }
 
-        public CellBLocking GetCellBlocking(Vector2Int pos)
+        public CellBlocking GetCellBlocking(Vector2Int pos)
         {
-            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBLocking.Free;
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBlocking.Free;
+        }
+        public CellBlocking GetCellBlocking(Vector2Int pos, Placeable exclude)
+        {
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellBlocking.Free;
         }
 
         public ref Cell GetCell(Vector2Int pos)
@@ -405,6 +413,12 @@ namespace Assets.Scripts.Map
         public Vector2 CellToWorld(Vector2Int cPoss)
         {
             return new Vector2(cPoss.x * CellSize2d.x, cPoss.y * CellSize2d.y) + mapOffset;
+        }
+
+        public bool IsXNearNextCell(float x, int direction)
+        {
+            float xCell = x * CellSize2dInv.x;
+            return (Mathf.FloorToInt(xCell) != Mathf.FloorToInt(xCell + direction * 0.5f));
         }
     }
 }
