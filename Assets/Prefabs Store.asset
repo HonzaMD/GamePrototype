@@ -16,3 +16,4 @@ MonoBehaviour:
   Ladder: {fileID: 8492024675780455207, guid: 02aba0cea4c47ae4ca4a653880f5c44b, type: 3}
   SmallMonster: {fileID: 8893168322709713060, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
     type: 3}
+  Rope: {fileID: 1112798348354775138, guid: fe2ebe000a162554bb81c88b0bc601a1, type: 3}

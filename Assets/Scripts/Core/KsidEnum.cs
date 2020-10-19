@@ -14,5 +14,6 @@ namespace Assets.Scripts.Core
         Catch,
         Ladder,
         SmallMonster,
+        Rope,
     }
 }

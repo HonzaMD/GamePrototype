@@ -85,6 +85,8 @@
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
     <Compile Include="Assets\Scripts\PlaceableCell.cs" />
     <Compile Include="Assets\Scripts\PlaceableCellPart.cs" />
+    <Compile Include="Assets\Scripts\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Rope.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

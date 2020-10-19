@@ -11,6 +11,7 @@ namespace Assets.Scripts.Core
         public KsidDependencies()
             : base(new (KsidEnum child, KsidEnum parent)[]
             {
+                (KsidEnum.Rope, KsidEnum.Catch)
             })
         {
         }

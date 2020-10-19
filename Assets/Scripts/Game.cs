@@ -20,6 +20,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private List<Trigger> triggers = new List<Trigger>();
     private HashSet<IActiveObject> activeObjects = new HashSet<IActiveObject>();
+    private Dictionary<Placeable, int> movingObjects = new Dictionary<Placeable, int>();
+    private int movingObjectInsterPtr;
+    private int movingObjectWorkPtr;
+    private const int movingObjectMaxPtr = 20;
+
     private bool cameraMode;
 
     void Update()
@@ -53,6 +58,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 #endif
 
+        UpdateMovingObjects();
         UpdateObjects();
 
         if (!cameraMode)
@@ -60,12 +66,32 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Camera.GameUpdate();
     }
 
+
     private void UpdateObjects()
     {
         foreach (var o in activeObjects)
         {
             o.GameUpdate();
         }
+    }
+
+    private void UpdateMovingObjects()
+    {
+        foreach (var p in movingObjects)
+        {
+            if (p.Value == movingObjectWorkPtr)
+            {
+                Map.Move(p.Key);
+            }
+            else
+            {
+                p.Key.UpdateMapPosIfMoved(Map);
+            }
+        }
+
+        movingObjectWorkPtr++;
+        if (movingObjectWorkPtr >= movingObjectMaxPtr)
+            movingObjectWorkPtr = 0;
     }
 
     private void UpdateTriggers()
@@ -84,6 +110,15 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     public void ActivateObject(IActiveObject o) => activeObjects.Add(o);
     public void DeactivateObject(IActiveObject o) => activeObjects.Remove(o);
+
+    internal void AddMovingObject(Placeable p)
+    {
+        movingObjects[p] = movingObjectInsterPtr++;
+        if (movingObjectInsterPtr >= movingObjectMaxPtr)
+            movingObjectInsterPtr = 0;
+    }
+    internal void RemoveMovingObject(Placeable p) => movingObjects.Remove(p);
+
 
     private void Awake()
     {

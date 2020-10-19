@@ -57,4 +57,10 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
     }
 
     public bool IsTrigger => (CellBlocking & CellBlocking.Trigger) != 0;
+
+    public void UpdateMapPosIfMoved(Map map)
+    {
+        if ((transform.position.XY() + PosOffset - PlacedPosition).sqrMagnitude > 0.1f * 0.1f)
+            map.Move(this);
+    }
 }

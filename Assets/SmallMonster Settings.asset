@@ -24,3 +24,4 @@ MonoBehaviour:
   ArmInForceCoef: 0.5
   minGroundDotProduct: 0.76604444
   armCatchLayerMask: 257
+  monsterMoveOnGround: 1
