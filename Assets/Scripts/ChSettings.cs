@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Map;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,10 +27,33 @@ public class ChSettings : ScriptableObject
 	public float MaxArmHoldVel = 1f;
 	public float ArmInForceCoef = 0.5f;
 
-	const float maxGroundAngle = 40f;
-	public float minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+	public float maxGroundAngle = 40f;
+	public float minGroundDotProduct { get; private set; }
 
-	public int armCatchLayerMask;
+	public int armCatchLayerMask { get; private set; }
+	public int legStandLayerMask { get; private set; }
 
 	public bool monsterMoveOnGround = true;
+
+	[NonSerialized]
+	private bool initialized;
+	[NonSerialized]
+	private Vector2Int armCellRadius;
+	public float[] legZ { get; private set; }
+
+	public void Initialize(SphereCollider ArmSphere, Transform[] Legs)
+	{
+		if (!initialized)
+		{
+			initialized = true;
+			legZ = Legs.Select(l => l.position.z).ToArray();
+			armCatchLayerMask = LayerMask.GetMask("Default", "Catches", "SmallObjs", "MovingObjs");
+			legStandLayerMask = LayerMask.GetMask("Default", "Catches", "MovingObjs");
+			armCellRadius.x = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.x);
+			armCellRadius.y = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.y);
+			minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+		}
+	}
+
+	public Vector2Int ArmCellRadius => armCellRadius;
 }
