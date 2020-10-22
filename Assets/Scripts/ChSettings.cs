@@ -24,8 +24,7 @@ public class ChSettings : ScriptableObject
 	public float LegForceDampening = 0.3f;
 	public float LegSideLimit = 3;
 	public float DragCoef = 1f;
-	public float MaxArmHoldVel = 1f;
-	public float ArmInForceCoef = 0.5f;
+	public float ArmInForceCoef = 2f;
 
 	public float maxGroundAngle = 40f;
 	public float minGroundDotProduct { get; private set; }

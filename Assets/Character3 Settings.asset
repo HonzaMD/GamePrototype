@@ -15,8 +15,11 @@ MonoBehaviour:
   maxSpeed: 5
   maxAcceleration: 0.3
   jumpHeight: 1.2
+  LegTimeout: 6.5
   LegForce: 1.5
+  LegForceDampening: 0.3
   LegSideLimit: 3
   DragCoef: 1
-  MaxArmHoldVel: 1
-  minGroundDotProduct: 0.76604444
+  ArmInForceCoef: 2
+  maxGroundAngle: 40
+  monsterMoveOnGround: 1

@@ -522,11 +522,11 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			var armDir = (ArmSphere.transform.position.XY() - Legs[index].position.XY());
 			var armDirNorm = armDir.normalized;
-			var holdVel = Vector2.Dot(armDirNorm, forceToReduce);
-			var inForce = armDir.magnitude / ArmSphere.radius;
-			inForce *= inForce * Settings.ArmInForceCoef;
-			holdVel = Mathf.Clamp(holdVel + inForce, -Settings.MaxArmHoldVel, Settings.MaxArmHoldVel);
-			var armForce = -holdVel * armDirNorm;
+			var holdVel = Vector2.Dot(armDirNorm, forceToReduce) + 1;
+			var inForce = armDir.sqrMagnitude / (ArmSphere.radius * ArmSphere.radius);
+			inForce = Mathf.Max(0, inForce - 0.7f * 0.7f);
+			inForce *= Settings.ArmInForceCoef * holdVel;
+			var armForce = -inForce * armDirNorm;
 			result += armForce;
 			forceToReduce += armForce;
 			SendOppositeForce(armForce, index);
