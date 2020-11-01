@@ -15,5 +15,7 @@ namespace Assets.Scripts.Core
         Ladder,
         SmallMonster,
         Rope,
+        CharacterHolds,
+        SmallMonsterHolds,
     }
 }

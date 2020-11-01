@@ -37,6 +37,7 @@ public class Character3 : ChLegsArms, IActiveObject
 		bool jumpButton = Input.GetButtonDown("Jump");
 		bool catchButton = Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftAlt);
 
+		desiredHold = Input.GetKey(KeyCode.V);
 		desiredCatch = catchButton;
 
 		if (ArmCatched && desiredCatch)

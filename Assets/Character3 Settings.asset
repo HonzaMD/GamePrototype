@@ -23,3 +23,7 @@ MonoBehaviour:
   ArmInForceCoef: 2
   maxGroundAngle: 40
   monsterMoveOnGround: 1
+  HoldPosition: {x: 0.5, y: 0}
+  HoldType: 7
+  HoldMoveSpeed: 30
+  HoldMoveAcceleration: 2

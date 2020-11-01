@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Core;
+using Assets.Scripts.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,11 @@ public class ChSettings : ScriptableObject
 	[NonSerialized]
 	private Vector2Int armCellRadius;
 	public float[] legZ { get; private set; }
+
+	public Vector2 HoldPosition;
+	public KsidEnum HoldType;
+	public float HoldMoveSpeed = 1f;
+	public float HoldMoveAcceleration = 0.2f;
 
 	public void Initialize(SphereCollider ArmSphere, Transform[] Legs)
 	{

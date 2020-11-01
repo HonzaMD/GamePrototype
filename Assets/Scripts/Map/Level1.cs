@@ -34,11 +34,11 @@ namespace Assets.Scripts.Map
 "HL                                 HH             HHHHHHHHHHHHHHHHHHHHH                                                                                                                                               P     ",
 "HL         HHHHHHH               HH               HHHHHH              HHHHHH                                                                                                                                          P     ",
 "HL                H                               HHHHHH                   H                                                                                                         HH                               P     ",
-"HL        H        HHHHHHHH                       HHHHHH                   H                                                                                                                                          P     ",
+"HL        H        HHHHHHHH                       HHHHHH                   H                                                    HH                                                                                    P     ",
 "HL                                                                                                                                                                                                                    P     ",
 "HH                         H                                                                                                                                                         HH                               P     ",
-"HHHHH                     HHHHH                                                                                                                                                                                       P    H",
-"HHHHHHHHH                                                                                                                HHHHHHHHH             HHHHHHHHHHHH                                                           P  HHH",
+"HHHHH                     HHHHH                                                                                                                                                                                            H",
+"HHHHHHHHH                                                                                                                HHHHHHHHH             HHHHHHHHHHHH                                                              HHH",
 "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ",
         };
     }
