@@ -48,11 +48,17 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
         var p = Instantiate(this, parent);
+        if (PosOffset.x < 0 || PosOffset.y < 0)
+            pos += new Vector3(0.25f, 0.25f, 0);
         p.transform.localPosition = pos;
         map.Add(p);
         if (p.TryGetComponent<IActiveObject>(out var ao))
         {
             Game.Instance.ActivateObject(ao);
+        }
+        else if (p.TryGetComponent<Rigidbody>(out var rb) && !rb.isKinematic)
+        {
+            Game.Instance.AddMovingObject(p);
         }
     }
 

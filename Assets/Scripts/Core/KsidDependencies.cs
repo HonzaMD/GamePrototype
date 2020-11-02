@@ -13,6 +13,7 @@ namespace Assets.Scripts.Core
             {
                 (KsidEnum.Rope, KsidEnum.Catch),
                 (KsidEnum.SmallMonster, KsidEnum.CharacterHolds),
+                (KsidEnum.Stone, KsidEnum.CharacterHolds),
             })
         {
         }

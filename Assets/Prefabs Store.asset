@@ -17,3 +17,4 @@ MonoBehaviour:
   SmallMonster: {fileID: 8893168322709713060, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
     type: 3}
   Rope: {fileID: 1112798348354775138, guid: fe2ebe000a162554bb81c88b0bc601a1, type: 3}
+  Stone: {fileID: 2664240410949540647, guid: e7d627188fb8ff940b9da868afa8345e, type: 3}

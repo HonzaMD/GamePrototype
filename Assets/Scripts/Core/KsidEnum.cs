@@ -17,5 +17,6 @@ namespace Assets.Scripts.Core
         Rope,
         CharacterHolds,
         SmallMonsterHolds,
+        Stone,
     }
 }

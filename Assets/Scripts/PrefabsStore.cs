@@ -7,4 +7,5 @@ public class PrefabsStore : ScriptableObject
     public Ladder Ladder;
     public Placeable SmallMonster;
     public Rope Rope;
+    public Placeable Stone;
 }
