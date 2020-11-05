@@ -443,8 +443,10 @@ public abstract class ChLegsArms : MonoBehaviour
 		other.GetComponentsInChildren<Collider>(colliders2);
 
 		foreach (var c1 in colliders1)
-			foreach (var c2 in colliders2)
-				Physics.IgnoreCollision(c2, c1, ignore);
+			if (c1.enabled)
+				foreach (var c2 in colliders2)
+					if (c2.enabled)
+						Physics.IgnoreCollision(c2, c1, ignore);
 
 		colliders1.Clear();
 		colliders2.Clear();
@@ -548,7 +550,9 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			var armPos = Legs[index].position.XY();
 			var destPos = ArmSphere.transform.position.XY();
-			if (destPos.x < armPos.x)
+			GetDecollisionDistance(body, out var decollision);
+
+			if (destPos.x < armPos.x + decollision.x)
 			{
 				destPos += Settings.HoldPosition;
 			}
@@ -557,12 +561,50 @@ public abstract class ChLegsArms : MonoBehaviour
 				destPos += new Vector2(-Settings.HoldPosition.x, Settings.HoldPosition.y);
 			}
 			destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
+			destPos += decollision;
 
 			var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
 			var force = Vector2.ClampMagnitude(dist - body.velocity.XY(), Settings.HoldMoveAcceleration);
 			body.AddForce(force, ForceMode.VelocityChange);
+			body.angularVelocity = Vector3.zero;
 		}
 	}
+
+	private void GetDecollisionDistance(Rigidbody other, out Vector2 result)
+	{
+		GetComponentsInChildren<Collider>(colliders1);
+		other.GetComponentsInChildren<Collider>(colliders2);
+		result = Vector2.zero;
+
+		foreach (var c1 in colliders1)
+		{
+			if (c1.enabled)
+			{
+				foreach (var c2 in colliders2)
+				{
+					if (c2.enabled)
+					{
+						if (Physics.ComputePenetration(c1, c1.transform.position, c1.transform.rotation, c2, c2.transform.position, c2.transform.rotation, out var dir, out var dist))
+						{
+							Debug.Log("col dedected " + dir * -dist);
+							if (dir.x != 0 || dir.y != 0)
+							{
+								result = dir.XY() * -dist;
+
+								colliders1.Clear();
+								colliders2.Clear();
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		colliders1.Clear();
+		colliders2.Clear();
+	}
+
 
 	private Vector3 GetGroundVelocity()
 	{

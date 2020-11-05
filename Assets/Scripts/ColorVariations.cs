@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ColorVariations : MonoBehaviour
 {
-    static readonly int colorPropertyId = Shader.PropertyToID("_BaseColor");
+    static readonly int colorPropertyId = Shader.PropertyToID("_Color");
     static MaterialPropertyBlock sharedPropertyBlock;
 
 
