@@ -38,6 +38,8 @@ public abstract class ChLegsArms : MonoBehaviour
 	protected float desiredZMove;
 	protected bool desiredCatch;
 	protected bool desiredHold;
+	protected bool desiredCrouch;
+	protected Vector2 holdTarget;
 
 
 	private static List<Vector2> armCandidates = new List<Vector2>();
@@ -63,7 +65,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		TryRemoveArm(2);
 		TryRemoveArm(3);
 
-		if (Vector3.Dot(body.velocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
+		if (!desiredCrouch && Vector3.Dot(body.velocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
 		{
 			TryPlaceLeg(index);
 		}
@@ -109,20 +111,27 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (legArmStatus[index] == Catch)
 		{
-			var lpos = Legs[index].position.XY();
-			var center = LegSphere.transform.position.XY();
-			var radius = desiredJump ? LegSphere.radius * 1.2f : LegSphere.radius;
-			if ((lpos - center).sqrMagnitude > radius * radius)
+			if (desiredCrouch)
 			{
 				RemoveLeg(index);
 			}
-			else if (legArmStatus[OtherIndex(index)] == Catch)
+			else
 			{
-				float otherX = Legs[OtherIndex(index)].position.x;
-				if (lpos.x <= otherX && otherX < center.x && body.velocity.x >= 0)
+				var lpos = Legs[index].position.XY();
+				var center = LegSphere.transform.position.XY();
+				var radius = desiredJump ? LegSphere.radius * 1.2f : LegSphere.radius;
+				if ((lpos - center).sqrMagnitude > radius * radius)
+				{
 					RemoveLeg(index);
-				if (lpos.x >= otherX && otherX > center.x && body.velocity.x <= 0)
-					RemoveLeg(index);
+				}
+				else if (legArmStatus[OtherIndex(index)] == Catch)
+				{
+					float otherX = Legs[OtherIndex(index)].position.x;
+					if (lpos.x <= otherX && otherX < center.x && body.velocity.x >= 0)
+						RemoveLeg(index);
+					if (lpos.x >= otherX && otherX > center.x && body.velocity.x <= 0)
+						RemoveLeg(index);
+				}
 			}
 		}
 	}
@@ -179,6 +188,21 @@ public abstract class ChLegsArms : MonoBehaviour
 		}
 	}
 
+	protected void RecatchHold()
+	{
+		if (legArmStatus[2] == Hold)
+			RecatchHold(2);
+		if (legArmStatus[3] == Hold)
+			RecatchHold(3);
+	}
+
+	private void RecatchHold(int index)
+	{
+		if (legsConnectedBodies[index] != null)
+			IgnoreCollision(legsConnectedBodies[index], false);
+		RemoveLeg(index);
+		legArmStatus[index] = Free;
+	}
 
 	private int OtherIndex(int index) => index ^ 1;
 
@@ -428,6 +452,7 @@ public abstract class ChLegsArms : MonoBehaviour
 						PlaceLeg3d(index, ref hitInfo, Hold);
 						if (legsConnectedBodies[index] != null)
 							IgnoreCollision(legsConnectedBodies[index], true);
+						SetHoldTarget(index);
 						break;
 					}
 				}
@@ -435,6 +460,21 @@ public abstract class ChLegsArms : MonoBehaviour
 		}
 
 		placeables.Clear();
+	}
+
+	private void SetHoldTarget(int index)
+	{
+		if (holdTarget == Vector2.zero)
+		{
+			if (ArmSphere.transform.position.x < Legs[index].position.x)
+			{
+				holdTarget += Settings.HoldPosition;
+			}
+			else
+			{
+				holdTarget += new Vector2(-Settings.HoldPosition.x, Settings.HoldPosition.y);
+			}
+		}
 	}
 
 	private void IgnoreCollision(Rigidbody other, bool ignore)
@@ -471,7 +511,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	}
 
 
-	void FixedUpdate()
+	protected void FixedUpdate()
 	{
 		Vector3 groundVelocity = GetGroundVelocity();
 		if (ArmCatched)
@@ -549,18 +589,9 @@ public abstract class ChLegsArms : MonoBehaviour
 		if (body != null) 
 		{
 			var armPos = Legs[index].position.XY();
-			var destPos = ArmSphere.transform.position.XY();
-			GetDecollisionDistance(body, out var decollision);
-
-			if (destPos.x < armPos.x + decollision.x)
-			{
-				destPos += Settings.HoldPosition;
-			}
-			else
-			{
-				destPos += new Vector2(-Settings.HoldPosition.x, Settings.HoldPosition.y);
-			}
+			var destPos = ArmSphere.transform.position.XY() + holdTarget;
 			destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
+			GetDecollisionDistance(body, out var decollision);
 			destPos += decollision;
 
 			var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
@@ -586,7 +617,6 @@ public abstract class ChLegsArms : MonoBehaviour
 					{
 						if (Physics.ComputePenetration(c1, c1.transform.position, c1.transform.rotation, c2, c2.transform.position, c2.transform.rotation, out var dir, out var dist))
 						{
-							Debug.Log("col dedected " + dir * -dist);
 							if (dir.x != 0 || dir.y != 0)
 							{
 								result = dir.XY() * -dist;
@@ -725,6 +755,15 @@ public abstract class ChLegsArms : MonoBehaviour
 	private void SendOppositeForce(Vector3 vector3, int index)
 	{
 		legsConnectedBodies[index]?.AddForce(-vector3, ForceMode.VelocityChange);
+	}
+
+	protected Rigidbody GetHoldBody()
+	{
+		if (legArmStatus[2] == Hold && legsConnectedBodies[2] != null)
+			return legsConnectedBodies[2];
+		if (legArmStatus[3] == Hold && legsConnectedBodies[3] != null)
+			return legsConnectedBodies[3];
+		return null;
 	}
 }
 

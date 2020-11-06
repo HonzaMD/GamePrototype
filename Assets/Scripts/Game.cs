@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,6 +18,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public SimpleCameraController Camera;
     public Level Level;
     public Ksids Ksids { get; private set; }
+    public Timer Timer;
+
+    public Transform[] HoldMarkers;
+    public Transform LongThrowMarker;
+    private int holdMarkersToken;
 
     private List<Trigger> triggers = new List<Trigger>();
     private HashSet<IActiveObject> activeObjects = new HashSet<IActiveObject>();
@@ -26,6 +32,12 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private const int movingObjectMaxPtr = 20;
 
     private bool cameraMode;
+    private readonly Action<object, int> DeactivateHoldMarkerA;
+
+    public Game()
+    {
+        DeactivateHoldMarkerA = DeactivateHoldMarker;
+    }
 
     void Update()
     {
@@ -60,6 +72,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         UpdateMovingObjects();
         UpdateObjects();
+        Timer.GameUpdate();
 
         if (!cameraMode)
             Character.GameUpdate();
@@ -138,5 +151,35 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Instance = this;
         if (Ksids == null)
             Ksids = new KsidDependencies();
+    }
+
+    public Transform GetHoldMarker(float life)
+    {
+        foreach (var hm in HoldMarkers)
+        {
+            if (!hm.gameObject.activeInHierarchy)
+            {
+                hm.gameObject.SetActive(true);
+                Timer.Plan(DeactivateHoldMarkerA, life, hm.gameObject, holdMarkersToken);
+                return hm;
+            }
+        }
+        return null;
+    }
+
+    private void DeactivateHoldMarker(object prm, int token)
+    {
+        if (token == holdMarkersToken)
+            ((GameObject)prm).SetActive(false);
+    }
+
+    public void ClearAllHoldMarkers()
+    {
+        holdMarkersToken++;
+        foreach (var hm in HoldMarkers)
+        {
+            if (hm.gameObject.activeInHierarchy)
+                hm.gameObject.SetActive(false);
+        }
     }
 }

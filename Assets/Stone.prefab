@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8766527306246751138}
   - component: {fileID: 4615778983116450831}
   - component: {fileID: 2664240410949540647}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78,7 +78,7 @@ GameObject:
   - component: {fileID: 8874364695652843262}
   - component: {fileID: 8874364695652843257}
   - component: {fileID: 8874364695652843256}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: SmallRock03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
