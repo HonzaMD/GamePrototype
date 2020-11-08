@@ -446,6 +446,8 @@ public abstract class ChLegsArms : MonoBehaviour
 		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
 		map.Get(placeables, center - radius2, 2 * radius2, Settings.HoldType);
 
+		EnsurePrevioslyHoldIsFirst();
+
 		foreach (var p in placeables)
 		{
 			var col = p.GetComponentInChildren<Collider>();
@@ -453,7 +455,9 @@ public abstract class ChLegsArms : MonoBehaviour
 			{
 				var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
 				var pos = col.ClosestPoint(center3d);
-				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask))
+				var zDiff = center3d.z - pos.z;
+				var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
+				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 				{
 					if ((hitInfo.point - pos).sqrMagnitude < 0.001)
 					{
@@ -468,6 +472,23 @@ public abstract class ChLegsArms : MonoBehaviour
 		}
 
 		placeables.Clear();
+	}
+
+	private void EnsurePrevioslyHoldIsFirst()
+	{
+		if (delayedEnableCollisionBody != null)
+		{
+			for (int f = 0; f < placeables.Count; f++)
+			{
+				if (placeables[f].GetComponent<Rigidbody>() == delayedEnableCollisionBody)
+				{
+					var p = placeables[f];
+					placeables[f] = placeables[0];
+					placeables[0] = p;
+					break;
+				}
+			}
+		}
 	}
 
 	private void SetHoldTarget(int index)

@@ -246,7 +246,7 @@ public class Character3 : ChLegsArms, IActiveObject
 					var mBody = marker.GetComponent<Rigidbody>();
 					mBody.mass = body.mass;
 					Vector2 force = new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * 4.8f;
-					mBody.velocity = force;
+					mBody.velocity = (Vector3)force + this.body.velocity;
 				}
 			}
 		} 
@@ -266,7 +266,7 @@ public class Character3 : ChLegsArms, IActiveObject
 		if (bodyToThrow != null)
 		{
 			Vector2 force = new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * 4.8f;
-			bodyToThrow.velocity = force;
+			bodyToThrow.velocity = (Vector3)force + this.body.velocity;
 			bodyToThrow = null;
 		}
 	}
