@@ -47,6 +47,14 @@ public abstract class ChLegsArms : MonoBehaviour
 	private static List<Collider> colliders1 = new List<Collider>();
 	private static List<Collider> colliders2 = new List<Collider>();
 
+	private Rigidbody delayedEnableCollisionBody;
+	private readonly Action<object, int> DelayedEnableCollisionsA;
+
+	public ChLegsArms()
+	{
+		DelayedEnableCollisionsA = DelayedEnableCollisions;
+	}
+
 	protected void AwakeB()
 	{
 		body = GetComponent<Rigidbody>();
@@ -170,7 +178,7 @@ public abstract class ChLegsArms : MonoBehaviour
 			if (!desiredHold)
 			{
 				if (legsConnectedBodies[index] != null)
-					IgnoreCollision(legsConnectedBodies[index], false);
+					EnableCollision(legsConnectedBodies[index]);
 				RemoveLeg(index);
 			}
 			else
@@ -181,7 +189,7 @@ public abstract class ChLegsArms : MonoBehaviour
 				if ((lpos - center).sqrMagnitude > radius * radius)
 				{
 					if (legsConnectedBodies[index] != null)
-						IgnoreCollision(legsConnectedBodies[index], false);
+						EnableCollision(legsConnectedBodies[index]);
 					RemoveLeg(index);
 				}
 			}
@@ -199,7 +207,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	private void RecatchHold(int index)
 	{
 		if (legsConnectedBodies[index] != null)
-			IgnoreCollision(legsConnectedBodies[index], false);
+			EnableCollision(legsConnectedBodies[index]);
 		RemoveLeg(index);
 		legArmStatus[index] = Free;
 	}
@@ -477,8 +485,23 @@ public abstract class ChLegsArms : MonoBehaviour
 		}
 	}
 
+	private void EnableCollision(Rigidbody other)
+	{
+		if (other == delayedEnableCollisionBody)
+			return;
+		if (delayedEnableCollisionBody != null)
+		{
+			IgnoreCollision(delayedEnableCollisionBody, false);
+		}
+		delayedEnableCollisionBody = other;
+		Game.Instance.Timer.Plan(DelayedEnableCollisionsA, 0.25f, other, 0);
+	}
+
 	private void IgnoreCollision(Rigidbody other, bool ignore)
 	{
+		if (ignore && other == delayedEnableCollisionBody)
+			delayedEnableCollisionBody = null;
+
 		GetComponentsInChildren<Collider>(colliders1);
 		other.GetComponentsInChildren<Collider>(colliders2);
 
@@ -490,6 +513,16 @@ public abstract class ChLegsArms : MonoBehaviour
 
 		colliders1.Clear();
 		colliders2.Clear();
+	}
+
+	private void DelayedEnableCollisions(object other, int token)
+	{
+		var body = (Rigidbody)other;
+		if (delayedEnableCollisionBody == body)
+		{
+			delayedEnableCollisionBody = null;
+			IgnoreCollision(body, false);
+		}
 	}
 
 	private bool RayCastArm(int index, Vector3 candidate, float radius)
@@ -707,8 +740,9 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private Vector2 GetArmsCatchForce()
 	{
-		var dot = 1 - Mathf.Clamp(Vector2.Dot(body.velocity.XY(), desiredVelocity), 0, 1);
-		Vector2 forceToReduce = dot * body.velocity.XY();
+		var velocity = body.velocity.XY();
+		var dot = 1 - Mathf.Clamp(Vector2.Dot(velocity, desiredVelocity), 0, 1);
+		Vector2 forceToReduce = dot * velocity;
 		Vector2 result = Vector2.zero;
 		GetArmCatchForce(2, ref forceToReduce, ref result);
 		GetArmCatchForce(3, ref forceToReduce, ref result);
@@ -721,7 +755,8 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			var armDir = (ArmSphere.transform.position.XY() - Legs[index].position.XY());
 			var armDirNorm = armDir.normalized;
-			var holdVel = Vector2.Dot(armDirNorm, forceToReduce) + 1;
+			var upModifier = Mathf.Clamp01(Vector2.Dot(Vector2.up, desiredVelocity)) * Mathf.Clamp01(Vector2.Dot(Vector2.up, armDirNorm));
+			var holdVel = Vector2.Dot(armDirNorm, forceToReduce) + 1 - upModifier;
 			var inForce = armDir.sqrMagnitude / (ArmSphere.radius * ArmSphere.radius);
 			inForce = Mathf.Max(0, inForce - 0.7f * 0.7f);
 			inForce *= Settings.ArmInForceCoef * holdVel;
