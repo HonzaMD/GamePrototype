@@ -9,7 +9,7 @@ namespace Assets.Scripts
 {
     public class Trigger : Placeable
     {
-        public KsidEnum Targets;
+        public Ksid Targets;
         public readonly Dictionary<Placeable, int> ActiveObjects = new Dictionary<Placeable, int>();
         public readonly List<Placeable> NewOrRemovedObjects = new List<Placeable>();
         private bool registeredForUpdate;
@@ -27,7 +27,7 @@ namespace Assets.Scripts
             CellBlocking = CellBlocking.Trigger;
         }
 
-        public override KsidEnum TriggerTargets => Targets;
+        public override Ksid TriggerTargets => Targets;
 
         public override void AddTarget(Placeable p)
         {

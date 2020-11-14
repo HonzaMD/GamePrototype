@@ -31,7 +31,7 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
     [HideInInspector]
     public Vector2 PlacedPosition;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
-    public KsidEnum Ksid;
+    public Ksid Ksid;
     public CellBlocking CellBlocking = CellBlocking.AllCells;
     [HideInInspector, NonSerialized]
     public int Tag;
@@ -41,7 +41,7 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
         PlacedPosition = transform.position.XY() + PosOffset;
     }
 
-    public virtual KsidEnum TriggerTargets => KsidEnum.Unknown;
+    public virtual Ksid TriggerTargets => Ksid.Unknown;
     public virtual void AddTarget(Placeable p) { }
     public virtual void RemoveTarget(Placeable p) { }
 

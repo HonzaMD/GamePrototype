@@ -155,5 +155,5 @@ MonoBehaviour:
   PosOffset: {x: 0, y: 0}
   PlacedPosition: {x: 0, y: 0}
   Size: {x: 0.5, y: 0.5}
-  Ksid: 0
+  Ksid: 1
   CellBlocking: 1008

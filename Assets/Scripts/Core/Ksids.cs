@@ -8,35 +8,35 @@ namespace Assets.Scripts.Core
 {
     public class Ksids
     {
-        private readonly Dictionary<int, Ksid> ksids;
+        private readonly Dictionary<int, KsidNode> ksids;
         private readonly int[] componentIndexes;
         private int currentTag;
 
-        public Ksids(IEnumerable<(KsidEnum child, KsidEnum parent)> dependencies)
+        public Ksids(IEnumerable<(Ksid child, Ksid parent)> dependencies)
         {
-            var tempDict = ((int[])Enum.GetValues(typeof(KsidEnum))).ToDictionary(n => n, n => new TempKsid());
+            var tempDict = ((int[])Enum.GetValues(typeof(Ksid))).ToDictionary(n => n, n => new TempKsid());
             InitDependencies(tempDict, dependencies);
             DetectCycles(tempDict);
             int componentCount = SetComponents(tempDict);
-            ksids = tempDict.ToDictionary(p => p.Key, p => new Ksid((KsidEnum)p.Key, (ushort)p.Value.component, this));
+            ksids = tempDict.ToDictionary(p => p.Key, p => new KsidNode((Ksid)p.Key, (ushort)p.Value.component, this));
             AssignDependencies(tempDict);
             componentIndexes = new int[componentCount];
         }
 
-        public Dictionary<int, Ksid>.ValueCollection AllKsids => ksids.Values;
+        public Dictionary<int, KsidNode>.ValueCollection AllKsids => ksids.Values;
 
-        public Ksid this[KsidEnum name]
+        public KsidNode this[Ksid name]
         {
             get => ksids[(int)name];
         }
 
 
-        public bool IsParent(KsidEnum child, KsidEnum parent) => this[child].IsMyParent(this[parent]);
-        public bool IsParentOrEqual(KsidEnum child, KsidEnum parent) => child == parent || this[child].IsMyParent(this[parent]);
+        public bool IsParent(Ksid child, Ksid parent) => this[child].IsMyParent(this[parent]);
+        public bool IsParentOrEqual(Ksid child, Ksid parent) => child == parent || this[child].IsMyParent(this[parent]);
 
 
 
-        private static void InitDependencies(Dictionary<int, TempKsid> tempDict, IEnumerable<(KsidEnum child, KsidEnum parent)> dependencies)
+        private static void InitDependencies(Dictionary<int, TempKsid> tempDict, IEnumerable<(Ksid child, Ksid parent)> dependencies)
         {
             foreach (var dep in dependencies)
             {
@@ -136,8 +136,8 @@ namespace Assets.Scripts.Core
 
         private class TempKsid
         {
-            public List<KsidEnum> Parents = new List<KsidEnum>();
-            public List<KsidEnum> Children = new List<KsidEnum>();
+            public List<Ksid> Parents = new List<Ksid>();
+            public List<Ksid> Children = new List<Ksid>();
             public int component = -1;
         }
     }

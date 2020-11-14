@@ -373,7 +373,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		var center = ArmSphere.transform.position.XY();
 
 		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
-		map.Get(placeables, center - radius2, 2 * radius2, KsidEnum.Catch);
+		map.Get(placeables, center - radius2, 2 * radius2, Ksid.Catch);
 
 		foreach (var p in placeables)
 		{

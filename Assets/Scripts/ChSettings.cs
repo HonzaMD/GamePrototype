@@ -42,7 +42,7 @@ public class ChSettings : ScriptableObject
 	public float[] legZ { get; private set; }
 
 	public Vector2 HoldPosition;
-	public KsidEnum HoldType;
+	public Ksid HoldType;
 	public float HoldMoveSpeed = 1f;
 	public float HoldMoveAcceleration = 0.2f;
 

@@ -263,7 +263,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public bool ContainsType(Vector2 pos, KsidEnum ksid)
+        public bool ContainsType(Vector2 pos, Ksid ksid)
         {
             if (WorldToCell(pos, out var cellPos))
             {
@@ -297,7 +297,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public bool ContainsType(Vector2Int pos, KsidEnum ksid)
+        public bool ContainsType(Vector2Int pos, Ksid ksid)
         {
             if (CellToCell(pos, out var cellPos))
             {
@@ -310,7 +310,7 @@ namespace Assets.Scripts.Map
             return false;
         }
 
-        public void Get(List<Placeable> output, Vector2 pos, Vector2 size, KsidEnum ksid)
+        public void Get(List<Placeable> output, Vector2 pos, Vector2 size, Ksid ksid)
         {
             int tag = GetNextTag();
 
@@ -348,7 +348,7 @@ namespace Assets.Scripts.Map
         }
 
 
-        public bool ContainsType(Vector2 pos, Vector2 size, KsidEnum ksid)
+        public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid)
         {
             int tag = GetNextTag();
 

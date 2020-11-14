@@ -9,11 +9,11 @@ namespace Assets.Scripts.Core
     class KsidDependencies : Ksids
     {
         public KsidDependencies()
-            : base(new (KsidEnum child, KsidEnum parent)[]
+            : base(new (Ksid child, Ksid parent)[]
             {
-                (KsidEnum.Rope, KsidEnum.Catch),
-                (KsidEnum.SmallMonster, KsidEnum.CharacterHolds),
-                (KsidEnum.Stone, KsidEnum.CharacterHolds),
+                (Ksid.Rope, Ksid.Catch),
+                (Ksid.SmallMonster, Ksid.CharacterHolds),
+                (Ksid.Stone, Ksid.CharacterHolds),
             })
         {
         }
