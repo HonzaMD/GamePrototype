@@ -25,13 +25,13 @@ public enum CellBlocking
     AllPartCells = Cell0Part | Cell1Part | Cell2Part,
 }
 
-public class Placeable : MonoBehaviour, ILevelPlaceabe
+public class Placeable : Label, ILevelPlaceabe
 {
     public Vector2 PosOffset;
     [HideInInspector]
     public Vector2 PlacedPosition;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
-    public Ksid Ksid;
+    public new Ksid Ksid;
     public CellBlocking CellBlocking = CellBlocking.AllCells;
     [HideInInspector, NonSerialized]
     public int Tag;
@@ -63,6 +63,8 @@ public class Placeable : MonoBehaviour, ILevelPlaceabe
     }
 
     public bool IsTrigger => (CellBlocking & CellBlocking.Trigger) != 0;
+
+    public override Placeable PlaceableC => this;
 
     public void UpdateMapPosIfMoved(Map map)
     {

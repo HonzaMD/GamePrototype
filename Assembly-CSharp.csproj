@@ -56,12 +56,12 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Map\Map.cs" />
-     <Compile Include="Assets\Scripts\Core\KsidEnum.cs" />
+     <Compile Include="Assets\Scripts\Label.cs" />
+     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
      <Compile Include="Assets\Scripts\Map\CellList.cs" />
      <Compile Include="Assets\Scripts\Character3.cs" />
      <Compile Include="Assets\Scripts\ColorVariations.cs" />
      <Compile Include="Assets\Scripts\SimpleCameraController.cs" />
-     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
      <Compile Include="Assets\Scripts\IActiveObject.cs" />
      <Compile Include="Assets\Scripts\SmallMonster.cs" />
      <Compile Include="Assets\Scripts\Trigger.cs" />
@@ -71,24 +71,25 @@
      <Compile Include="Assets\Scripts\ChSettings.cs" />
      <Compile Include="Assets\Scripts\Rope.cs" />
      <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
+     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
      <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
      <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
      <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
      <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
      <Compile Include="Assets\Scripts\Placeable.cs" />
      <Compile Include="Assets\Scripts\ChLegsArms.cs" />
+     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
      <Compile Include="Assets\Scripts\Core\Ksids.cs" />
      <Compile Include="Assets\Scripts\Ladder.cs" />
      <Compile Include="Assets\Scripts\Map\Cell.cs" />
      <Compile Include="Assets\Scripts\PlaceableCellPart.cs" />
      <Compile Include="Assets\Scripts\Plank.cs" />
+     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
      <Compile Include="Assets\Scripts\Game.cs" />
      <Compile Include="Assets\Scripts\PlankSegment.cs" />
      <Compile Include="Assets\Scripts\PrefabsStore.cs" />
      <Compile Include="Assets\Scripts\Level.cs" />
      <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
-     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
-     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
  <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
  <HintPath>C:/Users/MD/Unity/GamePrototype/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
  </Reference>

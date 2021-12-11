@@ -45,10 +45,9 @@ namespace Assets.Scripts.Core
 
         private void BuildParentBits()
         {
-            int tag = builder.GetNextTag();
             int biggestIndex = -1;
 
-            SearchParents(tag, ksid =>
+            SearchParents(ksid =>
             {
                 if (ksid.index == ushort.MaxValue)
                     ksid.InitIndex();
@@ -64,8 +63,7 @@ namespace Assets.Scripts.Core
             {
                 parentBits = new byte[biggestIndex + 1];
 
-                tag = builder.GetNextTag();
-                SearchParents(tag, ksid => parentBits[ksid.index] |= ksid.bit);
+                SearchParents(ksid => parentBits[ksid.index] |= ksid.bit);
             }
         }
 
@@ -77,7 +75,14 @@ namespace Assets.Scripts.Core
             bit = (byte)(1 << bitPos);
         }
 
-        public void SearchParents(int tag, Action<KsidNode> action)
+        public void SearchParents(Action<KsidNode> action)
+        {
+            tag = builder.GetNextTag();
+            foreach (var p in Parents)
+                p.SearchParents(tag, action);
+        }
+
+        private void SearchParents(int tag, Action<KsidNode> action)
         {
             if (this.tag != tag)
             {

@@ -209,7 +209,7 @@ public class Character3 : ChLegsArms, IActiveObject
 					var body = GetHoldBody();
 					if (body != null)
 					{
-						bodyToThrow = body;
+						bodyToThrow = body.Rigidbody;
 						holdTarget = Vector2.zero;
 						desiredHold = false;
 					}
@@ -244,7 +244,7 @@ public class Character3 : ChLegsArms, IActiveObject
 				{
 					marker.transform.position = body.transform.position;
 					var mBody = marker.GetComponent<Rigidbody>();
-					mBody.mass = body.mass;
+					mBody.mass = body.Rigidbody.mass;
 					Vector2 force = new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * 4.8f;
 					mBody.velocity = (Vector3)force + this.body.velocity;
 				}
