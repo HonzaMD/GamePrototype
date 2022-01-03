@@ -9,20 +9,32 @@ using UnityEngine;
 
 
 [Flags]
-public enum CellBlocking
+public enum SubCellFlags : byte
 {
-    Free            = 0b0000,
-    Trigger         = 0b0001,
+    Free = 0b0000,
+    Full = 0b0011,
+    Part = 0b0001,
+    Sand = 0b0100,
 
-    Cell0     = 0b0000110000,
-    Cell0Part = 0b0000010000,
-    Cell1     = 0b0011000000,
-    Cell1Part = 0b0001000000,
-    Cell2     = 0b1100000000,
-    Cell2Part = 0b0100000000,
+    HasFloor = 0b0110,
+}
 
-    AllCells = Cell0 | Cell1 | Cell2,
-    AllPartCells = Cell0Part | Cell1Part | Cell2Part,
+[Flags]
+public enum CellFlags
+{
+    Free              = 0b0000,
+    Trigger           = 0b0001,
+
+    Cell1     = SubCellFlags.Full << CellUtils.Cell1Shift,
+    Cell1Part = SubCellFlags.Part << CellUtils.Cell1Shift,
+    Cell1Sand = SubCellFlags.Sand << CellUtils.Cell1Shift,
+    
+    Cell2     = SubCellFlags.Full << CellUtils.Cell2Shift,
+    Cell2Part = SubCellFlags.Part << CellUtils.Cell2Shift,
+    Cell2Sand = SubCellFlags.Sand << CellUtils.Cell2Shift,
+
+    AllCells = Cell1 | Cell2,
+    AllPartCells = Cell1Part | Cell2Part,
 }
 
 public class Placeable : Label, ILevelPlaceabe
@@ -32,18 +44,22 @@ public class Placeable : Label, ILevelPlaceabe
     public Vector2 PlacedPosition;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
     public new Ksid Ksid;
-    public CellBlocking CellBlocking = CellBlocking.AllCells;
+    public CellFlags CellBlocking;
+    public SubCellFlags SubCellFlags;
     [HideInInspector, NonSerialized]
     public int Tag;
 
     public virtual void RefreshCoordinates()
     {
         PlacedPosition = transform.position.XY() + PosOffset;
+        if (SubCellFlags != SubCellFlags.Free)
+            CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
     }
 
     public virtual Ksid TriggerTargets => Ksid.Unknown;
     public virtual void AddTarget(Placeable p) { }
     public virtual void RemoveTarget(Placeable p) { }
+//    public virtual void MovingTick() { }
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
@@ -51,18 +67,23 @@ public class Placeable : Label, ILevelPlaceabe
         if (PosOffset.x < 0 || PosOffset.y < 0)
             pos += new Vector3(0.25f, 0.25f, 0);
         p.transform.localPosition = pos;
-        map.Add(p);
-        if (p.TryGetComponent<IActiveObject>(out var ao))
+        p.PlaceToMap(map);
+    }
+
+    public void PlaceToMap(Map map)
+    {
+        map.Add(this);
+        if (TryGetComponent<IActiveObject>(out var ao))
         {
             Game.Instance.ActivateObject(ao);
         }
-        else if (p.TryGetComponent<Rigidbody>(out var rb) && !rb.isKinematic)
+        else if (Rigidbody != null && !Rigidbody.isKinematic)
         {
-            Game.Instance.AddMovingObject(p);
+            Game.Instance.AddMovingObject(this);
         }
     }
 
-    public bool IsTrigger => (CellBlocking & CellBlocking.Trigger) != 0;
+    public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
 
     public override Placeable PlaceableC => this;
 

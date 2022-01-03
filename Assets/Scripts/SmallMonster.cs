@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Utils;
+﻿using Assets.Scripts.Map;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[RequireComponent(typeof(PlaceableCellPart), typeof(Rigidbody))]
+[RequireComponent(typeof(Placeable), typeof(Rigidbody))]
 class SmallMonster : ChLegsArms, IActiveObject
 {
 	private float turnTimeout = 0.5f;
@@ -44,13 +45,13 @@ class SmallMonster : ChLegsArms, IActiveObject
 		{
 			var map = Game.Map;
 			var cell = map.WorldToCell(transform.position);
-			var fullBlock = transform.ToFullBlock();
+			var surface = CellUtils.Combine(SubCellFlags.HasFloor, transform);
 
-			if ((map.GetCellBlocking(cell + Vector2Int.down) & fullBlock) == fullBlock)
+			if ((map.GetCellBlocking(cell + Vector2Int.down) & surface) != 0)
 			{
 				if (map.IsXNearNextCell(transform.position.x, desiredDirection))
 				{
-					if ((map.GetCellBlocking(cell + new Vector2Int(desiredDirection, -1)) & fullBlock) != fullBlock
+					if ((map.GetCellBlocking(cell + new Vector2Int(desiredDirection, -1)) & surface) == 0
 					/*|| (map.GetCellBlocking(cell + new Vector2Int(desiredDirection, 0), placeable) & fullBlock) != 0*/)
 						return false;
 				}

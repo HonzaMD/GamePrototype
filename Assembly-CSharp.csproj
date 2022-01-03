@@ -26,7 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169</NoWarn>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,7 +35,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169</NoWarn>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <NoConfig>true</NoConfig>
@@ -63,6 +63,7 @@
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />
     <Compile Include="Assets\Scripts\Rope.cs" />
+    <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
     <Compile Include="Assets\Scripts\Plank.cs" />
     <Compile Include="Assets\Scripts\Trigger.cs" />
@@ -70,17 +71,15 @@
     <Compile Include="Assets\Scripts\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
+    <Compile Include="Assets\Scripts\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\RopeSegment.cs" />
-    <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Map\Level1.cs" />
     <Compile Include="Assets\Scripts\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Ladder.cs" />
     <Compile Include="Assets\Scripts\Level.cs" />
-    <Compile Include="Assets\Scripts\PlaceableCellPart.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
-    <Compile Include="Assets\Scripts\PlaceableCell.cs" />
     <Compile Include="Assets\Scripts\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\PlankSegment.cs" />

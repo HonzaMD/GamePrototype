@@ -99,6 +99,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             else
             {
                 p.Key.UpdateMapPosIfMoved(Map);
+//                p.Key.MovingTick();
             }
         }
 

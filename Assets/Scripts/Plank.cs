@@ -150,7 +150,6 @@ public class Plank : MonoBehaviour
     {
         plankSegment.PosOffset = RotatedSegmentPos;
         plankSegment.Size = RotatedSegmentSize;
-        plankSegment.CellBlocking = transform.ToPartBlock();
     }
 }
 

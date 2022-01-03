@@ -8,7 +8,7 @@ namespace Assets.Scripts.Map
     public struct Cell
     {
         private Placeable first;
-        public CellBlocking Blocking { get; private set; }       
+        public CellFlags Blocking { get; private set; }       
         private CellListInfo listInfo;
 
         public static Cell Empty;
@@ -74,7 +74,7 @@ namespace Assets.Scripts.Map
             {
                 if (size > 1)
                 {
-                    Blocking = CellBlocking.Free;
+                    Blocking = CellFlags.Free;
                     var arr = CellList.GetData(listInfo, out int offset);
                     size--;
 
@@ -91,7 +91,7 @@ namespace Assets.Scripts.Map
                 {
                     first = null;
                     listInfo.Size = 0;
-                    Blocking = CellBlocking.Free;
+                    Blocking = CellFlags.Free;
                 }
             }
             else if (size > 1)
@@ -119,16 +119,16 @@ namespace Assets.Scripts.Map
 
         public void RecomputeBlocking()
         {
-            Blocking = CellBlocking.Free;
+            Blocking = CellFlags.Free;
             foreach (var placeable in this)
             {
                 Blocking |= placeable.CellBlocking;
             }
         }
 
-        public CellBlocking BlockingExcept(Placeable exclude)
+        public CellFlags BlockingExcept(Placeable exclude)
         {
-            var ret = CellBlocking.Free;
+            var ret = CellFlags.Free;
             foreach (var placeable in this)
             {
                 if (placeable != exclude)
@@ -145,11 +145,11 @@ namespace Assets.Scripts.Map
             private readonly Placeable[] arr;
             private readonly int start;
             private readonly int end;
-            private readonly Placeable first;
+            public Placeable Current { get; private set; }
 
             public Enumerator(CellListInfo info, Placeable first)
             {
-                this.first = first;
+                Current = first;
                 var size = info.Size;
                 if (size > 1)
                 {
@@ -173,12 +173,12 @@ namespace Assets.Scripts.Map
                 if (ni < end)
                 {
                     index = ni;
+                    if (ni != start)
+                        Current = arr[index];
                     return true;
                 }
                 return false;
             }
-
-            public Placeable Current => index == start ? first : arr[index];
         }
     }
 }

@@ -376,7 +376,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		var c1 = c - Settings.ArmCellRadius;
 		var c2 = c + Settings.ArmCellRadius + Vector2Int.one;
 
-		var blocking = transform.ToFullBlock();
+		var blocking = CellUtils.Combine(SubCellFlags.Full, transform);
 
 		for (int y = c1.y; y < c2.y; y++)
 		{

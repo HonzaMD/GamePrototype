@@ -242,13 +242,13 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public CellBlocking GetCellBlocking(Vector2 pos)
+        public CellFlags GetCellBlocking(Vector2 pos)
         {
-            return WorldToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBlocking.Free;
+            return WorldToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellFlags.Free;
         }
-        public CellBlocking GetCellBlocking(Vector2 pos, Placeable exclude)
+        public CellFlags GetCellBlocking(Vector2 pos, Placeable exclude)
         {
-            return WorldToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellBlocking.Free;
+            return WorldToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
         }
 
         public ref Cell GetCell(Vector2 pos)
@@ -276,13 +276,13 @@ namespace Assets.Scripts.Map
             return false;
         }
 
-        public CellBlocking GetCellBlocking(Vector2Int pos)
+        public CellFlags GetCellBlocking(Vector2Int pos)
         {
-            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellBlocking.Free;
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellFlags.Free;
         }
-        public CellBlocking GetCellBlocking(Vector2Int pos, Placeable exclude)
+        public CellFlags GetCellBlocking(Vector2Int pos, Placeable exclude)
         {
-            return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellBlocking.Free;
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
         }
 
         public ref Cell GetCell(Vector2Int pos)
