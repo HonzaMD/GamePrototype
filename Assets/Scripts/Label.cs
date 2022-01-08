@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
@@ -12,11 +13,21 @@ public abstract class Label : MonoBehaviour
     public abstract Placeable PlaceableC { get; }
     public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>();
     public virtual Transform ParentForConnections => transform;
+
+    public virtual void Cleanup() 
+    {
+        ParentForConnections.GetComponentsInChildren(conectables);
+        foreach (var c in conectables)
+            c.Disconnect();
+        conectables.Clear();
+    }
+
     public virtual Ksid Ksid => PlaceableC.Ksid;
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
     private static readonly List<Collider> colliders1 = new List<Collider>();
     private static readonly List<Collider> colliders2 = new List<Collider>();
+    private static readonly List<IConnectable> conectables = new List<IConnectable>();
 
     public virtual void GetColliders(List<Collider> result)
     {
@@ -52,10 +63,10 @@ public abstract class Label : MonoBehaviour
         }
     }
 
-    public static Transform Find(Transform collision, out Label lb)
+    public static bool TryFind(Transform collision, out Label lb)
     {
-        while (!collision.TryGetComponent<Label>(out lb) && collision.parent != null)
+        while (!collision.TryGetComponent(out lb) && collision.parent != null)
             collision = collision.parent;
-        return lb == null ? collision : lb.ParentForConnections;
+        return lb != null;
     }
 }

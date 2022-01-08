@@ -5,13 +5,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Plank : MonoBehaviour
+public class Plank : Label
 {
     public Vector3 Start;
     public Vector3 End;
     private Vector2 SegmentSize;
     private Vector2 RotatedSegmentSize;
     private Vector2 RotatedSegmentPos;
+
+    public override Placeable PlaceableC => GetComponentInChildren<Placeable>();
 
     private void Awake()
     {

@@ -19,6 +19,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Level Level;
     public Ksids Ksids { get; private set; }
     public Timer Timer;
+    public ObjectPool Pool;
 
     public Transform[] HoldMarkers;
     public Transform LongThrowMarker;

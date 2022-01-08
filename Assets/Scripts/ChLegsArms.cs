@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Core;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -58,6 +59,16 @@ public abstract class ChLegsArms : MonoBehaviour
 		body = GetComponent<Rigidbody>();
 		placeable = GetComponent<Placeable>();
 		Settings.Initialize(ArmSphere, Legs);
+		InitConnectables();
+	}
+
+	private void InitConnectables()
+	{
+		for (int f = 0; f < Legs.Length; f++)
+		{
+			int index = f;
+			Legs[f].GetComponent<Connectable>().Init(() => RemoveLegArmIfConnected(index));
+		}
 	}
 
 	protected void AdjustLegsArms()
@@ -93,7 +104,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		for (int f = 0; f < legArmStatus.Length; f++)
 		{
-			if (legArmStatus[f] == Hold && legsConnectedLabels[f] != null)
+			if (legArmStatus[f] == Hold)
 			{
 				for (int g = 0; g < legArmStatus.Length; g++)
 				{
@@ -175,8 +186,7 @@ public abstract class ChLegsArms : MonoBehaviour
 		{
 			if (!desiredHold)
 			{
-				if (legsConnectedLabels[index] != null)
-					EnableCollision(legsConnectedLabels[index]);
+				EnableCollision(legsConnectedLabels[index]);
 				RemoveLegArm(index);
 			}
 			else
@@ -186,8 +196,7 @@ public abstract class ChLegsArms : MonoBehaviour
 				var radius = ArmSphere.radius;
 				if ((lpos - center).sqrMagnitude > radius * radius)
 				{
-					if (legsConnectedLabels[index] != null)
-						EnableCollision(legsConnectedLabels[index]);
+					EnableCollision(legsConnectedLabels[index]);
 					RemoveLegArm(index);
 				}
 			}
@@ -204,13 +213,18 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void RecatchHold(int index)
 	{
-		if (legsConnectedLabels[index] != null)
-			EnableCollision(legsConnectedLabels[index]);
+		EnableCollision(legsConnectedLabels[index]);
 		RemoveLegArm(index);
 		legArmStatus[index] = Free;
 	}
 
 	private int OtherIndex(int index) => index ^ 1;
+
+	private void RemoveLegArmIfConnected(int index)
+	{
+		if (legsConnectedLabels[index] != null)
+			RemoveLegArm(index);
+	}
 
 	private void RemoveLegArm(int index)
 	{
@@ -296,7 +310,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (Physics.Raycast(LegSphere.transform.position, direction, out var hitInfo, radius, Settings.legStandLayerMask))
 		{
-			if (hitInfo.normal.y >= Settings.minGroundDotProduct)
+			if (hitInfo.normal.y >= Settings.minGroundDotProduct && ConnectLabel(index, ref hitInfo))
 			{
 				PlaceLeg(index, ref hitInfo);
 				return true;
@@ -305,9 +319,19 @@ public abstract class ChLegsArms : MonoBehaviour
 		return false;
 	}
 
+	bool ConnectLabel(int index, ref RaycastHit hitInfo)
+	{
+		if (Label.TryFind(hitInfo.collider.transform, out var label))
+		{
+			legsConnectedLabels[index] = label;
+			Legs[index].SetParent(label.ParentForConnections, true);
+			return true;
+		}
+		return false;
+	}
+
 	private void PlaceLeg(int index, ref RaycastHit hitInfo)
 	{
-		Legs[index].SetParent(Label.Find(hitInfo.transform, out legsConnectedLabels[index]), true);
 		Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.legZ[index] + transform.position.z);
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 		Legs[index].gameObject.SetActive(true);
@@ -316,7 +340,6 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void PlaceLeg3d(int index, ref RaycastHit hitInfo, float statusType)
 	{
-		Legs[index].SetParent(Label.Find(hitInfo.transform, out legsConnectedLabels[index]), true);
 		Legs[index].position = hitInfo.point;
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
 		Legs[index].gameObject.SetActive(true);
@@ -360,7 +383,7 @@ public abstract class ChLegsArms : MonoBehaviour
 			{
 				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask))
 				{
-					if ((hitInfo.point - pos).sqrMagnitude < 0.001)
+					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
 					{
 						PlaceLeg3d(index, ref hitInfo, Catch);
 						placeables.Clear();
@@ -429,11 +452,10 @@ public abstract class ChLegsArms : MonoBehaviour
 			var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
 			if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 			{
-				if ((hitInfo.point - pos).sqrMagnitude < 0.001)
+				if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
 				{
 					PlaceLeg3d(index, ref hitInfo, Hold);
-					if (legsConnectedLabels[index] != null)
-						IgnoreCollision(legsConnectedLabels[index], true);
+					IgnoreCollision(legsConnectedLabels[index], true);
 					SetHoldTarget(index);
 					break;
 				}
@@ -519,7 +541,7 @@ public abstract class ChLegsArms : MonoBehaviour
 	{
 		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask))
 		{
-			if ((hitInfo.point - candidate).sqrMagnitude < 0.001)
+			if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
 			{
 				PlaceLeg(index, ref hitInfo);
 				return true;
@@ -608,7 +630,7 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void ApplyHoldForce(int index)
 	{
-		var body = legsConnectedLabels[index]?.Rigidbody;
+		var body = legsConnectedLabels[index].Rigidbody;
 		if (body != null) 
 		{
 			var armPos = Legs[index].position.XY();
@@ -668,8 +690,7 @@ public abstract class ChLegsArms : MonoBehaviour
 			if (legArmStatus[f] == Catch)
 			{
 				count++;
-				if (legsConnectedLabels[f] != null)
-					res += legsConnectedLabels[f].Velocity;
+				res += legsConnectedLabels[f].Velocity;
 			}
 		}
 
@@ -779,14 +800,14 @@ public abstract class ChLegsArms : MonoBehaviour
 
 	private void SendOppositeForce(Vector3 vector3, int index)
 	{
-		legsConnectedLabels[index]?.ApplyVelocity(-vector3);
+		legsConnectedLabels[index].ApplyVelocity(-vector3);
 	}
 
 	protected Label GetHoldBody()
 	{
-		if (legArmStatus[2] == Hold && legsConnectedLabels[2] != null)
+		if (legArmStatus[2] == Hold)
 			return legsConnectedLabels[2];
-		if (legArmStatus[3] == Hold && legsConnectedLabels[3] != null)
+		if (legArmStatus[3] == Hold)
 			return legsConnectedLabels[3];
 		return null;
 	}

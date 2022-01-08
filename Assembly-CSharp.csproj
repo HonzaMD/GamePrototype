@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -53,9 +53,6 @@
     <UnityVersion>2021.2.6f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Assets\Scripts\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\ColorVariations.cs" />
@@ -66,6 +63,7 @@
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
     <Compile Include="Assets\Scripts\Plank.cs" />
+    <Compile Include="Assets\Scripts\Utils\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Trigger.cs" />
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
     <Compile Include="Assets\Scripts\SimpleCameraController.cs" />
@@ -90,6 +88,7 @@
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
     <Compile Include="Assets\Scripts\Placeable.cs" />
+    <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
