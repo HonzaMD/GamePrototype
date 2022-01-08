@@ -53,41 +53,41 @@
     <UnityVersion>2021.2.6f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\SmallMonster.cs" />
+    <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
-    <Compile Include="Assets\Scripts\ColorVariations.cs" />
+    <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />
-    <Compile Include="Assets\Scripts\Rope.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Rope.cs" />
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
-    <Compile Include="Assets\Scripts\Plank.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Plank.cs" />
     <Compile Include="Assets\Scripts\Utils\ObjectPool.cs" />
-    <Compile Include="Assets\Scripts\Trigger.cs" />
+    <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
-    <Compile Include="Assets\Scripts\SimpleCameraController.cs" />
-    <Compile Include="Assets\Scripts\IActiveObject.cs" />
+    <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
+    <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
-    <Compile Include="Assets\Scripts\SandCombiner.cs" />
-    <Compile Include="Assets\Scripts\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
+    <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Map\Level1.cs" />
-    <Compile Include="Assets\Scripts\ChLegsArms.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
-    <Compile Include="Assets\Scripts\ChSettings.cs" />
-    <Compile Include="Assets\Scripts\Ladder.cs" />
-    <Compile Include="Assets\Scripts\Level.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Ladder.cs" />
+    <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
-    <Compile Include="Assets\Scripts\Character3.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
-    <Compile Include="Assets\Scripts\PlankSegment.cs" />
+    <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
-    <Compile Include="Assets\Scripts\Label.cs" />
-    <Compile Include="Assets\Scripts\PrefabsStore.cs" />
+    <Compile Include="Assets\Scripts\Bases\Label.cs" />
+    <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
-    <Compile Include="Assets\Scripts\Game.cs" />
-    <Compile Include="Assets\Scripts\Placeable.cs" />
+    <Compile Include="Assets\Scripts\Core\Game.cs" />
+    <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
   </ItemGroup>
   <ItemGroup>
