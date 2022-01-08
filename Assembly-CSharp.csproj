@@ -89,6 +89,7 @@
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
+    <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

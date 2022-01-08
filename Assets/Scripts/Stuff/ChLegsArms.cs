@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public abstract class ChLegsArms : MonoBehaviour
+public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 {
 	private const float Free = 0;
 	private const float Timeout = 1;
@@ -242,11 +242,20 @@ public abstract class ChLegsArms : MonoBehaviour
 			RemoveLegArm(1);
 	}
 
-	private void RemoveAllLegsArms()
+	private void RemoveAllCatchedLegsArms()
 	{
 		for (int f = 0; f < Legs.Length; f++)
 		{
 			if (legArmStatus[f] == Catch)
+				RemoveLegArm(f);
+		}
+	}
+
+	private void RemoveAllLegsArms()
+	{
+		for (int f = 0; f < Legs.Length; f++)
+		{
+			if (legsConnectedLabels[f] != null)
 				RemoveLegArm(f);
 		}
 	}
@@ -613,7 +622,7 @@ public abstract class ChLegsArms : MonoBehaviour
 			p.z += desiredZMove;
 			transform.position = p;
 			desiredZMove = 0;
-			RemoveAllLegsArms();
+			RemoveAllCatchedLegsArms();
 			ActivateSomeLegsArms();
 		}
 
@@ -810,6 +819,11 @@ public abstract class ChLegsArms : MonoBehaviour
 		if (legArmStatus[3] == Hold)
 			return legsConnectedLabels[3];
 		return null;
+	}
+
+	public void Cleanup()
+	{
+		RemoveAllLegsArms();
 	}
 }
 

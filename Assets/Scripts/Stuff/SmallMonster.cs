@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[RequireComponent(typeof(Placeable), typeof(Rigidbody))]
+[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
 class SmallMonster : ChLegsArms, IActiveObject
 {
 	private float turnTimeout = 0.5f;

@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
@@ -10,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using UnityTemplateProjects;
 
-[RequireComponent(typeof(Placeable), typeof(Rigidbody))]
+[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
 public class Character3 : ChLegsArms, IActiveObject
 {
 	[HideInInspector]

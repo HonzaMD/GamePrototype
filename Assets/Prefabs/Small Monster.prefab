@@ -1002,7 +1002,7 @@ GameObject:
   - component: {fileID: 8390175372396615594}
   - component: {fileID: 8390175372396615592}
   - component: {fileID: -6319615523608067790}
-  - component: {fileID: 8326595912110127733}
+  - component: {fileID: 200132248817074010}
   m_Layer: 10
   m_Name: Small Monster
   m_TagString: Untagged
@@ -1067,7 +1067,7 @@ MonoBehaviour:
   LegSphere: {fileID: 8390175372771104848}
   ArmSphere: {fileID: 8390175371901419850}
   desiredDirection: -1
---- !u!114 &8326595912110127733
+--- !u!114 &200132248817074010
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1076,7 +1076,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8390175372396615598}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
+  m_Script: {fileID: 11500000, guid: b80c18dc4ca18f5499e2ed3408dae68a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   PosOffset: {x: -0.15, y: -0.15}
