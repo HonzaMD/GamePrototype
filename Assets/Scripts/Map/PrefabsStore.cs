@@ -4,8 +4,10 @@
 public class PrefabsStore : ScriptableObject
 {
     public Placeable Block;
-    public Ladder Ladder;
+    public Plank Ladder;
+    public PlankSegment LadderSegment;
     public Placeable SmallMonster;
     public Rope Rope;
+    public Placeable RopeSegment;
     public Placeable Stone;
 }

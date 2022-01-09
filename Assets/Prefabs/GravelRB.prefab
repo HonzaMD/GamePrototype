@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PosOffset: {x: -0.1, y: -0.1}
-  PlacedPosition: {x: 0, y: 0}
+  PlacedPosition: {x: -12345678, y: 12345678}
   Size: {x: 0.2, y: 0.2}
   Ksid: 9
   CellBlocking: 0

@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
@@ -41,13 +42,17 @@ public class Placeable : Label, ILevelPlaceabe
 {
     public Vector2 PosOffset;
     [HideInInspector]
-    public Vector2 PlacedPosition;
+    public Vector2 PlacedPosition = NotInMap;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
     public new Ksid Ksid;
     public CellFlags CellBlocking;
     public SubCellFlags SubCellFlags;
     [HideInInspector, NonSerialized]
     public int Tag;
+    public PlaceableSettings Settings;
+    public bool IsMapPlaced => PlacedPosition != NotInMap;
+
+    internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
     public virtual void RefreshCoordinates()
     {
@@ -80,6 +85,51 @@ public class Placeable : Label, ILevelPlaceabe
         else if (Rigidbody != null && !Rigidbody.isKinematic)
         {
             Game.Instance.AddMovingObject(this);
+        }
+        
+        if (Settings?.HasSubPlaceables == true)
+        {
+            var placeables = StaticList<Placeable>.List;
+            GetComponentsInChildren(placeables);
+            foreach (var p in placeables)
+                if (p != this)
+                    p.PlaceToMap(map);
+            placeables.Clear();
+        }
+    }
+
+    public override void Cleanup()
+    {
+        Game.Map.Remove(this);
+        if (TryGetComponent<IActiveObject>(out var ao))
+        {
+            Game.Instance.DeactivateObject(ao);
+        }
+        Game.Instance.RemoveMovingObject(this);
+        base.Cleanup();
+
+        if (Settings?.HasSubPlaceables == true)
+        {
+            var placeables = StaticList<Placeable>.List;
+            GetComponentsInChildren(placeables);
+            foreach (var p in placeables)
+                if (p != this)
+                    p.Cleanup();
+            placeables.Clear();
+        }
+    }
+
+    public void KinematicMove(Map map)
+    {
+        map.Move(this);
+        if (Settings?.HasSubPlaceables == true)
+        {
+            var placeables = StaticList<Placeable>.List;
+            GetComponentsInChildren(placeables);
+            foreach (var p in placeables)
+                if (p != this)
+                    map.Move(p);
+            placeables.Clear();
         }
     }
 

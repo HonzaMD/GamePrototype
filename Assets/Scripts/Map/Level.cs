@@ -11,9 +11,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
     [SerializeField]
     private PrefabsStore PrefabsStore = default;
     [SerializeField]
-    private Placeable[] AdditionalPlaceables = default;
-    [SerializeField]
-    private Transform AdditionalPlaceablesRoot = default;
+    private Transform[] PlaceablesRoots = default;
 
     internal Map Map { get; private set; }
     private bool mapCreated;
@@ -33,21 +31,20 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
             pair.Item1.Instantiate(Map, transform, pair.Item2);
         }
 
-        if (AdditionalPlaceables != null)
+        if (PlaceablesRoots != null)
         {
-            foreach (var p in AdditionalPlaceables)
+            foreach (var root in PlaceablesRoots)
             {
-                p.PlaceToMap(Map);
+                if (root.gameObject.activeInHierarchy)
+                {
+                    foreach (var p in root.GetComponentsInChildren<Placeable>())
+                    {
+                        p.PlaceToMap(Map);
+                    }
+                }
             }
         }
 
-        if (AdditionalPlaceablesRoot != null)
-        {
-            foreach (var p in AdditionalPlaceablesRoot.GetComponentsInChildren<Placeable>())
-            { 
-                p.PlaceToMap(Map);
-            }
-        }
         mapCreated = true;
     }
 

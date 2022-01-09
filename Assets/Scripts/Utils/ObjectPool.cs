@@ -50,5 +50,23 @@ namespace Assets.Scripts.Utils
             }
             return ret;
         }
+
+        public T Get<T>(T prototype, Transform parent)
+            where T : Label
+        {
+            Stack<Label> stack = GetStack(prototype);
+            T ret;
+            if (stack.Count > 0)
+            {
+                ret = (T)stack.Pop();
+                ret.transform.parent = parent;
+                ret.gameObject.SetActive(true);
+            }
+            else
+            {
+                ret = Instantiate(prototype, parent);
+            }
+            return ret;
+        }
     }
 }

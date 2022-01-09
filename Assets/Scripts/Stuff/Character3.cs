@@ -183,7 +183,7 @@ public class Character3 : ChLegsArms, IActiveObject
 
 		if (zMoveTimeout <= 0 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
 		{
-			desiredZMove = transform.position.z == 0 ? Map.CellSize.z : -Map.CellSize.z;
+			desiredZMove = transform.position.z < 0.25f ? Map.CellSize.z : -Map.CellSize.z;
 			zMoveTimeout = 1;
 		}
 	}

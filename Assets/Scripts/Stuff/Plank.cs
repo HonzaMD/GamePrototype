@@ -17,7 +17,7 @@ public class Plank : Label
 
     private void Awake()
     {
-        SegmentSize = GetComponentInChildren<PlankSegment>().Size;
+        SegmentSize = Game.Instance.PrefabsStore.LadderSegment.Size;
     }
 
     internal void AddToMap(Map map, Vector3 start, Vector3 end)
@@ -26,17 +26,12 @@ public class Plank : Label
         End = end;
         Init(out var segmentCount, out var segmentsStart);
 
-        var segments = GetComponentsInChildren<PlankSegment>();
         for (int i = 0; i < segmentCount; i++)
         {
-            PlankSegment seg = i < segments.Length ? segments[i] : Instantiate(segments[0], transform);
-            seg.SegmentIndex = i;
-            var pos = segments[0].transform.localPosition;
-            pos.y = segmentsStart + i * SegmentSize.y;
-            seg.transform.localPosition = pos;
-            SegmentAdd(map, seg);
+            SegmantAdd(map, segmentsStart, i);
         }
     }
+
 
     internal void Move(Map map, Vector3 start, Vector3 end)
     {
@@ -44,53 +39,60 @@ public class Plank : Label
         End = end;
         Init(out var segmentCount, out var segmentsStart);
 
-        var segments = GetComponentsInChildren<PlankSegment>();
-        for (int i = 0; i < segmentCount || i < segments.Length; i++)
+        var segments = StaticList<PlankSegment>.List;
+        GetComponentsInChildren(segments);
+        for (int i = 0; i < segmentCount || i < segments.Count; i++)
         {
             if (i < segmentCount)
             {
-                PlankSegment seg = i < segments.Length ? segments[i] : Instantiate(segments[0], transform);
-                seg.SegmentIndex = i;
-                var pos = segments[0].transform.localPosition;
-                pos.y = segmentsStart + i * SegmentSize.y;
-                seg.transform.localPosition = pos;
-                SegmentMove(map, seg);
+                if (i < segments.Count)
+                {
+                    SegmentMove(map, segments[i], segmentsStart, i);
+                }
+                else
+                {
+                    SegmantAdd(map, segmentsStart, i);
+                }
             }
             else
             {
-                var seg = segments[i];
-                SegmentRemove(map, seg);
-                if (i > 0)
-                    Destroy(seg.gameObject);
+                SegmentRemove(segments[i]);
             }
         }
+        segments.Clear();
     }
 
-    internal void RemoveFromMap(Map map)
+    internal void RemoveFromMap()
     {
-        var segments = GetComponentsInChildren<PlankSegment>();
-        for (int i = 0; i < segments.Length; i++)
-        {
-            var seg = segments[i];
-            SegmentRemove(map, seg);
-            if (i > 0)
-                Destroy(seg.gameObject);
-        }
+        var segments = StaticList<PlankSegment>.List;
+        GetComponentsInChildren(segments);
+        foreach (var seg in segments)
+            SegmentRemove(seg);
+        segments.Clear();
     }
 
-    protected virtual void SegmentAdd(Map map, PlankSegment seg)
+    public override void Cleanup()
     {
-        map.Add(seg);
+        RemoveFromMap();
+        base.Cleanup();
     }
 
-    protected virtual void SegmentRemove(Map map, PlankSegment seg)
+    private void SegmantAdd(Map map, float segmentsStart, int i)
     {
-        map.Remove(seg);
+        PlankSegment seg = Game.Instance.Pool.Get(Game.Instance.PrefabsStore.LadderSegment, transform, new Vector3(0, segmentsStart + i * SegmentSize.y, 0));
+        seg.SegmentIndex = i;
+        seg.PlaceToMap(map);
     }
 
-    protected virtual void SegmentMove(Map map, PlankSegment seg)
+    private void SegmentRemove(PlankSegment seg)
     {
-        map.Move(seg);
+        Game.Instance.Pool.Store(seg, Game.Instance.PrefabsStore.LadderSegment);
+    }
+
+    private void SegmentMove(Map map, PlankSegment seg, float segmentsStart, int i)
+    {
+        seg.transform.localPosition = new Vector3(0, segmentsStart + i * SegmentSize.y, 0);
+        seg.KinematicMove(map);        
     }
 
     private void Init(out int segmentCount, out float segmentsStart)

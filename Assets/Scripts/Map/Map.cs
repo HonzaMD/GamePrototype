@@ -49,7 +49,14 @@ namespace Assets.Scripts.Map
         public void Add(Placeable p, bool dontRefreshCoordinates = false)
         {
             if (!dontRefreshCoordinates)
+            {
+                if (p.IsMapPlaced)
+                {
+                    Debug.Log("Map Placed " + p.name);
+                    return;
+                }
                 p.RefreshCoordinates();
+            }
             p.Tag = 0;
 
             #region Coords Prep CopyPaste
@@ -80,6 +87,8 @@ namespace Assets.Scripts.Map
 
         public void Remove(Placeable p)
         {
+            if (!p.IsMapPlaced)
+                return;
             #region Coords Prep CopyPaste
             var pos = p.PlacedPosition - mapOffset;
             pos.Scale(CellSize2dInv);
@@ -103,11 +112,16 @@ namespace Assets.Scripts.Map
                     cells[cellPosY + x].Remove(p, ksids);
                 }
             }
+
+            p.PlacedPosition = Placeable.NotInMap;
         }
 
 
         public void Move(Placeable p)
-        {           
+        {
+            if (!p.IsMapPlaced)
+                throw new InvalidOperationException("Nemuzu pohybovat neco co neni v mape " + p.name);
+
             var blockingOld = p.CellBlocking;
             #region Coords Prep CopyPaste
             var posOld = p.PlacedPosition - mapOffset;

@@ -71,25 +71,26 @@
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Utils\StaticList.cs" />
     <Compile Include="Assets\Scripts\Map\Level1.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
-    <Compile Include="Assets\Scripts\Stuff\Ladder.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
+    <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
+    <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
+    <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
-    <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
-    <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

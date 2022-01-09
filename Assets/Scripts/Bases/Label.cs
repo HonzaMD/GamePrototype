@@ -11,15 +11,16 @@ using UnityEngine;
 public abstract class Label : MonoBehaviour
 {
     public abstract Placeable PlaceableC { get; }
-    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>();
+    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>() ?? transform.parent.GetComponent<Rigidbody>();
     public virtual Transform ParentForConnections => transform;
 
     public virtual void Cleanup() 
     {
-        ParentForConnections.GetComponentsInChildren(conectables);
-        foreach (var c in conectables)
+        var connectables = StaticList<IConnectable>.List;
+        ParentForConnections.GetComponentsInChildren(connectables);
+        foreach (var c in connectables)
             c.Disconnect();
-        conectables.Clear();
+        connectables.Clear();
     }
 
     public virtual Ksid Ksid => PlaceableC.Ksid;
@@ -27,12 +28,11 @@ public abstract class Label : MonoBehaviour
 
     private static readonly List<Collider> colliders1 = new List<Collider>();
     private static readonly List<Collider> colliders2 = new List<Collider>();
-    private static readonly List<IConnectable> conectables = new List<IConnectable>();
 
     public virtual void GetColliders(List<Collider> result)
     {
         result.Clear();
-        GetComponentsInChildren<Collider>(result);
+        GetComponentsInChildren(result);
     }
     public List<Collider> GetCollidersBuff1()
     {

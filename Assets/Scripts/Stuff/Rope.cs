@@ -9,7 +9,6 @@ public class Rope : MonoBehaviour
 {
     public Rigidbody StartAnchor;
     public HingeJoint EndAnchor;
-    public RopeSegment FirstSegment;
 
     public const float segmentSize = 0.25f;
 
@@ -21,8 +20,7 @@ public class Rope : MonoBehaviour
         StartAnchor.transform.rotation = Quaternion.FromToRotation(Vector3.down, end - start);
         EndAnchor.transform.rotation = Quaternion.FromToRotation(Vector3.up, start - end);
 
-        if (!fixEnd)
-            EndAnchor.gameObject.SetActive(false);
+        EndAnchor.gameObject.SetActive(fixEnd);
 
         int segCount = Mathf.CeilToInt((end - start).magnitude / segmentSize);
         Vector3 segOffset = (end - start).normalized * segmentSize;
@@ -31,7 +29,7 @@ public class Rope : MonoBehaviour
 
         for (int i = 0; i < segCount; i++)
         {
-            RopeSegment seg = i == 0 ? FirstSegment : Instantiate(FirstSegment, transform);
+            Placeable seg = Game.Instance.Pool.Get(Game.Instance.PrefabsStore.RopeSegment, transform);
             seg.transform.position = start + i * segOffset;
             seg.transform.rotation = StartAnchor.transform.rotation;
 
@@ -40,8 +38,7 @@ public class Rope : MonoBehaviour
             joint.connectedAnchor = new Vector3(0, i == 0 ? 0 : -segmentSize, 0);
             prevBody = seg.GetComponent<Rigidbody>();
 
-            map.Add(seg);
-            Game.Instance.AddMovingObject(seg);
+            seg.PlaceToMap(map);
         }
 
         if (fixEnd)

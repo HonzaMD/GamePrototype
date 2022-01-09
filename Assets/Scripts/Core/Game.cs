@@ -20,6 +20,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Ksids Ksids { get; private set; }
     public Timer Timer;
     public ObjectPool Pool;
+    public PrefabsStore PrefabsStore;
 
     public Transform[] HoldMarkers;
     public Transform LongThrowMarker;
@@ -75,8 +76,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateObjects();
         Timer.GameUpdate();
 
-        if (!cameraMode)
-            Character.GameUpdate();
+        //if (!cameraMode)
+        //    Character.GameUpdate();
         Camera.GameUpdate();
     }
 
