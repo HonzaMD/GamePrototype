@@ -52,7 +52,7 @@ namespace Assets.Scripts.Map
             {
                 if (p.IsMapPlaced)
                 {
-                    Debug.Log("Map Placed " + p.name);
+                    Debug.LogError("Map Already Placed " + p.name);
                     return;
                 }
                 p.RefreshCoordinates();

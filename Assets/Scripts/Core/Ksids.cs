@@ -8,22 +8,22 @@ namespace Assets.Scripts.Core
 {
     public class Ksids
     {
-        private readonly Dictionary<int, KsidNode> ksids;
+        private readonly KsidNode[] ksids;
         private readonly int[] componentIndexes;
         private int currentTag;
 
         public Ksids(IEnumerable<(Ksid child, Ksid parent)> dependencies)
         {
-            var tempDict = ((int[])Enum.GetValues(typeof(Ksid))).ToDictionary(n => n, n => new TempKsid());
+            var tempDict = ((int[])Enum.GetValues(typeof(Ksid))).Select(n => new TempKsid()).ToArray();
             InitDependencies(tempDict, dependencies);
             DetectCycles(tempDict);
             int componentCount = SetComponents(tempDict);
-            ksids = tempDict.ToDictionary(p => p.Key, p => new KsidNode((Ksid)p.Key, (ushort)p.Value.component, this));
+            ksids = tempDict.Select((tk, i) => new KsidNode((Ksid)i, (ushort)tk.component, this)).ToArray();
             AssignDependencies(tempDict);
             componentIndexes = new int[componentCount];
         }
 
-        public Dictionary<int, KsidNode>.ValueCollection AllKsids => ksids.Values;
+        public KsidNode[] AllKsids => ksids;
 
         public KsidNode this[Ksid name]
         {
@@ -36,7 +36,7 @@ namespace Assets.Scripts.Core
 
 
 
-        private static void InitDependencies(Dictionary<int, TempKsid> tempDict, IEnumerable<(Ksid child, Ksid parent)> dependencies)
+        private static void InitDependencies(TempKsid[] tempDict, IEnumerable<(Ksid child, Ksid parent)> dependencies)
         {
             foreach (var dep in dependencies)
             {
@@ -45,21 +45,23 @@ namespace Assets.Scripts.Core
             }
         }
 
-        private void AssignDependencies(Dictionary<int, TempKsid> tempDict)
+        private void AssignDependencies(TempKsid[] tempDict)
         {
-            foreach (var p in tempDict)
-                ksids[p.Key].InitDependencies(p.Value.Parents, p.Value.Children);
+            for (int f = 0; f < tempDict.Length; f++)
+            {
+                ksids[f].InitDependencies(tempDict[f].Parents, tempDict[f].Children);
+            }
         }
 
-        private void DetectCycles(Dictionary<int, TempKsid> tempDict)
+        private void DetectCycles(TempKsid[] tempDict)
         {
-            foreach (var tk in tempDict.Values)
+            foreach (var tk in tempDict)
             {
                 DetectCycles(tk, tempDict);
             }
         }
 
-        private void DetectCycles(TempKsid tk, Dictionary<int, TempKsid> tempDict)
+        private void DetectCycles(TempKsid tk, TempKsid[] tempDict)
         {
             if (tk.component == -2)
                 throw new InvalidOperationException("V grafu KSID jmen je cyklus!");
@@ -74,10 +76,10 @@ namespace Assets.Scripts.Core
             }
         }
 
-        private static int SetComponents(Dictionary<int, TempKsid> tempDict)
+        private static int SetComponents(TempKsid[] tempDict)
         {
             int component = 0;
-            foreach (var tk in tempDict.Values)
+            foreach (var tk in tempDict)
             {
                 if (tk.component == -3)
                 {
@@ -90,7 +92,7 @@ namespace Assets.Scripts.Core
             return component;
         }
 
-        private static void SetComponents(int component, TempKsid tk, Dictionary<int, TempKsid> tempDict)
+        private static void SetComponents(int component, TempKsid tk, TempKsid[] tempDict)
         {
             if (tk.component == -3)
             {

@@ -6,9 +6,6 @@ using UnityEngine;
 
 public class PlankSegment : Placeable
 {
-    [HideInInspector]
-    public int SegmentIndex;
-
     public override void RefreshCoordinates()
     {
         var plank = GetComponentInParent<Plank>();

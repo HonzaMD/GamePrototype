@@ -80,7 +80,6 @@ public class Plank : Label
     private void SegmantAdd(Map map, float segmentsStart, int i)
     {
         PlankSegment seg = Game.Instance.Pool.Get(Game.Instance.PrefabsStore.LadderSegment, transform, new Vector3(0, segmentsStart + i * SegmentSize.y, 0));
-        seg.SegmentIndex = i;
         seg.PlaceToMap(map);
     }
 
