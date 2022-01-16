@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
-    public class Map
+    public partial class Map
     {
         private readonly int posx;
         private readonly int posy;
@@ -427,6 +427,11 @@ namespace Assets.Scripts.Map
         public Vector2 CellToWorld(Vector2Int cPoss)
         {
             return new Vector2(cPoss.x * CellSize2d.x, cPoss.y * CellSize2d.y) + mapOffset;
+        }
+
+        private Vector2 CellToWorld(int cellPoss)
+        {
+            return CellToWorld(new Vector2Int(cellPoss % sizex, cellPoss / sizex));
         }
 
         public bool IsXNearNextCell(float x, int direction)

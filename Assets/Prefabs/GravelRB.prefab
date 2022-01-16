@@ -101,6 +101,7 @@ MonoBehaviour:
   Ksid: 9
   CellBlocking: 0
   SubCellFlags: 1
+  Settings: {fileID: 11400000, guid: 9131c771db890804496541fefe4f0636, type: 2}
   ComboPrefab: {fileID: 5681543388285737891, guid: 55c3ac1f7cf762741b643ff2b92a26e9,
     type: 3}
 --- !u!1 &5009492663899497987

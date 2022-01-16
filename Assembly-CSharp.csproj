@@ -92,6 +92,7 @@
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
+    <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
   </ItemGroup>

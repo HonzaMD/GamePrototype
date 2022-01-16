@@ -63,6 +63,17 @@ public abstract class Label : MonoBehaviour
         }
     }
 
+    public Vector3 AngularVelocity
+    {
+        get
+        {
+            var rb = Rigidbody;
+            if (rb)
+                return rb.angularVelocity;
+            return Vector3.zero;
+        }
+    }
+
     public static bool TryFind(Transform collision, out Label lb)
     {
         while (!collision.TryGetComponent(out lb) && collision.parent != null)

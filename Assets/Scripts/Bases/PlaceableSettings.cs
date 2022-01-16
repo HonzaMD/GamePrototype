@@ -11,5 +11,6 @@ namespace Assets.Scripts.Bases
     public class PlaceableSettings : ScriptableObject
     {
         public bool HasSubPlaceables;
+        public bool UseSimpleBBCollisions;
     }
 }

@@ -50,13 +50,15 @@ public class Placeable : Label, ILevelPlaceabe
     [HideInInspector, NonSerialized]
     public int Tag;
     public PlaceableSettings Settings;
+    
     public bool IsMapPlaced => PlacedPosition != NotInMap;
+    public Vector2 Pivot => transform.position.XY();
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
     public virtual void RefreshCoordinates()
     {
-        PlacedPosition = transform.position.XY() + PosOffset;
+        PlacedPosition = Pivot + PosOffset;
         if (SubCellFlags != SubCellFlags.Free)
             CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
     }

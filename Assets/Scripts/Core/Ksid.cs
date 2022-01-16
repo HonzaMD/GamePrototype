@@ -18,5 +18,6 @@ namespace Assets.Scripts.Core
         CharacterHolds,
         SmallMonsterHolds,
         Stone,
+        SandLike,
     }
 }

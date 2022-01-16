@@ -33,5 +33,8 @@ namespace Assets.Scripts.Map
 
         public static CellFlags Combine(SubCellFlags subCellFlags, CellFlags flags, Transform transform) => Combine(subCellFlags, flags, transform.position.z);
         public static CellFlags Combine(SubCellFlags subCellFlags, Transform transform) => Combine(subCellFlags, CellFlags.Free, transform.position.z);
+
+        public static bool IsPartBlock1(this CellFlags flags) => (flags & CellFlags.Cell1Part) != 0;
+        public static bool IsPartBlock2(this CellFlags flags) => (flags & CellFlags.Cell2Part) != 0;
     }
 }
