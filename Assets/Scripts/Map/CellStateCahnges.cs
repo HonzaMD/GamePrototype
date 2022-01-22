@@ -13,8 +13,10 @@ namespace Assets.Scripts.Map
     public enum CellStateCahnge
     {
         None = 0,
-        CompactSand = 1,
-        FreeSand = 2,
+        CompactSand0 = 1,
+        CompactSand1 = 2,
+        FreeSand0 = 4,
+        FreeSand1 = 8,
     }
 
     public partial class Map
@@ -30,7 +32,8 @@ namespace Assets.Scripts.Map
         private Vector2 buffOffset;
         private Vector2Int buffSize;
         private int buffZshift;
-
+        private int cellPos;
+        private Vector2Int cellXY;
 
         public void AddCellStateTest(Vector2Int cPoss, CellStateCahnge change)
         {
@@ -47,25 +50,30 @@ namespace Assets.Scripts.Map
         {
             for (int f = 0; f < count && candidatesQ.Count > 0; f++)
             {
-                int cellPos = candidatesQ.Dequeue();
+                cellPos = candidatesQ.Dequeue();
                 candidates.Remove(cellPos, out var change);
-                ProcessCellStateTest(cellPos, change);
+                ProcessCellStateTest(change);
             }
         }
 
-        private void ProcessCellStateTest(int cellPos, CellStateCahnge change)
+        private void ProcessCellStateTest(CellStateCahnge change)
         {
-            InitBuffer(cellPos);
-            if ((change & CellStateCahnge.CompactSand) != 0)
-                TestCompactSand(cellPos);
-            if ((change & CellStateCahnge.FreeSand) != 0)
-                TestFreeSand(cellPos);
+            InitBuffer();
+            if ((change & CellStateCahnge.CompactSand0) != 0)
+                TestCompactSand(0);
+            if ((change & CellStateCahnge.CompactSand1) != 0)
+                TestCompactSand(1);
+            if ((change & CellStateCahnge.FreeSand0) != 0)
+                TestFreeSand(0);
+            if ((change & CellStateCahnge.FreeSand1) != 0)
+                TestFreeSand(1);
             ClearBuffer();
         }
 
-        private void InitBuffer(int cellPos)
+        private void InitBuffer()
         {
-            var wPos = CellToWorld(cellPos);
+            cellXY = CellToCell(cellPos);
+            var wPos = CellToWorld(cellXY);
             buffOffset = wPos - new Vector2(buffCSize.x, 0);
             buffSize = new Vector2Int(6, 4);
             InitBuffZShift();
@@ -85,24 +93,146 @@ namespace Assets.Scripts.Map
             buffZshift = buffSize.x * buffSize.y;
         }
 
-        private void TestCompactSand(int cellPos)
+        private void TestCompactSand(int cellz)
         {
-            foreach (Placeable p in cells[cellPos])
+            if (cells[cellPos].Blocking.HasSubFlag(SubCellFlags.Sand, cellz))
+                return;
+            int tag = GetNextTag();
+            MarkCellInBuffer(ref cells[cellPos], cellz, tag);
+            if (FastSkip(cellz * buffZshift))
+                return;
+            MarkFloor(cellz);
+            MarkCellInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
+            MarkCellInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
+            DoSandTest(cellz * buffZshift);
+        }
+
+        private void DoSandTest(int zShift)
+        {
+            int c = BuffCToBuffC(new Vector2Int(1, 0), zShift);
+            int l1 = DoSandTestInRow(c, Content.Speedy);
+            if (l1 == 0 || !DoBorderSandTest(c-1, l1))
+                return;
+            int l2 = DoSandTestInRow(c+1, Content.Speedy | Content.Other);
+            if (l2 == 0)
+                return;
+            int l3 = DoSandTestInRow(c+2, Content.Speedy | Content.Other);
+            if (l3 == 0)
+                return;
+            int l4 = DoSandTestInRow(c+3, Content.Speedy);
+            if (l4 == 0 || !DoBorderSandTest(c+4, l4))
+                return;
+
+            bool isFullCell = IsFullCell(l1, l2, l3, l4);
+            if (!isFullCell)
+                MarkNewSand(l1, l2, l3, l4, c);
+        }
+
+        private void MarkNewSand(int l1, int l2, int l3, int l4, int c)
+        {
+            MarkNewSand(l1, c);
+            MarkNewSand(l2, c+1);
+            MarkNewSand(l3, c+2);
+            MarkNewSand(l4, c+3);
+        }
+
+        private void MarkNewSand(int l, int c0)
+        {
+            for (int y = 0 + 4 - l; y < 4; y++)
             {
-                if (p.CellBlocking.IsPartBlock1())
+                int c = c0 + y * buffSize.x;
+                buffer[c].Content |= Content.NewSand;
+            }
+        }
+
+        private static bool IsFullCell(int l1, int l2, int l3, int l4) => l1 == 4 && l2 == 4 && l3 == 4 && l4 == 4;
+
+        private bool DoBorderSandTest(int c0, int l)
+        {
+            for (int y = 0 + 4-l; y < 3; y++)
+            {
+                int c = c0 + y * buffSize.x;
+                if (!buffer[c].BlockSide)
+                    return false;
+            }
+            return true;
+        }
+
+        private int DoSandTestInRow(int c, Content badContent)
+        {
+            int l = 0;
+            if (buffer[c].Stattic)
+                l++;
+            if ((buffer[c].Content & badContent) != 0)
+                l = 0;
+
+            c += buffSize.x;
+            if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
+                l++;
+            if ((buffer[c].Content & badContent) != 0)
+                l = 0;
+
+            c += buffSize.x;
+            if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
+                l++;
+            if ((buffer[c].Content & badContent) != 0)
+                l = 0;
+
+            c += buffSize.x;
+            if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
+                l++;
+            return l;
+        }
+
+        private void MarkCellInBuffer(ref Cell cell, int cellz, int tag)
+        {
+            foreach (Placeable p in cell)
+            {
+                if (p.Tag != tag)
                 {
-                    MarkInBuffer(p, 0, cellPos);
-                }
-                if (p.CellBlocking.IsPartBlock2())
-                {
-                    MarkInBuffer(p, buffZshift, cellPos);
+                    p.Tag = tag;
+                    if (p.CellBlocking.IsPartBlock(cellz))
+                    {
+                        MarkInBuffer(p, cellz * buffZshift);
+                    }
                 }
             }
         }
 
-        private void MarkInBuffer(Placeable p, int zShift, int cellPos)
+        private bool FastSkip(int zShift)
         {
-            Content content = ClassifyContent(p, cellPos);
+            int c = BuffCToBuffC(new Vector2Int(1, 3), zShift);
+            bool hasSand = false;
+            if (!buffer[c].SandOrBlock)
+                return true;
+            hasSand |= buffer[c].MySand;
+            if (!buffer[c+1].SandOrBlock)
+                return true;
+            hasSand |= buffer[c+1].MySand;
+            if (!buffer[c+2].SandOrBlock)
+                return true;
+            hasSand |= buffer[c+2].MySand;
+            if (!buffer[c+3].SandOrBlock)
+                return true;
+            hasSand |= buffer[c+3].MySand;
+            return !hasSand;
+        }
+
+        private void MarkFloor(int cellz)
+        {
+            if (GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz))
+            {
+                int c = BuffCToBuffC(new Vector2Int(1, 0), cellz * buffZshift);
+                buffer[c].Content |= Content.Stattic;
+                buffer[c + 1].Content |= Content.Stattic;
+                buffer[c + 2].Content |= Content.Stattic;
+                buffer[c + 3].Content |= Content.Stattic;
+            }
+        }
+
+        private void MarkInBuffer(Placeable p, int zShift)
+        {
+            Content content = ClassifyContent(p);
             if (p.Settings?.UseSimpleBBCollisions == true)
                 MarkByBB(p, zShift, content);
             else
@@ -182,7 +312,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        private Content ClassifyContent(Placeable p, int cellPos)
+        private Content ClassifyContent(Placeable p)
         {
             if (p.Velocity.sqrMagnitude > 0.02f || p.AngularVelocity.sqrMagnitude > 0.05f)
             {
@@ -208,7 +338,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        private void TestFreeSand(int cellPos)
+        private void TestFreeSand(int cellz)
         {
             throw new NotImplementedException();
         }
@@ -216,6 +346,11 @@ namespace Assets.Scripts.Map
         private struct SubCell
         {
             public Content Content;
+
+            public bool SandOrBlock => (Content & (Content.Sand2 | Content.SandMy | Content.Stattic)) != 0;
+            public bool MySand => (Content & Content.SandMy) != 0;
+            public bool Stattic => (Content & Content.Stattic) != 0;
+            public bool BlockSide => (Content & Content.Stattic) != 0 || ((Content & (Content.Sand2 | Content.Other)) != 0 && (Content & Content.Speedy) == 0);
         }
 
         [Flags]
@@ -227,6 +362,7 @@ namespace Assets.Scripts.Map
             Other = 4,
             Stattic = 8,
             Speedy = 16,
+            NewSand = 32,
         }
 
         private int BuffCToBuffC(Vector2Int pos, int zShift)

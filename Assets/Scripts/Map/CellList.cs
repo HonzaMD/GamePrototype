@@ -8,7 +8,7 @@ namespace Assets.Scripts.Map
 {
     public struct CellListInfo
     {
-        private const int SizeMask = 0x3F;
+        public const int SizeMask = 0x3F; // 63
         
         int indexAndSize;
 
@@ -36,7 +36,7 @@ namespace Assets.Scripts.Map
         private const int blockSize = 32 * 1024;
         private const int blockMask = blockSize - 1;
         private const int blockShift = 15;
-        public const int maxCapacity = 32;
+        public const int maxCapacity = CellListInfo.SizeMask + 1; // 64
         private readonly static List<(Placeable[] Arr, int Capacity)> data = new List<(Placeable[], int)>();
         private readonly static (Queue<int> List, int LastGi)[] freeLists = InitFreeLists();
         private static readonly int[] sizeToCapacity = InitSizeToCapacity();
@@ -153,7 +153,7 @@ namespace Assets.Scripts.Map
                 info.Index = -1;
                 freeLists[capacity].List.Enqueue(gi);
             }
-            else if (capacity << 2 >= 2 && newSize - 1 <= capacity << 2)
+            else if (capacity >> 2 >= 2 && newSize - 1 <= capacity >> 2)
             {
                 Relocate(ref info, gi, newSize);
                 freeLists[capacity].List.Enqueue(gi);

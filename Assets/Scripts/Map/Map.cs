@@ -429,9 +429,9 @@ namespace Assets.Scripts.Map
             return new Vector2(cPoss.x * CellSize2d.x, cPoss.y * CellSize2d.y) + mapOffset;
         }
 
-        private Vector2 CellToWorld(int cellPoss)
+        private Vector2Int CellToCell(int cellPoss)
         {
-            return CellToWorld(new Vector2Int(cellPoss % sizex, cellPoss / sizex));
+            return new Vector2Int(cellPoss % sizex, cellPoss / sizex);
         }
 
         public bool IsXNearNextCell(float x, int direction)

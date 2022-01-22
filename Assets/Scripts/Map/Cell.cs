@@ -29,7 +29,7 @@ namespace Assets.Scripts.Map
                 Blocking = first.CellBlocking | p.CellBlocking;
                 TriggerAddTest(p, first, ksids);
             }
-            else if (size > CellList.maxCapacity)
+            else if (size == CellListInfo.SizeMask)
             {
                 // Throw Helper
                 throw new InvalidOperationException("Prekrocena maximalni kapacita bunky");

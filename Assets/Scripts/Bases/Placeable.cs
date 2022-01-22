@@ -26,16 +26,16 @@ public enum CellFlags
     Free              = 0b0000,
     Trigger           = 0b0001,
 
+    Cell0     = SubCellFlags.Full << CellUtils.Cell0Shift,
+    Cell0Part = SubCellFlags.Part << CellUtils.Cell0Shift,
+    Cell0Sand = SubCellFlags.Sand << CellUtils.Cell0Shift,
+    
     Cell1     = SubCellFlags.Full << CellUtils.Cell1Shift,
     Cell1Part = SubCellFlags.Part << CellUtils.Cell1Shift,
     Cell1Sand = SubCellFlags.Sand << CellUtils.Cell1Shift,
-    
-    Cell2     = SubCellFlags.Full << CellUtils.Cell2Shift,
-    Cell2Part = SubCellFlags.Part << CellUtils.Cell2Shift,
-    Cell2Sand = SubCellFlags.Sand << CellUtils.Cell2Shift,
 
-    AllCells = Cell1 | Cell2,
-    AllPartCells = Cell1Part | Cell2Part,
+    AllCells = Cell0 | Cell1,
+    AllPartCells = Cell0Part | Cell1Part,
 }
 
 public class Placeable : Label, ILevelPlaceabe
