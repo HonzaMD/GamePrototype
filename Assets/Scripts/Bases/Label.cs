@@ -11,7 +11,7 @@ using UnityEngine;
 public abstract class Label : MonoBehaviour
 {
     public abstract Placeable PlaceableC { get; }
-    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>() ?? transform.parent.GetComponent<Rigidbody>();
+    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
     public virtual Transform ParentForConnections => transform;
 
     public virtual void Cleanup() 
@@ -80,4 +80,6 @@ public abstract class Label : MonoBehaviour
             collision = collision.parent;
         return lb != null;
     }
+
+    public bool HasRB => Rigidbody;
 }

@@ -19,5 +19,6 @@ namespace Assets.Scripts.Core
         SmallMonsterHolds,
         Stone,
         SandLike,
+        SandCombiner,
     }
 }

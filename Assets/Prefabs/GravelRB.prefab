@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8766527306246751138}
   - component: {fileID: 4615778983116450831}
+  - component: {fileID: 8237490021188176289}
   m_Layer: 10
   m_Name: GravelRB
   m_TagString: Untagged
@@ -49,6 +50,18 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 56
   m_CollisionDetection: 0
+--- !u!114 &8237490021188176289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 194225364022316077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76a49b889d2be45458dee5742dc35d4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1859696738964314018
 GameObject:
   m_ObjectHideFlags: 0
@@ -58,7 +71,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 904537617991272926}
-  - component: {fileID: 5931232432754754360}
+  - component: {fileID: 1562265751325818247}
   m_Layer: 10
   m_Name: Gravel
   m_TagString: Untagged
@@ -83,7 +96,7 @@ Transform:
   m_Father: {fileID: 8766527306246751138}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5931232432754754360
+--- !u!114 &1562265751325818247
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -92,7 +105,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1859696738964314018}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85faf92611f97644c92db1201e4f4698, type: 3}
+  m_Script: {fileID: 11500000, guid: 7749a419ad1973340872c9954628d880, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   PosOffset: {x: -0.1, y: -0.1}
@@ -102,8 +115,6 @@ MonoBehaviour:
   CellBlocking: 0
   SubCellFlags: 1
   Settings: {fileID: 11400000, guid: 9131c771db890804496541fefe4f0636, type: 2}
-  ComboPrefab: {fileID: 5681543388285737891, guid: 55c3ac1f7cf762741b643ff2b92a26e9,
-    type: 3}
 --- !u!1 &5009492663899497987
 GameObject:
   m_ObjectHideFlags: 0

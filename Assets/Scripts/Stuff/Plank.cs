@@ -79,13 +79,13 @@ public class Plank : Label
 
     private void SegmantAdd(Map map, float segmentsStart, int i)
     {
-        PlankSegment seg = Game.Instance.Pool.Get(Game.Instance.PrefabsStore.LadderSegment, transform, new Vector3(0, segmentsStart + i * SegmentSize.y, 0));
+        PlankSegment seg = Game.Instance.PrefabsStore.LadderSegment.Create(transform, new Vector3(0, segmentsStart + i * SegmentSize.y, 0));
         seg.PlaceToMap(map);
     }
 
     private void SegmentRemove(PlankSegment seg)
     {
-        Game.Instance.Pool.Store(seg, Game.Instance.PrefabsStore.LadderSegment);
+        Game.Instance.PrefabsStore.LadderSegment.Kill(seg);
     }
 
     private void SegmentMove(Map map, PlankSegment seg, float segmentsStart, int i)

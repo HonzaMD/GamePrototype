@@ -29,7 +29,7 @@ public class Rope : MonoBehaviour
 
         for (int i = 0; i < segCount; i++)
         {
-            Placeable seg = Game.Instance.Pool.Get(Game.Instance.PrefabsStore.RopeSegment, transform);
+            Placeable seg = Game.Instance.PrefabsStore.RopeSegment.Create(transform);
             seg.transform.position = start + i * segOffset;
             seg.transform.rotation = StartAnchor.transform.rotation;
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Bases;
+using UnityEngine;
 
 [CreateAssetMenu]
 public class PrefabsStore : ScriptableObject
@@ -9,5 +10,8 @@ public class PrefabsStore : ScriptableObject
     public Placeable SmallMonster;
     public Rope Rope;
     public Placeable RopeSegment;
-    public Placeable Stone;
+    public RbLabel Stone;
+    public RbLabel Gravel;
+    public RbLabel RbBase;
+    public SandCombiner SandCombiner;
 }

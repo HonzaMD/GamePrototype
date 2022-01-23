@@ -71,10 +71,15 @@ public class Placeable : Label, ILevelPlaceabe
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
         var p = Instantiate(this, parent);
+        p.LevelPlaceAfterInstanciate(map, pos);
+    }
+
+    public void LevelPlaceAfterInstanciate(Map map, Vector3 pos)
+    {
         if (PosOffset.x < 0 || PosOffset.y < 0)
             pos += new Vector3(0.25f, 0.25f, 0);
-        p.transform.localPosition = pos;
-        p.PlaceToMap(map);
+        transform.localPosition = pos;
+        PlaceToMap(map);
     }
 
     public void PlaceToMap(Map map)
@@ -88,7 +93,7 @@ public class Placeable : Label, ILevelPlaceabe
         {
             Game.Instance.AddMovingObject(this);
         }
-        
+
         if (Settings?.HasSubPlaceables == true)
         {
             var placeables = StaticList<Placeable>.List;
@@ -143,5 +148,25 @@ public class Placeable : Label, ILevelPlaceabe
     {
         if ((transform.position.XY() + PosOffset - PlacedPosition).sqrMagnitude > 0.1f * 0.1f)
             map.Move(this);
+    }
+
+    public void AttachRigidBody()
+    {
+        if (HasRB)
+            return;
+        var rb = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
+        transform.SetParent(rb.transform, true);
+    }
+
+    public void DetachRigidBody()
+    {
+        if (!HasRB)
+            return;
+        var rbLabel = this.Rigidbody.GetComponent<RbLabel>();
+        if (!rbLabel || !transform.IsChildOf(rbLabel.transform))
+            throw new InvalidOperationException("Tohle neni detachovatelne RB!");
+        transform.SetParent(rbLabel.transform.parent, true);
+
+        Game.Instance.PrefabsStore.RbBase.Kill(rbLabel);
     }
 }

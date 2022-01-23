@@ -4,88 +4,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-class SandCombiner : Placeable
+public class SandCombiner : Placeable
 {
-    public Transform ComboPrefab;
-    private Rigidbody parent;
-    private Rigidbody orignal;
+    [HideInInspector]
+    public int L1;
+    [HideInInspector]
+    public int L4;
+    [HideInInspector]
+    public bool IsFullCell;
 
-
-    private void Awake()
+    public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children)
     {
-        parent = GetComponentInParent<Rigidbody>();
-    }
+        L1 = l1;
+        L4 = l4;
+        IsFullCell = isFullCell;
 
-    public override Rigidbody Rigidbody => parent;
+        SubCellFlags = isFullCell ? SubCellFlags.Full | SubCellFlags.Sand : SubCellFlags.Part | SubCellFlags.Sand;
 
-    //public override void MovingTick()
-    //{
-    //    var rb = Rigidbody;
-    //    if (orignal == null)
-    //    {
-    //        if (SleepCondition(rb))
-    //        {
-    //            foreach (var p in Game.Map.GetCell(transform.position.XY()))
-    //            {
-    //                if (p != this && p is SandCombiner sc)
-    //                {
-    //                    TryCombine(sc);
-    //                }
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        if (WakeCondition(rb))
-    //            Split();
-    //    }
-    //}
+        if (!IsFullCell)
+            AdjustSize();
 
-    private static bool WakeCondition(Rigidbody rb) => rb.velocity.sqrMagnitude > 0.05f || rb.maxAngularVelocity > 30;
-    private static bool SleepCondition(Rigidbody rb) => rb.velocity.sqrMagnitude < 0.01f && rb.maxAngularVelocity < 10;
+        PlaceToMap(Game.Map);
 
-    private void Split()
-    {
-        orignal.transform.SetParent(parent.transform.parent, true);
-        orignal.gameObject.SetActive(true);
-        transform.SetParent(orignal.transform, true);
-        parent.mass -= orignal.mass;
-        orignal.velocity = parent.velocity;
-        orignal.angularVelocity = parent.angularVelocity;
-        if (parent.GetComponentInChildren<Collider>() == null)
-            Destroy(parent.gameObject);
-        parent = orignal;
-        orignal = null;
-    }
-
-    private void TryCombine(SandCombiner sc)
-    {
-        if (SleepCondition(sc.Rigidbody))
+        foreach (var p in children)
         {
-            if (orignal != null && sc.orignal == null)
+            if (p)
             {
-                sc.Combine(parent.transform);
-            }
-            else if (orignal == null)
-            {
-                if (sc.orignal == null)
-                {
-                    var combo = Instantiate(ComboPrefab, sc.parent.transform.parent);
-                    combo.localPosition = sc.parent.transform.localPosition;
-                    sc.Combine(combo);
-                }
-                Combine(sc.parent.transform);
+                p.DetachRigidBody();
+                p.transform.SetParent(transform, true);
             }
         }
     }
 
-    private void Combine(Transform combo)
+    private void AdjustSize()
     {
-        orignal = parent;
-        transform.SetParent(combo, true);
-        orignal.transform.SetParent(transform, true);
-        parent = combo.GetComponent<Rigidbody>();
-        parent.mass += orignal.mass;
-        orignal.gameObject.SetActive(false);
+        var size = Math.Min(L1, L4) * (0.5f / 4f);
+        var ubytek = 0.5f - size;
+        Size.y = size;
+        transform.localPosition += Vector3.up * ubytek;
+        var collider = GetComponent<BoxCollider>();
+        collider.center = new Vector3(collider.center.x, collider.center.y - ubytek / 2, collider.center.z);
+        collider.size = new Vector3(collider.size.x, collider.size.y - ubytek, collider.size.z);
     }
 }
