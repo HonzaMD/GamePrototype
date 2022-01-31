@@ -619,11 +619,14 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		if (desiredZMove != 0)
 		{
 			var p = transform.position;
-			p.z += desiredZMove;
-			transform.position = p;
+			if (placeable.CanZMove(p.z + desiredZMove))
+			{
+				p.z += desiredZMove;
+				transform.position = p;
+				RemoveAllCatchedLegsArms();
+				ActivateSomeLegsArms();
+			}
 			desiredZMove = 0;
-			RemoveAllCatchedLegsArms();
-			ActivateSomeLegsArms();
 		}
 
 		ApplyHoldForce();

@@ -38,6 +38,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private bool cameraMode;
     private readonly Action<object, int> DeactivateHoldMarkerA;
 
+    public int CollisionLayaerMask { get; private set; }    
+
     public Game()
     {
         DeactivateHoldMarkerA = DeactivateHoldMarker;
@@ -159,6 +161,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             Ksids = new KsidDependencies();
         Character.Camera = Camera;
         Camera.SetTransform(Character.transform.position);
+        CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
     }
 
     public void OnBeforeSerialize()

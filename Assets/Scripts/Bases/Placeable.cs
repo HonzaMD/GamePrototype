@@ -198,4 +198,11 @@ public class Placeable : Label, ILevelPlaceabe
                 throw new InvalidOperationException("Neplatny case");
         }
     }
+
+    public bool CanZMove(float newZ)
+    {
+        var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
+        var center = (Pivot + PosOffset + Size * 0.5f).AddZ(newZ);
+        return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
+    }
 }
