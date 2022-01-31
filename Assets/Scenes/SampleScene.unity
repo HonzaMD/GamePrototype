@@ -66141,6 +66141,8 @@ MonoBehaviour:
   Timer: {fileID: 39436022}
   Pool: {fileID: 436192660}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
+  DefaultPlaceableSettings: {fileID: 11400000, guid: 657256e36061bef4186834667138896d,
+    type: 2}
   HoldMarkers:
   - {fileID: 1872268152}
   - {fileID: 1405430145}

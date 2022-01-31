@@ -53,6 +53,7 @@ public class Placeable : Label, ILevelPlaceabe
     
     public bool IsMapPlaced => PlacedPosition != NotInMap;
     public Vector2 Pivot => transform.position.XY();
+    public int CellZ => transform.position.z < 0.25f ? 0 : 1;
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
@@ -96,12 +97,12 @@ public class Placeable : Label, ILevelPlaceabe
 
         if (Settings?.HasSubPlaceables == true)
         {
-            var placeables = StaticList<Placeable>.List;
+            var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
             foreach (var p in placeables)
                 if (p != this)
                     p.PlaceToMap(map);
-            placeables.Clear();
+            placeables.Return();
         }
     }
 
@@ -117,12 +118,12 @@ public class Placeable : Label, ILevelPlaceabe
 
         if (Settings?.HasSubPlaceables == true)
         {
-            var placeables = StaticList<Placeable>.List;
+            var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
             foreach (var p in placeables)
                 if (p != this)
                     p.Cleanup();
-            placeables.Clear();
+            placeables.Return();
         }
     }
 
@@ -131,12 +132,12 @@ public class Placeable : Label, ILevelPlaceabe
         map.Move(this);
         if (Settings?.HasSubPlaceables == true)
         {
-            var placeables = StaticList<Placeable>.List;
+            var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
             foreach (var p in placeables)
                 if (p != this)
                     map.Move(p);
-            placeables.Clear();
+            placeables.Return();
         }
     }
 
@@ -155,6 +156,7 @@ public class Placeable : Label, ILevelPlaceabe
         if (HasRB)
             return;
         var rb = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
+        rb.Rigidbody.mass = GetMass();
         transform.SetParent(rb.transform, true);
     }
 
@@ -168,5 +170,32 @@ public class Placeable : Label, ILevelPlaceabe
         transform.SetParent(rbLabel.transform.parent, true);
 
         Game.Instance.PrefabsStore.RbBase.Kill(rbLabel);
+    }
+
+    private float GetMass()
+    {
+        var settings = Settings;
+        if (!settings)
+            settings = Game.Instance.DefaultPlaceableSettings;
+
+        if (settings.Mass > 0)
+            return settings.Mass;
+
+        switch (settings.DensityMode)
+        {
+            case DensityMode.BoundingBox:
+                {
+                    float vol = Size.x * Size.y * Mathf.Min(Size.x, Size.y);
+                    return vol * settings.Density;
+                }
+            case DensityMode.Circle:
+                {
+                    float radius = Mathf.Min(Size.x, Size.y) / 2;
+                    float vol = Mathf.PI * 4 * radius * radius * radius / 3;
+                    return vol * settings.Density;
+                }
+            default:
+                throw new InvalidOperationException("Neplatny case");
+        }
     }
 }

@@ -16,11 +16,11 @@ public abstract class Label : MonoBehaviour
 
     public virtual void Cleanup() 
     {
-        var connectables = StaticList<IConnectable>.List;
+        var connectables = ListPool<IConnectable>.Rent();
         ParentForConnections.GetComponentsInChildren(connectables);
         foreach (var c in connectables)
             c.Disconnect();
-        connectables.Clear();
+        connectables.Return();
     }
 
     public virtual Ksid Ksid => PlaceableC.Ksid;
@@ -73,6 +73,9 @@ public abstract class Label : MonoBehaviour
             return Vector3.zero;
         }
     }
+
+    public bool IsSpeedy => Velocity.sqrMagnitude > 0.02f/* || AngularVelocity.sqrMagnitude > 0.05f*/;
+    public bool IsNonMoving => Velocity.sqrMagnitude < 0.01f/* && AngularVelocity.sqrMagnitude < 0.03f*/;
 
     public static bool TryFind(Transform collision, out Label lb)
     {

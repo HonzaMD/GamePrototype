@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,24 +14,14 @@ namespace Assets.Scripts.Bases
 
     public class PlaceableSibling : Placeable
     {
-        private readonly List<IHasCleanup> cleanups = new List<IHasCleanup>();
-
-        private void Awake()
-        {
-            Configure();
-        }
-
-        public void Configure()
-        {
-            cleanups.Clear();
-            GetComponents(cleanups);
-        }
-
         public override void Cleanup()
         {
             base.Cleanup();
+            var cleanups = ListPool<IHasCleanup>.Rent();
+            GetComponents(cleanups);
             foreach (var c in cleanups)
                 c.Cleanup();
+            cleanups.Return();
         }
     }
 }

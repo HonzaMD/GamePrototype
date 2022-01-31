@@ -24,3 +24,5 @@ MonoBehaviour:
   Stone: {fileID: 8446231588341890175, guid: e7d627188fb8ff940b9da868afa8345e, type: 3}
   Gravel: {fileID: 8237490021188176289, guid: 39cfd525dd1ae0a4b9216a6301e56bae, type: 3}
   RbBase: {fileID: 7921987680271271839, guid: 55c3ac1f7cf762741b643ff2b92a26e9, type: 3}
+  SandCombiner: {fileID: 228842591024314374, guid: d6434c7ecb349a049b980b68c5e128ce,
+    type: 3}

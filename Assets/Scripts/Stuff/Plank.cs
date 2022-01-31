@@ -39,7 +39,7 @@ public class Plank : Label
         End = end;
         Init(out var segmentCount, out var segmentsStart);
 
-        var segments = StaticList<PlankSegment>.List;
+        var segments = ListPool<PlankSegment>.Rent();
         GetComponentsInChildren(segments);
         for (int i = 0; i < segmentCount || i < segments.Count; i++)
         {
@@ -59,16 +59,16 @@ public class Plank : Label
                 SegmentRemove(segments[i]);
             }
         }
-        segments.Clear();
+        segments.Return();
     }
 
     internal void RemoveFromMap()
     {
-        var segments = StaticList<PlankSegment>.List;
+        var segments = ListPool<PlankSegment>.Rent();
         GetComponentsInChildren(segments);
         foreach (var seg in segments)
             SegmentRemove(seg);
-        segments.Clear();
+        segments.Return();
     }
 
     public override void Cleanup()

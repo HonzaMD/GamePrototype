@@ -74,8 +74,9 @@
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
-    <Compile Include="Assets\Scripts\Utils\StaticList.cs" />
+    <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
     <Compile Include="Assets\Scripts\Map\Level1.cs" />
+    <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
@@ -96,7 +97,6 @@
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
-    <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

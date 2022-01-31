@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
@@ -21,6 +22,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Timer Timer;
     public ObjectPool Pool;
     public PrefabsStore PrefabsStore;
+    public PlaceableSettings DefaultPlaceableSettings;
 
     public Transform[] HoldMarkers;
     public Transform LongThrowMarker;
@@ -75,6 +77,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateMovingObjects();
         UpdateObjects();
         Timer.GameUpdate();
+        Map.ProcessCellStateTests(200);
 
         //if (!cameraMode)
         //    Character.GameUpdate();
@@ -97,6 +100,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             if (p.Value == movingObjectWorkPtr)
             {
                 Map.Move(p.Key);
+                MovingObjTest(p.Key);
             }
             else
             {
@@ -108,6 +112,18 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         movingObjectWorkPtr++;
         if (movingObjectWorkPtr >= movingObjectMaxPtr)
             movingObjectWorkPtr = 0;
+    }
+
+    private void MovingObjTest(Placeable p)
+    {
+        if (Ksids.IsParentOrEqual(p.Ksid, Ksid.SandLike) && p.IsNonMoving)
+        {
+            float y = Mathf.Repeat(p.Pivot.y, Map.CellSize.y);
+            float dy = p.PosOffset.y + p.Size.y;
+
+            if (y + dy > Map.CellSizeY3div4)
+                Map.AddCellStateTest(Map.WorldToCell(p.Pivot), p.CellZ == 0 ? CellStateCahnge.CompactSand0 : CellStateCahnge.CompactSand1);
+        }
     }
 
     private void UpdateTriggers()

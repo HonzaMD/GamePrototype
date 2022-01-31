@@ -45,5 +45,9 @@ public class SandCombiner : Placeable
         var collider = GetComponent<BoxCollider>();
         collider.center = new Vector3(collider.center.x, collider.center.y - ubytek / 2, collider.center.z);
         collider.size = new Vector3(collider.size.x, collider.size.y - ubytek, collider.size.z);
+
+        var img = transform.Find("SC_Cube");
+        img.localPosition = new Vector3(img.localPosition.x, img.localPosition.y - ubytek / 2, img.localPosition.z);
+        img.localScale = new Vector3(img.localScale.x, img.localScale.y - ubytek, img.localScale.z);
     }
 }

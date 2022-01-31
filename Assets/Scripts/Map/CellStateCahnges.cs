@@ -25,9 +25,6 @@ namespace Assets.Scripts.Map
         private readonly Queue<int> candidatesQ = new Queue<int>();
 
         private readonly SubCell[] buffer = new SubCell[6*4*2];
-        private readonly static Vector2 buffCSize = CellSize2d / 4;
-        private readonly static Vector2 buffCSizeInv = new Vector2(1f / buffCSize.x, 1f / buffCSize.y);
-        private readonly static Vector2 buffCSizeHalf = CellSize2d / 8;
 
         private Vector2 buffOffset;
         private Vector2Int buffSize;
@@ -95,16 +92,18 @@ namespace Assets.Scripts.Map
 
         private void TestCompactSand(int cellz)
         {
-            if (cells[cellPos].Blocking.HasSubFlag(SubCellFlags.Sand, cellz))
+            Debug.Log("TestCompactSand Start");
+            if (cells[cellPos].Blocking.HasSubFlag(SubCellFlags.HasFloor, cellz))
                 return;
             int tag = GetNextTag();
             MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
             if (FastSkip(cellz * buffZshift))
                 return;
-            MarkFloor(cellz);
+            Debug.Log("TestCompactSand After FS");
+            bool hasFloor = GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz);
             MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
             MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
-            TryCreateCombiner(cellz, cellz * buffZshift);
+            TryCreateCombiner(cellz, cellz * buffZshift, hasFloor);
         }
 
         private bool FastSkip(int zShift)
@@ -113,32 +112,32 @@ namespace Assets.Scripts.Map
             bool hasSand = false;
             if (!buffer[c].SandOrBlock)
                 return true;
-            hasSand |= buffer[c].MySand;
+            hasSand |= buffer[c].Sand;
             if (!buffer[c + 1].SandOrBlock)
                 return true;
-            hasSand |= buffer[c + 1].MySand;
+            hasSand |= buffer[c + 1].Sand;
             if (!buffer[c + 2].SandOrBlock)
                 return true;
-            hasSand |= buffer[c + 2].MySand;
+            hasSand |= buffer[c + 2].Sand;
             if (!buffer[c + 3].SandOrBlock)
                 return true;
-            hasSand |= buffer[c + 3].MySand;
+            hasSand |= buffer[c + 3].Sand;
             return !hasSand;
         }
 
-        private void TryCreateCombiner(int cellz, int zShift)
+        private void TryCreateCombiner(int cellz, int zShift, bool hasFloor)
         {
             int c = BuffCToBuffC(new Vector2Int(1, 0), zShift);
-            int l1 = DoSandTestInRow(c, Content.Speedy);
+            int l1 = DoSandTestInRow(c, Content.Speedy, hasFloor);
             if (l1 == 0 || !DoBorderSandTest(c-1, l1))
                 return;
-            int l2 = DoSandTestInRow(c+1, Content.Speedy | Content.Other);
+            int l2 = DoSandTestInRow(c+1, Content.Speedy | Content.Other, hasFloor);
             if (l2 == 0)
                 return;
-            int l3 = DoSandTestInRow(c+2, Content.Speedy | Content.Other);
+            int l3 = DoSandTestInRow(c+2, Content.Speedy | Content.Other, hasFloor);
             if (l3 == 0)
                 return;
-            int l4 = DoSandTestInRow(c+3, Content.Speedy);
+            int l4 = DoSandTestInRow(c+3, Content.Speedy, hasFloor);
             if (l4 == 0 || !DoBorderSandTest(c+4, l4))
                 return;
 
@@ -149,7 +148,8 @@ namespace Assets.Scripts.Map
             var sands = GetIncludedSands(isFullCell, cellz);
             var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(Game.Instance.Level.transform, CellToWorld(cellXY).AddZ(cellz * 0.5f));
             combiner.Init(l1, l4, isFullCell, sands);
-            sands.Clear();
+            sands.Return();
+            Debug.Log("TestCompactSand Success");
         }
 
         private bool DoBorderSandTest(int c0, int l)
@@ -163,29 +163,34 @@ namespace Assets.Scripts.Map
             return true;
         }
 
-        private int DoSandTestInRow(int c, Content badContent)
+        private int DoSandTestInRow(int c, Content badContent, bool hasFloor)
         {
             int l = 0;
-            if (buffer[c].Stattic)
+            if ((buffer[c].Stattic || (hasFloor && buffer[c].SandOrBlock))
+                && (buffer[c].Content & badContent) == 0)
                 l++;
-            if ((buffer[c].Content & badContent) != 0)
+            else
+                l = 0;
+
+            c += buffSize.x;
+            if ((buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
+                && (buffer[c].Content & badContent) == 0)
+                l++;
+            else
+                l = 0;
+
+            c += buffSize.x;
+            if ((buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
+                && (buffer[c].Content & badContent) == 0)
+                l++;
+            else
                 l = 0;
 
             c += buffSize.x;
             if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
                 l++;
-            if ((buffer[c].Content & badContent) != 0)
+            else
                 l = 0;
-
-            c += buffSize.x;
-            if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
-                l++;
-            if ((buffer[c].Content & badContent) != 0)
-                l = 0;
-
-            c += buffSize.x;
-            if (buffer[c].Stattic || (l > 0 && buffer[c].SandOrBlock))
-                l++;
             return l;
         }
 
@@ -210,7 +215,7 @@ namespace Assets.Scripts.Map
 
         private List<Placeable> GetIncludedSands(bool isFullCell, int cellz)
         {
-            var ret = StaticList<Placeable>.List;
+            var ret = ListPool<Placeable>.Rent();
             foreach (var p in cells[cellPos])
             {
                 if (p.CellBlocking.IsPartBlock(cellz)
@@ -225,18 +230,6 @@ namespace Assets.Scripts.Map
 
 
 
-        private void MarkFloor(int cellz)
-        {
-            if (GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz))
-            {
-                int c = BuffCToBuffC(new Vector2Int(1, 0), cellz * buffZshift);
-                buffer[c].Content |= Content.Stattic;
-                buffer[c + 1].Content |= Content.Stattic;
-                buffer[c + 2].Content |= Content.Stattic;
-                buffer[c + 3].Content |= Content.Stattic;
-            }
-        }
-
         private void MarkPlaceablesInBuffer(ref Cell cell, int cellz, int tag)
         {
             foreach (Placeable p in cell)
@@ -246,6 +239,8 @@ namespace Assets.Scripts.Map
                     p.Tag = tag;
                     if (p.CellBlocking.IsPartBlock(cellz))
                     {
+                        if (p.tag == "debug")
+                            Debug.Log("debug");
                         MarkPInBuffer(p, cellz * buffZshift);
                     }
                 }
@@ -263,7 +258,7 @@ namespace Assets.Scripts.Map
 
         private Content ClassifyContent(Placeable p)
         {
-            if (p.Velocity.sqrMagnitude > 0.02f || p.AngularVelocity.sqrMagnitude > 0.05f)
+            if (p.IsSpeedy)
             {
                 return Content.Speedy;
             }
@@ -289,7 +284,7 @@ namespace Assets.Scripts.Map
 
         private void MarkByBB(Placeable p, int zShift, Content content)
         {
-            Vector2 shrink = Vector2.Min(new Vector2(0.06f, 0.06f), p.Size) * 0.5f;
+            Vector2 shrink = Vector2.Min(new Vector2(0.03f, 0.03f), p.Size) * 0.5f;
             Vector2Int a = WorldToBuffC(p.PlacedPosition + shrink);
             Vector2Int b = WorldToBuffC(p.PlacedPosition + p.Size - shrink);
             a = Vector2Int.Max(Vector2Int.zero, a);
@@ -374,10 +369,12 @@ namespace Assets.Scripts.Map
             public Content Content;
 
             public bool SandOrBlock => (Content & (Content.Sand2 | Content.SandMy | Content.Stattic)) != 0;
-            public bool MySand => (Content & Content.SandMy) != 0;
+            public bool Sand => (Content & (Content.SandMy | Content.Sand2)) != 0;
             public bool Stattic => (Content & Content.Stattic) != 0;
             public bool BlockSide => (Content & Content.Stattic) != 0 || ((Content & (Content.Sand2 | Content.Other)) != 0 && (Content & Content.Speedy) == 0);
             public bool NewSand => (Content & Content.NewSand) != 0;
+
+            public override string ToString() => Content.ToString();
         }
 
         [Flags]

@@ -17,6 +17,12 @@ namespace Assets.Scripts.Map
         public readonly static Vector3 CellSize = new Vector3(0.5f, 0.5f, 0.5f);
         public readonly static Vector2 CellSize2d = CellSize.XY();
         public readonly static Vector2 CellSize2dInv = new Vector2(1f / CellSize2d.x, 1f / CellSize2d.y);
+        public readonly static float CellSizeY3div4 = CellSize.y * 3 / 4;
+
+        private readonly static Vector2 buffCSize = CellSize2d / 4;
+        private readonly static Vector2 buffCSizeInv = new Vector2(1f / buffCSize.x, 1f / buffCSize.y);
+        private readonly static Vector2 buffCSizeHalf = CellSize2d / 8;
+
 
         public readonly Vector2 mapOffset;
         public readonly Vector2Int mapSize;
