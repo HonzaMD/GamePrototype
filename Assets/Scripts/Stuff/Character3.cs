@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -12,7 +13,7 @@ using UnityEngine.Animations.Rigging;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-public class Character3 : ChLegsArms, IActiveObject
+public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 {
 	[HideInInspector]
 	public SimpleCameraController Camera { get; set; }
@@ -32,6 +33,8 @@ public class Character3 : ChLegsArms, IActiveObject
 	private float throwForceDir = 0;
 	private Rigidbody bodyToThrow;
 
+	private Label inventoryPrototype;
+
 	void Awake()
 	{
 		oldPos = transform.position;
@@ -47,6 +50,15 @@ public class Character3 : ChLegsArms, IActiveObject
 
 		bool jumpButton = Input.GetButtonDown("Jump");
 		bool catchButton = Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftAlt);
+
+		if (Input.GetKeyDown(KeyCode.Alpha1) && !throwActive)
+		{
+			if (ArmHolds)
+				RecatchHold();
+			desiredHold = true;
+			inventoryAccessor = this;
+			inventoryPrototype = Game.Instance.PrefabsStore.Gravel;
+		}
 
 		if (Input.GetKeyDown(KeyCode.V))
 		{
@@ -270,5 +282,21 @@ public class Character3 : ChLegsArms, IActiveObject
 			bodyToThrow.velocity = (Vector3)force + this.body.velocity;
 			bodyToThrow = null;
 		}
+	}
+
+	Label IInventoryAccessor.InventoryGet()
+	{
+		Vector3 pos = holdTarget != Vector2.zero 
+			? ArmSphere.transform.position + holdTarget.AddZ(0)
+			: (body.velocity.x > 0 ? ArmSphere.transform.position + Settings.HoldPosition.AddZ(0) 
+			: ArmSphere.transform.position + new Vector3(-Settings.HoldPosition.x, Settings.HoldPosition.y, 0));
+		var l = inventoryPrototype.Create(Game.Instance.Level.transform, pos);
+		l.PlaceableC.PlaceToMap(Game.Map);
+		return l;
+	}
+
+	void IInventoryAccessor.InventoryReturn(Label label)
+	{
+		inventoryAccessor = null;
 	}
 }

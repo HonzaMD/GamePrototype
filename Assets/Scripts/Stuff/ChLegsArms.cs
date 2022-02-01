@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -41,6 +42,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	protected bool desiredHold;
 	protected bool desiredCrouch;
 	protected Vector2 holdTarget;
+	protected IInventoryAccessor inventoryAccessor;
 
 
 	private static List<Vector2> armCandidates = new List<Vector2>();
@@ -230,6 +232,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	{
 		Legs[index].gameObject.SetActive(false);
 		Legs[index].SetParent(transform, true);
+		if (legArmStatus[index] == Hold && inventoryAccessor != null)
+			inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
 		legArmStatus[index] = Timeout;
 		legsConnectedLabels[index] = null;
 	}
@@ -446,6 +450,18 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void TryHold(int index)
 	{
+		if (inventoryAccessor != null)
+		{
+			TryHoldInventory(index);
+		}
+		else
+		{
+			TryHoldNearItem(index);
+		}
+	}
+
+	private void TryHoldNearItem(int index)
+	{
 		var map = Game.Map;
 		var center = ArmSphere.transform.position.XY();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
@@ -456,22 +472,37 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 		foreach (var p in placeables)
 		{
-			var pos = p.GetClosestPoint(center3d);
-			var zDiff = center3d.z - pos.z;
-			var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
-			if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
-			{
-				if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
-				{
-					PlaceLeg3d(index, ref hitInfo, Hold);
-					IgnoreCollision(legsConnectedLabels[index], true);
-					SetHoldTarget(index);
-					break;
-				}
-			}
+			if (TryHoldOne(p, index, center3d))
+				break;
 		}
 
 		placeables.Clear();
+	}
+
+	private bool TryHoldOne(Label p, int index, Vector3 center3d)
+	{
+		var pos = p.GetClosestPoint(center3d);
+		var zDiff = center3d.z - pos.z;
+		var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
+		if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
+		{
+			if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
+			{
+				PlaceLeg3d(index, ref hitInfo, Hold);
+				IgnoreCollision(legsConnectedLabels[index], true);
+				SetHoldTarget(index);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void TryHoldInventory(int index)
+	{
+		var item = inventoryAccessor.InventoryGet();
+		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
+		if (!TryHoldOne(item, index, center3d))
+			inventoryAccessor.InventoryReturn(item);
 	}
 
 	private void EnsurePrevioslyHoldIsFirst()

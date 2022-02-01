@@ -97,6 +97,7 @@
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
+    <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
