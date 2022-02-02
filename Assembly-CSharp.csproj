@@ -87,6 +87,7 @@
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
+    <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
-    <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

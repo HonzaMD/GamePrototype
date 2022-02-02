@@ -92,14 +92,12 @@ namespace Assets.Scripts.Map
 
         private void TestCompactSand(int cellz)
         {
-            Debug.Log("TestCompactSand Start");
             if (cells[cellPos].Blocking.HasSubFlag(SubCellFlags.HasFloor, cellz))
                 return;
             int tag = GetNextTag();
             MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
             if (FastSkip(cellz * buffZshift))
                 return;
-            Debug.Log("TestCompactSand After FS");
             bool hasFloor = GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz);
             MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
             MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
@@ -149,7 +147,6 @@ namespace Assets.Scripts.Map
             var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(Game.Instance.Level.transform, CellToWorld(cellXY).AddZ(cellz * 0.5f));
             combiner.Init(l1, l4, isFullCell, sands);
             sands.Return();
-            Debug.Log("TestCompactSand Success");
         }
 
         private bool DoBorderSandTest(int c0, int l)
@@ -239,8 +236,6 @@ namespace Assets.Scripts.Map
                     p.Tag = tag;
                     if (p.CellBlocking.IsPartBlock(cellz))
                     {
-                        if (p.tag == "debug")
-                            Debug.Log("debug");
                         MarkPInBuffer(p, cellz * buffZshift);
                     }
                 }

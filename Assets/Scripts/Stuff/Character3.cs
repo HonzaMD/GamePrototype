@@ -34,6 +34,8 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 	private Rigidbody bodyToThrow;
 
 	private Label inventoryPrototype;
+	private Label inventoryObj;
+	private int inventoryHoldAttempts;
 
 	void Awake()
 	{
@@ -58,6 +60,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 			desiredHold = true;
 			inventoryAccessor = this;
 			inventoryPrototype = Game.Instance.PrefabsStore.Gravel;
+			inventoryHoldAttempts = 3;
 		}
 
 		if (Input.GetKeyDown(KeyCode.V))
@@ -121,10 +124,20 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 		bool holdButton = Input.GetKey(KeyCode.V) && !throwActive;
 
 
-		if (!holdButton && desiredHold && !ArmHolds)
+		if (!holdButton && desiredHold && !ArmHolds && inventoryHoldAttempts == 0)
 		{
 			holdTarget = Vector2.zero;
 			desiredHold = false;
+		}
+
+		if (inventoryHoldAttempts > 0)
+		{
+			inventoryHoldAttempts--;
+			if (ArmHolds)
+			{
+				Debug.Log("Attempts Left: " + inventoryHoldAttempts);
+				inventoryHoldAttempts = 0;
+			}
 		}
 
 		desiredCrouch = holdButton && !ArmHolds;
@@ -286,17 +299,24 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 
 	Label IInventoryAccessor.InventoryGet()
 	{
+		if (inventoryObj != null)
+			return inventoryObj;
 		Vector3 pos = holdTarget != Vector2.zero 
 			? ArmSphere.transform.position + holdTarget.AddZ(0)
 			: (body.velocity.x > 0 ? ArmSphere.transform.position + Settings.HoldPosition.AddZ(0) 
 			: ArmSphere.transform.position + new Vector3(-Settings.HoldPosition.x, Settings.HoldPosition.y, 0));
 		var l = inventoryPrototype.Create(Game.Instance.Level.transform, pos);
 		l.PlaceableC.PlaceToMap(Game.Map);
+		inventoryObj = l;
 		return l;
 	}
 
 	void IInventoryAccessor.InventoryReturn(Label label)
 	{
-		inventoryAccessor = null;
+		if (inventoryHoldAttempts == 0)
+		{
+			inventoryAccessor = null;
+			inventoryObj = null;
+		}
 	}
 }
