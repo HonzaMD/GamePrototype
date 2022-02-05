@@ -114,7 +114,7 @@ MonoBehaviour:
   Ksid: 9
   CellBlocking: 0
   SubCellFlags: 1
-  Settings: {fileID: 11400000, guid: 9131c771db890804496541fefe4f0636, type: 2}
+  Settings: {fileID: 11400000, guid: 310032e4a240bc547a610ac44770ebc7, type: 2}
 --- !u!1 &5009492663899497987
 GameObject:
   m_ObjectHideFlags: 0

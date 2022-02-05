@@ -79,7 +79,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateMovingObjects();
         UpdateObjects();
         Timer.GameUpdate();
-        Map.ProcessCellStateTests(200);
+        Map.ProcessCellStateTests(10);
 
         //if (!cameraMode)
         //    Character.GameUpdate();

@@ -12,10 +12,25 @@ namespace Assets.Scripts.Utils
         public static T GetComponentInFirstChildren<T>(this Transform transform)
             where T : class 
             => transform.childCount > 0 ? transform.GetChild(0).GetComponentInChildren<T>() : null;
-        
+
         public static T GetComponentInFirstChildren<T>(this MonoBehaviour obj)
             where T : class
             => obj.transform.GetComponentInFirstChildren<T>();
+
+        public static void GetComponentsInLevel1Children<T>(this Transform transform, List<T> output)
+            where T : MonoBehaviour
+        {
+            for (int f = 0; f < transform.childCount; f++)
+            {
+                var c = transform.GetChild(f).GetComponent<T>();
+                if (c)
+                    output.Add(c);
+            }
+        }
+
+        public static void GetComponentsInLevel1Children<T>(this MonoBehaviour obj, List<T> output)
+            where T : MonoBehaviour
+            => GetComponentsInLevel1Children(obj.transform, output);
 
         public static T ToRealNull<T>(this T obj)
             where T : UnityEngine.Object

@@ -10,18 +10,20 @@ public class SandCombiner : Placeable
     public int L1;
     [HideInInspector]
     public int L4;
-    [HideInInspector]
-    public bool IsFullCell;
+
+    private int collapsingToken;
+
+    public bool IsFullCell => (SubCellFlags & SubCellFlags.FullEx) != 0;
+    public bool Collapsing => (collapsingToken & 1) != 0;
 
     public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children)
     {
         L1 = l1;
         L4 = l4;
-        IsFullCell = isFullCell;
 
         SubCellFlags = isFullCell ? SubCellFlags.Full | SubCellFlags.Sand : SubCellFlags.Part | SubCellFlags.Sand;
 
-        if (!IsFullCell)
+        if (!isFullCell)
             AdjustSize();
 
         PlaceToMap(Game.Map);
@@ -49,5 +51,64 @@ public class SandCombiner : Placeable
         var img = transform.Find("SC_Cube");
         img.localPosition = new Vector3(img.localPosition.x, img.localPosition.y - ubytek / 2, img.localPosition.z);
         img.localScale = new Vector3(img.localScale.x, img.localScale.y - ubytek, img.localScale.z);
+    }
+
+    private void CleanupSize()
+    {
+        if (!IsFullCell)
+        {
+            var prefab = Game.Instance.PrefabsStore.SandCombiner;
+            Size = prefab.Size;
+            var collider = GetComponent<BoxCollider>();
+            var colliderP = prefab.GetComponent<BoxCollider>();
+            collider.center = colliderP.center;
+            collider.size = colliderP.size;
+
+            var img = transform.Find("SC_Cube");
+            var imgP = prefab.transform.Find("SC_Cube");
+            img.localPosition = imgP.localPosition;
+            img.localScale = imgP.localScale;
+        }
+    }
+
+    internal void Collapse()
+    {
+        collapsingToken++;
+        Game.Instance.Timer.Plan(collapseD, 2, this, collapsingToken);
+    }
+
+    private static void Collapse(object obj, int token)
+    {
+        var sc = (SandCombiner)obj;
+        if (sc.collapsingToken == token)
+        {
+            sc.CollapseNow();
+        }
+    }
+    private static Action<object, int> collapseD = Collapse;
+
+    public void CollapseNow()
+    {
+        var children = ListPool<Placeable>.Rent();
+        transform.GetComponentsInLevel1Children(children);
+
+        foreach (var p in children)
+        {
+            p.transform.SetParent(transform.parent, true);
+            p.AttachRigidBody();
+        }
+        children.Return();
+
+        Game.Instance.PrefabsStore.SandCombiner.Kill(this);
+    }
+
+    public override void Cleanup()
+    {
+        if (Collapsing)
+            collapsingToken++;
+
+        CleanupSize();
+
+        base.Cleanup();
     }
 }

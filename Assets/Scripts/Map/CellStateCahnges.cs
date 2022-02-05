@@ -15,8 +15,8 @@ namespace Assets.Scripts.Map
         None = 0,
         CompactSand0 = 1,
         CompactSand1 = 2,
-        FreeSand0 = 4,
-        FreeSand1 = 8,
+        FreeSand0 = CellFlags.Cell0Sand,
+        FreeSand1 = CellFlags.Cell1Sand,
     }
 
     public partial class Map
@@ -27,8 +27,8 @@ namespace Assets.Scripts.Map
         private readonly SubCell[] buffer = new SubCell[6*4*2];
 
         private Vector2 buffOffset;
-        private Vector2Int buffSize;
-        private int buffZshift;
+        private static readonly Vector2Int buffSize = new Vector2Int(6, 4);
+        private static readonly int buffZshift = buffSize.x* buffSize.y;
         private int cellPos;
         private Vector2Int cellXY;
 
@@ -72,8 +72,6 @@ namespace Assets.Scripts.Map
             cellXY = CellToCell(cellPos);
             var wPos = CellToWorld(cellXY);
             buffOffset = wPos - new Vector2(buffCSize.x, 0);
-            buffSize = new Vector2Int(6, 4);
-            InitBuffZShift();
         }
 
         private void ClearBuffer()
@@ -83,11 +81,6 @@ namespace Assets.Scripts.Map
             {
                 buffer[f] = default;
             }
-        }
-
-        private void InitBuffZShift()
-        {
-            buffZshift = buffSize.x * buffSize.y;
         }
 
         private void TestCompactSand(int cellz)
@@ -155,6 +148,17 @@ namespace Assets.Scripts.Map
             {
                 int c = c0 + y * buffSize.x;
                 if (!buffer[c].BlockSide)
+                    return false;
+            }
+            return true;
+        }
+
+        private bool DoBorderSandTestAllowSpeedy(int c0, int l)
+        {
+            for (int y = 0 + 4 - l; y < 3; y++)
+            {
+                int c = c0 + y * buffSize.x;
+                if (!buffer[c].BlockSideAllowSpeedy)
                     return false;
             }
             return true;
@@ -354,9 +358,44 @@ namespace Assets.Scripts.Map
 
         private void TestFreeSand(int cellz)
         {
-            throw new NotImplementedException();
+            CellFlags sandFlags = CellUtils.Combine(SubCellFlags.Sand, cellz);
+            var sandCombo = GetFirst(ref cells[cellPos], sandFlags) as SandCombiner;
+            if (sandCombo && !sandCombo.Collapsing)
+            {
+                if (ShouldSandCollapse(cellz, sandCombo))
+                    sandCombo.Collapse();
+            }
         }
 
+        private bool ShouldSandCollapse(int cellz, SandCombiner sandCombo)
+        {
+            bool hasFloor = GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz);
+            bool isFullCell = sandCombo.IsFullCell;
+            if (isFullCell && !hasFloor)
+                return true;
+
+            int tag = GetNextTag();
+            sandCombo.SetTagRecursive(tag);
+            if (!isFullCell)
+                MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
+            MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
+            MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
+
+            int c = BuffCToBuffC(new Vector2Int(0, 0), cellz * buffZshift);
+            if (!DoBorderSandTestAllowSpeedy(c, sandCombo.L1))
+                return true;
+            if (!DoBorderSandTestAllowSpeedy(c + 5, sandCombo.L1))
+                return true;
+
+            if (!isFullCell)
+            {
+                if (!buffer[BuffCToBuffC(new Vector2Int(1, 4 - sandCombo.L1), cellz * buffZshift)].Stattic
+                    || !buffer[BuffCToBuffC(new Vector2Int(4, 4 - sandCombo.L4), cellz * buffZshift)].Stattic)
+                    return true;
+            }
+
+            return false;
+        }
 
 
         private struct SubCell
@@ -367,6 +406,7 @@ namespace Assets.Scripts.Map
             public bool Sand => (Content & (Content.SandMy | Content.Sand2)) != 0;
             public bool Stattic => (Content & Content.Stattic) != 0;
             public bool BlockSide => (Content & Content.Stattic) != 0 || ((Content & (Content.Sand2 | Content.Other)) != 0 && (Content & Content.Speedy) == 0);
+            public bool BlockSideAllowSpeedy => (Content & (Content.Sand2 | Content.Other | Content.Stattic | Content.Speedy)) != 0;
             public bool NewSand => (Content & Content.NewSand) != 0;
 
             public override string ToString() => Content.ToString();

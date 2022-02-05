@@ -10,7 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
-  m_Name: UseSimpleBB
+  m_Name: GravelSettings
   m_EditorClassIdentifier: 
   HasSubPlaceables: 0
-  UseSimpleBBCollisions: 0
+  UseSimpleBBCollisions: 1
+  Mass: 2
+  Density: 1000
+  DensityMode: 0

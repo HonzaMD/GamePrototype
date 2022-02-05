@@ -111,6 +111,9 @@ namespace Assets.Scripts.Map
 
             int cellPosY = posFl.y * sizex;
             #endregion
+
+            LeavingCheck(p, pos, pos2);
+
             for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
             {
                 for (int x = posFl.x; x < pos2Cl.x; x++)
@@ -129,10 +132,26 @@ namespace Assets.Scripts.Map
                 throw new InvalidOperationException("Nemuzu pohybovat neco co neni v mape " + p.name);
 
             var blockingOld = p.CellBlocking;
-            #region Coords Prep CopyPaste
             var posOld = p.PlacedPosition - mapOffset;
             posOld.Scale(CellSize2dInv);
             var pos2Old = new Vector2(p.Size.x * CellSize2dInv.x + posOld.x, p.Size.y * CellSize2dInv.y + posOld.y);
+
+            p.RefreshCoordinates();
+
+            if (blockingOld != p.CellBlocking)
+            {
+                Move2(p, posOld, pos2Old);
+                return;
+            }
+
+            var posNew = p.PlacedPosition - mapOffset;
+            posNew.Scale(CellSize2dInv);
+            var pos2New = new Vector2(p.Size.x * CellSize2dInv.x + posNew.x, p.Size.y * CellSize2dInv.y + posNew.y);
+
+            if (posOld == posNew && pos2Old == pos2New)
+                return;
+
+            LeavingCheck(p, posOld, pos2Old);
 
             var posFlOld = Vector2Int.FloorToInt(posOld);
             var pos2ClOld = Vector2Int.CeilToInt(pos2Old);
@@ -142,20 +161,6 @@ namespace Assets.Scripts.Map
                 pos2ClOld.y += 1;
             posFlOld = Vector2Int.Max(Vector2Int.zero, posFlOld);
             pos2ClOld = Vector2Int.Min(mapSize, pos2ClOld);
-            #endregion
-
-            p.RefreshCoordinates();
-
-            if (blockingOld != p.CellBlocking)
-            {
-                Move2(p, posFlOld, pos2ClOld);
-                return;
-            }
-
-            #region Coords Prep CopyPaste
-            var posNew = p.PlacedPosition - mapOffset;
-            posNew.Scale(CellSize2dInv);
-            var pos2New = new Vector2(p.Size.x * CellSize2dInv.x + posNew.x, p.Size.y * CellSize2dInv.y + posNew.y);
 
             var posFlNew = Vector2Int.FloorToInt(posNew);
             var pos2ClNew = Vector2Int.CeilToInt(pos2New);
@@ -168,7 +173,6 @@ namespace Assets.Scripts.Map
 
             var posFlX = Vector2Int.Max(posFlOld, posFlNew);
             var pos2ClX = Vector2Int.Min(pos2ClOld, pos2ClNew);
-            #endregion
 
             int cellPosY = posFlOld.y * sizex;
             for (int y = posFlOld.y; y < pos2ClOld.y; y++, cellPosY += sizex)
@@ -211,9 +215,22 @@ namespace Assets.Scripts.Map
             }
         }
 
-        private void Move2(Placeable p, Vector2Int posFlOld, Vector2Int pos2ClOld)
+        private void Move2(Placeable p, Vector2 posOld, Vector2 pos2Old)
         {
+            LeavingCheck(p, posOld, pos2Old);
+
+            #region Coords Prep CopyPaste
+            var posFlOld = Vector2Int.FloorToInt(posOld);
+            var pos2ClOld = Vector2Int.CeilToInt(pos2Old);
+            if (posFlOld.x == pos2ClOld.x)
+                pos2ClOld.x += 1;
+            if (posFlOld.y == pos2ClOld.y)
+                pos2ClOld.y += 1;
+            posFlOld = Vector2Int.Max(Vector2Int.zero, posFlOld);
+            pos2ClOld = Vector2Int.Min(mapSize, pos2ClOld);
+
             int cellPosY = posFlOld.y * sizex;
+            #endregion
             for (int y = posFlOld.y; y < pos2ClOld.y; y++, cellPosY += sizex)
             {
                 for (int x = posFlOld.x; x < pos2ClOld.x; x++)
@@ -225,6 +242,35 @@ namespace Assets.Scripts.Map
             Add(p, true);
         }
 
+        private void LeavingCheck(Placeable p, Vector2 posOld, Vector2 pos2Old)
+        {
+            CellFlags sandFilter = CellFlags.Free;
+            if (p.CellBlocking.IsPartBlock0())
+                sandFilter = CellFlags.Cell0Sand;
+            if (p.CellBlocking.IsPartBlock1())
+                sandFilter = CellFlags.Cell1Sand;
+
+            if (sandFilter == CellFlags.Free)
+                return;
+
+            #region Coords Prep CopyPaste
+            var posFlOld = Vector2Int.FloorToInt(posOld - new Vector2(20f, 20f));
+            var pos2ClOld = Vector2Int.CeilToInt(pos2Old + new Vector2(20f, 20f));
+            posFlOld = Vector2Int.Max(Vector2Int.zero, posFlOld);
+            pos2ClOld = Vector2Int.Min(mapSize, pos2ClOld);
+            int cellPosY = posFlOld.y * sizex;
+            #endregion
+
+            for (int y = posFlOld.y; y < pos2ClOld.y; y++, cellPosY += sizex)
+            {
+                for (int x = posFlOld.x; x < pos2ClOld.x; x++)
+                {
+                    var foundSand = cells[cellPosY + x].Blocking & sandFilter;
+                    if (foundSand != 0)
+                        AddCellStateTest(new Vector2Int(x, y), (CellStateCahnge)foundSand);
+                }
+            }
+        }
 
         internal void GetEverything(List<Placeable> output)
         {
@@ -262,6 +308,7 @@ namespace Assets.Scripts.Map
             }
         }
 
+
         public CellFlags GetCellBlocking(Vector2 pos)
         {
             return WorldToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellFlags.Free;
@@ -270,6 +317,15 @@ namespace Assets.Scripts.Map
         {
             return WorldToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
         }
+        public CellFlags GetCellBlocking(Vector2Int pos)
+        {
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellFlags.Free;
+        }
+        public CellFlags GetCellBlocking(Vector2Int pos, Placeable exclude)
+        {
+            return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
+        }
+
 
         public ref Cell GetCell(Vector2 pos)
         {
@@ -282,6 +338,18 @@ namespace Assets.Scripts.Map
                 return ref Cell.Empty;
             }
         }
+        public ref Cell GetCell(Vector2Int pos)
+        {
+            if (CellToCell(pos, out var cellPos))
+            {
+                return ref cells[cellPos];
+            }
+            else
+            {
+                return ref Cell.Empty;
+            }
+        }
+
 
         public bool ContainsType(Vector2 pos, Ksid ksid)
         {
@@ -295,28 +363,6 @@ namespace Assets.Scripts.Map
             }
             return false;
         }
-
-        public CellFlags GetCellBlocking(Vector2Int pos)
-        {
-            return CellToCell(pos, out var cellPos) ? cells[cellPos].Blocking : CellFlags.Free;
-        }
-        public CellFlags GetCellBlocking(Vector2Int pos, Placeable exclude)
-        {
-            return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
-        }
-
-        public ref Cell GetCell(Vector2Int pos)
-        {
-            if (CellToCell(pos, out var cellPos))
-            {
-                return ref cells[cellPos];
-            }
-            else
-            {
-                return ref Cell.Empty;
-            }
-        }
-
         public bool ContainsType(Vector2Int pos, Ksid ksid)
         {
             if (CellToCell(pos, out var cellPos))
@@ -329,6 +375,46 @@ namespace Assets.Scripts.Map
             }
             return false;
         }
+
+        public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid)
+        {
+            int tag = GetNextTag();
+
+            #region Coords Prep CopyPaste
+            pos -= mapOffset;
+            pos.Scale(CellSize2dInv);
+            var pos2 = new Vector2(size.x * CellSize2dInv.x + pos.x, size.y * CellSize2dInv.y + pos.y);
+
+            var posFl = Vector2Int.FloorToInt(pos);
+            var pos2Cl = Vector2Int.CeilToInt(pos2);
+            if (posFl.x == pos2Cl.x)
+                pos2Cl.x += 1;
+            if (posFl.y == pos2Cl.y)
+                pos2Cl.y += 1;
+            posFl = Vector2Int.Max(Vector2Int.zero, posFl);
+            pos2Cl = Vector2Int.Min(mapSize, pos2Cl);
+
+            int cellPosY = posFl.y * sizex;
+            #endregion
+            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+            {
+                for (int x = posFl.x; x < pos2Cl.x; x++)
+                {
+                    foreach (var p in cells[cellPosY + x])
+                    {
+                        if (p.Tag != tag)
+                        {
+                            p.Tag = tag;
+                            if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                                return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
 
         public void Get(List<Placeable> output, Vector2 pos, Vector2 size, Ksid ksid)
         {
@@ -368,43 +454,23 @@ namespace Assets.Scripts.Map
         }
 
 
-        public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid)
+        public Placeable GetFirst(ref Cell cell, Ksid ksid)
         {
-            int tag = GetNextTag();
-
-            #region Coords Prep CopyPaste
-            pos -= mapOffset;
-            pos.Scale(CellSize2dInv);
-            var pos2 = new Vector2(size.x * CellSize2dInv.x + pos.x, size.y * CellSize2dInv.y + pos.y);
-
-            var posFl = Vector2Int.FloorToInt(pos);
-            var pos2Cl = Vector2Int.CeilToInt(pos2);
-            if (posFl.x == pos2Cl.x)
-                pos2Cl.x += 1;
-            if (posFl.y == pos2Cl.y)
-                pos2Cl.y += 1;
-            posFl = Vector2Int.Max(Vector2Int.zero, posFl);
-            pos2Cl = Vector2Int.Min(mapSize, pos2Cl);
-
-            int cellPosY = posFl.y * sizex;
-            #endregion
-            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+            foreach (var p in cell)
             {
-                for (int x = posFl.x; x < pos2Cl.x; x++)
-                {
-                    foreach (var p in cells[cellPosY + x])
-                    {
-                        if (p.Tag != tag)
-                        {
-                            p.Tag = tag;
-                            if (ksids.IsParentOrEqual(p.Ksid, ksid))
-                                return true;
-                        }
-                    }
-                }
+                if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                    return p;
             }
-
-            return false;
+            return null;
+        }
+        public Placeable GetFirst(ref Cell cell, CellFlags flags)
+        {
+            foreach (var p in cell)
+            {
+                if ((p.CellBlocking & flags) != 0)
+                    return p;
+            }
+            return null;
         }
 
 

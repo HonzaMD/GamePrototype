@@ -12,10 +12,11 @@ using UnityEngine;
 [Flags]
 public enum SubCellFlags : byte
 {
-    Free = 0b0000,
-    Full = 0b0011,
-    Part = 0b0001,
-    Sand = 0b0100,
+    Free   = 0b0000,
+    Full   = 0b0011,
+    FullEx = 0b0010,
+    Part   = 0b0001,
+    Sand   = 0b0100,
 
     HasFloor = 0b0110,
 }
@@ -204,5 +205,20 @@ public class Placeable : Label, ILevelPlaceabe
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
         var center = (Pivot + PosOffset + Size * 0.5f).AddZ(newZ);
         return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
+    }
+
+    public void SetTagRecursive(int tag)
+    {
+        if (Settings?.HasSubPlaceables == true)
+        {
+            var placeables = ListPool<Placeable>.Rent();
+            GetComponentsInChildren(placeables);
+            foreach (var p in placeables)
+                p.Tag = tag;
+        }
+        else
+        {
+            Tag = tag;
+        }
     }
 }
