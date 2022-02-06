@@ -14,6 +14,8 @@ namespace Assets.Scripts.Core
                 (Ksid.Rope, Ksid.Catch),
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.Stone, Ksid.CharacterHolds),
+                (Ksid.StickyBomb, Ksid.CharacterHolds),
+                (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.Stone, Ksid.SandLike),
             })
         {

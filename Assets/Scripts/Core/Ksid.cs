@@ -20,5 +20,7 @@ namespace Assets.Scripts.Core
         Stone,
         SandLike,
         SandCombiner,
+        StickyBomb,
+        Explosive,
     }
 }
