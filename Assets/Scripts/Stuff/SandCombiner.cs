@@ -107,8 +107,8 @@ public class SandCombiner : Placeable
         if (Collapsing)
             collapsingToken++;
 
-        CleanupSize();
-
         base.Cleanup();
+
+        CleanupSize();
     }
 }

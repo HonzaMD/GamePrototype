@@ -384,7 +384,7 @@ namespace Assets.Scripts.Map
             int c = BuffCToBuffC(new Vector2Int(0, 0), cellz * buffZshift);
             if (!DoBorderSandTestAllowSpeedy(c, sandCombo.L1))
                 return true;
-            if (!DoBorderSandTestAllowSpeedy(c + 5, sandCombo.L1))
+            if (!DoBorderSandTestAllowSpeedy(c + 5, sandCombo.L4))
                 return true;
 
             if (!isFullCell)

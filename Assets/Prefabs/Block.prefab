@@ -161,4 +161,4 @@ MonoBehaviour:
   Ksid: 1
   CellBlocking: 197376
   SubCellFlags: 0
-  Settings: {fileID: 0}
+  Settings: {fileID: 11400000, guid: 9131c771db890804496541fefe4f0636, type: 2}

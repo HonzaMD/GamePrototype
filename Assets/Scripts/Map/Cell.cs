@@ -2,13 +2,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
     public struct Cell
     {
         private Placeable first;
-        public CellFlags Blocking { get; private set; }       
+        public CellFlags Blocking { get; private set; }
         private CellListInfo listInfo;
 
         public static Cell Empty;
@@ -22,31 +23,41 @@ namespace Assets.Scripts.Map
                 listInfo.Size = 1;
                 Blocking = p.CellBlocking;
             }
-            else if (size == 1)
-            {
-                var arr = CellList.ReserveData(2, out listInfo, out int offset);
-                arr[offset] = p;
-                Blocking = first.CellBlocking | p.CellBlocking;
-                TriggerAddTest(p, first, ksids);
-            }
-            else if (size == CellListInfo.SizeMask)
-            {
-                // Throw Helper
-                throw new InvalidOperationException("Prekrocena maximalni kapacita bunky");
-            }
             else
             {
-                CellList.IncSize(ref listInfo, size + 1);
-                var arr = CellList.GetData(listInfo, out int offset);
-                size--;
-                arr[offset + size] = p;
-                Blocking = first.CellBlocking | p.CellBlocking;
-                TriggerAddTest(p, first, ksids);
-
-                for (int f = offset; f < offset + size; f++)
+                if (p == first)
                 {
-                    Blocking |= arr[f].CellBlocking;
-                    TriggerAddTest(p, arr[f], ksids);
+                    Debug.LogError("Duplikujes pridavani " + p.name);
+                    return;
+                }
+                if (size == 1)
+                {
+                    var arr = CellList.ReserveData(2, out listInfo, out int offset);
+                    arr[offset] = p;
+                    Blocking = first.CellBlocking | p.CellBlocking;
+                    TriggerAddTest(p, first, ksids);
+                }
+                else if (size == CellListInfo.SizeMask)
+                {
+                    // Throw Helper
+                    throw new InvalidOperationException("Prekrocena maximalni kapacita bunky");
+                }
+                else
+                {
+                    CellList.IncSize(ref listInfo, size + 1);
+                    var arr = CellList.GetData(listInfo, out int offset);
+                    size--;
+                    arr[offset + size] = p;
+                    Blocking = first.CellBlocking | p.CellBlocking;
+                    TriggerAddTest(p, first, ksids);
+
+                    for (int f = offset; f < offset + size; f++)
+                    {
+                        Blocking |= arr[f].CellBlocking;
+                        TriggerAddTest(p, arr[f], ksids);
+                        if (arr[f] == p)
+                            Debug.LogError("Duplikujes pridavani !" + p.name);
+                    }
                 }
             }
         }
@@ -98,6 +109,7 @@ namespace Assets.Scripts.Map
             {
                 Blocking = first.CellBlocking;
                 TriggerRemoveTest(p, first, ksids);
+                bool found = false;
 
                 size--;
                 var arr = CellList.GetData(listInfo, out int offset);
@@ -106,6 +118,7 @@ namespace Assets.Scripts.Map
                     if (arr[f] == p)
                     {
                         arr[f] = arr[offset + size - 1];
+                        found = true;
                     }
                     else
                     {
@@ -113,7 +126,18 @@ namespace Assets.Scripts.Map
                         TriggerRemoveTest(p, arr[f], ksids);
                     }
                 }
-                CellList.DecSize(ref listInfo, size);
+                if (found)
+                {
+                    CellList.DecSize(ref listInfo, size);
+                }
+                else
+                {
+                    Debug.LogError("Odebiras neco co tu neni " + p.name);
+                }
+            }
+            else
+            {
+                Debug.LogError("Odebiras neco co tu neni " + p.name);
             }
         }
 

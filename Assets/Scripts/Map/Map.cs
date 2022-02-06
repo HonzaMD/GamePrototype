@@ -132,6 +132,7 @@ namespace Assets.Scripts.Map
                 throw new InvalidOperationException("Nemuzu pohybovat neco co neni v mape " + p.name);
 
             var blockingOld = p.CellBlocking;
+            var placedPositionOld = p.PlacedPosition;
             var posOld = p.PlacedPosition - mapOffset;
             posOld.Scale(CellSize2dInv);
             var pos2Old = new Vector2(p.Size.x * CellSize2dInv.x + posOld.x, p.Size.y * CellSize2dInv.y + posOld.y);
@@ -149,7 +150,10 @@ namespace Assets.Scripts.Map
             var pos2New = new Vector2(p.Size.x * CellSize2dInv.x + posNew.x, p.Size.y * CellSize2dInv.y + posNew.y);
 
             if (posOld == posNew && pos2Old == pos2New)
+            {
+                p.PlacedPosition = placedPositionOld;
                 return;
+            }
 
             LeavingCheck(p, posOld, pos2Old);
 

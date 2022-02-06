@@ -12,5 +12,7 @@ public class PlankSegment : Placeable
         plank.RefreshSegmentCoordinates(this);
         base.RefreshCoordinates();
     }
+
+    public override Vector3 GetClosestPoint(Vector3 position) => GetComponentInParent<Collider>().ClosestPoint(position);
 }
 
