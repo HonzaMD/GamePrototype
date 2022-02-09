@@ -21,8 +21,10 @@ MonoBehaviour:
   Rope: {fileID: 1112798348354775138, guid: fe2ebe000a162554bb81c88b0bc601a1, type: 3}
   RopeSegment: {fileID: 7127492873149735316, guid: 01bc336835831fd408af76b2f4d98dc7,
     type: 3}
-  Stone: {fileID: 8446231588341890175, guid: e7d627188fb8ff940b9da868afa8345e, type: 3}
-  Gravel: {fileID: 8237490021188176289, guid: 39cfd525dd1ae0a4b9216a6301e56bae, type: 3}
+  Stone: {fileID: 6544102931580577880, guid: 7bf408d9ec08be84b851da813604a0e3, type: 3}
+  Gravel: {fileID: 3723724785217879925, guid: 6b41ff0f37816834aaf747ea3767c5a7, type: 3}
+  StickyBomb: {fileID: 7976501457985078537, guid: 199c3b2b185660b4a83296adb207a57f,
+    type: 3}
   RbBase: {fileID: 7921987680271271839, guid: 55c3ac1f7cf762741b643ff2b92a26e9, type: 3}
   SandCombiner: {fileID: 228842591024314374, guid: d6434c7ecb349a049b980b68c5e128ce,
     type: 3}

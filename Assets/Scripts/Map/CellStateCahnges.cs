@@ -137,7 +137,13 @@ namespace Assets.Scripts.Map
                 MarkNewSand(l1, l2, l3, l4, c);
 
             var sands = GetIncludedSands(isFullCell, cellz);
-            var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(Game.Instance.Level.transform, CellToWorld(cellXY).AddZ(cellz * 0.5f));
+            if (sands.Count == 0)
+            {
+                sands.Return();
+                return;
+            }
+
+            var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(sands[0].LevelGroup, CellToWorld(cellXY).AddZ(cellz * 0.5f));
             combiner.Init(l1, l4, isFullCell, sands);
             sands.Return();
         }

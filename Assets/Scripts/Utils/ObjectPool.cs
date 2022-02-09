@@ -13,7 +13,6 @@ namespace Assets.Scripts.Utils
 
         public void Store(Label obj, Label prototype)
         {
-            obj.Cleanup();
             obj.gameObject.SetActive(false);
             obj.transform.parent = transform;
 

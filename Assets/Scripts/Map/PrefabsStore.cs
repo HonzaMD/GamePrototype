@@ -10,8 +10,9 @@ public class PrefabsStore : ScriptableObject
     public Placeable SmallMonster;
     public Rope Rope;
     public Placeable RopeSegment;
-    public RbLabel Stone;
-    public RbLabel Gravel;
+    public Placeable Stone;
+    public Placeable Gravel;
+    public Placeable StickyBomb;
     public RbLabel RbBase;
     public SandCombiner SandCombiner;
 }

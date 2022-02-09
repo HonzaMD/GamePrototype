@@ -68,7 +68,11 @@ public class Placeable : Label, ILevelPlaceabe
     public virtual Ksid TriggerTargets => Ksid.Unknown;
     public virtual void AddTarget(Placeable p) { }
     public virtual void RemoveTarget(Placeable p) { }
-//    public virtual void MovingTick() { }
+
+    public override bool IsGroup => Settings?.HasSubPlaceables == true;
+    public override Label Prototype => Settings?.Prototype;
+    public override Placeable PlaceableC => this;
+    public override bool CanBeKilled => !(Settings?.Unseparable == true);
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
@@ -86,6 +90,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     public void PlaceToMap(Map map)
     {
+        AutoAttachRB();
         map.Add(this);
         if (TryGetComponent<IActiveObject>(out var ao))
         {
@@ -107,6 +112,12 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
+    private void AutoAttachRB()
+    {
+        if (Settings?.AutoAtachRB == true && IsTopLabel)
+            AttachRigidBody();
+    }
+
     public override void Cleanup()
     {
         Game.Map.Remove(this);
@@ -116,16 +127,6 @@ public class Placeable : Label, ILevelPlaceabe
         }
         Game.Instance.RemoveMovingObject(this);
         base.Cleanup();
-
-        if (Settings?.HasSubPlaceables == true)
-        {
-            var placeables = ListPool<Placeable>.Rent();
-            GetComponentsInChildren(placeables);
-            foreach (var p in placeables)
-                if (p != this)
-                    p.Cleanup();
-            placeables.Return();
-        }
     }
 
     public void KinematicMove(Map map)
@@ -144,7 +145,6 @@ public class Placeable : Label, ILevelPlaceabe
 
     public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
 
-    public override Placeable PlaceableC => this;
 
     public void UpdateMapPosIfMoved(Map map)
     {
@@ -170,7 +170,7 @@ public class Placeable : Label, ILevelPlaceabe
             throw new InvalidOperationException("Tohle neni detachovatelne RB!");
         transform.SetParent(rbLabel.transform.parent, true);
 
-        Game.Instance.PrefabsStore.RbBase.Kill(rbLabel);
+        rbLabel.Kill();
     }
 
     private float GetMass()

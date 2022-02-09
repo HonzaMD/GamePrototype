@@ -58,5 +58,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e4246fca5cf1d041bb0485cc3ccfecb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Settings: {fileID: 11400000, guid: c98cfce8f8328bb4bb78dc1d3dd9ac05, type: 2}
+  KsidVar: 4
   Start: {x: 0, y: 0, z: 0}
   End: {x: 0, y: 0, z: 0}

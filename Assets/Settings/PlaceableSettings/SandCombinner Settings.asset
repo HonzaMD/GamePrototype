@@ -14,3 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HasSubPlaceables: 1
   UseSimpleBBCollisions: 1
+  Mass: 0
+  Density: 1000
+  DensityMode: 0
+  Prototype: {fileID: 228842591024314374, guid: d6434c7ecb349a049b980b68c5e128ce,
+    type: 3}

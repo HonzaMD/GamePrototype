@@ -13,7 +13,17 @@ namespace Assets.Scripts.Bases
     {
         public override Placeable PlaceableC => GetComponentInChildren<Placeable>();
         public override Transform ParentForConnections => SubLabel.ParentForConnections;
-        public override void Cleanup() => SubLabel?.Cleanup();
+        public override bool IsGroup => true;
+        public override Label Prototype => Game.Instance.PrefabsStore.RbBase;
+        public override void DetachKilledChild(Label child)
+        {
+            child.transform.SetParent(LevelGroup, true);
+            Kill();
+        }
+        public override void Cleanup()
+        {
+            // schvalne vynechavam clenup connectables, protoze je nemam
+        }
 
         void ILevelPlaceabe.Instantiate(Map.Map map, Transform parent, Vector3 pos)
         {

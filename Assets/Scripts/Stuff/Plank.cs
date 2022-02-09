@@ -1,11 +1,12 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Plank : Label
+public class Plank : LabelWithSettings
 {
     public Vector3 Start;
     public Vector3 End;
@@ -14,6 +15,7 @@ public class Plank : Label
     private Vector2 RotatedSegmentPos;
 
     public override Placeable PlaceableC => GetComponentInChildren<Placeable>();
+    public override bool IsGroup => true;
 
     private void Awake()
     {
@@ -62,20 +64,6 @@ public class Plank : Label
         segments.Return();
     }
 
-    internal void RemoveFromMap()
-    {
-        var segments = ListPool<PlankSegment>.Rent();
-        GetComponentsInChildren(segments);
-        foreach (var seg in segments)
-            SegmentRemove(seg);
-        segments.Return();
-    }
-
-    public override void Cleanup()
-    {
-        RemoveFromMap();
-        base.Cleanup();
-    }
 
     private void SegmantAdd(Map map, float segmentsStart, int i)
     {
@@ -85,13 +73,19 @@ public class Plank : Label
 
     private void SegmentRemove(PlankSegment seg)
     {
-        Game.Instance.PrefabsStore.LadderSegment.Kill(seg);
+        seg.Kill();
     }
 
     private void SegmentMove(Map map, PlankSegment seg, float segmentsStart, int i)
     {
         seg.transform.localPosition = new Vector3(0, segmentsStart + i * SegmentSize.y, 0);
         seg.KinematicMove(map);        
+    }
+
+    public override void DetachKilledChild(Label child)
+    {
+        // TODO
+        base.DetachKilledChild(child);
     }
 
     private void Init(out int segmentCount, out float segmentsStart)

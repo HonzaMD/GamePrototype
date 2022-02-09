@@ -11,20 +11,24 @@ using UnityEngine;
 public abstract class Label : MonoBehaviour
 {
     public abstract Placeable PlaceableC { get; }
-    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
     public virtual Transform ParentForConnections => transform;
+    public virtual bool CanBeKilled => true;
+    public virtual bool IsGroup => false;
+    public abstract Label Prototype { get; }
+
+    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
+    public virtual Ksid Ksid => PlaceableC.Ksid;
+    public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
     public virtual void Cleanup() 
     {
         var connectables = ListPool<IConnectable>.Rent();
-        ParentForConnections.GetComponentsInChildren(connectables);
+        ParentForConnections.GetComponentsInLevel1Children(connectables);
         foreach (var c in connectables)
             c.Disconnect();
         connectables.Return();
     }
 
-    public virtual Ksid Ksid => PlaceableC.Ksid;
-    public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
     private static readonly List<Collider> colliders1 = new List<Collider>();
     private static readonly List<Collider> colliders2 = new List<Collider>();
@@ -85,4 +89,86 @@ public abstract class Label : MonoBehaviour
     }
 
     public bool HasRB => Rigidbody;
+    public Transform LevelGroup => GetComponentInParent<LevelLabel>().transform;
+    public bool TryGetParentLabel(out Label label) => transform.TryFindInParents(out label);
+    public bool IsTopLabel => transform.parent.TryGetComponent(out LevelLabel _);
+
+
+    public virtual void Kill()
+    { 
+        if (CanBeKilled)
+        {
+            if (TryGetParentLabel(out var pl))
+                pl.DetachKilledChild(this);
+
+            var labelsToKill = ListPool<Label>.Rent();
+            RecursiveCleanup(labelsToKill);
+
+            foreach (var l in labelsToKill)
+                l.KillMe();
+            
+            labelsToKill.Return();
+        }
+        else if (TryGetParentLabel(out var pl))
+        {
+            pl.Kill();
+        }
+    }
+
+    private void RecursiveCleanup(List<Label> labelsToKill)
+    {
+        Cleanup();
+        labelsToKill.Add(this);
+        if (!IsGroup)
+            return;
+
+        for (int f = transform.childCount - 1; f >= 0; f--)
+        {
+            RecursiveCleanup(transform.GetChild(f), LevelGroup, labelsToKill);
+        }
+    }
+
+    private static void RecursiveCleanup(Transform t, Transform levelGroup, List<Label> labelsToKill)
+    {
+        if (t.TryGetComponent(out Label l))
+        {
+            l.Cleanup();
+            if (l.CanBeKilled)
+            {
+                l.transform.SetParent(levelGroup, true);
+                labelsToKill.Add(l);
+            }
+            if (!l.IsGroup)
+                return;
+        }
+
+        for (int f = t.childCount - 1; f >= 0; f--)
+        {
+            RecursiveCleanup(t.GetChild(f), levelGroup, labelsToKill);
+        }
+    }
+
+    protected virtual void KillMe()
+    {
+        var prototype = Prototype;
+        if (prototype)
+        {
+            Game.Instance.Pool.Store(this, prototype);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public virtual void DetachKilledChild(Label child)
+    {
+        child.transform.SetParent(LevelGroup, true);
+        
+        var labels = ListPool<Label>.Rent();
+        GetComponentsInChildren(labels);
+        if (labels.Count <= 1)
+            Kill();
+        labels.Return();
+    }
 }

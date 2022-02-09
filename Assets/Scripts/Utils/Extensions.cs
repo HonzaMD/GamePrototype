@@ -18,19 +18,29 @@ namespace Assets.Scripts.Utils
             => obj.transform.GetComponentInFirstChildren<T>();
 
         public static void GetComponentsInLevel1Children<T>(this Transform transform, List<T> output)
-            where T : MonoBehaviour
         {
             for (int f = 0; f < transform.childCount; f++)
             {
-                var c = transform.GetChild(f).GetComponent<T>();
-                if (c)
+                if (transform.GetChild(f).TryGetComponent(out T c))
                     output.Add(c);
             }
         }
 
         public static void GetComponentsInLevel1Children<T>(this MonoBehaviour obj, List<T> output)
-            where T : MonoBehaviour
             => GetComponentsInLevel1Children(obj.transform, output);
+
+        public static bool TryFindInParents<T>(this Transform transform, out T obj)
+        {
+            var t = transform.parent;
+            while (t)
+            {
+                if (t.TryGetComponent(out obj))
+                    return true;
+                t = t.parent;
+            }
+            obj = default;
+            return false;
+        }
 
         public static T ToRealNull<T>(this T obj)
             where T : UnityEngine.Object
@@ -47,8 +57,5 @@ namespace Assets.Scripts.Utils
         public static T Create<T>(this T prototype, Transform parent)
             where T : Label
             => Game.Instance.Pool.Get(prototype, parent);
-
-        public static void Kill(this Label prototype, Label obj)
-            => Game.Instance.Pool.Store(obj, prototype);
     }
 }

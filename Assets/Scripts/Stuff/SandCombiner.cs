@@ -99,7 +99,7 @@ public class SandCombiner : Placeable
         }
         children.Return();
 
-        Game.Instance.PrefabsStore.SandCombiner.Kill(this);
+        Kill();
     }
 
     public override void Cleanup()

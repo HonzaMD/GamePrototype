@@ -21,5 +21,8 @@ namespace Assets.Scripts.Bases
         public float Mass;
         public float Density = 1000f; // hustota vody
         public DensityMode DensityMode;
+        public Label Prototype;
+        public bool Unseparable;
+        public bool AutoAtachRB;
     }
 }

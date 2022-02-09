@@ -10,14 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
-  m_Name: GravelSettings
+  m_Name: ChytSettings
   m_EditorClassIdentifier: 
   HasSubPlaceables: 0
-  UseSimpleBBCollisions: 1
-  Mass: 2
+  UseSimpleBBCollisions: 0
+  Mass: 0
   Density: 1000
   DensityMode: 0
-  Prototype: {fileID: 3723724785217879925, guid: 6b41ff0f37816834aaf747ea3767c5a7,
-    type: 3}
-  Unseparable: 0
-  AutoAtachRB: 1
+  Prototype: {fileID: 0}
+  Unseparable: 1

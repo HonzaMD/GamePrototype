@@ -65,6 +65,7 @@
     <Compile Include="Assets\Scripts\Stuff\Rope.cs" />
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
+    <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Plank.cs" />
     <Compile Include="Assets\Scripts\Utils\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
@@ -77,6 +78,8 @@
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
     <Compile Include="Assets\Scripts\Map\Level1.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
+    <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
+    <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
@@ -98,7 +101,6 @@
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
-    <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

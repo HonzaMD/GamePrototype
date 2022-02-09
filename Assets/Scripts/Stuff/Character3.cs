@@ -55,12 +55,11 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 
 		if (Input.GetKeyDown(KeyCode.Alpha1) && !throwActive)
 		{
-			if (ArmHolds)
-				RecatchHold();
-			desiredHold = true;
-			inventoryAccessor = this;
-			inventoryPrototype = Game.Instance.PrefabsStore.Gravel;
-			inventoryHoldAttempts = 3;
+			InventoryAccess(Game.Instance.PrefabsStore.Gravel);
+		} 
+		else if (Input.GetKeyDown(KeyCode.Alpha2) && !throwActive)
+		{
+			InventoryAccess(Game.Instance.PrefabsStore.StickyBomb);
 		}
 
 		if (Input.GetKeyDown(KeyCode.V))
@@ -213,6 +212,16 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 		}
 	}
 
+	private void InventoryAccess(Label prototype)
+	{
+		if (ArmHolds)
+			RecatchHold();
+		desiredHold = true;
+		inventoryAccessor = this;
+		inventoryPrototype = prototype;
+		inventoryHoldAttempts = 3;
+	}
+
 	private void SetThrowActive(bool activate, bool throwIt)
 	{
 		if (throwActive != activate)
@@ -305,7 +314,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 			? ArmSphere.transform.position + holdTarget.AddZ(0)
 			: (body.velocity.x > 0 ? ArmSphere.transform.position + Settings.HoldPosition.AddZ(0) 
 			: ArmSphere.transform.position + new Vector3(-Settings.HoldPosition.x, Settings.HoldPosition.y, 0));
-		var l = inventoryPrototype.Create(Game.Instance.Level.transform, pos);
+		var l = inventoryPrototype.Create(placeable.LevelGroup, pos);
 		l.PlaceableC.PlaceToMap(Game.Map);
 		inventoryObj = l;
 		return l;
