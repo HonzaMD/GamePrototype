@@ -17,7 +17,7 @@ public abstract class Label : MonoBehaviour
     public abstract Label Prototype { get; }
 
     public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
-    public virtual Ksid Ksid => PlaceableC.ToRealNull()?.Ksid ?? Ksid.Unknown;
+    public abstract Ksid KsidGet { get; }
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
     public virtual void Cleanup() 
@@ -27,6 +27,8 @@ public abstract class Label : MonoBehaviour
         foreach (var c in connectables)
             c.Disconnect();
         connectables.Return();
+
+        Game.Instance.GlobalTimerHandler.ObjectDied(this);
     }
 
 
@@ -92,6 +94,7 @@ public abstract class Label : MonoBehaviour
     public Transform LevelGroup => GetComponentInParent<LevelLabel>().transform;
     public bool TryGetParentLabel(out Label label) => transform.TryFindInParents(out label);
     public bool IsTopLabel => transform.parent.TryGetComponent(out LevelLabel _);
+    public Vector2 Pivot => transform.position.XY();
 
 
     public virtual void Kill()

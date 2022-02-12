@@ -24,5 +24,8 @@ namespace Assets.Scripts.Core
         Explosive,
         ActivatesByThrow,
         Explosion,
+        AffectedByExplosion,
+        DamagedByExplosion,
+        CausesExplosion,
     }
 }

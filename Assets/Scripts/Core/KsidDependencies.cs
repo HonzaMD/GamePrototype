@@ -18,6 +18,15 @@ namespace Assets.Scripts.Core
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
                 (Ksid.Stone, Ksid.SandLike),
+
+                (Ksid.Stone, Ksid.DamagedByExplosion),
+                (Ksid.Explosive, Ksid.DamagedByExplosion),
+                (Ksid.SandCombiner, Ksid.DamagedByExplosion),
+                (Ksid.SmallMonster, Ksid.DamagedByExplosion),
+                (Ksid.DamagedByExplosion, Ksid.AffectedByExplosion),
+                (Ksid.Character, Ksid.AffectedByExplosion),
+                (Ksid.Rope, Ksid.AffectedByExplosion),
+                (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
             })
         {
         }

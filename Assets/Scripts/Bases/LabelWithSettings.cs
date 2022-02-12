@@ -10,10 +10,10 @@ namespace Assets.Scripts.Bases
     public class LabelWithSettings : Label
     {
         public PlaceableSettings Settings;
-        public Ksid KsidVar;
+        public Ksid Ksid;
 
         public override Label Prototype => Settings?.Prototype;
-        public override Ksid Ksid => KsidVar;
+        public override Ksid KsidGet => Ksid;
         public override Placeable PlaceableC => throw new NotSupportedException();
     }
 }

@@ -133,10 +133,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 		{
 			inventoryHoldAttempts--;
 			if (ArmHolds)
-			{
-				Debug.Log("Attempts Left: " + inventoryHoldAttempts);
 				inventoryHoldAttempts = 0;
-			}
 		}
 
 		desiredCrouch = holdButton && !ArmHolds;
@@ -256,7 +253,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 
 	private void ActivateByThrow(Label body)
 	{
-		if (Game.Instance.Ksids.IsParentOrEqual(body.Ksid, Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
+		if (Game.Instance.Ksids.IsParentOrEqual(body.KsidGet, Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
 			ao.Activate();
 	}
 

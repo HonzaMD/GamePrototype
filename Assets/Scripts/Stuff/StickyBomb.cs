@@ -9,40 +9,31 @@ using UnityEngine;
 
 namespace Assets.Scripts.Stuff
 {
-    public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, IConnectable, IPhysicsEvents
+    public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, IConnectable, IPhysicsEvents, ISimpleTimerConsumer
     {
         private int activeTag;
+        public Renderer Renderer;
+
+        int ISimpleTimerConsumer.ActiveTag { get => activeTag; set => activeTag = value; }
         private bool IsActive => (activeTag & 1) != 0;
 
-        public Renderer Renderer;
 
         private static readonly int activeId = Shader.PropertyToID("_Active");
         private static readonly int time0Id = Shader.PropertyToID("_Time0");
         private static readonly int time1Id = Shader.PropertyToID("_Time1");
         private static MaterialPropertyBlock sharedPropertyBlock;
-        private static readonly Action<object, int> explodeAction = Explode;
 
-        private static void Explode(object o, int tag)
+        void ISimpleTimerConsumer.OnTimer()
         {
-            var sb = (StickyBomb)o;
-            if (sb.activeTag == tag)
-                sb.Explode();
-        }
-
-        private void Explode()
-        {
-            var label = GetComponent<Label>();
-            Game.Instance.PrefabsStore.Explosion.Create(label.LevelGroup, transform.position);
-            label.Kill();
+            GetComponent<Label>().Explode();
         }
 
         public void Activate()
         {
             if (!IsActive)
             {
-                activeTag++;
                 SetShader(1, Time.time, Time.time + 10);
-                Game.Instance.Timer.Plan(explodeAction, 10, this, activeTag);
+                this.Plan(10);
             }
         }
 
@@ -72,7 +63,6 @@ namespace Assets.Scripts.Stuff
 
         public void OnCollisionEnter(Collision collision)
         {
-            Debug.Log("OnCollisionEnter");
             if (IsActive && Label.TryFind(collision.collider.transform, out var label))
             {
                 var p = GetComponent<Placeable>();

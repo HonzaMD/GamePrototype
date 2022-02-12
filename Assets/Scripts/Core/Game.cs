@@ -20,6 +20,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Level Level;
     public Ksids Ksids { get; private set; }
     public Timer Timer;
+    public GlobalTimerHandler GlobalTimerHandler;
     public ObjectPool Pool;
     public PrefabsStore PrefabsStore;
     public PlaceableSettings DefaultPlaceableSettings;

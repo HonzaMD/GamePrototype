@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SandCombiner : Placeable
+public class SandCombiner : Placeable, ISimpleTimerConsumer 
 {
     [HideInInspector]
     public int L1;
@@ -15,6 +15,8 @@ public class SandCombiner : Placeable
 
     public bool IsFullCell => (SubCellFlags & SubCellFlags.FullEx) != 0;
     public bool Collapsing => (collapsingToken & 1) != 0;
+
+    int ISimpleTimerConsumer.ActiveTag { get => collapsingToken; set => collapsingToken = value; }
 
     public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children)
     {
@@ -73,19 +75,10 @@ public class SandCombiner : Placeable
 
     internal void Collapse()
     {
-        collapsingToken++;
-        Game.Instance.Timer.Plan(collapseD, 2, this, collapsingToken);
+        this.Plan(2);
     }
 
-    private static void Collapse(object obj, int token)
-    {
-        var sc = (SandCombiner)obj;
-        if (sc.collapsingToken == token)
-        {
-            sc.CollapseNow();
-        }
-    }
-    private static Action<object, int> collapseD = Collapse;
+    void ISimpleTimerConsumer.OnTimer() => CollapseNow();
 
     public void CollapseNow()
     {

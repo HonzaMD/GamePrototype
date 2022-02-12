@@ -45,7 +45,7 @@ public class Placeable : Label, ILevelPlaceabe
     [HideInInspector]
     public Vector2 PlacedPosition = NotInMap;
     public Vector2 Size = new Vector2(0.5f, 0.5f);
-    public new Ksid Ksid;
+    public Ksid Ksid;
     public CellFlags CellBlocking;
     public SubCellFlags SubCellFlags;
     [HideInInspector, NonSerialized]
@@ -53,7 +53,6 @@ public class Placeable : Label, ILevelPlaceabe
     public PlaceableSettings Settings;
     
     public bool IsMapPlaced => PlacedPosition != NotInMap;
-    public Vector2 Pivot => transform.position.XY();
     public int CellZ => transform.position.z < 0.25f ? 0 : 1;
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
@@ -69,6 +68,7 @@ public class Placeable : Label, ILevelPlaceabe
     public virtual void AddTarget(Placeable p) { }
     public virtual void RemoveTarget(Placeable p) { }
 
+    public override Ksid KsidGet => Ksid;
     public override bool IsGroup => Settings?.HasSubPlaceables == true;
     public override Label Prototype => Settings?.Prototype;
     public override Placeable PlaceableC => this;

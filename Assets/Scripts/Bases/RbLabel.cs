@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Core;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -11,10 +12,11 @@ namespace Assets.Scripts.Bases
 {
     public class RbLabel : Label, ILevelPlaceabe
     {
-        public override Placeable PlaceableC => GetComponentInChildren<Placeable>();
+        public override Placeable PlaceableC => (Placeable)SubLabel;
         public override Transform ParentForConnections => SubLabel.ParentForConnections;
         public override bool IsGroup => true;
         public override Label Prototype => Game.Instance.PrefabsStore.RbBase;
+        public override Ksid KsidGet => SubLabel.KsidGet;
         public override void DetachKilledChild(Label child)
         {
             child.transform.SetParent(LevelGroup, true);
@@ -23,6 +25,7 @@ namespace Assets.Scripts.Bases
         public override void Cleanup()
         {
             // schvalne vynechavam clenup connectables, protoze je nemam
+            Game.Instance.GlobalTimerHandler.ObjectDied(this);
         }
 
         void ILevelPlaceabe.Instantiate(Map.Map map, Transform parent, Vector3 pos)
