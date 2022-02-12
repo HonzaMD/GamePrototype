@@ -32,5 +32,12 @@ namespace Assets.Scripts.Bases
         }
 
         private Label SubLabel => transform.GetComponentInFirstChildren<Label>().ToRealNull();
+
+        public void OnCollisionEnter(Collision collision)
+        {
+            var dest = transform.GetComponentInFirstChildren<IPhysicsEvents>();
+            if (dest != null)
+                dest.OnCollisionEnter(collision);
+        }
     }
 }

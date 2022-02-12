@@ -17,7 +17,7 @@ public abstract class Label : MonoBehaviour
     public abstract Label Prototype { get; }
 
     public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
-    public virtual Ksid Ksid => PlaceableC.Ksid;
+    public virtual Ksid Ksid => PlaceableC.ToRealNull()?.Ksid ?? Ksid.Unknown;
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
     public virtual void Cleanup() 
@@ -164,11 +164,14 @@ public abstract class Label : MonoBehaviour
     public virtual void DetachKilledChild(Label child)
     {
         child.transform.SetParent(LevelGroup, true);
-        
-        var labels = ListPool<Label>.Rent();
-        GetComponentsInChildren(labels);
-        if (labels.Count <= 1)
-            Kill();
-        labels.Return();
+
+        if (IsGroup)
+        {
+            var labels = ListPool<Label>.Rent();
+            GetComponentsInChildren(labels);
+            if (labels.Count <= 1)
+                Kill();
+            labels.Return();
+        }
     }
 }

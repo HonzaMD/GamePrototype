@@ -28,3 +28,5 @@ MonoBehaviour:
   RbBase: {fileID: 7921987680271271839, guid: 55c3ac1f7cf762741b643ff2b92a26e9, type: 3}
   SandCombiner: {fileID: 228842591024314374, guid: d6434c7ecb349a049b980b68c5e128ce,
     type: 3}
+  Explosion: {fileID: 8541031529194536801, guid: 33467f0f89f8bf5449e67591e1dc07c0,
+    type: 3}

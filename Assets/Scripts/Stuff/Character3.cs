@@ -244,6 +244,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 					var body = GetHoldBody();
 					if (body != null)
 					{
+						ActivateByThrow(body);
 						bodyToThrow = body.Rigidbody;
 						holdTarget = Vector2.zero;
 						desiredHold = false;
@@ -251,6 +252,12 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 				}
 			}
 		}
+	}
+
+	private void ActivateByThrow(Label body)
+	{
+		if (Game.Instance.Ksids.IsParentOrEqual(body.Ksid, Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
+			ao.Activate();
 	}
 
 	private void PositionLongThrowMarker()

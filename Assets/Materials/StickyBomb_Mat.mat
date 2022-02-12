@@ -34,9 +34,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _EmissionPower: 0.94
+    - _Active: 0
+    - _EmissionPower: 3
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _Sine_Sped: 40
+    - _Time0: 0
+    - _Time1: 1
     m_Colors: []
   m_BuildTextureStacks: []
 --- !u!114 &3550352415721455085

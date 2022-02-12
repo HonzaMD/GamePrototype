@@ -22,5 +22,7 @@ namespace Assets.Scripts.Core
         SandCombiner,
         StickyBomb,
         Explosive,
+        ActivatesByThrow,
+        Explosion,
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Stuff;
 using UnityEngine;
 
 [CreateAssetMenu]
@@ -15,4 +16,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable StickyBomb;
     public RbLabel RbBase;
     public SandCombiner SandCombiner;
+    public Explosion Explosion;
 }
