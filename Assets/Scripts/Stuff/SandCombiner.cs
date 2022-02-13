@@ -75,7 +75,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
     internal void Collapse()
     {
-        this.Plan(2);
+        this.Plan(1);
     }
 
     void ISimpleTimerConsumer.OnTimer() => CollapseNow();

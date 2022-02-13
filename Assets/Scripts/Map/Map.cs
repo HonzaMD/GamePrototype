@@ -252,14 +252,15 @@ namespace Assets.Scripts.Map
             if (p.CellBlocking.IsPartBlock0())
                 sandFilter = CellFlags.Cell0Sand;
             if (p.CellBlocking.IsPartBlock1())
-                sandFilter = CellFlags.Cell1Sand;
+                sandFilter |= CellFlags.Cell1Sand;
 
             if (sandFilter == CellFlags.Free)
                 return;
 
             #region Coords Prep CopyPaste
-            var posFlOld = Vector2Int.FloorToInt(posOld - new Vector2(20f, 20f));
-            var pos2ClOld = Vector2Int.CeilToInt(pos2Old + new Vector2(20f, 20f));
+            float boundaryX = 0.20f * CellSize2dInv.x;
+            var posFlOld = Vector2Int.FloorToInt(posOld - new Vector2(boundaryX, 0));
+            var pos2ClOld = Vector2Int.CeilToInt(pos2Old + new Vector2(boundaryX, 0.20f * CellSize2dInv.y));
             posFlOld = Vector2Int.Max(Vector2Int.zero, posFlOld);
             pos2ClOld = Vector2Int.Min(mapSize, pos2ClOld);
             int cellPosY = posFlOld.y * sizex;

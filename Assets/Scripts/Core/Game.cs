@@ -6,6 +6,7 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using UnityTemplateProjects;
@@ -39,7 +40,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private bool cameraMode;
     private readonly Action<object, int> DeactivateHoldMarkerA;
 
-    public int CollisionLayaerMask { get; private set; }    
+    private readonly Stopwatch sw = new Stopwatch();
+
+    public int CollisionLayaerMask { get; private set; }
+    public double[] UpdateTimes = new double[8];
 
     public Game()
     {
@@ -48,7 +52,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     void Update()
     {
+        sw.Restart();
+        TimeSpan swStart;
+
         UpdateTriggers();
+        UpdateTimes[1] = sw.Elapsed.TotalMilliseconds;
 
         // Exit Sample  
         if (Input.GetKey(KeyCode.Escape))
@@ -77,14 +85,21 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 #endif
 
+        swStart = sw.Elapsed;
         UpdateMovingObjects();
+        UpdateTimes[2] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
         UpdateObjects();
+        UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
         Timer.GameUpdate();
+        UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
         Map.ProcessCellStateTests(10);
+        UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
 
         //if (!cameraMode)
         //    Character.GameUpdate();
         Camera.GameUpdate();
+        sw.Stop();
+        UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
     }
 
 
@@ -108,7 +123,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             else
             {
                 p.Key.UpdateMapPosIfMoved(Map);
-//                p.Key.MovingTick();
             }
         }
 

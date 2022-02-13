@@ -31,6 +31,7 @@ namespace Assets.Scripts.Map
         private static readonly int buffZshift = buffSize.x* buffSize.y;
         private int cellPos;
         private Vector2Int cellXY;
+        private bool bufferUsed;
 
         public void AddCellStateTest(Vector2Int cPoss, CellStateCahnge change)
         {
@@ -55,7 +56,7 @@ namespace Assets.Scripts.Map
 
         private void ProcessCellStateTest(CellStateCahnge change)
         {
-            InitBuffer();
+            InitBufferCoords();
             if ((change & CellStateCahnge.CompactSand0) != 0)
                 TestCompactSand(0);
             if ((change & CellStateCahnge.CompactSand1) != 0)
@@ -67,7 +68,7 @@ namespace Assets.Scripts.Map
             ClearBuffer();
         }
 
-        private void InitBuffer()
+        private void InitBufferCoords()
         {
             cellXY = CellToCell(cellPos);
             var wPos = CellToWorld(cellXY);
@@ -76,10 +77,14 @@ namespace Assets.Scripts.Map
 
         private void ClearBuffer()
         {
-            var size = buffSize.x * buffSize.y * 2;
-            for (int f = 0; f < size; f++)
+            if (bufferUsed)
             {
-                buffer[f] = default;
+                bufferUsed = false;
+                var size = buffSize.x * buffSize.y * 2;
+                for (int f = 0; f < size; f++)
+                {
+                    buffer[f] = default;
+                }
             }
         }
 
@@ -88,6 +93,7 @@ namespace Assets.Scripts.Map
             if (cells[cellPos].Blocking.HasSubFlag(SubCellFlags.HasFloor, cellz))
                 return;
             int tag = GetNextTag();
+            bufferUsed = true;
             MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
             if (FastSkip(cellz * buffZshift))
                 return;
@@ -380,18 +386,26 @@ namespace Assets.Scripts.Map
             if (isFullCell && !hasFloor)
                 return true;
 
+            bufferUsed = true;
             int tag = GetNextTag();
             sandCombo.SetTagRecursive(tag);
             if (!isFullCell)
                 MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
-            MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
-            MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
 
             int c = BuffCToBuffC(new Vector2Int(0, 0), cellz * buffZshift);
-            if (!DoBorderSandTestAllowSpeedy(c, sandCombo.L1))
-                return true;
-            if (!DoBorderSandTestAllowSpeedy(c + 5, sandCombo.L4))
-                return true;
+            if (!GetCellBlocking(cellXY + Vector2Int.left).HasSubFlag(SubCellFlags.FullEx, cellz))
+            {
+                MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.left), cellz, tag);
+                if (!DoBorderSandTestAllowSpeedy(c, sandCombo.L1))
+                    return true;
+            }
+
+            if (!GetCellBlocking(cellXY + Vector2Int.right).HasSubFlag(SubCellFlags.FullEx, cellz))
+            {
+                MarkPlaceablesInBuffer(ref GetCell(cellXY + Vector2Int.right), cellz, tag);
+                if (!DoBorderSandTestAllowSpeedy(c + 5, sandCombo.L4))
+                    return true;
+            }
 
             if (!isFullCell)
             {
