@@ -20,4 +20,4 @@ MonoBehaviour:
   Prototype: {fileID: 7976501457985078537, guid: 199c3b2b185660b4a83296adb207a57f,
     type: 3}
   Unseparable: 0
-  AutoAtachRB: 1
+  AutoAtachRB: 0
