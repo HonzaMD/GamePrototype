@@ -336,11 +336,18 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	{
 		if (Label.TryFind(hitInfo.collider.transform, out var label))
 		{
+			DisconnectOppositeAttachements(label);
 			legsConnectedLabels[index] = label;
 			Legs[index].SetParent(label.ParentForConnections, true);
 			return true;
 		}
 		return false;
+	}
+
+	private void DisconnectOppositeAttachements(Label label)
+	{
+		if (Game.Instance.Ksids.IsParentOrEqual(label.KsidGet, Ksid.DisconnectedByCatch) && label.TryGetComponent<IConnector>(out var connector))
+			connector.Disconnect(placeable);
 	}
 
 	private void PlaceLeg(int index, ref RaycastHit hitInfo)

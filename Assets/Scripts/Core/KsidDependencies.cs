@@ -17,6 +17,7 @@ namespace Assets.Scripts.Core
                 (Ksid.StickyBomb, Ksid.CharacterHolds),
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
+                (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                
                 (Ksid.Stone, Ksid.SandLike),
 
                 (Ksid.Stone, Ksid.DamagedByExplosion),

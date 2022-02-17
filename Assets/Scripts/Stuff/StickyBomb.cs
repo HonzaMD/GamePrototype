@@ -9,14 +9,29 @@ using UnityEngine;
 
 namespace Assets.Scripts.Stuff
 {
-    public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, ISimpleTimerConsumer
+    public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, ISimpleTimerConsumer, IConnector
     {
+        private const float BreakForce = 600;
+        private const float BreakTorque = 600;
+        private const float WBreakForce = 540;
+        private const float WBreakTorque = 540;
+
+
         private int activeTag;
         public Renderer Renderer;
         public Connectable[] connectables = new Connectable[4];
-        private Label[] connectedLabels = new Label[2];
-        private SpringJoint[] activeJoints = new SpringJoint[2];
+        private ConnDesc[] connections = new ConnDesc[2];
         private const int ArrOffest = 2;
+        private int lastConnection;
+
+        private struct ConnDesc
+        {
+            public Label Label;
+            public SpringJoint Joint;
+            public bool ActiveRBs;
+            public bool Broken => !Joint;
+            public bool Connected => Label;
+        }
 
         int ISimpleTimerConsumer.ActiveTag { get => activeTag; set => activeTag = value; }
         private bool IsActive => (activeTag & 1) != 0;
@@ -34,10 +49,14 @@ namespace Assets.Scripts.Stuff
 
         private void Start()
         {
-            connectables[0].Init(() => DicconnectJoint(0));
-            connectables[1].Init(() => DicconnectJoint(1));
-            connectables[2].Init(() => DicconnectJoint(0));
-            connectables[3].Init(() => DicconnectJoint(1));
+            connectables[0].Init(() => DisconnectJoint(0));
+            connectables[1].Init(() => DisconnectJoint(1));
+            connectables[2].Init(() => DisconnectJoint(0));
+            connectables[3].Init(() => DisconnectJoint(1));
+
+            var rb = GetComponent<Rigidbody>();
+            CreateJoint(connectables[0].gameObject, rb);
+            CreateJoint(connectables[1].gameObject, rb);
         }
 
         public void Activate()
@@ -80,7 +99,7 @@ namespace Assets.Scripts.Stuff
             {
                 if (IsAlreadyAttached(label))
                     return;
-                int index = FindFreeConnectable();
+                int index = FindNextConnectable();
                 if (index >= 0)
                     AttachJoint(index, label, collision.contacts[0].point);
             }
@@ -88,9 +107,11 @@ namespace Assets.Scripts.Stuff
 
         private bool IsAlreadyAttached(Label label)
         {
-            foreach (var l in connectedLabels)
-                if (l == label)
+            for (int f = 0; f < connections.Length; f++)
+            {
+                if (connections[f].Label == label && !connections[f].Broken)
                     return true;
+            }
             return false;
         }
 
@@ -100,74 +121,111 @@ namespace Assets.Scripts.Stuff
             Vector3 p1 = point - awayDir;
             Vector3 p2 = point + awayDir;
             var otherRB = label.Rigidbody;
+            ref var c = ref connections[index];
+            c.ActiveRBs = otherRB;
+            c.Label = label;
             if (otherRB)
             {
-                var j = gameObject.AddComponent<SpringJoint>();
+                var j = CreateJoint(gameObject, otherRB);
                 j.anchor = transform.InverseTransformPoint(p1);
-                j.autoConfigureConnectedAnchor = false;
-                j.spring = 1000;
                 j.connectedBody = otherRB;
                 j.connectedAnchor = otherRB.transform.InverseTransformPoint(p2);
-                j.enableCollision = true;
-                activeJoints[index] = j;
+                c.Joint = j;
 
-                var c = connectables[index + ArrOffest];
-                c.transform.SetParent(label.ParentForConnections, true);
-                c.gameObject.SetActive(true);
+                var a = connectables[index + ArrOffest];
+                a.transform.SetParent(label.ParentForConnections, true);
+                a.gameObject.SetActive(true);
             }
             else
             {
                 var j = connectables[index].GetComponent<SpringJoint>();
+                if (!j)
+                    j = CreateJoint(connectables[index].gameObject, GetComponent<Rigidbody>());
                 j.transform.SetParent(label.ParentForConnections, true);
                 j.anchor = j.transform.InverseTransformPoint(p2);
                 j.connectedAnchor = transform.InverseTransformPoint(p1);
+                j.breakForce = BreakForce;
+                j.breakTorque = BreakTorque;
                 j.gameObject.SetActive(true);
+                c.Joint = j;
             }
-            connectedLabels[index] = label;
         }
 
-        private int FindFreeConnectable()
+        private int FindNextConnectable()
         {
-            for (int i = 0; i < connectedLabels.Length; i++)
-            {
-                if (connectedLabels[i] == null)
-                    return i;
-            }
-            return -1;
+            if (connections[lastConnection].Broken)
+                DisconnectJoint(lastConnection);
+            if (!connections[lastConnection].Connected)
+                return lastConnection;
+            WeekenJoint(connections[lastConnection].Joint);
+            lastConnection ^= 1;
+            DisconnectJoint(lastConnection);
+            return lastConnection;
+        }
+
+        private void WeekenJoint(SpringJoint j)
+        {
+            j.breakForce = WBreakForce;
+            j.breakTorque = WBreakTorque;
         }
 
         private void DisconnectJoints()
         {
-            for (int i = 0; i < connectedLabels.Length; i++)
+            for (int i = 0; i < connections.Length; i++)
             {
-                DicconnectJoint(i);
+                DisconnectJoint(i);
             }
         }
 
-        public void DicconnectJoint(int index)
-        { 
-            if (connectedLabels[index] != null)
+        public void DisconnectJoint(int index)
+        {
+            ref var c = ref connections[index];
+            if (c.Connected)
             {
-                connectedLabels[index] = null;
-                DisconnctConnectable(index);
-                DisconnctConnectable(index + ArrOffest);
-                var j = activeJoints[index];
-                if (j != null)
+                if (c.ActiveRBs)
                 {
-                    Destroy(j);
-                    activeJoints[index] = null;
+                    var joint = c.Joint;
+                    if (joint)
+                        Destroy(joint);
+                    DisconnctConnectable(index + ArrOffest);
                 }
+                else
+                {
+                    DisconnctConnectable(index);
+                    if (c.Broken)
+                        CreateJoint(connectables[index].gameObject, GetComponent<Rigidbody>());
+                }
+                c = default;
             }
+        }
+
+        private SpringJoint CreateJoint(GameObject go, Rigidbody rb)
+        {
+            var j = go.AddComponent<SpringJoint>();
+            j.autoConfigureConnectedAnchor = false;
+            j.spring = 1000;
+            j.enableCollision = true;
+            j.damper = 5;
+            j.breakForce = BreakForce;
+            j.breakTorque = BreakTorque;
+            j.connectedBody = rb;
+            return j;
         }
 
         private void DisconnctConnectable(int index)
         {
             var c = connectables[index];
-            if (c.gameObject.activeSelf)
+            c.gameObject.SetActive(false);
+            c.transform.parent = transform;
+            c.transform.localPosition = Vector3.zero;
+        }
+
+        void IConnector.Disconnect(Label label)
+        {
+            for (int f = 0; f < connections.Length; f++)
             {
-                c.gameObject.SetActive(false);
-                c.transform.parent = transform;
-                c.transform.localPosition = Vector3.zero;
+                if (connections[f].Label == label)
+                    DisconnectJoint(f);
             }
         }
     }

@@ -27,5 +27,6 @@ namespace Assets.Scripts.Core
         AffectedByExplosion,
         DamagedByExplosion,
         CausesExplosion,
+        DisconnectedByCatch,
     }
 }

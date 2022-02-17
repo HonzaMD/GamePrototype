@@ -12,6 +12,10 @@ namespace Assets.Scripts.Bases
         public void Disconnect();
     }
 
+    public interface IConnector
+    {
+        public void Disconnect(Label label);
+    }
 
     public class Connectable : MonoBehaviour, IConnectable
     {
