@@ -39,6 +39,7 @@ namespace Assets.Scripts.Map
         public static bool IsPartBlock0(this CellFlags flags) => (flags & CellFlags.Cell0Part) != 0;
         public static bool IsPartBlock1(this CellFlags flags) => (flags & CellFlags.Cell1Part) != 0;
         public static bool IsPartBlock(this CellFlags flags, int cellz) => flags.HasSubFlag(SubCellFlags.Part, cellz);
+        public static bool IsDoubleCell(this CellFlags flags) => (flags & CellFlags.AllPartCells) == CellFlags.AllPartCells;
 
         public static bool HasSubFlag(this CellFlags flags, SubCellFlags flag, int cellz) => ((int)flags & ((int)flag << (Cell0Shift << cellz))) != 0;
     }

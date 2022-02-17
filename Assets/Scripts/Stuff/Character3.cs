@@ -238,7 +238,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 				Game.Instance.LongThrowMarker.gameObject.SetActive(false);
 				if (throwIt)
 				{
-					var body = GetHoldBody();
+					var body = GetHoldObject();
 					if (body != null)
 					{
 						ActivateByThrow(body);
@@ -259,7 +259,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 
 	private void PositionLongThrowMarker()
 	{
-		var body = GetHoldBody();
+		var body = GetHoldObject();
 		if (body != null)
 		{
 			Game.Instance.LongThrowMarker.position = body.transform.position;
@@ -278,7 +278,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 			if (marker != null)
 			{
 				throwTimer = 0.3f;
-				var body = GetHoldBody();
+				var body = GetHoldObject();
 				if (body != null)
 				{
 					marker.transform.position = body.transform.position;

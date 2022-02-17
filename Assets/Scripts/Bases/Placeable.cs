@@ -53,7 +53,6 @@ public class Placeable : Label, ILevelPlaceabe
     public PlaceableSettings Settings;
     
     public bool IsMapPlaced => PlacedPosition != NotInMap;
-    public int CellZ => transform.position.z < 0.25f ? 0 : 1;
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
@@ -207,6 +206,27 @@ public class Placeable : Label, ILevelPlaceabe
         return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
     }
 
+    private static Collider[] collidersBuff = new Collider[4];
+    public bool CanZMove(float newZ, Label exception)
+    {
+        var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
+        var center = (Pivot + PosOffset + Size * 0.5f).AddZ(newZ);
+        int count = Physics.OverlapBoxNonAlloc(center, halfSize.AddZ(0.2f), collidersBuff, Quaternion.identity, Game.Instance.CollisionLayaerMask);
+        if (count == 0)
+            return true;
+        if (count == collidersBuff.Length)
+            return false;
+
+        bool ok = true;
+        for (int i = 0; i < count; i++)
+        {
+            if (!ok || !Label.TryFind(collidersBuff[i].transform, out var l) || l != exception)
+                ok = false;
+            collidersBuff = null;
+        }
+        return ok;
+    }
+
     public void SetTagRecursive(int tag)
     {
         if (Settings?.HasSubPlaceables == true)
@@ -219,6 +239,19 @@ public class Placeable : Label, ILevelPlaceabe
         else
         {
             Tag = tag;
+        }
+    }
+
+    internal virtual void MoveZ(float newZ)
+    {
+        var rb = Rigidbody;
+        if (rb)
+        {
+            rb.transform.position = rb.transform.position.WithZ(newZ);
+        }
+        else
+        {
+            transform.position = transform.position.WithZ(newZ);
         }
     }
 }

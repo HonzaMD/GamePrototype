@@ -95,6 +95,7 @@ public abstract class Label : MonoBehaviour
     public bool TryGetParentLabel(out Label label) => transform.TryFindInParents(out label);
     public bool IsTopLabel => transform.parent.TryGetComponent(out LevelLabel _);
     public Vector2 Pivot => transform.position.XY();
+    public int CellZ => transform.position.z < 0.25f ? 0 : 1;
 
 
     public virtual void Kill()

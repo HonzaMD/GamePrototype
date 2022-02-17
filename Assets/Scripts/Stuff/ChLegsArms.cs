@@ -498,10 +498,22 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 				PlaceLeg3d(index, ref hitInfo, Hold);
 				IgnoreCollision(legsConnectedLabels[index], true);
 				SetHoldTarget(index);
+				TryCorrectZPos(legsConnectedLabels[index]);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private void TryCorrectZPos(Label label)
+	{
+		var p = label.PlaceableC;
+		int myCellZ = placeable.CellZ;
+		if (!p.CellBlocking.IsDoubleCell() && p.CellZ != myCellZ)
+		{
+			if (p.CanZMove(myCellZ * Map.CellSize.z, placeable))
+				p.MoveZ(myCellZ * Map.CellSize.z);
+		}
 	}
 
 	private void TryHoldInventory(int index)
@@ -576,11 +588,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void DelayedEnableCollisions(object other, int token)
 	{
-		var body = (Label)other;
-		if (delayedEnableCollisionLabel == body)
+		var label = (Label)other;
+		if (delayedEnableCollisionLabel == label)
 		{
 			delayedEnableCollisionLabel = null;
-			IgnoreCollision(body, false);
+			IgnoreCollision(label, false);
 		}
 	}
 
@@ -661,8 +673,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			{
 				p.z += desiredZMove;
 				transform.position = p;
+				var ho = GetHoldObject();
+				if (ho != null)
+					TryCorrectZPos(ho);
 				RemoveAllCatchedLegsArms();
 				ActivateSomeLegsArms();
+				RecatchHold();
 			}
 			desiredZMove = 0;
 		}
@@ -853,7 +869,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		legsConnectedLabels[index].ApplyVelocity(-vector3);
 	}
 
-	protected Label GetHoldBody()
+	protected Label GetHoldObject()
 	{
 		if (legArmStatus[2] == Hold)
 			return legsConnectedLabels[2];
