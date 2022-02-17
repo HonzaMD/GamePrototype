@@ -218,11 +218,11 @@ public class Placeable : Label, ILevelPlaceabe
             return false;
 
         bool ok = true;
-        for (int i = 0; i < count; i++)
+        for (int f = 0; f < count; f++)
         {
-            if (!ok || !Label.TryFind(collidersBuff[i].transform, out var l) || l != exception)
+            if (!ok || !Label.TryFind(collidersBuff[f].transform, out var l) || l != exception)
                 ok = false;
-            collidersBuff = null;
+            collidersBuff[f] = null;
         }
         return ok;
     }
