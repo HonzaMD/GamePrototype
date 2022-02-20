@@ -253,7 +253,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 
 	private void ActivateByThrow(Label body)
 	{
-		if (Game.Instance.Ksids.IsParentOrEqual(body.KsidGet, Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
+		if (body.KsidGet.IsChildOf(Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
 			ao.Activate();
 	}
 

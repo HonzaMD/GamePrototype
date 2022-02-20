@@ -22,8 +22,7 @@ namespace Assets.Scripts.Bases
 
         public static void ApplyDamageDelayed(this Label label, Ksid damageType, float intensity)
         {
-            var ksids = Game.Instance.Ksids;
-            if (ksids.IsParentOrEqual(label.KsidGet, damageType))
+            if (label.KsidGet.IsChildOf(damageType))
             {
                 Game.Instance.GlobalTimerHandler.WithKsidFloatParams.Plan(0.3f, applyDamageAction, label, damageType, intensity);
             }

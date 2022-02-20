@@ -43,8 +43,8 @@ namespace Assets.Scripts.Stuff
         {
             var placeables = ListPool<Placeable>.Rent();
             var size = new Vector2(1f, 1f);
-            const float sizeSq = 1;
-            const float sizeSq2 = 0.8f * 0.8f;
+            const float sizeSq = 1.2f * 1.2f;
+            const float sizeSq2 = 0.9f * 0.9f;
             Game.Map.Get(placeables, Pivot - size, size * 2, Ksid.AffectedByExplosion);
             foreach (Placeable p in placeables)
                 ApplyExplosionEffects(p, sizeSq, sizeSq2);
@@ -53,16 +53,19 @@ namespace Assets.Scripts.Stuff
 
         private void ApplyExplosionEffects(Placeable p, float sizeSq, float sizeSq2)
         {
-            var direction = p.GetClosestPoint(transform.position) - transform.position;
-            var distanceSq = direction.sqrMagnitude;
-            const float forceIntensity = 5;
-            if (distanceSq < sizeSq)
+            if (p.gameObject.activeInHierarchy)
             {
-                p.ApplyVelocity(new Vector3((sizeSq - direction.x * direction.x) * Mathf.Sign(direction.x) * forceIntensity, (sizeSq - direction.y * direction.y) * Mathf.Sign(direction.y) * forceIntensity, 0));
-            }
-            if (distanceSq < sizeSq2)
-            {
-                p.ApplyDamageDelayed(Ksid.DamagedByExplosion, sizeSq2 - distanceSq);
+                var direction = p.GetClosestPoint(transform.position) - transform.position;
+                var distanceSq = direction.sqrMagnitude;
+                const float forceIntensity = 3;
+                if (distanceSq < sizeSq)
+                {
+                    p.ApplyVelocity(new Vector3((sizeSq - direction.x * direction.x) * Mathf.Sign(direction.x) * forceIntensity, (sizeSq - direction.y * direction.y) * Mathf.Sign(direction.y) * forceIntensity, 0));
+                }
+                if (distanceSq < sizeSq2)
+                {
+                    p.ApplyDamageDelayed(Ksid.DamagedByExplosion, sizeSq2 - distanceSq);
+                }
             }
         }
 

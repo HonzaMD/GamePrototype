@@ -41,7 +41,7 @@ namespace Assets.Scripts.Utils
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError(ex.Message);
+                    Debug.LogError(ex.ToString());
                 }
             }
         }

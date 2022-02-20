@@ -55,7 +55,25 @@ public abstract class Label : MonoBehaviour
     {
         var rb = Rigidbody;
         if (rb)
+        {
             rb.AddForce(velocity, ForceMode.VelocityChange);
+        }
+        else if (KsidGet.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
+        {
+            CollapseSandByForce(velocity, sandCombiner);
+        }
+    }
+
+    private void CollapseSandByForce(Vector3 velocity, SandCombiner sandCombiner)
+    {
+        float scCenterX = sandCombiner.Pivot.x + 0.25f;
+        float toCenterX = scCenterX - Pivot.x;
+        var toSand = new Vector2(toCenterX, -0.25f);
+        if (Vector2.Dot(toSand, velocity.XY()) < 0)
+        {
+            sandCombiner.CollapseNow();
+            Rigidbody.AddForce(velocity, ForceMode.VelocityChange);
+        }
     }
 
     public virtual Vector3 Velocity

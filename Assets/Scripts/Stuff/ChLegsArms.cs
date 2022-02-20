@@ -332,9 +332,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		return false;
 	}
 
-	bool ConnectLabel(int index, ref RaycastHit hitInfo)
+	bool ConnectLabel(int index, ref RaycastHit hitInfo, Label reqLabel = null)
 	{
-		if (Label.TryFind(hitInfo.collider.transform, out var label))
+		if (Label.TryFind(hitInfo.collider.transform, out var label) && (reqLabel == null || label == reqLabel))
 		{
 			DisconnectOppositeAttachements(label);
 			legsConnectedLabels[index] = label;
@@ -346,7 +346,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void DisconnectOppositeAttachements(Label label)
 	{
-		if (Game.Instance.Ksids.IsParentOrEqual(label.KsidGet, Ksid.DisconnectedByCatch) && label.TryGetComponent<IConnector>(out var connector))
+		if (label.KsidGet.IsChildOf(Ksid.DisconnectedByCatch) && label.TryGetComponent<IConnector>(out var connector))
 			connector.Disconnect(placeable);
 	}
 
@@ -403,7 +403,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			{
 				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask))
 				{
-					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
+					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
 					{
 						PlaceLeg3d(index, ref hitInfo, Catch);
 						placeables.Clear();
@@ -493,7 +493,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
 		if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 		{
-			if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
+			if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
 			{
 				PlaceLeg3d(index, ref hitInfo, Hold);
 				IgnoreCollision(legsConnectedLabels[index], true);
@@ -696,8 +696,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void ApplyHoldForce(int index)
 	{
-		var body = legsConnectedLabels[index].Rigidbody;
-		if (body != null) 
+		var label = legsConnectedLabels[index];
+		if (label != null) 
 		{
 			var armPos = Legs[index].position.XY();
 			var destPos = ArmSphere.transform.position.XY() + holdTarget;
@@ -706,9 +706,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			destPos += decollision;
 
 			var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
-			var force = Vector2.ClampMagnitude(dist - body.velocity.XY(), Settings.HoldMoveAcceleration);
-			body.AddForce(force, ForceMode.VelocityChange);
-			body.angularVelocity = Vector3.zero;
+			var force = Vector2.ClampMagnitude(dist - label.Velocity.XY(), Settings.HoldMoveAcceleration);
+			label.ApplyVelocity(force);
+			var lRB = label.Rigidbody;
+			if (lRB != null)
+				lRB.angularVelocity = Vector3.zero;
 		}
 	}
 

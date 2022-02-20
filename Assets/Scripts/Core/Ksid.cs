@@ -29,4 +29,10 @@ namespace Assets.Scripts.Core
         CausesExplosion,
         DisconnectedByCatch,
     }
+
+    public static class KsidX
+    {
+        public static bool IsChildOf(this Ksid child, Ksid parent) => Game.Instance.Ksids.IsParent(child, parent);
+        public static bool IsChildOfOrEq(this Ksid child, Ksid parent) => Game.Instance.Ksids.IsParentOrEqual(child, parent);
+    }
 }

@@ -252,6 +252,11 @@ public class Placeable : Label, ILevelPlaceabe
         else
         {
             transform.position = transform.position.WithZ(newZ);
+            if (Ksid.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
+            {
+                sandCombiner.CollapseNow();
+            }
         }
+        KinematicMove(Game.Map);
     }
 }
