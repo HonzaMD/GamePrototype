@@ -85,9 +85,12 @@
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
     <Compile Include="Assets\Scripts\Stuff\Explosion.cs" />
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
@@ -106,9 +109,12 @@
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

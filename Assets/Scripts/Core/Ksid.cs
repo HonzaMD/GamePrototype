@@ -28,6 +28,7 @@ namespace Assets.Scripts.Core
         DamagedByExplosion,
         CausesExplosion,
         DisconnectedByCatch,
+        FixedBlock,
     }
 
     public static class KsidX

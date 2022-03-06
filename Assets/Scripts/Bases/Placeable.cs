@@ -51,6 +51,7 @@ public class Placeable : Label, ILevelPlaceabe
     [HideInInspector, NonSerialized]
     public int Tag;
     public PlaceableSettings Settings;
+    private int SpNodeIndex;
     
     public bool IsMapPlaced => PlacedPosition != NotInMap;
 
