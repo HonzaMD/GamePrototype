@@ -30,11 +30,12 @@ namespace Assets.Scripts.Core.StaticPhysics
         public Placeable nodeA;
         public Vector2 forceA;
         public Vector2 pointA;
+        public bool isAFixed;
         public float stretchLimit;
         public float compressLimit;
         public float momentLimit;
 
-        public (int, int) EdgePairId => indexA < indexB ? (indexA, indexB) : (indexB, indexA);
+        public readonly (int, int) EdgePairId => indexA < indexB ? (indexA, indexB) : (indexB, indexA);
     }
 
     public struct OutputCommand

@@ -12,12 +12,12 @@ namespace Assets.Scripts.Core.StaticPhysics
         public Vector2 position;
         public EdgeEnd[] edges;
         public Vector2 force;
-        public bool isFixed;
+        public int isFixedRoot;
         public Placeable placeable;
         public EdgeEnd[] newEdges;
         public int newEdgeCount;
 
-        internal bool ConnectsTo(int index)
+        internal readonly bool ConnectsTo(int index)
         {
             for (int f = 0; f < edges.Length; f++)
             {
@@ -27,7 +27,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             return false;
         }
 
-        internal bool ConnectsTo(int index, out int joint)
+        internal readonly bool ConnectsTo(int index, out int joint)
         {
             for (int f = 0; f < edges.Length; f++)
             {
@@ -40,5 +40,58 @@ namespace Assets.Scripts.Core.StaticPhysics
             joint = -1;
             return false;
         }
+
+        internal readonly ref EdgeEnd GetEnd(int from) => ref GetEnd(from, edges);
+        internal readonly ref EdgeEnd GetEndNew(int from) => ref GetEnd(from, newEdges);
+
+        internal static ref EdgeEnd GetEnd(int from, EdgeEnd[] edges)
+        {
+            for (int f = 0; f < edges.Length; f++)
+            {
+                if (edges[f].Other == from)
+                {
+                    return ref edges[f];
+                }
+            }
+            throw new InvalidOperationException("Hranda tu neni");
+        }
+
+        public readonly float ShortestColorDistance(int color) => ShortestColorDistance(color, edges, isFixedRoot);
+        public readonly float ShortestColorDistanceNew(int color) => ShortestColorDistance(color, newEdges, isFixedRoot);
+
+        private static float ShortestColorDistance(int color, EdgeEnd[] edges, int isFixedRoot)
+        {
+            if (isFixedRoot == color)
+                return 0;
+            float ret = float.MaxValue;
+            for (int f = 0; f < edges.Length; f++)
+            {
+                if (edges[f].Out0Root == color && edges[f].Out0Lengh < ret)
+                    ret = edges[f].Out0Lengh;
+                if (edges[f].Out1Root == color && edges[f].Out1Lengh < ret)
+                    ret = edges[f].Out1Lengh;
+            }
+            return ret;
+        }
+
+
+        //public readonly ref EdgeEnd DistanceAndEdgeEnd(int from, int color, out float distance) => ref DistanceAndEdgeEnd(from, color, edges, isFixedRoot, out distance);
+        //public readonly ref EdgeEnd DistanceAndEdgeEndNew(int from, int color, out float distance) => ref DistanceAndEdgeEnd(from, color, newEdges, isFixedRoot, out distance);
+
+        //private static ref EdgeEnd DistanceAndEdgeEnd(int from, int color, EdgeEnd[] edges, int isFixedRoot, out float distance)
+        //{
+        //    distance = isFixedRoot == color ? 0 : float.MaxValue;
+        //    ref EdgeEnd end = ref edges[0];
+        //    for (int f = 0; f < edges.Length; f++)
+        //    {
+        //        if (edges[f].Out0Root == color && edges[f].Out0Lengh < distance)
+        //            distance = edges[f].Out0Lengh;
+        //        if (edges[f].Out1Root == color && edges[f].Out1Lengh < distance)
+        //            distance = edges[f].Out1Lengh;
+        //        if (edges[f].Other == from)
+        //            end = ref edges[f];
+        //    }
+        //    return ref end;
+        //}
     }
 }

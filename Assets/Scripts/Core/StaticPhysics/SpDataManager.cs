@@ -22,6 +22,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly ConcurrentQueue<InputCommand> inputCommands = new ConcurrentQueue<InputCommand>();
         private readonly ConcurrentQueue<OutputCommand> outputCommands = new ConcurrentQueue<OutputCommand>();
 
+        // volano z threadu hry
         public int ReserveNodeIndex() 
         {
             if (freeNodeIndexes.Count > 0)
@@ -30,6 +31,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             return topNodeIndex;
         }
 
+        // volano z threadu hry
         public void FreeNodeIndex(int index)
         {
             freeNodeIndexes.Push(index);

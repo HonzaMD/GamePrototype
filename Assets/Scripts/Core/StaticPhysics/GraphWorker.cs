@@ -13,10 +13,14 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> deletedNodes = new HashSet<int>();
         private readonly HashSet<int> deletedEdges = new HashSet<int>();
         private readonly Dictionary<(int, int), int> newEdges = new Dictionary<(int, int), int>();
+        private readonly DeleteColorWorker deleteColorWorker;
+        private readonly AddColorWorker addColorWorker;
 
         public GraphWorker(SpDataManager dataManager)
         {
             this.data = dataManager;
+            deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
+            addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes);
         }
 
         public void ApplyChanges(Span<InputCommand> inputs)
@@ -62,6 +66,8 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
 
             newEdges.Clear();
+            deleteColorWorker.Run();
+            addColorWorker.Run();
         }
 
 
@@ -71,7 +77,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             if (node.edges != null)
                 throw new InvalidOperationException("Cekal jsem novy node");
             node.placeable = ic.nodeA;
-            node.isFixed = ic.nodeA.Ksid.IsChildOf(Ksid.FixedBlock);
+            node.isFixedRoot = ic.isAFixed ? ic.indexA : 0;
             node.position = ic.pointA;
             node.edges = data.GetEdgeArr(0);
             node.force = ic.forceA;

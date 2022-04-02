@@ -90,9 +90,11 @@
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
@@ -100,21 +102,22 @@
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Bases\IPhysicsEvents.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\DeleteColorWorker.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\Utils.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
-    <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
-    <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
