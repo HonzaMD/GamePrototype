@@ -131,21 +131,35 @@ namespace Assets.Scripts.Core.StaticPhysics
                     {
                         otherEnd.Out1Lengh = lengthB;
                     }
+                    else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Lengh, color, otherEnd.Out1Root))
+                    {
+                        // napred zkusim horsi hranu
+                        edges[f].In1Root = color;
+                        otherEnd.Out1Root = color;
+                        otherEnd.Out1Lengh = lengthB;
+                    }
                     else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out0Lengh, color, otherEnd.Out0Root))
                     {
                         edges[f].In0Root = color;
                         otherEnd.Out0Root = color;
                         otherEnd.Out0Lengh = lengthB;
                     }
-                    else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Lengh, color, otherEnd.Out1Root))
-                    {
-                        edges[f].In1Root = color;
-                        otherEnd.Out1Root = color;
-                        otherEnd.Out1Lengh = lengthB;
-                    }
                     else
                     {
                         continue;
+                    }
+
+                    if (Utils.IsDistanceBetter(otherEnd.Out1Lengh, otherEnd.Out0Lengh, otherEnd.Out1Root, otherEnd.Out0Root))
+                    {
+                        // swap
+                        float tempLen = otherEnd.Out0Lengh;
+                        int tempRoot = otherEnd.Out0Root;
+                        otherEnd.Out0Lengh = otherEnd.Out1Lengh;
+                        otherEnd.Out0Root = otherEnd.Out1Root;
+                        edges[f].In0Root = otherEnd.Out1Root;
+                        otherEnd.Out1Lengh = tempLen;
+                        otherEnd.Out1Root = tempRoot;
+                        edges[f].In1Root = tempRoot;
                     }
 
                     if (lengthB < otherDist)

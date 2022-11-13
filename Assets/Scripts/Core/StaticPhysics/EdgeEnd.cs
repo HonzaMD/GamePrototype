@@ -8,6 +8,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 {
     // sily se prenaseji ze smeru In -> Out. Az se dostanou do FixedRootu
     // index fixed rootu urcuje barvu sipek
+    // hrana 0 je vzdy ta lepsi tzn kratsi cetsta k cili
     struct EdgeEnd
     {
         public int Other;

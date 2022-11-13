@@ -47,9 +47,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 if (node.newEdges[f].In0Root == color)
                 {
                     delete = true;
-                    node.newEdges[f].In0Root = 0;
+                    node.newEdges[f].In0Root = node.newEdges[f].In1Root;
+                    node.newEdges[f].In1Root = 0;
                 }
-                if (node.newEdges[f].In1Root == color)
+                else if (node.newEdges[f].In1Root == color)
                 {
                     delete = true;
                     node.newEdges[f].In1Root = 0;
@@ -69,10 +70,12 @@ namespace Assets.Scripts.Core.StaticPhysics
             ref var edge = ref node.GetEnd(from);
             if (edge.Out0Root == color)
             {
-                edge.Out0Root = 0;
-                edge.Out0Lengh = 0;
+                edge.Out0Root = edge.Out1Root;
+                edge.Out0Lengh = edge.Out1Lengh;
+                edge.Out1Root = 0;
+                edge.Out1Lengh = 0;
             }
-            if (edge.Out1Root == color)
+            else if (edge.Out1Root == color)
             {
                 edge.Out1Root = 0;
                 edge.Out1Lengh = 0;
