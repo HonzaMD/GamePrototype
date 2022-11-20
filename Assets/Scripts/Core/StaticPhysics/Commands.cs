@@ -16,6 +16,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         RemoveJoint,
         RemoveNode,
         BatchEnd,
+        UpdateForce,
 
         FallEdge,
         FallNode,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -15,12 +16,14 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly Dictionary<(int, int), int> newEdges = new Dictionary<(int, int), int>();
         private readonly DeleteColorWorker deleteColorWorker;
         private readonly AddColorWorker addColorWorker;
+        private readonly ForceWorker forceWorker;
 
         public GraphWorker(SpDataManager dataManager)
         {
             this.data = dataManager;
             deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
             addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes);
+            forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
         }
 
         public void ApplyChanges(Span<InputCommand> inputs)
@@ -68,8 +71,24 @@ namespace Assets.Scripts.Core.StaticPhysics
             newEdges.Clear();
             deleteColorWorker.Run();
             addColorWorker.Run();
-        }
+            forceWorker.RemoveForces();
 
+            for (int f = 0; f < inputs.Length; f++)
+            {
+                ref var ic = ref inputs[f];
+                if (ic.Command == SpCommand.UpdateForce)
+                {
+                    UpdateForce(ic);
+                }
+            }
+
+            foreach (int i in toUpdate)
+            {
+                ApplyEdgeArrs(i);
+            }
+
+            forceWorker.AddForces();
+        }
 
         private void AddNode(in InputCommand ic)
         {
@@ -177,6 +196,18 @@ namespace Assets.Scripts.Core.StaticPhysics
             node.newEdgeCount = count;
         }
 
+        private void ApplyEdgeArrs(int i)
+        {
+            if (deletedNodes.Contains(i))
+                return;
+
+            ref var node = ref data.GetNode(i);
+            data.ReturnEdgeArr(node.edges);
+            node.edges = node.newEdges;
+            node.newEdges = null;
+            node.newEdgeCount = 0;
+        }
+
         private void AddJoint(in InputCommand ic)
         {
             ref var nodeA = ref data.GetNode(ic.indexA);
@@ -190,7 +221,9 @@ namespace Assets.Scripts.Core.StaticPhysics
             nodeB.newEdgeCount++;
 
             ref var joint = ref data.AddJoint(out int jointIndex);
-            joint.length = (nodeA.position - nodeB.position).magnitude;
+            var diffV = ic.indexA < ic.indexB ? nodeB.position - nodeA.position : nodeA.position - nodeB.position;
+            joint.length = diffV.magnitude;
+            joint.abDir = joint.length > 0.001f ? diffV / joint.length : Vector2.zero;
             joint.stretchLimit = ic.stretchLimit;
             joint.compressLimit = ic.compressLimit;
             joint.momentLimit = ic.momentLimit;
@@ -200,6 +233,13 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             edgeB.Joint = jointIndex;
             edgeB.Other = ic.indexA;
+        }
+
+        private void UpdateForce(in InputCommand ic)
+        {
+            ref var node = ref data.GetNode(ic.indexA);
+            node.force += ic.forceA;
+            toUpdate.Add(ic.indexA);
         }
     }
 }

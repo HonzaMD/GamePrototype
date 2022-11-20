@@ -83,7 +83,7 @@ namespace Assets.Scripts.Utils
         /// Gets the first value in the heap without removing it.
         /// </summary>
         /// <returns>The lowest value of type TValue.</returns>
-        public T Peek() => data[0];
+        public ref T Peek() => ref data[0];
 
         /// <summary>
         /// Removes all items from the heap.
