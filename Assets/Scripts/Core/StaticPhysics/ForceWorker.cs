@@ -126,26 +126,23 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
         }
 
-        private void UpdateForce(ref Work work, float lenSum, float length, int joint, int otherNode)
+        private void UpdateForce(ref Work work, float lenSum, float length, int jointI, int otherNode)
         {
             float w = 1 - length / lenSum;
             float dir = MathF.Sign(otherNode - work.Node);
-            w *= dir;
-            Vector2 force = work.force * w;
+            Vector2 force = work.force * (w * dir);
             float torque = work.torque * w;
 
-            ref var j = ref data.GetJoint(joint);
-            var abf = Vector2.Dot(j.abDir, force);
-            j.compress += abf;
-            torque += Vector2.Dot(j.normal, force) * j.length;
-            j.moment += torque;
+            ref var joint = ref data.GetJoint(jointI);
+            var abf = Vector2.Dot(joint.abDir, force);
+            joint.compress += abf;
+            torque += Vector2.Dot(joint.normal, force) * joint.length;
+            joint.moment += torque;
 
             if (data.GetNode(otherNode).isFixedRoot == 0)
             {
                 force *= dir;
-                torque *= dir;
-
-                workQueue.Add(new Work() { Color = work.Color, force = force, torque = torque, Length = length - j.length, Node = otherNode, phase = work.phase });
+                workQueue.Add(new Work() { Color = work.Color, force = force, torque = torque, Length = length - joint.length, Node = otherNode, phase = work.phase });
             }
         }
 

@@ -105,6 +105,8 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private bool AddJointPrepare(in InputCommand ic, int icPos)
         {
+            if (ic.indexA == ic.indexB)
+                throw new InvalidOperationException("Nemuzu vytvorit harnu do sama sebe.");
             ref var nodeA = ref data.GetNode(ic.indexA);
             ref var nodeB = ref data.GetNode(ic.indexB);
             if (deletedNodes.Contains(ic.indexA) || deletedNodes.Contains(ic.indexB))
