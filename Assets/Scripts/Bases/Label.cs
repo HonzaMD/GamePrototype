@@ -16,7 +16,16 @@ public abstract class Label : MonoBehaviour
     public virtual bool IsGroup => false;
     public abstract Label Prototype { get; }
 
-    public virtual Rigidbody Rigidbody => GetComponent<Rigidbody>().ToRealNull() ?? transform.parent.GetComponent<Rigidbody>();
+    public virtual Rigidbody Rigidbody
+    {
+        get
+        {
+            if (TryGetComponent<Rigidbody>(out var res))
+                return res;
+            return transform.parent.TryGetComponent(out res) ? res : null;
+        }
+    }
+
     public abstract Ksid KsidGet { get; }
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
