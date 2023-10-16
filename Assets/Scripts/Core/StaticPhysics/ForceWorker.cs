@@ -113,22 +113,22 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
             else
             {
-                float lenSum = node.GetLenSum(work.Color, false);
+                float invLenSum = node.GetInvLenSum(work.Color, false);
                 EdgeEnd[] edges = node.edges;
 
                 for (int f = 0; f < edges.Length; f++)
                 {
                     if (edges[f].Out0Root == work.Color)
-                        UpdateForce(ref work, lenSum, edges[f].Out0Lengh, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, invLenSum, edges[f].Out0Lengh, edges[f].Joint, edges[f].Other);
                     if (edges[f].Out1Root == work.Color)
-                        UpdateForce(ref work, lenSum, edges[f].Out1Lengh, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, invLenSum, edges[f].Out1Lengh, edges[f].Joint, edges[f].Other);
                 }
             }
         }
 
-        private void UpdateForce(ref Work work, float lenSum, float length, int jointI, int otherNode)
+        private void UpdateForce(ref Work work, float invLenSum, float length, int jointI, int otherNode)
         {
-            float w = 1 - length / lenSum;
+            float w = 1 / (length * invLenSum);
             float dir = MathF.Sign(otherNode - work.Node);
             Vector2 force = work.force * (w * dir);
             float torque = work.torque * w;

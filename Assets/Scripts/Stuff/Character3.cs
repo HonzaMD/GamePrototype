@@ -9,7 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Animations.Rigging;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]

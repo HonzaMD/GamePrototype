@@ -125,18 +125,18 @@ namespace Assets.Scripts.Core.StaticPhysics
             return color2 != 0;
         }
 
-        public readonly float GetLenSum(int color, bool useNewEges) => GetLenSum(color, useNewEges ? newEdges : edges);
+        public readonly float GetInvLenSum(int color, bool useNewEges) => GetInvLenSum(color, useNewEges ? newEdges : edges);
 
-        private static float GetLenSum(int color, EdgeEnd[] edges)
+        private static float GetInvLenSum(int color, EdgeEnd[] edges)
         {
             float sum = 0;
 
             for (int f = 0; f < edges.Length; f++)
             {
                 if (edges[f].Out0Root == color)
-                    sum += edges[f].Out0Lengh;
+                    sum += 1 / edges[f].Out0Lengh;
                 if (edges[f].Out1Root == color)
-                    sum += edges[f].Out1Lengh;
+                    sum += 1 / edges[f].Out1Lengh;
             }
             return sum;
         }

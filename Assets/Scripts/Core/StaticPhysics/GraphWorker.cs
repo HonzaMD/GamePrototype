@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
-    internal class GraphWorker
+    public class GraphWorker
     {
         private readonly SpDataManager data;
         private readonly HashSet<int> toUpdate = new HashSet<int>();
@@ -76,7 +76,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             for (int f = 0; f < inputs.Length; f++)
             {
                 ref var ic = ref inputs[f];
-                if (ic.Command == SpCommand.UpdateForce)
+                if (ic.Command is SpCommand.UpdateForce or SpCommand.AddNode or SpCommand.AddNodeAndJoint)
                 {
                     UpdateForce(ic);
                 }
@@ -99,7 +99,6 @@ namespace Assets.Scripts.Core.StaticPhysics
             node.isFixedRoot = ic.isAFixed ? ic.indexA : 0;
             node.position = ic.pointA;
             node.edges = data.GetEdgeArr(0);
-            node.force = ic.forceA;
             toUpdate.Add(ic.indexA);
         }
 
