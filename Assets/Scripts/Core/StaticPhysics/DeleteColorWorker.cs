@@ -67,7 +67,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             toUpdate.Add(index);
             ref var node = ref data.GetNode(index);
-            ref var edge = ref node.GetEnd(from);
+            node.EnsureNewEdges(data);
+            ref var edge = ref node.GetEndNew(from);
             if (edge.Out0Root == color)
             {
                 edge.Out0Root = edge.Out1Root;

@@ -39,7 +39,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                 if (ic.Command == SpCommand.AddJoint || ic.Command == SpCommand.AddNodeAndJoint)
                 {
                     if (!AddJointPrepare(ic, f))
-                        ic.Command = SpCommand.None;
+                        ic.ClearAddJoint();
                 }
 
                 if (ic.Command == SpCommand.RemoveJoint)
@@ -71,6 +71,14 @@ namespace Assets.Scripts.Core.StaticPhysics
             newEdges.Clear();
             deleteColorWorker.Run();
             addColorWorker.Run();
+
+            for (int f = 0; f < inputs.Length; f++)
+            {
+                ref var ic = ref inputs[f];
+                if (ic.Command == SpCommand.UpdateForce)
+                    toUpdate.Add(ic.indexA);
+            }
+
             forceWorker.RemoveForces();
 
             for (int f = 0; f < inputs.Length; f++)
@@ -146,7 +154,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             else if (newEdges.TryGetValue(ic.EdgePairId, out var icIndex))
             {
                 newEdges.Remove(ic.EdgePairId);
-                inputs[icIndex].Command = SpCommand.None;
+                inputs[icIndex].ClearAddJoint();
                 nodeA.newEdgeCount--;
                 nodeB.newEdgeCount--;
                 return false;
@@ -203,6 +211,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 return;
 
             ref var node = ref data.GetNode(i);
+
+            if (node.newEdges == null)
+                return;
+
             data.ReturnEdgeArr(node.edges);
             node.edges = node.newEdges;
             node.newEdges = null;
@@ -240,7 +252,6 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             ref var node = ref data.GetNode(ic.indexA);
             node.force += ic.forceA;
-            toUpdate.Add(ic.indexA);
         }
     }
 }

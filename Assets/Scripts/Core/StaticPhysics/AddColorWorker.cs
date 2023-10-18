@@ -89,11 +89,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 {
                     int indexB = edges[f].Other;
                     ref var nodeB = ref data.GetNode(indexB);
-                    float otherDist = nodeB.ShortestColorDistanceNew(color);
+                    float otherDist = nodeB.ShortestColorDistanceAny(color);
                     if (otherDist > startDist)
                     {
-                        if (Utils.IsDistanceBetter(startDist, node.ShortestColorDistanceNew(edges[f].In0Root), color, edges[f].In0Root)
-                            || Utils.IsDistanceBetter(startDist, node.ShortestColorDistanceNew(edges[f].In1Root), color, edges[f].In1Root))
+                        if (edges[f].In1Root == 0 || edges[f].In0Root == 0 || Utils.IsDistanceBetter(startDist, node.ShortestColorDistanceNew(edges[f].In1Root), color, edges[f].In1Root))
                             return true;
                     }
                 }
@@ -110,36 +109,38 @@ namespace Assets.Scripts.Core.StaticPhysics
             if (startDist != work.Length)
                 return; // dostal jsem se sem rychleji
 
-            toUpdate.Add(work.Node);
-
             var edges = node.newEdges;
             for (int f = 0; f < edges.Length; f++)
             {
                 int indexB = edges[f].Other;
                 ref var nodeB = ref data.GetNode(indexB);
-                float otherDist = nodeB.ShortestColorDistanceNew(color);
+                float otherDist = nodeB.ShortestColorDistanceAny(color);
                 if (otherDist > startDist)
                 {
-                    ref var otherEnd = ref nodeB.GetEndNew(work.Node);
+                    ref var otherEnd = ref nodeB.GetEndAny(work.Node);
                     float lengthB = data.GetJoint(edges[f].Joint).length + startDist;
                     
                     if (otherEnd.Out0Root == color)
                     {
+                        otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out0Lengh = lengthB;
                     } 
                     else if (otherEnd.Out1Root == color)
                     {
+                        otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out1Lengh = lengthB;
                     }
                     else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Lengh, color, otherEnd.Out1Root))
                     {
                         // napred zkusim horsi hranu
+                        otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         edges[f].In1Root = color;
                         otherEnd.Out1Root = color;
                         otherEnd.Out1Lengh = lengthB;
                     }
                     else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out0Lengh, color, otherEnd.Out0Root))
                     {
+                        otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         edges[f].In0Root = color;
                         otherEnd.Out0Root = color;
                         otherEnd.Out0Lengh = lengthB;
@@ -165,6 +166,20 @@ namespace Assets.Scripts.Core.StaticPhysics
                     if (lengthB < otherDist)
                         workQueue.Add(new Work() { Color = color, Length = lengthB, Node = indexB });
                 }
+            }
+        }
+
+        private ref EdgeEnd EnsureWritable(ref EdgeEnd otherEnd, int node, int indexB, ref SpNode nodeB)
+        {
+            if (nodeB.newEdges == null)
+            {
+                toUpdate.Add(indexB);
+                nodeB.EnsureNewEdges(data);
+                return ref nodeB.GetEndNew(node);
+            }
+            else
+            {
+                return ref otherEnd;
             }
         }
     }

@@ -37,6 +37,13 @@ namespace Assets.Scripts.Core.StaticPhysics
         public float momentLimit;
 
         public readonly (int, int) EdgePairId => indexA < indexB ? (indexA, indexB) : (indexB, indexA);
+        
+        public void ClearAddJoint() => Command = Command switch 
+        {
+            SpCommand.AddJoint => SpCommand.None,
+            SpCommand.AddNodeAndJoint => SpCommand.AddNode,
+            _ => Command
+        };
     }
 
     public struct OutputCommand

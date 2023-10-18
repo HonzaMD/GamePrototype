@@ -43,6 +43,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         internal readonly ref EdgeEnd GetEnd(int from) => ref GetEnd(from, edges);
         internal readonly ref EdgeEnd GetEndNew(int from) => ref GetEnd(from, newEdges);
+        internal readonly ref EdgeEnd GetEndAny(int from) => ref GetEnd(from, newEdges ?? edges);
 
         internal static ref EdgeEnd GetEnd(int from, EdgeEnd[] edges)
         {
@@ -58,6 +59,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         public readonly float ShortestColorDistance(int color) => ShortestColorDistance(color, edges, isFixedRoot);
         public readonly float ShortestColorDistanceNew(int color) => ShortestColorDistance(color, newEdges, isFixedRoot);
+        public readonly float ShortestColorDistanceAny(int color) => ShortestColorDistance(color, newEdges ?? edges, isFixedRoot);
 
         private static float ShortestColorDistance(int color, EdgeEnd[] edges, int isFixedRoot)
         {
@@ -139,6 +141,20 @@ namespace Assets.Scripts.Core.StaticPhysics
                     sum += 1 / edges[f].Out1Lengh;
             }
             return sum;
+        }
+
+        internal void EnsureNewEdges(SpDataManager data)
+        {
+            if (newEdges == null)
+            {
+                newEdges = data.GetEdgeArr(edges.Length);
+
+                for (int f = 0; f < edges.Length; f++)
+                {
+                    newEdges[f] = edges[f];
+                }
+                newEdgeCount = edges.Length;
+            }
         }
 
         //public readonly ref EdgeEnd DistanceAndEdgeEnd(int from, int color, out float distance) => ref DistanceAndEdgeEnd(from, color, edges, isFixedRoot, out distance);
