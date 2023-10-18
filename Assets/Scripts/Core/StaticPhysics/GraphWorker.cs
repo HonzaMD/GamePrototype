@@ -26,7 +26,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
         }
 
-        public void ApplyChanges(Span<InputCommand> inputs)
+        public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces)
         {
             for (int f = 0; f < inputs.Length; f++)
             {

@@ -25,7 +25,10 @@ public class SpTests
             new InputCommand() {Command = SpCommand.AddNodeAndJoint, indexA = i3, pointA = Vector2.down + Vector2.right, indexB = i2, forceA = Vector2.down}
         };
 
-        worker.ApplyChanges(commands);
+        var forces = new ForceCommand[]
+            { };
+
+        worker.ApplyChanges(commands, forces);
 
         Assert.IsTrue(true);
     }

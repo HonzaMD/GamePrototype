@@ -46,6 +46,12 @@ namespace Assets.Scripts.Core.StaticPhysics
         };
     }
 
+    public struct ForceCommand
+    {
+        public int indexA;
+        public Vector2 forceA;
+    }
+
     public struct OutputCommand
     {
         public SpCommand Command;

@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -20,6 +21,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public SimpleCameraController Camera;
     public Level Level;
     public Ksids Ksids { get; private set; }
+    public SpInterface StaticPhysics { get; private set; }
     public Timer Timer;
     public GlobalTimerHandler GlobalTimerHandler;
     public ObjectPool Pool;
@@ -174,6 +176,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Instance = this;
         if (Ksids == null)
             Ksids = new KsidDependencies();
+        if (StaticPhysics == null)
+            StaticPhysics = new SpInterface();
         Character.Camera = Camera;
         Camera.SetTransform(Character.transform.position);
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
@@ -218,5 +222,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             if (hm.gameObject.activeInHierarchy)
                 hm.gameObject.SetActive(false);
         }
+    }
+
+    void FixedUpdate()
+    {
+        StaticPhysics.Update();
     }
 }

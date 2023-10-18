@@ -14,6 +14,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
         private readonly BinaryHeap<Work> workQueue = new BinaryHeap<Work>();
+        private readonly Dictionary<int, (int, int)> activeEdges = new Dictionary<int, (int, int)>();
+        private bool tempPhase;
 
         private struct Work : IComparable<Work>
         {
@@ -47,6 +49,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         public void RemoveForces()
         {
+            tempPhase = false;
             DetectWorkRemove();
             while (workQueue.Count > 0)
             {
@@ -56,6 +59,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         internal void AddForces()
         {
+            tempPhase = false;
             DetectWorkAdd();
             while (workQueue.Count > 0)
             {
@@ -134,10 +138,26 @@ namespace Assets.Scripts.Core.StaticPhysics
             float torque = work.torque * w;
 
             ref var joint = ref data.GetJoint(jointI);
+
+            if (activeEdges.TryAdd(jointI, (work.Node, otherNode)))
+            {
+                joint.tempCompress = 0;
+                joint.tempMoment = 0;
+            }
+
             var abf = Vector2.Dot(joint.abDir, force);
-            joint.compress += abf;
             torque += Vector2.Dot(joint.normal, force) * joint.length;
-            joint.moment += torque;
+
+            if (tempPhase)
+            {
+                joint.tempCompress += abf;
+                joint.tempMoment += torque;
+            }
+            else
+            {
+                joint.compress += abf;
+                joint.moment += torque;
+            }
 
             if (data.GetNode(otherNode).isFixedRoot == 0)
             {
