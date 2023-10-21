@@ -19,9 +19,6 @@ namespace Assets.Scripts.Core.StaticPhysics
         private const int edgePoolMax = 10;
         private readonly Stack<EdgeEnd[]>[] edgeEndsPool = Enumerable.Range(0, edgePoolMax).Select(i => new Stack<EdgeEnd[]>()).ToArray();
 
-        private readonly ConcurrentQueue<InputCommand> inputCommands = new ConcurrentQueue<InputCommand>();
-        private readonly ConcurrentQueue<OutputCommand> outputCommands = new ConcurrentQueue<OutputCommand>();
-
         // volano z threadu hry
         public int ReserveNodeIndex() 
         {
@@ -77,6 +74,16 @@ namespace Assets.Scripts.Core.StaticPhysics
             return (size > edgePoolMax || edgeEndsPool[size - 1].Count == 0) ? new EdgeEnd[size] : edgeEndsPool[size - 1].Pop();
         }
 
+        internal void ClearNode(int index)
+        {
+            ref var node = ref GetNode(index);
+            if (node.edges != null)
+                ReturnEdgeArr(node.edges);
+            if (node.newEdges != null)
+                ReturnEdgeArr(node.newEdges);
+            node = default;
+        }
+
         internal void ReturnEdgeArr(EdgeEnd[] arr)
         {
             if (arr.Length > 0 && arr.Length <= edgePoolMax)
@@ -85,8 +92,5 @@ namespace Assets.Scripts.Core.StaticPhysics
                 edgeEndsPool[arr.Length - 1].Push(arr);
             }
         }
-
-        public void AddInCommand(in InputCommand command) => inputCommands.Enqueue(command);
-        public void AddOutCommand(in OutputCommand command) => outputCommands.Enqueue(command);
     }
 }

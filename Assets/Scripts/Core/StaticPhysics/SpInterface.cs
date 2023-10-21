@@ -11,32 +11,39 @@ namespace Assets.Scripts.Core.StaticPhysics
 {
     public class SpInterface
     {
-        private readonly SpDataManager data = new SpDataManager();
+        private readonly SpDataManager data = new();
         private readonly GraphWorker worker;
         private readonly Thread thread;
-        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
+        private readonly SemaphoreSlim semaphore = new(0);
         private readonly object sync = new();
         private bool runnerIdle = true;
         private Exception runnerException;
         private int runnerTicks;
         private int updateTicks;
 
-        private SpanList<InputCommand> publicInCommands = new SpanList<InputCommand>();
-        private SpanList<InputCommand> waitingInCommands = new SpanList<InputCommand>();
-        private SpanList<InputCommand> privateInCommands = new SpanList<InputCommand>();
+        private SpanList<InputCommand> publicInCommands = new();
+        private SpanList<InputCommand> waitingInCommands = new();
+        private SpanList<InputCommand> privateInCommands = new();
 
-        private SpanList<ForceCommand> publicForceCommands = new SpanList<ForceCommand>();
-        private SpanList<ForceCommand> waitingForceCommands = new SpanList<ForceCommand>();
-        private SpanList<ForceCommand> privateForceCommands = new SpanList<ForceCommand>();
+        private SpanList<ForceCommand> publicForceCommands = new();
+        private SpanList<ForceCommand> waitingForceCommands = new();
+        private SpanList<ForceCommand> privateForceCommands = new();
+
+        private SpanList<OutputCommand> publicOutCommands = new();
+        private SpanList<OutputCommand> waitingOutCommands = new();
+        private SpanList<OutputCommand> privateOutCommands = new();
+
 
         public SpInterface()
         {
             worker = new GraphWorker(data);
             thread = new Thread(Runner);
             thread.IsBackground = true;
+            thread.Name = "StaticPhysics";
             thread.Start();
         }
 
+        public Span<OutputCommand> OutputCommands => publicOutCommands.AsSpan();
         public void AddInCommand(in InputCommand command) => publicInCommands.Add(command);
         public void AddForceCommand(in ForceCommand command) => publicForceCommands.Add(command);
 
@@ -45,12 +52,15 @@ namespace Assets.Scripts.Core.StaticPhysics
             updateTicks++;
             LogStats();
 
-            if (publicInCommands.Count > 0 || publicForceCommands.Count > 0)
+            lock (sync)
             {
-                lock (sync)
-                {
-                    CheckException();
+                CheckException();
 
+                publicOutCommands.Clear();
+                (publicOutCommands, waitingOutCommands) = (waitingOutCommands, publicOutCommands);
+
+                if (publicInCommands.Count > 0 || publicForceCommands.Count > 0)
+                {
                     if (waitingInCommands.Count == 0)
                     {
                         (publicInCommands, waitingInCommands) = (waitingInCommands, publicInCommands);
@@ -99,12 +109,16 @@ namespace Assets.Scripts.Core.StaticPhysics
                         {
                             (waitingInCommands, privateInCommands) = (privateInCommands, waitingInCommands);
                             (waitingForceCommands, privateForceCommands) = (privateForceCommands, waitingForceCommands);
+                            if (waitingOutCommands.Count == 0)
+                                (waitingOutCommands, privateOutCommands) = (privateOutCommands, waitingOutCommands);
                         }
+
+                        worker.GetBrokenEdges(privateInCommands, privateOutCommands);
 
                         if (privateInCommands.Count > 0 || privateForceCommands.Count > 0)
                         {
                             Interlocked.Increment(ref runnerTicks);
-                            worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan());
+                            worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan(), privateOutCommands);
                             privateInCommands.Clear();
                             privateForceCommands.Clear();
                         }

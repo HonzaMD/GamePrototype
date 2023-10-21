@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.Core.StaticPhysics;
+using Assets.Scripts.Utils;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -28,7 +29,9 @@ public class SpTests
         var forces = new ForceCommand[]
             { };
 
-        worker.ApplyChanges(commands, forces);
+        var output = new SpanList<OutputCommand>();
+
+        worker.ApplyChanges(commands, forces, output);
 
         Assert.IsTrue(true);
     }

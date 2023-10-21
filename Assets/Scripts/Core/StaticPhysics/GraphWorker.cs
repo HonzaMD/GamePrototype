@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
         }
 
-        public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces)
+        public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces, SpanList<OutputCommand> output)
         {
             for (int f = 0; f < inputs.Length; f++)
             {
@@ -96,7 +97,12 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
 
             forceWorker.AddForces();
+            forceWorker.AddTempForces(tempForces);
+
+            FreeJoints();
+            FreeNodes(output);
         }
+
 
         private void AddNode(in InputCommand ic)
         {
@@ -252,6 +258,28 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             ref var node = ref data.GetNode(ic.indexA);
             node.force += ic.forceA;
+        }
+
+        internal void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdges(inCommands, outCommands);
+
+        private void FreeJoints()
+        {
+            foreach (int index in deletedEdges)
+            {
+                data.FreeJoint(index);
+                forceWorker.FreeJoint(index);
+            }
+            deletedEdges.Clear();
+        }
+
+        private void FreeNodes(SpanList<OutputCommand> output)
+        {
+            foreach (int index in deletedNodes)
+            {
+                data.ClearNode(index);
+                output.Add(new OutputCommand() { Command = SpCommand.FreeNode, indexA = index });
+            }
+            deletedNodes.Clear();
         }
     }
 }

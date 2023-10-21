@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -51,16 +52,25 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             tempPhase = false;
             DetectWorkRemove();
-            while (workQueue.Count > 0)
-            {
-                Update();
-            }
+            DoWork();
         }
 
-        internal void AddForces()
+        public void AddForces()
         {
             tempPhase = false;
             DetectWorkAdd();
+            DoWork();
+        }
+
+        public void AddTempForces(Span<ForceCommand> tempForces)
+        {
+            tempPhase = true;
+            DetectWorkTempForces(tempForces);
+            DoWork();
+        }
+
+        private void DoWork()
+        {
             while (workQueue.Count > 0)
             {
                 Update();
@@ -98,6 +108,25 @@ namespace Assets.Scripts.Core.StaticPhysics
                 }
             }
         }
+
+        private void DetectWorkTempForces(Span<ForceCommand> tempForces)
+        {
+            for (int f = 0; f < tempForces.Length; f++)
+            {
+                var index = tempForces[f].indexA;
+                if (!deletedNodes.Contains(index))
+                {
+                    ref var node = ref data.GetNode(index);
+                    if (node.isFixedRoot == 0)
+                    {
+                        var length = node.BestDistance(out var color);
+                        if (color != -1)
+                            workQueue.Add(new Work() { Color = color, phase = 0, Length = length, Node = index, force = tempForces[f].forceA });
+                    }
+                }
+            }
+        }
+
 
         private void Update()
         {
@@ -181,5 +210,36 @@ namespace Assets.Scripts.Core.StaticPhysics
                     break;
             }
         }
+
+        internal void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands)
+        {
+            foreach (var pair in activeEdges)
+            {
+                ref var joint = ref data.GetJoint(pair.Key);
+                var compress = joint.compress + joint.tempCompress;
+                if (compress > joint.compressLimit || -compress > joint.stretchLimit || MathF.Abs(joint.moment + joint.tempMoment) > joint.momentLimit)
+                {
+                    inCommands.Add(new InputCommand() 
+                    { 
+                        Command = SpCommand.RemoveJoint,
+                        indexA = pair.Value.Item1,
+                        indexB = pair.Value.Item2,
+                    });
+
+                    outCommands.Add(new OutputCommand()
+                    {
+                        Command = SpCommand.RemoveJoint,
+                        indexA = pair.Value.Item1,
+                        indexB = pair.Value.Item2,
+                        nodeA = data.GetNode(pair.Value.Item1).placeable,
+                        nodeB = data.GetNode(pair.Value.Item2).placeable,
+                    });
+                }
+            }
+
+            activeEdges.Clear();
+        }
+
+        internal void FreeJoint(int index) => activeEdges.Remove(index);
     }
 }
