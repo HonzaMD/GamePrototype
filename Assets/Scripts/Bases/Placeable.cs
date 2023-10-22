@@ -126,6 +126,11 @@ public class Placeable : Label, ILevelPlaceabe
             Game.Instance.DeactivateObject(ao);
         }
         Game.Instance.RemoveMovingObject(this);
+        if (SpNodeIndex != 0)
+        {
+            Game.Instance.StaticPhysics.RemoveNode(SpNodeIndex);
+            SpNodeIndex = 0;
+        }
         base.Cleanup();
     }
 

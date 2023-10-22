@@ -76,6 +76,18 @@ namespace Assets.Scripts.Core.StaticPhysics
                     }
                 }
             }
+
+            ProcessOutCommands();
+        }
+
+        private void ProcessOutCommands()
+        {
+            var commands = OutputCommands;
+            for (int f = 0; f < commands.Length; f++)
+            {
+                if (commands[f].Command is SpCommand.FreeNode or SpCommand.FallNode)
+                    data.FreeNodeIndex(commands[f].indexA);
+            }
         }
 
         private void LogStats()
@@ -141,6 +153,11 @@ namespace Assets.Scripts.Core.StaticPhysics
                     runnerException = e;
                 }
             }
+        }
+
+        internal void RemoveNode(int spNodeIndex)
+        {
+            AddInCommand(new InputCommand() { Command = SpCommand.RemoveNode, indexA = spNodeIndex });
         }
     }
 }
