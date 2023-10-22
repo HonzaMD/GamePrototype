@@ -105,6 +105,20 @@ namespace Assets.Scripts.Core.StaticPhysics
             return ret;
         }
 
+        public readonly bool IsConnectedToRoot()
+        {
+            if (isFixedRoot != 0)
+                return true;
+
+            for (int f = 0; f < edges.Length; f++)
+            {
+                if (edges[f].Out0Root != 0)
+                    return true;
+            }
+
+            return false;
+        }
+
 
         public readonly bool FindOtherColor(int color1, out int color2, out float length2, bool useNewEges) => FindOtherColor(color1, useNewEges ? newEdges : edges, out color2, out length2);
 

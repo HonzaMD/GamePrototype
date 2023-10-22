@@ -11,13 +11,14 @@ namespace Assets.Scripts.Core.StaticPhysics
     public class GraphWorker
     {
         private readonly SpDataManager data;
-        private readonly HashSet<int> toUpdate = new HashSet<int>();
-        private readonly HashSet<int> deletedNodes = new HashSet<int>();
-        private readonly HashSet<int> deletedEdges = new HashSet<int>();
-        private readonly Dictionary<(int, int), int> newEdges = new Dictionary<(int, int), int>();
+        private readonly HashSet<int> toUpdate = new();
+        private readonly HashSet<int> deletedNodes = new();
+        private readonly HashSet<int> deletedEdges = new();
+        private readonly Dictionary<(int, int), int> newEdges = new();
         private readonly DeleteColorWorker deleteColorWorker;
         private readonly AddColorWorker addColorWorker;
         private readonly ForceWorker forceWorker;
+        private readonly FindFallenWorker findFallenWorker;
 
         public GraphWorker(SpDataManager dataManager)
         {
@@ -25,6 +26,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
             addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes);
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
+            findFallenWorker = new FindFallenWorker(data, toUpdate, deletedNodes);
         }
 
         public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces, SpanList<OutputCommand> output)
@@ -98,6 +100,8 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             forceWorker.AddForces();
             forceWorker.AddTempForces(tempForces);
+
+            findFallenWorker.Run(output);
 
             FreeJoints();
             FreeNodes(output);
