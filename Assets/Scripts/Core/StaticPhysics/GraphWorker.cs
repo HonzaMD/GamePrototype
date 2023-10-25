@@ -201,7 +201,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                 return;
 
             ref var node = ref data.GetNode(i);
-            node.newEdges = data.GetEdgeArr(node.newEdgeCount);
+            node.newEdges = data.GetEdgeArr(node.edges.Length + node.newEdgeCount);
 
             int count = 0;
             for (int f = 0; f < node.edges.Length; f++)
@@ -228,6 +228,8 @@ namespace Assets.Scripts.Core.StaticPhysics
             data.ReturnEdgeArr(node.edges);
             node.edges = node.newEdges;
             node.newEdges = null;
+            if (node.edges.Length != node.newEdgeCount)
+                throw new InvalidOperationException("Divnost, nepridal jsem vsechny hrany");
             node.newEdgeCount = 0;
         }
 
@@ -264,7 +266,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             node.force += ic.forceA;
         }
 
-        internal void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdges(inCommands, outCommands);
+        public void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdges(inCommands, outCommands);
 
         private void FreeJoints()
         {

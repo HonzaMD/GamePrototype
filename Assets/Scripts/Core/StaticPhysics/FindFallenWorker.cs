@@ -67,13 +67,13 @@ namespace Assets.Scripts.Core.StaticPhysics
                     workQueue.Enqueue(indexB);
                     edgesToFall.Add((node.edges[f].Joint, index, indexB));
                 }
-                output.Add(new OutputCommand()
-                {
-                    Command = SpCommand.FallNode,
-                    indexA = index,
-                    nodeA = node.placeable
-                });
             }
+            output.Add(new OutputCommand()
+            {
+                Command = SpCommand.FallNode,
+                indexA = index,
+                nodeA = node.placeable
+            });
         }
 
         private int PopUpdateSet()

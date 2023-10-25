@@ -42,7 +42,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             return ref nodes[index];
         }
 
-        internal ref SpJoint GetJoint(int index) => ref joints[index];
+        public ref SpJoint GetJoint(int index) => ref joints[index];
         internal ref SpJoint AddJoint(out int index)
         {
             if (freeJointIndexes.Count > 0)

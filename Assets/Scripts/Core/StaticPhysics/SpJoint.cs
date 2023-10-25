@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
-    struct SpJoint
+    public struct SpJoint
     {
         public float length;
         public float stretchLimit;
