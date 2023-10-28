@@ -136,18 +136,26 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             ref var node = ref data.GetNode(work.Node);
 
-            if (work.phase == 0 && node.FindOtherColor(work.Color, out int color2, out float length2, false))
+            if (work.phase == 0 && node.FindOtherColor(work.Color, out int color2, out float length2))
             {
                 float lenSum = work.Length + length2;
-                float w1 = work.Length / lenSum;
-                float w2 = length2 / lenSum;
+                float w1, w2;
+                if (lenSum > 0)
+                {
+                    w1 = work.Length / lenSum;
+                    w2 = length2 / lenSum;
+                }
+                else
+                {
+                    w1 = w2 = 0.5f;
+                }
 
                 workQueue.Add(new Work() { Color = work.Color, phase = 1, force = work.force * w2, torque = work.torque * w2, Length = work.Length, Node = work.Node });
                 workQueue.Add(new Work() { Color = color2, phase = 1, force = work.force * w1, torque = work.torque * w1, Length = length2, Node = work.Node });
             }
             else
             {
-                float invLenSum = node.GetInvLenSum(work.Color, false);
+                float invLenSum = node.GetInvLenSum(work.Color);
                 EdgeEnd[] edges = node.edges;
 
                 for (int f = 0; f < edges.Length; f++)
@@ -162,6 +170,12 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void UpdateForce(ref Work work, float invLenSum, float length, int jointI, int otherNode)
         {
+            if (length == 0)
+            {
+                UpdateForceZeroLen(ref work, jointI, otherNode);
+                return;
+            }
+
             float w = 1 / (length * invLenSum);
             float dir = MathF.Sign(otherNode - work.Node);
             Vector2 force = work.force * (w * dir);
@@ -193,6 +207,31 @@ namespace Assets.Scripts.Core.StaticPhysics
             {
                 force *= dir;
                 workQueue.Add(new Work() { Color = work.Color, force = force, torque = torque, Length = length - joint.length, Node = otherNode, phase = work.phase });
+            }
+        }
+
+        private void UpdateForceZeroLen(ref Work work, int jointI, int otherNode)
+        {
+            ref var joint = ref data.GetJoint(jointI);
+
+            if (activeEdges.TryAdd(jointI, (work.Node, otherNode)))
+            {
+                joint.tempCompress = 0;
+                joint.tempMoment = 0;
+            }
+
+            if (tempPhase)
+            {
+                joint.tempMoment += work.torque;
+            }
+            else
+            {
+                joint.moment += work.torque;
+            }
+
+            if (data.GetNode(otherNode).isFixedRoot == 0)
+            {
+                workQueue.Add(new Work() { Color = work.Color, torque = work.torque, Node = otherNode, phase = work.phase });
             }
         }
 

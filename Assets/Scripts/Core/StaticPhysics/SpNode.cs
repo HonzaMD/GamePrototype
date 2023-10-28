@@ -120,7 +120,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
 
-        public readonly bool FindOtherColor(int color1, out int color2, out float length2, bool useNewEges) => FindOtherColor(color1, useNewEges ? newEdges : edges, out color2, out length2);
+        public readonly bool FindOtherColor(int color1, out int color2, out float length2) => FindOtherColor(color1, edges, out color2, out length2);
 
         private static bool FindOtherColor(int color1, EdgeEnd[] edges, out int color2, out float length2)
         {
@@ -141,7 +141,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             return color2 != 0;
         }
 
-        public readonly float GetInvLenSum(int color, bool useNewEges) => GetInvLenSum(color, useNewEges ? newEdges : edges);
+        public readonly float GetInvLenSum(int color) => GetInvLenSum(color, edges);
 
         private static float GetInvLenSum(int color, EdgeEnd[] edges)
         {
@@ -149,9 +149,9 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root == color)
+                if (edges[f].Out0Root == color && edges[f].Out0Lengh > 0)
                     sum += 1 / edges[f].Out0Lengh;
-                if (edges[f].Out1Root == color)
+                if (edges[f].Out1Root == color && edges[f].Out1Lengh > 0)
                     sum += 1 / edges[f].Out1Lengh;
             }
             return sum;
