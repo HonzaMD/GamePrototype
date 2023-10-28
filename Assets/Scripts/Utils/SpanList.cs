@@ -29,7 +29,7 @@ namespace Assets.Scripts.Utils
         public Span<T> AsSpan() => data.AsSpan(0, count);
         public Span<T> AsSpan(int start, int length) => data.AsSpan(start, length);
 
-        internal void Clear()
+        public void Clear()
         {
             //AsSpan().Clear(); // ?
             count = 0;

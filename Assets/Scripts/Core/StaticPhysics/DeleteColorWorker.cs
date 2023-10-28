@@ -8,6 +8,13 @@ using UnityEngine;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
+    // Promaze nevalidni barevne hrany
+    // Nevalidni barevna hrana:
+    // proverim vsechny vstupujici barvy. Pokud se na uzlu zmenilo ShortestColorDistance, 
+    // musim vstupujici barevnou hranu odstranit + rekurzivne provedu u vsech vrcholu kam hrany vedou
+    // 
+
+
     internal class DeleteColorWorker
     {
         private readonly SpDataManager data;

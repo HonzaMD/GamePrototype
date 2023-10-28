@@ -26,7 +26,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
             addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes);
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
-            findFallenWorker = new FindFallenWorker(data, toUpdate, deletedNodes);
+            findFallenWorker = new FindFallenWorker(data, this, toUpdate, deletedNodes);
         }
 
         public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces, SpanList<OutputCommand> output)
@@ -267,15 +267,21 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
         public void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdges(inCommands, outCommands);
+        public void GetBrokenEdgesBigOnly(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdgesBigOnly(inCommands, outCommands);
 
         private void FreeJoints()
         {
             foreach (int index in deletedEdges)
             {
-                data.FreeJoint(index);
-                forceWorker.FreeJoint(index);
+                FreeJoint(index);
             }
             deletedEdges.Clear();
+        }
+
+        internal void FreeJoint(int index)
+        {
+            data.FreeJoint(index);
+            forceWorker.FreeJoint(index);
         }
 
         private void FreeNodes(SpanList<OutputCommand> output)

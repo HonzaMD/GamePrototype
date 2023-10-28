@@ -111,6 +111,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             try
             {
+                bool moreBrokenEdges = false;
+
                 while (true)
                 {
                     semaphore.Wait();
@@ -125,13 +127,24 @@ namespace Assets.Scripts.Core.StaticPhysics
                                 (waitingOutCommands, privateOutCommands) = (privateOutCommands, waitingOutCommands);
                         }
 
-                        worker.GetBrokenEdges(privateInCommands, privateOutCommands);
+                        if (moreBrokenEdges)
+                            worker.GetBrokenEdges(privateInCommands, privateOutCommands);
 
                         if (privateInCommands.Count > 0 || privateForceCommands.Count > 0)
                         {
                             Interlocked.Increment(ref runnerTicks);
                             worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan(), privateOutCommands);
                             privateInCommands.Clear();
+
+                            worker.GetBrokenEdgesBigOnly(privateInCommands, privateOutCommands);
+                            
+                            if (privateInCommands.Count > 0)
+                            {
+                                worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan(), privateOutCommands);
+                                privateInCommands.Clear();
+                                moreBrokenEdges = true;
+                            }
+
                             privateForceCommands.Clear();
                         }
                         else

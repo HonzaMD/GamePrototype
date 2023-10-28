@@ -35,8 +35,12 @@ public class SpTests
         var input2 = new SpanList<InputCommand>();
 
         worker.ApplyChanges(commands, forces, output);
-        worker.GetBrokenEdges(input2, output);
+        worker.GetBrokenEdgesBigOnly(input2, output);
+        Assert.AreEqual(1, input2.Count);
         worker.ApplyChanges(input2.AsSpan(), forces, output);
+        input2.Clear();
+        worker.GetBrokenEdges(input2, output);
+        Assert.AreEqual(0, input2.Count);
 
         Assert.IsTrue(output.AsSpan().ToArray().Any(c => c.Command == SpCommand.RemoveJoint));
         Assert.IsTrue(output.AsSpan().ToArray().Any(c => c.Command == SpCommand.FallNode));
@@ -57,10 +61,6 @@ public class SpTests
     {
         var dm = new SpDataManager();
         var worker = new GraphWorker(dm);
-        var forces = new ForceCommand[] { };
-
-        var output = new SpanList<OutputCommand>();
-        var input2 = new SpanList<InputCommand>();
 
         var input = new Node(dm, force: Vector2.down)
             .Connect(Vector2.right, 0)
@@ -68,9 +68,7 @@ public class SpTests
             .Connect(Vector2.up, 0, isFixed: true)
             .Build();
 
-        worker.ApplyChanges(input.AsSpan(), forces, output);
-        worker.GetBrokenEdges(input2, output);
-        worker.ApplyChanges(input2.AsSpan(), forces, output);
+        var output = RunSP(worker, input);
 
         Assert.IsTrue(output.Count == 0);
         Assert.AreEqual(2, dm.GetJoint(2).moment);
@@ -83,10 +81,6 @@ public class SpTests
     {
         var dm = new SpDataManager();
         var worker = new GraphWorker(dm);
-        var forces = new ForceCommand[] { };
-
-        var output = new SpanList<OutputCommand>();
-        var input2 = new SpanList<InputCommand>();
 
         var n1 = new Node(dm, isFixed: true)
             .Connect(Vector2.down, 0);
@@ -95,34 +89,45 @@ public class SpTests
             .Connect(Vector2.left, 0, force: Vector2.down);
         var input = n1.Build();
 
-        worker.ApplyChanges(input.AsSpan(), forces, output);
-        worker.GetBrokenEdges(input2, output);
-        worker.ApplyChanges(input2.AsSpan(), forces, output);
+        var output = RunSP(worker, input);
 
         Assert.AreEqual(0, dm.GetJoint(0).moment);
         Assert.AreEqual(-3, dm.GetJoint(0).compress);
         Assert.IsTrue(output.Count == 0);
     }
 
+    private static SpanList<OutputCommand> RunSP(GraphWorker worker, SpanList<InputCommand> input)
+    {
+        var forces = new ForceCommand[] { };
+        var output = new SpanList<OutputCommand>();
+        var input2 = new SpanList<InputCommand>();
+        worker.ApplyChanges(input.AsSpan(), forces, output);
+        worker.GetBrokenEdgesBigOnly(input2, output);
+        if (input2.Count > 0)
+        {
+            worker.ApplyChanges(input2.AsSpan(), forces, output);
+            input2.Clear();
+            worker.GetBrokenEdges(input2, output);
+            if (input2.Count > 0)
+            {
+                worker.ApplyChanges(input2.AsSpan(), forces, output);
+            }
+        }
+        return output;
+    }
 
     [Test]
     public void SpTests4FreeFall()
     {
         var dm = new SpDataManager();
         var worker = new GraphWorker(dm);
-        var forces = new ForceCommand[] { };
-
-        var output = new SpanList<OutputCommand>();
-        var input2 = new SpanList<InputCommand>();
 
         var input = new Node(dm)
             .Connect(Vector2.right, 0)
             .New(Vector2.right * 5)
             .Build();
 
-        worker.ApplyChanges(input.AsSpan(), forces, output);
-        worker.GetBrokenEdges(input2, output);
-        worker.ApplyChanges(input2.AsSpan(), forces, output);
+        var output = RunSP(worker, input);
 
         Assert.AreEqual(4, output.Count);
         Assert.IsTrue(output.AsSpan().ToArray().Count(c => c.Command == SpCommand.FallNode) == 3);
@@ -135,10 +140,6 @@ public class SpTests
     {
         var dm = new SpDataManager();
         var worker = new GraphWorker(dm);
-        var forces = new ForceCommand[] { };
-
-        var output = new SpanList<OutputCommand>();
-        var input2 = new SpanList<InputCommand>();
 
         var input = new Node(dm, isFixed: true)
             .Connect(Vector2.up, 0)
@@ -150,14 +151,78 @@ public class SpTests
             .Connect(Vector2.down, 0, isFixed: true)
             .Build();
 
-        worker.ApplyChanges(input.AsSpan(), forces, output);
-        worker.GetBrokenEdges(input2, output);
-        worker.ApplyChanges(input2.AsSpan(), forces, output);
+        var output = RunSP(worker, input);
 
         Assert.AreEqual(0, output.Count);
     }
 
+    [Test]
+    public void SpTests6Modify()
+    {
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
 
+        var n1 = new Node(dm, force: Vector2.down);
+        var input = n1
+            .Connect(Vector2.right, 0, force: Vector2.down)
+            .Connect(Vector2.right, 0, force: Vector2.down, isFixed: true)
+            .Build();
+
+        var output = RunSP(worker, input);
+        Assert.AreEqual(0, output.Count);
+
+        input = n1.Connect(Vector2.up, 0, isFixed: true).Build();
+
+        output = RunSP(worker, input);
+        Assert.AreEqual(0, output.Count);
+
+        input = new SpanList<InputCommand>();
+        n1.BreakNode(input);
+
+        output = RunSP(worker, input);
+        Assert.AreEqual(1, output.Count);
+        Assert.AreEqual(SpCommand.FreeNode, output.AsSpan()[0].Command);
+    }
+
+    [Test]
+    public void SpTests6ModifyShorten()
+    {
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var n1 = new Node(dm, isFixed: true);
+        var n2 = n1.Connect(Vector2.left, 0).Connect(Vector2.up, 0);
+        var input = n2.Connect(Vector2.up, 0, force: Vector2.down).Build();
+
+        var output = RunSP(worker, input);
+        Assert.AreEqual(0, output.Count);
+
+        var compress1 = dm.GetJoint(1).compress;
+
+        var edge = n1.Connect(n2, 0);
+        input = edge.Build();
+
+        output = RunSP(worker, input);
+        Assert.AreEqual(0, output.Count);
+
+        var compress2 = dm.GetJoint(1).compress;
+
+        input = new();
+        edge.BreakEdge(input);
+
+        output = RunSP(worker, input);
+
+        var compress3 = dm.GetJoint(1).compress;
+
+        Assert.AreEqual(compress1, compress3);
+        Assert.AreNotEqual(compress2, compress3);
+        Assert.IsTrue(compress1 > 0);
+        Assert.IsTrue(compress2 > 0);
+
+    }
+
+
+    #region class Limits
     private static class Limits
     {
         public static (float Stretch, float Compress, float Moment)[] Data = new[]
@@ -165,7 +230,9 @@ public class SpTests
             (5f, 5f, 5f)
         };
     }
+    #endregion
 
+    #region class Node
     private class Node
     {
         private readonly SpDataManager dm;
@@ -254,6 +321,7 @@ public class SpTests
             {
                 ret.Add(node.BuildOne(ret));
             }
+            nodes.Clear();
             return ret;
         }
 
@@ -302,5 +370,26 @@ public class SpTests
                 throw new InvalidOperationException();
             }
         }
+
+        public void BreakNode(SpanList<InputCommand> ret)
+        {
+            ret.Add(new InputCommand()
+            {
+                Command = SpCommand.RemoveNode,
+                indexA = id,
+            });
+        }
+
+        public void BreakEdge(SpanList<InputCommand> ret)
+        {
+            ret.Add(new InputCommand()
+            {
+                Command = SpCommand.RemoveJoint,
+                indexA = id != 0 ? id : fromId2,
+                indexB = fromId
+            });
+
+        }
     }
+    #endregion
 }

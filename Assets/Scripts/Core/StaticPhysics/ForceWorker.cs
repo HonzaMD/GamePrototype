@@ -14,8 +14,9 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly SpDataManager data;
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
-        private readonly BinaryHeap<Work> workQueue = new BinaryHeap<Work>();
-        private readonly Dictionary<int, (int, int)> activeEdges = new Dictionary<int, (int, int)>();
+        private readonly BinaryHeap<Work> workQueue = new();
+        private readonly Dictionary<int, (int, int)> activeEdges = new();
+        private readonly Dictionary<int, (float Damage, int indexA, int indexB)> bigBrokemEdges = new();
         private bool tempPhase;
 
         private struct Work : IComparable<Work>
@@ -238,6 +239,55 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
 
             activeEdges.Clear();
+        }
+
+        internal void GetBrokenEdgesBigOnly(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands)
+        {
+            foreach (var pair in activeEdges)
+            {
+                ref var joint = ref data.GetJoint(pair.Key);
+                var compress = joint.compress + joint.tempCompress;
+                var moment = MathF.Abs(joint.moment + joint.tempMoment);
+                var damage = MathF.Max(0, compress - joint.compressLimit) + MathF.Max(0, -compress - joint.stretchLimit) + MathF.Max(0, moment - joint.momentLimit);
+                if (damage > 0)
+                {
+                    ref var endA = ref data.GetNode(pair.Value.Item1).GetEnd(pair.Value.Item2);
+                    ref var endB = ref data.GetNode(pair.Value.Item2).GetEnd(pair.Value.Item1);
+
+                    int color = Utils.IsDistanceBetter(endA.Out0Lengh, endB.Out0Lengh, endA.Out0Root, endB.Out0Root) ? endA.Out0Root : endB.Out0Root;
+
+                    if (bigBrokemEdges.TryGetValue(color, out var edge))
+                    {
+                        if (damage <= edge.Damage)
+                            continue;
+                    }
+
+                    bigBrokemEdges[color] = (damage, pair.Value.Item1, pair.Value.Item2);
+                }
+            }
+
+            activeEdges.Clear();
+
+            foreach (var edge in bigBrokemEdges.Values) 
+            {
+                inCommands.Add(new InputCommand()
+                {
+                    Command = SpCommand.RemoveJoint,
+                    indexA = edge.indexA,
+                    indexB = edge.indexB,
+                });
+
+                outCommands.Add(new OutputCommand()
+                {
+                    Command = SpCommand.RemoveJoint,
+                    indexA = edge.indexA,
+                    indexB = edge.indexB,
+                    nodeA = data.GetNode(edge.indexA).placeable,
+                    nodeB = data.GetNode(edge.indexB).placeable,
+                });
+            }
+
+            bigBrokemEdges.Clear();
         }
 
         internal void FreeJoint(int index) => activeEdges.Remove(index);

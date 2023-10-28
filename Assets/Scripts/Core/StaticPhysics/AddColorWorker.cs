@@ -8,6 +8,16 @@ using UnityEngine;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
+    // Rozsiri barevny hrany
+    // Nejprve overim toUpdate mnozinu, zda nema nejake uzly ze kterych lze rozsirovat
+    // Rozsirovani:
+    //  ShortestColorDistance - nejkratsi vzdalenost z uzlu do korene = min (barevny delky hran)
+    //  mohu rozsirovat jen do uzlu ktery ma SCD > moji SCD (jinak bych vyrabel zpetne hrany)
+    //  rozsirenim spocitam barevnou delku hrany = SCD + delka hrany
+    //  tim mohu zmencit SCD uzlu kam se rozsiruji, pokud se tak stane, stava se uzel dalsim kandidatem na rozsirovani
+    // Praci si radim podle SCD (od nejmensiho) tim mam zaruceno, ze hodnota SCD se kterou pracuju uz je spravne (nemuze existovat nespracovany uzel ktery by mi ji vylepsil)
+    // Pro kazdou barvu, zpracovavam kazdy uzel max jednou
+
     internal class AddColorWorker
     {
         private readonly SpDataManager data;
@@ -122,11 +132,15 @@ namespace Assets.Scripts.Core.StaticPhysics
                     
                     if (otherEnd.Out0Root == color)
                     {
+                        if (otherEnd.Out0Lengh == lengthB)
+                            continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out0Lengh = lengthB;
                     } 
                     else if (otherEnd.Out1Root == color)
                     {
+                        if (otherEnd.Out1Lengh == lengthB)
+                            continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out1Lengh = lengthB;
                     }
@@ -137,13 +151,6 @@ namespace Assets.Scripts.Core.StaticPhysics
                         edges[f].In1Root = color;
                         otherEnd.Out1Root = color;
                         otherEnd.Out1Lengh = lengthB;
-                    }
-                    else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out0Lengh, color, otherEnd.Out0Root))
-                    {
-                        otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
-                        edges[f].In0Root = color;
-                        otherEnd.Out0Root = color;
-                        otherEnd.Out0Lengh = lengthB;
                     }
                     else
                     {

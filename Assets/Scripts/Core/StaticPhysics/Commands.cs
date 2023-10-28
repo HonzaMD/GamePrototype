@@ -14,27 +14,26 @@ namespace Assets.Scripts.Core.StaticPhysics
         AddNode,
         AddNodeAndJoint,
         RemoveJoint,
-        RemoveNode,
-        BatchEnd,
-        UpdateForce,
+        RemoveNode, // i vystup, dostanes, kdyz hrana rupne
+        UpdateForce,  
 
-        FallEdge,
-        FallNode,
-        FreeNode,
+        FallNode,  // vystup - uzel ktery neni k nicemu prichycen a ma zacit padat
+        FallEdge,  // hrany mezi padajicimi uzly
+        FreeNode,  // po zpracovani RemoveNode, dostanes FreeNode, abys uvolnil index vyrazeneho nodu
     }
 
     public struct InputCommand
     {
         public SpCommand Command;
         public int indexA;
-        public int indexB;
-        public Placeable nodeA;
-        public Vector2 forceA;
-        public Vector2 pointA;
-        public bool isAFixed;
-        public float stretchLimit;
-        public float compressLimit;
-        public float momentLimit;
+        public int indexB;      // nutne pro praci s hranami
+        public Placeable nodeA; // pro AddNode
+        public Vector2 forceA;  // reletivni zmena sily, pro AddNode a UpdateForce
+        public Vector2 pointA;  // pro AddNode
+        public bool isAFixed;   // pro AddNode
+        public float stretchLimit;  // pro AddJoint
+        public float compressLimit; // pro AddJoint
+        public float momentLimit;   // pro AddJoint
 
         public readonly (int, int) EdgePairId => indexA < indexB ? (indexA, indexB) : (indexB, indexA);
         
@@ -46,6 +45,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         };
     }
 
+    // pro zadavani sil s platnosti po dobu jen jednoho Framu
     public struct ForceCommand
     {
         public int indexA;

@@ -9,6 +9,6 @@ namespace Assets.Scripts.Core.StaticPhysics
     internal static class Utils
     {
         public static bool IsDistanceBetter(float candidate, float other, int candidateRoot, int otherRoot) 
-            => otherRoot == 0 || candidate < other || (candidate == other && candidateRoot < otherRoot);
+            => candidateRoot != 0 && (otherRoot == 0 || candidate < other || (candidate == other && candidateRoot < otherRoot));
     }
 }

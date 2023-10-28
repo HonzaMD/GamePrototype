@@ -10,15 +10,17 @@ namespace Assets.Scripts.Core.StaticPhysics
     internal class FindFallenWorker
     {
         private readonly SpDataManager data;
+        private readonly GraphWorker graphWorker;
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
         private readonly Queue<int> workQueue = new();
         private readonly List<(int Index, int NodeA, int NodeB)> edgesToFall = new();
         private SpanList<OutputCommand> output;
 
-        public FindFallenWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes)
+        public FindFallenWorker(SpDataManager data, GraphWorker graphWorker, HashSet<int> toUpdate, HashSet<int> deletedNodes)
         {
             this.data = data;
+            this.graphWorker = graphWorker;
             this.toUpdate = toUpdate;
             this.deletedNodes = deletedNodes;
         }
@@ -101,7 +103,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                     stretchLimit = joint.stretchLimit,
                     momentLimit = joint.momentLimit,
                 });
-                data.FreeJoint(edge.Index);
+                graphWorker.FreeJoint(edge.Index);
             }
             edgesToFall.Clear();
         }
