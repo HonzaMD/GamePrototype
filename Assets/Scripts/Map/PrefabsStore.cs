@@ -17,4 +17,5 @@ public class PrefabsStore : ScriptableObject
     public RbLabel RbBase;
     public SandCombiner SandCombiner;
     public Explosion Explosion;
+    public RbJoint RbJoint;
 }

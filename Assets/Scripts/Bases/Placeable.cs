@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
@@ -264,5 +265,54 @@ public class Placeable : Label, ILevelPlaceabe
             }
         }
         KinematicMove(Game.Map);
+    }
+
+    internal void SpFall(int index)
+    {
+        if (SpNodeIndex == index)
+            AttachRigidBody();
+    }
+
+    internal void SpConnectEdge(ref OutputCommand cmd)
+    {
+        if (SpNodeIndex == cmd.indexA && cmd.nodeB.SpNodeIndex == cmd.indexB)
+        {
+            RbJoint joint = CreateRbJoint(cmd.nodeB);
+            if (!joint.Joint)
+            {
+                var j = Rigidbody.gameObject.AddComponent<FixedJoint>();
+                j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit);
+                j.breakTorque = cmd.momentLimit;
+                j.connectedBody = joint.OtherObj.Rigidbody;
+                joint.Joint = j;
+                joint.OtherConnectable.Joint = j;
+            }
+        }
+    }
+
+    RbJoint CreateRbJoint(Placeable to)
+    {
+        var transform = ParentForConnections;
+        for (int f = 0; f < transform.childCount; f++)
+        {
+            if (transform.GetChild(f).TryGetComponent(out RbJoint j))
+            {
+                if (j.OtherObj == to)
+                    return j;
+            }
+        }
+        
+        RbJoint myJ = Game.Instance.PrefabsStore.RbJoint.CreateCL(transform);
+        RbJoint otherJ = Game.Instance.PrefabsStore.RbJoint.CreateCL(to.ParentForConnections);
+        myJ.Setup(this, to, otherJ);
+        otherJ.Setup(to, this, myJ);
+
+        return myJ;
+    }
+
+    internal void SpRemoveIndex(int index)
+    {
+        if (SpNodeIndex == index)
+            SpNodeIndex = 0;
     }
 }

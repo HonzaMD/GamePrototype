@@ -87,6 +87,20 @@ namespace Assets.Scripts.Core.StaticPhysics
             {
                 if (commands[f].Command is SpCommand.FreeNode or SpCommand.FallNode)
                     data.FreeNodeIndex(commands[f].indexA);
+                if (commands[f].Command == SpCommand.FallNode)
+                {
+                    commands[f].nodeA.SpFall(commands[f].indexA);
+                }
+                else if (commands[f].Command == SpCommand.FallEdge)
+                {
+                    commands[f].nodeA.SpConnectEdge(ref commands[f]);
+                }
+            }
+
+            for (int f = 0; f < commands.Length; f++)
+            {
+                if (commands[f].Command == SpCommand.FallNode)
+                    commands[f].nodeA.SpRemoveIndex(commands[f].indexA);
             }
         }
 

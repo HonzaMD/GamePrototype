@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Bases;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,33 +8,37 @@ using UnityEngine;
 
 namespace Assets.Scripts.Utils
 {
-    public class ObjectPool : MonoBehaviour
-    {
-        private readonly Dictionary<Label, Stack<Label>> cache = new Dictionary<Label, Stack<Label>>();
+    public class ObjectPool : ObjectPool<Label>
+    { }
 
-        public void Store(Label obj, Label prototype)
+    public class ObjectPool<TLabel> : MonoBehaviour
+        where TLabel : MonoBehaviour
+    {
+        private readonly Dictionary<TLabel, Stack<TLabel>> cache = new Dictionary<TLabel, Stack<TLabel>>();       
+
+        public void Store(TLabel obj, TLabel prototype)
         {
             obj.gameObject.SetActive(false);
             obj.transform.parent = transform;
 
-            Stack<Label> stack = GetStack(prototype);
+            Stack<TLabel> stack = GetStack(prototype);
             stack.Push(obj);
         }
 
-        private Stack<Label> GetStack(Label prototype)
+        private Stack<TLabel> GetStack(TLabel prototype)
         {
             if (!cache.TryGetValue(prototype, out var stack))
             {
-                stack = new Stack<Label>();
+                stack = new Stack<TLabel>();
                 cache.Add(prototype, stack);
             }
             return stack;
         }
 
         public T Get<T>(T prototype, Transform parent, Vector3 localPosition)
-            where T : Label
+            where T : TLabel
         {
-            Stack<Label> stack = GetStack(prototype);
+            Stack<TLabel> stack = GetStack(prototype);
             T ret;
             if (stack.Count > 0)
             {
@@ -51,9 +56,9 @@ namespace Assets.Scripts.Utils
         }
 
         public T Get<T>(T prototype, Transform parent)
-            where T : Label
+            where T : TLabel
         {
-            Stack<Label> stack = GetStack(prototype);
+            Stack<TLabel> stack = GetStack(prototype);
             T ret;
             if (stack.Count > 0)
             {

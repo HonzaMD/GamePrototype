@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Bases;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,5 +58,13 @@ namespace Assets.Scripts.Utils
         public static T Create<T>(this T prototype, Transform parent)
             where T : Label
             => Game.Instance.Pool.Get(prototype, parent);
+
+        public static T CreateCL<T>(this T prototype, Transform parent, Vector3 localPosition)
+            where T : ConnectableLabel
+            => Game.Instance.ConnectablePool.Get(prototype, parent, localPosition);
+
+        public static T CreateCL<T>(this T prototype, Transform parent)
+            where T : ConnectableLabel
+            => Game.Instance.ConnectablePool.Get(prototype, parent);
     }
 }

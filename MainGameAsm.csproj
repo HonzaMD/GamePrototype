@@ -85,6 +85,7 @@
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
+    <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
     <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
+    <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />

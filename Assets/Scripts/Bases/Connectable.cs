@@ -31,4 +31,9 @@ namespace Assets.Scripts.Bases
             disconnect?.Invoke();
         }
     }
+
+    public abstract class ConnectableLabel : MonoBehaviour, IConnectable
+    {
+        public abstract void Disconnect();
+    }
 }

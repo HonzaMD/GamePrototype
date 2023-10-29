@@ -25,6 +25,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Timer Timer;
     public GlobalTimerHandler GlobalTimerHandler;
     public ObjectPool Pool;
+    public ConnectablesPool ConnectablePool;
     public PrefabsStore PrefabsStore;
     public PlaceableSettings DefaultPlaceableSettings;
 
