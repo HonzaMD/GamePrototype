@@ -13,6 +13,7 @@ namespace Assets.Scripts.Bases
         public Placeable MyObj;
         public Placeable OtherObj;
         public RbJoint OtherConnectable;
+        public bool RbCounterIncreased;
 
 
         public override void Disconnect()
@@ -30,8 +31,18 @@ namespace Assets.Scripts.Bases
             OtherConnectable = otherJ;
         }
 
+        internal void SetupJoint(Joint j)
+        {
+            Joint = j;
+            RbCounterIncreased = true;
+            MyObj.AttachRigidBody(false, true);
+        }
+
         private void Kill()
         {
+            if (RbCounterIncreased)
+                MyObj.DetachRigidBody(false, true);
+            RbCounterIncreased = false;
             Joint = null;
             MyObj = null;
             OtherObj = null;

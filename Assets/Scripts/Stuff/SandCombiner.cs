@@ -34,7 +34,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         {
             if (p)
             {
-                p.DetachRigidBody();
+                p.DetachRigidBody(true, false);
                 p.transform.SetParent(transform, true);
             }
         }
@@ -88,7 +88,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         foreach (var p in children)
         {
             p.transform.SetParent(transform.parent, true);
-            p.AttachRigidBody();
+            p.AttachRigidBody(true, false);
         }
         children.Return();
 

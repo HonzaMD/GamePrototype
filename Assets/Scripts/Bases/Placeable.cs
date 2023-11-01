@@ -53,7 +53,7 @@ public class Placeable : Label, ILevelPlaceabe
     public int Tag;
     public PlaceableSettings Settings;
     private int SpNodeIndex;
-    
+
     public bool IsMapPlaced => PlacedPosition != NotInMap;
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
@@ -116,7 +116,7 @@ public class Placeable : Label, ILevelPlaceabe
     private void AutoAttachRB()
     {
         if (Settings?.AutoAtachRB == true && IsTopLabel)
-            AttachRigidBody();
+            AttachRigidBody(true, false);
     }
 
     public override void Cleanup()
@@ -158,25 +158,54 @@ public class Placeable : Label, ILevelPlaceabe
             map.Move(this);
     }
 
-    public void AttachRigidBody()
+    public void AttachRigidBody(bool startMoving, bool incConnection)
     {
+        BefereAtachRigidBody();
         if (HasRB)
-            return;
-        var rb = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
-        rb.Rigidbody.mass = GetMass();
-        transform.SetParent(rb.transform, true);
+        {
+            if (TryGetRbLabel(out var rbLabel))
+            {
+                if (startMoving)
+                    rbLabel.StartMoving();
+                if (incConnection)
+                    rbLabel.ChengeConnectionCounter(1);
+            }
+        }
+        else
+        {
+            Transform transform = KillableLabel().transform;
+            var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
+            var rb = rbLabel.Rigidbody;
+            rb.mass = GetMass();
+            rb.isKinematic = !startMoving;
+            transform.SetParent(rbLabel.transform, true);
+            if (incConnection)
+                rbLabel.ChengeConnectionCounter(1);
+        }
     }
 
-    public void DetachRigidBody()
+    public virtual void BefereAtachRigidBody()
     {
-        if (!HasRB)
-            return;
-        var rbLabel = this.Rigidbody.GetComponent<RbLabel>();
-        if (!rbLabel || !transform.IsChildOf(rbLabel.transform))
-            throw new InvalidOperationException("Tohle neni detachovatelne RB!");
-        transform.SetParent(rbLabel.transform.parent, true);
+        TryCollapseSandCombiner();
+    }
 
-        rbLabel.Kill();
+    private void TryCollapseSandCombiner()
+    {
+        if (Ksid.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
+        {
+            sandCombiner.CollapseNow();
+        }
+    }
+
+    public void DetachRigidBody(bool stopMoving, bool decConnection)
+    {
+        if (TryGetRbLabel(out var rbLabel))
+        {
+            if (stopMoving)
+                rbLabel.StopMoving();
+            if (decConnection)
+                rbLabel.ChengeConnectionCounter(-1);
+        }
     }
 
     private float GetMass()
@@ -259,10 +288,7 @@ public class Placeable : Label, ILevelPlaceabe
         else
         {
             transform.position = transform.position.WithZ(newZ);
-            if (Ksid.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
-            {
-                sandCombiner.CollapseNow();
-            }
+            TryCollapseSandCombiner();
         }
         KinematicMove(Game.Map);
     }
@@ -270,7 +296,7 @@ public class Placeable : Label, ILevelPlaceabe
     internal void SpFall(int index)
     {
         if (SpNodeIndex == index)
-            AttachRigidBody();
+            AttachRigidBody(true, false);
     }
 
     internal void SpConnectEdge(ref OutputCommand cmd)
@@ -284,13 +310,13 @@ public class Placeable : Label, ILevelPlaceabe
                 j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit);
                 j.breakTorque = cmd.momentLimit;
                 j.connectedBody = joint.OtherObj.Rigidbody;
-                joint.Joint = j;
-                joint.OtherConnectable.Joint = j;
+                joint.SetupJoint(j);
+                joint.OtherConnectable.SetupJoint(j);
             }
         }
     }
 
-    RbJoint CreateRbJoint(Placeable to)
+    private RbJoint CreateRbJoint(Placeable to)
     {
         var transform = ParentForConnections;
         for (int f = 0; f < transform.childCount; f++)

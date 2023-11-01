@@ -20,9 +20,10 @@ public abstract class Label : MonoBehaviour
     {
         get
         {
-            if (TryGetComponent<Rigidbody>(out var res))
+            var kl = KillableLabel();
+            if (kl.TryGetComponent<Rigidbody>(out var res))
                 return res;
-            return transform.parent.TryGetComponent(out res) ? res : null;
+            return kl.transform.parent.TryGetComponent(out res) ? res : null;
         }
     }
 
@@ -39,6 +40,18 @@ public abstract class Label : MonoBehaviour
 
         Game.Instance.GlobalTimerHandler.ObjectDied(this);
     }
+
+    public bool TryGetRbLabel(out RbLabel rbLabel)
+    {
+        var rb = Rigidbody;
+        if (!rb)
+        {
+            rbLabel = null;
+            return false;
+        }
+        return rb.TryGetComponent(out rbLabel);
+    } 
+
 
 
     private static readonly List<Collider> colliders1 = new List<Collider>();
@@ -120,6 +133,30 @@ public abstract class Label : MonoBehaviour
     public bool HasRB => Rigidbody;
     public Transform LevelGroup => GetComponentInParent<LevelLabel>().transform;
     public bool TryGetParentLabel(out Label label) => transform.TryFindInParents(out label);
+    public bool TryGetKillableParentLabel(out Label label)
+    {
+        var t = transform.parent;
+        while (t)
+        {
+            if (t.TryGetComponent(out label) && label.CanBeKilled)
+                return true;
+            t = t.parent;
+        }
+        label = default;
+        return false;
+    }
+    public Label KillableLabel()
+    {
+        if (CanBeKilled)
+        {
+            return this;
+        }
+        else
+        {
+            TryGetKillableParentLabel(out var killableLabel);
+            return killableLabel;
+        }
+    }
     public bool IsTopLabel => transform.parent.TryGetComponent(out LevelLabel _);
     public Vector2 Pivot => transform.position.XY();
     public int CellZ => transform.position.z < 0.25f ? 0 : 1;
@@ -140,7 +177,7 @@ public abstract class Label : MonoBehaviour
             
             labelsToKill.Return();
         }
-        else if (TryGetParentLabel(out var pl))
+        else if (TryGetKillableParentLabel(out var pl))
         {
             pl.Kill();
         }

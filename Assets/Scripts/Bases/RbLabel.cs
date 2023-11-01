@@ -10,13 +10,16 @@ using UnityEngine;
 
 namespace Assets.Scripts.Bases
 {
-    public class RbLabel : Label, ILevelPlaceabe
+    public sealed class RbLabel : Label, ILevelPlaceabe
     {
+        private int connectionCounter;
+
         public override Placeable PlaceableC => (Placeable)SubLabel;
         public override Transform ParentForConnections => SubLabel.ParentForConnections;
         public override bool IsGroup => true;
         public override Label Prototype => Game.Instance.PrefabsStore.RbBase;
         public override Ksid KsidGet => SubLabel.KsidGet;
+        public override Rigidbody Rigidbody => GetComponent<Rigidbody>();
         public override void DetachKilledChild(Label child)
         {
             child.transform.SetParent(LevelGroup, true);
@@ -41,6 +44,36 @@ namespace Assets.Scripts.Bases
             var dest = transform.GetComponentInFirstChildren<IPhysicsEvents>();
             if (dest != null)
                 dest.OnCollisionEnter(collision);
+        }
+
+        public void StartMoving()
+        {
+            Rigidbody.isKinematic = false;
+        }
+
+        public void StopMoving()
+        {
+            if (connectionCounter == 0)
+            {
+                DetachMe();
+            }
+            else
+            {
+                Rigidbody.isKinematic = true;
+            }
+        }
+
+        public void ChengeConnectionCounter(int delta)
+        {
+            connectionCounter += delta;
+            if (connectionCounter == 0 && Rigidbody.isKinematic == true)
+                DetachMe();
+        }
+
+        private void DetachMe()
+        {
+            SubLabel.transform.SetParent(transform.parent, true);
+            Kill();
         }
     }
 }
