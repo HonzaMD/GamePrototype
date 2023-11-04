@@ -102,6 +102,7 @@
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
+    <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />

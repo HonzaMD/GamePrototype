@@ -8,6 +8,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.SocialPlatforms;
 
 
 [Flags]
@@ -64,6 +66,8 @@ public class Placeable : Label, ILevelPlaceabe
         if (SubCellFlags != SubCellFlags.Free)
             CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
     }
+
+    public Vector2 Center => Pivot + PosOffset + Size * 0.5f;
 
     public virtual Ksid TriggerTargets => Ksid.Unknown;
     public virtual void AddTarget(Placeable p) { }
@@ -238,7 +242,7 @@ public class Placeable : Label, ILevelPlaceabe
     public bool CanZMove(float newZ)
     {
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
-        var center = (Pivot + PosOffset + Size * 0.5f).AddZ(newZ);
+        var center = Center.AddZ(newZ);
         return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
     }
 
@@ -246,7 +250,7 @@ public class Placeable : Label, ILevelPlaceabe
     public bool CanZMove(float newZ, Label exception)
     {
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
-        var center = (Pivot + PosOffset + Size * 0.5f).AddZ(newZ);
+        var center = Center.AddZ(newZ);
         int count = Physics.OverlapBoxNonAlloc(center, halfSize.AddZ(0.2f), collidersBuff, Quaternion.identity, Game.Instance.CollisionLayaerMask);
         if (count == 0)
             return true;
@@ -340,5 +344,39 @@ public class Placeable : Label, ILevelPlaceabe
     {
         if (SpNodeIndex == index)
             SpNodeIndex = 0;
+    }
+
+    public void FindTouchingObjs(List<Placeable> output, Ksid ksid, float margin)
+    {
+        var marginVec = new Vector2(margin, margin);
+        var placeables = ListPool<Placeable>.Rent();
+        Game.Map.Get(placeables, PlacedPosition - marginVec, Size + 2 * marginVec, ksid);
+
+        foreach (Placeable p in placeables)
+        {
+            if (p != this && Touches(p, margin))
+                output.Add(p);
+        }
+
+        placeables.Return();
+    }
+
+    public bool Touches(Placeable p, float margin)
+    {
+        var colliders1 = p.GetCollidersBuff1();
+        var colliders2 = GetCollidersBuff2();
+
+        foreach (var c1 in colliders1)
+            foreach (var c2 in colliders2)
+                if (c1.Touches(c2, margin))
+                {
+                    colliders1.Clear();
+                    colliders2.Clear();
+                    return true;
+                }
+
+        colliders1.Clear();
+        colliders2.Clear();
+        return false;
     }
 }

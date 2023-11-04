@@ -66,5 +66,51 @@ namespace Assets.Scripts.Utils
         public static T CreateCL<T>(this T prototype, Transform parent)
             where T : ConnectableLabel
             => Game.Instance.ConnectablePool.Get(prototype, parent);
+
+        public static bool Touches(this Collider collider1, Collider collider2, float margin)
+        {
+            if (collider1.enabled && collider2.enabled)
+            {
+                Bounds b1 = collider1.bounds;
+                b1.Expand(margin * 2);
+                if (b1.Intersects(collider2.bounds))
+                {
+                    float marginSq = margin * margin;
+                    Vector3 center1 = collider1.bounds.center;
+                    Vector3 center2 = collider2.bounds.center;
+
+                    var p1 = collider1.ClosestPoint(center2);
+                    if ((p1 - center2).sqrMagnitude <= marginSq)
+                        return true;
+                    var p2 = collider2.ClosestPoint(p1);
+                    if ((p1 - p2).sqrMagnitude <= marginSq)
+                        return true;
+
+                    p1 = collider2.ClosestPoint(center1);
+                    if ((p1 - center1).sqrMagnitude <= marginSq)
+                        return true;
+                    p2 = collider1.ClosestPoint(p1);
+                    if ((p1 - p2).sqrMagnitude <= marginSq)
+                        return true;
+
+                    Vector3 intersec = Vector3.Cross(p1 - center1, p1 - p2);
+                    if (intersec.sqrMagnitude <= 0.00001f)
+                        return false;
+                    Vector3 lin1 = Vector3.Cross(intersec, p1 - center1);
+
+                    float koef = Vector3.Dot(p1 - p2, lin1);
+                    if (Mathf.Abs(koef) < 0.00001f)
+                        return false;
+                    Vector3 p3 = p1 - lin1 * (p1 - p2).sqrMagnitude / koef;
+
+                    p1 = collider2.ClosestPoint(p3);
+                    p2 = collider1.ClosestPoint(p1);
+                    if ((p1 - p2).sqrMagnitude <= marginSq)
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

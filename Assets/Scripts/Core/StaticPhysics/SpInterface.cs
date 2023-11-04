@@ -106,10 +106,10 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void LogStats()
         {
-            if (updateTicks % 100 == 5)
-            {
-                Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}");
-            }
+            //if (updateTicks % 100 == 5)
+            //{
+            //    Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}");
+            //}
         }
 
         private void CheckException()
