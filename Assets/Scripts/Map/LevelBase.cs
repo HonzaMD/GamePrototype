@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using static UnityEditor.PlayerSettings;
 
 namespace Assets.Scripts.Map
 {
@@ -28,6 +29,8 @@ namespace Assets.Scripts.Map
 
         public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore)
         {
+            var delayed = new List<(ILevelPlaceabe, Vector3)>();
+
             int y = Data.Length - 1;
             foreach (string str in Data)
             {
@@ -38,12 +41,20 @@ namespace Assets.Scripts.Map
 
                     var p = PlaceableFromChar(ch, prefabsStore, x, y);
                     if (p != null)
-                        yield return (p, pos);
+                    {
+                        if (p.SecondPhase)
+                            delayed.Add((p, pos));
+                        else
+                            yield return (p, pos);
+                    }
 
                     x++;
                 }
                 y--;
             }
+
+            foreach (var d in delayed)
+                yield return d;
         }
 
         private Vector2 ToWorld(int x, int y)
@@ -63,7 +74,7 @@ namespace Assets.Scripts.Map
                 case 'L':
                 case 'R': return SearchLadder(ch, x, y, prefabsStore);
                 case 'O':
-                case 'P': return SearchRope(ch, x, y, prefabsStore);
+                case 'P': return SearchRope(ch, x, y);
                 case 'm': return prefabsStore.SmallMonster;
                 case 's': return prefabsStore.Stone;
                 default: throw new InvalidOperationException("Nezname pismeno");
@@ -78,43 +89,73 @@ namespace Assets.Scripts.Map
             return new LadderPlacer(prefabsStore.Ladder, start, end, Map.CellSize.z);
         }
 
-        private ILevelPlaceabe SearchRope(char ch, int x, int y, PrefabsStore prefabsStore)
+        private ILevelPlaceabe SearchRope(char ch, int x, int y)
         {
             if (!SearchLongItem(ch, ch == 'O', x, y, out var start, out var end))
                 return null;
 
-            return new RopePlacer(prefabsStore.Rope, end, start, Map.CellSize.z, start.x != end.x);
+            return new RopePlacer(start, end, Map.CellSize.z, start.x != end.x);
         }
 
         private bool SearchLongItem(char ch, bool lowCorner, int x, int y, out Vector2 start, out Vector2 end)
         {
-            if (GetChar(x - 1, y) == ch || GetChar(x, y - 1) == ch || GetChar(x - 1, y - 1) == ch)
+            int xFrom = int.MaxValue;
+            int yFrom = int.MaxValue;
+            if (GetNeighnbour(ch, ref x, ref y, ref xFrom, ref yFrom) == 1)
             {
-                start = default;
-                end = default;
-                return false;
-            }
-            
-            start = lowCorner ? ToWorld(x, y) : ToWorld(x + 1, y + 1);
-            while (true)
-            {
-                if (GetChar(x + 1, y) == ch)
-                    x++;
-                else if (GetChar(x, y + 1) == ch)
-                    y++;
-                else if (GetChar(x + 1, y + 1) == ch)
+                start = lowCorner ? ToWorld(xFrom, yFrom) : ToWorld(xFrom + 1, yFrom + 1);
+
+                while (true)
                 {
-                    x++;
-                    y++;
+                    int count = GetNeighnbour(ch, ref x, ref y, ref xFrom, ref yFrom);
+                    if (count == 0) 
+                        break;
+                    if (count > 1)
+                        throw new InvalidOperationException("Ladder pismeno pismena netvori jednu linii!");
                 }
-                else
-                    break;
+
+                end = lowCorner ? ToWorld(x, y) : ToWorld(x + 1, y + 1);
+                if (start == end)
+                    throw new InvalidOperationException("Ladder pismeno je jen jedno!");
+
+                if (start.y > end.y || (start.y == end.y && start.x < end.x))
+                    return true;
             }
 
-            end = lowCorner ? ToWorld(x, y) : ToWorld(x + 1, y + 1);
-            if (start == end)
-                throw new InvalidOperationException("Ladder pismeno je jen jedno!");
-            return true;
+            start = default;
+            end = default;
+            return false;
+        }
+
+        private int GetNeighnbour(char ch, ref int x, ref int y, ref int xFrom, ref int yFrom)
+        {
+            int counter = 0;
+            int x2 = 0;
+            int y2 = 0;
+            GetNeigbour1(ch, x - 1, y - 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x,     y - 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x + 1, y - 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x - 1, y,     xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x + 1, y,     xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x - 1, y + 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x,     y + 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            GetNeigbour1(ch, x + 1, y + 1, xFrom, yFrom, ref counter, ref x2, ref y2);
+            if (counter == 1)
+            {
+                xFrom = x; yFrom = y;
+                x = x2; y = y2;
+            }
+            return counter;
+        }
+
+        private void GetNeigbour1(char ch, int x, int y, int xFrom, int yFrom, ref int counter, ref int x2, ref int y2)
+        {
+            if (GetChar(x, y) == ch && !(xFrom == x && yFrom == y))
+            {
+                counter++;
+                x2 = x;
+                y2 = y;
+            }
         }
 
         private char GetChar(int x, int y) => (x < 0 || y < 0 || x >= Data[0].Length || y >= Data.Length) ? ' ' : Data[Data.Length - y - 1][x];
@@ -139,19 +180,18 @@ namespace Assets.Scripts.Map
                 var p = UnityEngine.Object.Instantiate(plank, parent);
                 p.AddToMap(map, start.AddZ(z), end.AddZ(z));
             }
+            bool ILevelPlaceabe.SecondPhase => true;
         }
 
         private class RopePlacer : ILevelPlaceabe
         {
-            private readonly Rope rope;
             private readonly Vector2 start;
             private readonly Vector2 end;
             private readonly float z;
             private readonly bool fixEnd;
 
-            public RopePlacer(Rope rope, Vector2 start, Vector2 end, float z, bool fixEnd)
+            public RopePlacer(Vector2 start, Vector2 end, float z, bool fixEnd)
             {
-                this.rope = rope;
                 this.start = start;
                 this.end = end;
                 this.z = z;
@@ -160,9 +200,10 @@ namespace Assets.Scripts.Map
 
             void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
             {
-                var r = UnityEngine.Object.Instantiate(rope, parent);
-                r.AddToMap(map, start.AddZ(z), end.AddZ(z), fixEnd);
+                Debug.Log($"Rope start {start} end {end}");
+                RopeSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z), fixEnd);
             }
+            bool ILevelPlaceabe.SecondPhase => true;
         }
     }
 }

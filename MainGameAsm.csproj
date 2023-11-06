@@ -108,6 +108,7 @@
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Stuff\Plank.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
+    <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />

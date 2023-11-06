@@ -36,6 +36,7 @@ namespace Assets.Scripts.Bases
             var p = Instantiate(this, parent);
             p.PlaceableC.LevelPlaceAfterInstanciate(map, pos);
         }
+        bool ILevelPlaceabe.SecondPhase => false;
 
         private Label SubLabel => transform.GetComponentInFirstChildren<Label>().ToRealNull();
 

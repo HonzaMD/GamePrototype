@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Scripts.Map;
+using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +8,13 @@ using UnityEngine;
 
 public class RopeSegment : Placeable
 {
+    public const float segmentSize = 0.25f;
+
+
     public override void RefreshCoordinates()
     {
         var start = transform.position;
-        var end = transform.TransformPoint(new Vector3(0, -Rope.segmentSize, 0));
+        var end = transform.TransformPoint(new Vector3(0, -segmentSize, 0));
         var dir = end - start;
 
         if (dir.x < 0)
@@ -35,6 +40,72 @@ public class RopeSegment : Placeable
         }
 
         base.RefreshCoordinates();
+    }
+
+
+    internal static void AddToMap(Map map, Transform parent, Vector3 start, Vector3 end, bool fixEnd)
+    {
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.down, end - start);
+        int segCount = Mathf.CeilToInt((end - start).magnitude / segmentSize);
+        Vector3 segOffset = (end - start).normalized * segmentSize;
+
+        Placeable prevNode = Game.Map.GetFirstTouching(start, Assets.Scripts.Core.Ksid.SpFixed, 0.05f);
+        if (!prevNode)
+            prevNode = Game.Map.GetFirstTouching(start, Assets.Scripts.Core.Ksid.SpNode, 0.05f);
+
+        for (int i = 0; i < segCount; i++)
+        {
+            Placeable seg = Game.Instance.PrefabsStore.RopeSegment.Create(parent);
+            seg.transform.position = start + i * segOffset;
+            seg.transform.rotation = rotation;
+
+            var joint = seg.GetComponent<HingeJoint>();
+            if (prevNode)
+            {
+                seg.CreateRbJoint(prevNode).SetupJoint(joint, false);
+                joint.connectedBody = prevNode.Rigidbody;
+                //if (i == 0)
+                //    joint.connectedAnchor = start;
+                //else
+                //    joint.connectedAnchor = new Vector3(0, i == 0 ? 0 : -segmentSize, 0);
+
+            }
+            else
+            {
+                Destroy(joint);
+            }
+
+            prevNode = seg;
+            seg.PlaceToMap(map);
+        }
+
+        if (fixEnd)
+        {
+            ConnectEnd(end, prevNode);
+        }
+    }
+
+    private static void ConnectEnd(Vector3 end, Placeable lastNode)
+    {
+        Placeable anchor = Game.Map.GetFirstTouching(end, Assets.Scripts.Core.Ksid.SpFixed, 0.05f);
+        if (!anchor)
+            anchor = Game.Map.GetFirstTouching(end, Assets.Scripts.Core.Ksid.SpNode, 0.05f);
+        if (anchor)
+        {
+            var j1 = lastNode.GetComponent<HingeJoint>();
+            var j = lastNode.gameObject.AddComponent<HingeJoint>();
+            j.axis = j1.axis;
+            j.anchor = Vector3.down * segmentSize;
+            j.autoConfigureConnectedAnchor = j1.autoConfigureConnectedAnchor;
+            j.useSpring = j1.useSpring;
+            j.spring = j1.spring;
+            j.breakForce = j1.breakForce;
+            j.breakTorque = j1.breakTorque;
+            j.enablePreprocessing = j1.enablePreprocessing;
+
+            lastNode.CreateRbJoint(anchor).SetupJoint(j, true);
+            j.connectedBody = anchor.Rigidbody;
+        }
     }
 }
 

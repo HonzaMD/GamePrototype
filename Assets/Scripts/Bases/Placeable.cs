@@ -84,6 +84,8 @@ public class Placeable : Label, ILevelPlaceabe
         var p = Instantiate(this, parent);
         p.LevelPlaceAfterInstanciate(map, pos);
     }
+    bool ILevelPlaceabe.SecondPhase => false;
+
 
     public void LevelPlaceAfterInstanciate(Map map, Vector3 pos)
     {
@@ -154,7 +156,6 @@ public class Placeable : Label, ILevelPlaceabe
     }
 
     public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
-
 
     public void UpdateMapPosIfMoved(Map map)
     {
@@ -314,13 +315,12 @@ public class Placeable : Label, ILevelPlaceabe
                 j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit);
                 j.breakTorque = cmd.momentLimit;
                 j.connectedBody = joint.OtherObj.Rigidbody;
-                joint.SetupJoint(j);
-                joint.OtherConnectable.SetupJoint(j);
+                joint.SetupJoint(j, true);
             }
         }
     }
 
-    private RbJoint CreateRbJoint(Placeable to)
+    public RbJoint CreateRbJoint(Placeable to)
     {
         var transform = ParentForConnections;
         for (int f = 0; f < transform.childCount; f++)

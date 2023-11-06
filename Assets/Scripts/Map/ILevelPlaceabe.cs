@@ -10,5 +10,6 @@ namespace Assets.Scripts.Map
     internal interface ILevelPlaceabe
     {
         void Instantiate(Map map, Transform parent, Vector3 pos);
+        bool SecondPhase { get; }
     }
 }
