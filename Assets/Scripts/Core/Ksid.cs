@@ -29,6 +29,7 @@ namespace Assets.Scripts.Core
         CausesExplosion,
         DisconnectedByCatch,
         SpFixed,
+        SpMoving,
         SpNode,
     }
 

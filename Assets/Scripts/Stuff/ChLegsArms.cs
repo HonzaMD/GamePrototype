@@ -36,6 +36,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	protected Placeable placeable;
 	
 	protected Vector2 desiredVelocity;
+	protected int lastXOrientation = 1;
 	protected bool desiredJump;
 	protected float desiredZMove;
 	protected bool desiredCatch;
@@ -617,6 +618,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	protected void FixedUpdate()
 	{
+		if (body.velocity.x > Settings.maxSpeed * 0.1f)
+			lastXOrientation = 1;
+		else if (body.velocity.x < -Settings.maxSpeed * 0.1f)
+			lastXOrientation = -1;
+
 		Vector3 groundVelocity = GetGroundVelocity();
 		if (ArmCatched)
 		{

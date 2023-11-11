@@ -15,6 +15,9 @@ namespace Assets.Scripts.Utils
         public static Vector3 AddZ(this Vector2 v, float z) => new Vector3(v.x, v.y, z);
         public static Vector3 WithZ(this Vector3 v, float z) => new Vector3(v.x, v.y, z);
 
+        public static Vector3 PlusX(this Vector3 v, float x) => new Vector3(v.x + x, v.y, v.z);
+        public static Vector3 PlusY(this Vector3 v, float y) => new Vector3(v.x, v.y + y, v.z);
+
         public static Vector2 Abs(this Vector2 v) => new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));
         public static Vector3 Abs(this Vector3 v) => new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
         public static bool IsLessEq(this Vector2 a, Vector2 b) => a.x <= b.x && a.y <= b.y;

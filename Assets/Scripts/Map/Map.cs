@@ -133,6 +133,8 @@ namespace Assets.Scripts.Map
 
             var blockingOld = p.CellBlocking;
             var placedPositionOld = p.PlacedPosition;
+            var posOIffsetOld = p.PosOffset;
+            var sizeOld = p.Size;
             var posOld = p.PlacedPosition - mapOffset;
             posOld.Scale(CellSize2dInv);
             var pos2Old = new Vector2(p.Size.x * CellSize2dInv.x + posOld.x, p.Size.y * CellSize2dInv.y + posOld.y);
@@ -152,6 +154,8 @@ namespace Assets.Scripts.Map
             if (posOld == posNew && pos2Old == pos2New)
             {
                 p.PlacedPosition = placedPositionOld;
+                p.PosOffset = posOIffsetOld;
+                p.Size = sizeOld;
                 return;
             }
 

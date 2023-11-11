@@ -86,7 +86,7 @@ namespace Assets.Scripts.Map
             if (!SearchLongItem(ch, ch == 'L', x, y, out var start, out var end))
                 return null;
 
-            return new LadderPlacer(prefabsStore.Ladder, start, end, Map.CellSize.z);
+            return new LadderPlacer(start, end, Map.CellSize.z);
         }
 
         private ILevelPlaceabe SearchRope(char ch, int x, int y)
@@ -162,14 +162,12 @@ namespace Assets.Scripts.Map
 
         private class LadderPlacer : ILevelPlaceabe
         {
-            private readonly Plank plank;
             private readonly Vector2 start;
             private readonly Vector2 end;
             private readonly float z;
 
-            public LadderPlacer(Plank plank, Vector2 start, Vector2 end, float z)
+            public LadderPlacer(Vector2 start, Vector2 end, float z)
             {
-                this.plank = plank;
                 this.start = start;
                 this.end = end;
                 this.z = z;
@@ -177,8 +175,7 @@ namespace Assets.Scripts.Map
 
             void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
             {
-                var p = UnityEngine.Object.Instantiate(plank, parent);
-                p.AddToMap(map, start.AddZ(z), end.AddZ(z));
+                PlankSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z));
             }
             bool ILevelPlaceabe.SecondPhase => true;
         }
@@ -200,7 +197,6 @@ namespace Assets.Scripts.Map
 
             void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
             {
-                Debug.Log($"Rope start {start} end {end}");
                 RopeSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z), fixEnd);
             }
             bool ILevelPlaceabe.SecondPhase => true;

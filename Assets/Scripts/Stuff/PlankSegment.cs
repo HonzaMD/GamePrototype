@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Scripts.Map;
+using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +10,54 @@ public class PlankSegment : Placeable
 {
     public override void RefreshCoordinates()
     {
-        var plank = GetComponentInParent<Plank>();
-        plank.RefreshSegmentCoordinates(this);
+        RefreshBounds((Placeable)Settings.Prototype);
         base.RefreshCoordinates();
     }
 
-    public override Vector3 GetClosestPoint(Vector3 position) => GetComponentInParent<Collider>().ClosestPoint(position);
+
+    internal static void AddToMap(Map map, Transform parent, Vector3 start, Vector3 end)
+    {
+        if (start.y > end.y)
+            (start, end) = (end, start);
+
+        var prototype = Game.Instance.PrefabsStore.LadderSegment;
+        float size = prototype.Size.y;
+
+        var length = (end - start).magnitude;
+        var normDir = (end - start) / length;
+        var offset = length % size;
+        if (offset > 0)
+            start -= (size - offset) * normDir;
+        
+        var rotation = Quaternion.FromToRotation(Vector3.up, end - start);
+        int segCount = Mathf.CeilToInt(length / size);
+        Vector3 segOffset = normDir * size;
+
+        for (int i = 0; i < segCount; i++)
+        {
+            Placeable seg = prototype.Create(parent);
+            seg.transform.position = start + i * segOffset;
+            seg.transform.rotation = rotation;
+
+            //var joint = seg.GetComponent<HingeJoint>();
+            //if (prevNode)
+            //{
+            //    seg.CreateRbJoint(prevNode).SetupJoint(joint, false);
+            //    joint.connectedBody = prevNode.Rigidbody;
+            //    //if (i == 0)
+            //    //    joint.connectedAnchor = start;
+            //    //else
+            //    //    joint.connectedAnchor = new Vector3(0, i == 0 ? 0 : -segmentSize, 0);
+
+            //}
+            //else
+            //{
+            //    Destroy(joint);
+            //}
+
+            //prevNode = seg;
+            seg.PlaceToMap(map);
+        }
+    }
 }
 

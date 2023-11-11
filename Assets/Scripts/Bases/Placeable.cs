@@ -379,4 +379,36 @@ public class Placeable : Label, ILevelPlaceabe
         colliders2.Clear();
         return false;
     }
+
+    protected void RefreshBounds(Placeable prototype)
+    {
+        Vector3 offset = prototype.PosOffset;
+        Vector3 size = prototype.Size;
+
+        Vector2 start = transform.TransformPoint(offset);
+        Vector2 p2 = transform.TransformPoint(offset + size);
+        Vector2 p3 = transform.TransformPoint(offset.PlusX(size.x));
+        Vector2 p4 = transform.TransformPoint(offset.PlusY(size.y));
+
+        Vector2 end = start;
+
+        TryExtendBounds(ref start, ref end, p2);
+        TryExtendBounds(ref start, ref end, p3);
+        TryExtendBounds(ref start, ref end, p4);
+
+        PosOffset = start - Pivot;
+        Size = end - start;
+    }
+
+    private static void TryExtendBounds(ref Vector2 start, ref Vector2 end, Vector2 v)
+    {
+        if (v.x < start.x)
+            start.x = v.x;
+        if (v.y < start.y)
+            start.y = v.y;
+        if (v.x > end.x)
+            end.x = v.x;
+        if (v.y > end.y)
+            end.y = v.y;
+    }
 }

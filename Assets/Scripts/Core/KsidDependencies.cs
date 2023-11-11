@@ -29,9 +29,10 @@ namespace Assets.Scripts.Core
                 (Ksid.Rope, Ksid.AffectedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
 
-                (Ksid.StoneBlock, Ksid.SpFixed),
                 (Ksid.SpFixed, Ksid.SpNode),
-                (Ksid.Ladder, Ksid.SpNode),
+                (Ksid.SpMoving, Ksid.SpNode),
+                (Ksid.StoneBlock, Ksid.SpFixed),                
+                (Ksid.Ladder, Ksid.SpMoving),
             })
         {
         }
