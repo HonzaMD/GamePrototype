@@ -64,11 +64,6 @@ public class RopeSegment : Placeable
             {
                 seg.CreateRbJoint(prevNode).SetupJoint(joint, false);
                 joint.connectedBody = prevNode.Rigidbody;
-                //if (i == 0)
-                //    joint.connectedAnchor = start;
-                //else
-                //    joint.connectedAnchor = new Vector3(0, i == 0 ? 0 : -segmentSize, 0);
-
             }
             else
             {

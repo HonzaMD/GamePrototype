@@ -19,3 +19,8 @@ MonoBehaviour:
   DensityMode: 0
   Prototype: {fileID: 2125296113061867701, guid: d2bd6b6b45fdc5b4ab2712c6451b94af,
     type: 3}
+  Unseparable: 0
+  AutoAtachRB: 0
+  SpStretchLimit: 500
+  SpCompressLimit: 500
+  SpMomentLimit: 400

@@ -15,12 +15,11 @@ public class PlankSegment : Placeable
     }
 
 
-    internal static void AddToMap(Map map, Transform parent, Vector3 start, Vector3 end)
+    internal static void AddToMap(Map map, PlankSegment prototype, Transform parent, Vector3 start, Vector3 end)
     {
         if (start.y > end.y)
             (start, end) = (end, start);
 
-        var prototype = Game.Instance.PrefabsStore.LadderSegment;
         float size = prototype.Size.y;
 
         var length = (end - start).magnitude;

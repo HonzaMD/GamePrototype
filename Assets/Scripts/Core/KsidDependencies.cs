@@ -12,6 +12,7 @@ namespace Assets.Scripts.Core
             : base(new (Ksid child, Ksid parent)[]
             {
                 (Ksid.Rope, Ksid.Catch),
+                (Ksid.Rope, Ksid.CharacterHolds),
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.Stone, Ksid.CharacterHolds),
                 (Ksid.StickyBomb, Ksid.CharacterHolds),

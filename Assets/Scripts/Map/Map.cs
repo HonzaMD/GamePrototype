@@ -297,7 +297,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        private int GetNextTag()
+        public int GetNextTag()
         {
             currentTag++;
             if (currentTag == 0)
@@ -425,9 +425,11 @@ namespace Assets.Scripts.Map
         }
 
 
-        public void Get(List<Placeable> output, Vector2 pos, Vector2 size, Ksid ksid)
+
+        public void Get(List<Placeable> output, Vector2 pos, Vector2 size, Ksid ksid, int tag = 0)
         {
-            int tag = GetNextTag();
+            if (tag == 0)
+                tag = GetNextTag();
 
             #region Coords Prep CopyPaste
             pos -= mapOffset;

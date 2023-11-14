@@ -175,7 +175,7 @@ namespace Assets.Scripts.Map
 
             void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
             {
-                PlankSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z));
+                PlankSegment.AddToMap(map, Game.Instance.PrefabsStore.LadderSegment, parent, start.AddZ(z), end.AddZ(z));
             }
             bool ILevelPlaceabe.SecondPhase => true;
         }

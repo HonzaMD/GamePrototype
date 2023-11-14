@@ -186,5 +186,10 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             AddInCommand(new InputCommand() { Command = SpCommand.RemoveNode, indexA = spNodeIndex });
         }
+
+        internal void RemoveJoint(int spNodeIndex1, int spNodeIndex2)
+        {
+            AddInCommand(new InputCommand() { Command = SpCommand.RemoveJoint, indexA = spNodeIndex1, indexB = spNodeIndex2 });
+        }
     }
 }

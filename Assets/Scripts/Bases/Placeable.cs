@@ -54,7 +54,7 @@ public class Placeable : Label, ILevelPlaceabe
     [HideInInspector, NonSerialized]
     public int Tag;
     public PlaceableSettings Settings;
-    private int SpNodeIndex;
+    private int spNodeIndex;
 
     public bool IsMapPlaced => PlacedPosition != NotInMap;
 
@@ -78,6 +78,10 @@ public class Placeable : Label, ILevelPlaceabe
     public override Label Prototype => Settings?.Prototype;
     public override Placeable PlaceableC => this;
     public override bool CanBeKilled => !(Settings?.Unseparable == true);
+    public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
+
+    public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
+    public int SpNodeIndex => spNodeIndex;
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
@@ -103,7 +107,7 @@ public class Placeable : Label, ILevelPlaceabe
         {
             Game.Instance.ActivateObject(ao);
         }
-        else if (Rigidbody != null && !Rigidbody.isKinematic)
+        else if (HasActiveRB)
         {
             Game.Instance.AddMovingObject(this);
         }
@@ -133,10 +137,10 @@ public class Placeable : Label, ILevelPlaceabe
             Game.Instance.DeactivateObject(ao);
         }
         Game.Instance.RemoveMovingObject(this);
-        if (SpNodeIndex != 0)
+        if (spNodeIndex != 0)
         {
-            Game.Instance.StaticPhysics.RemoveNode(SpNodeIndex);
-            SpNodeIndex = 0;
+            Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
+            spNodeIndex = 0;
         }
         base.Cleanup();
     }
@@ -155,7 +159,6 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-    public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
 
     public void UpdateMapPosIfMoved(Map map)
     {
@@ -300,22 +303,24 @@ public class Placeable : Label, ILevelPlaceabe
 
     internal void SpFall(int index)
     {
-        if (SpNodeIndex == index)
+        if (spNodeIndex == index)
             AttachRigidBody(true, false);
     }
 
     internal void SpConnectEdge(ref OutputCommand cmd)
     {
-        if (SpNodeIndex == cmd.indexA && cmd.nodeB.SpNodeIndex == cmd.indexB)
+        if (spNodeIndex == cmd.indexA && cmd.nodeB.spNodeIndex == cmd.indexB)
         {
             RbJoint joint = CreateRbJoint(cmd.nodeB);
-            if (!joint.Joint)
+            joint.ClearSp();
+            if (joint.state == RbJoint.State.None)
             {
+                joint.SetupJoint1(true);
                 var j = Rigidbody.gameObject.AddComponent<FixedJoint>();
                 j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit);
                 j.breakTorque = cmd.momentLimit;
                 j.connectedBody = joint.OtherObj.Rigidbody;
-                joint.SetupJoint(j, true);
+                joint.SetupJoint2(j);
             }
         }
     }
@@ -342,20 +347,22 @@ public class Placeable : Label, ILevelPlaceabe
 
     internal void SpRemoveIndex(int index)
     {
-        if (SpNodeIndex == index)
-            SpNodeIndex = 0;
+        if (spNodeIndex == index)
+            spNodeIndex = 0;
     }
 
-    public void FindTouchingObjs(List<Placeable> output, Ksid ksid, float margin)
+    public void FindTouchingObjs(List<Placeable> output, Ksid ksid, float margin, int tag = 0)
     {
         var marginVec = new Vector2(margin, margin);
         var placeables = ListPool<Placeable>.Rent();
-        Game.Map.Get(placeables, PlacedPosition - marginVec, Size + 2 * marginVec, ksid);
+        Game.Map.Get(placeables, PlacedPosition - marginVec, Size + 2 * marginVec, ksid, tag);
 
         foreach (Placeable p in placeables)
         {
             if (p != this && Touches(p, margin))
                 output.Add(p);
+            else
+                p.Tag = 0; // abych to nasel pri hledani z jinych mist
         }
 
         placeables.Return();
