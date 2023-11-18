@@ -59,10 +59,12 @@ public class RopeSegment : Placeable
             seg.transform.position = start + i * segOffset;
             seg.transform.rotation = rotation;
 
+            seg.PlaceToMap(map);
+
             var joint = seg.GetComponent<HingeJoint>();
             if (prevNode)
             {
-                seg.CreateRbJoint(prevNode).SetupJoint(joint, false);
+                seg.CreateRbJoint(prevNode).SetupRb(joint, false);
                 joint.connectedBody = prevNode.Rigidbody;
             }
             else
@@ -71,7 +73,6 @@ public class RopeSegment : Placeable
             }
 
             prevNode = seg;
-            seg.PlaceToMap(map);
         }
 
         if (fixEnd)
@@ -98,7 +99,7 @@ public class RopeSegment : Placeable
             j.breakTorque = j1.breakTorque;
             j.enablePreprocessing = j1.enablePreprocessing;
 
-            lastNode.CreateRbJoint(anchor).SetupJoint(j, true);
+            lastNode.CreateRbJoint(anchor).SetupRb(j, true);
             j.connectedBody = anchor.Rigidbody;
         }
     }

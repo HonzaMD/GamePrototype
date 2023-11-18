@@ -315,12 +315,14 @@ public class Placeable : Label, ILevelPlaceabe
             joint.ClearSp();
             if (joint.state == RbJoint.State.None)
             {
-                joint.SetupJoint1(true);
+                joint.SetupRb1(true);
                 var j = Rigidbody.gameObject.AddComponent<FixedJoint>();
-                j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit);
-                j.breakTorque = cmd.momentLimit;
+                j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit) * PlaceableSettings.SpToRbLimitsMultiplier;
+                j.breakTorque = cmd.momentLimit * PlaceableSettings.SpToRbLimitsMultiplier;
+                //j.breakForce = float.PositiveInfinity;
+                //j.breakTorque = float.PositiveInfinity;
                 j.connectedBody = joint.OtherObj.Rigidbody;
-                joint.SetupJoint2(j);
+                joint.SetupRb2(j);
             }
         }
     }
@@ -417,5 +419,17 @@ public class Placeable : Label, ILevelPlaceabe
             end.x = v.x;
         if (v.y > end.y)
             end.y = v.y;
+    }
+
+    internal void AddSpNode(ref InputCommand cmd)
+    {
+        spNodeIndex = Game.Instance.StaticPhysics.ReserveNodeIndex();
+        cmd.indexA = spNodeIndex;
+        cmd.nodeA = this;
+        cmd.pointA = Center;
+        var isFixed = Game.Instance.Ksids.IsParentOrEqual(Ksid, Ksid.SpFixed);
+        cmd.isAFixed = isFixed;
+        if (!isFixed)
+            cmd.forceA = Vector2.down * GetMass();
     }
 }

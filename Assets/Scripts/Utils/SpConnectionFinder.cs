@@ -54,7 +54,7 @@ namespace Assets.Scripts.Utils
                     lastI = i;
                 }
 
-                if (i + step3 > nodes.Count && i + 1 < nodes.Count)
+                if (i + step3 >= nodes.Count && i + 1 < nodes.Count)
                 {
                     i = nodes.Count - 1;
                 }
@@ -201,19 +201,28 @@ namespace Assets.Scripts.Utils
             {
                 var c = candidates[i];
                 p.CreateRbJoint(c).SetupSp();
+                //p.CreateRbJoint(c).SetupRb();
             }
         }
 
 
         private void CreateJoints()
         {
+            //connected = false;
+
+            if (!connected)
+            {
+                foreach (var n in nodes)
+                    n.AttachRigidBody(true, false);
+            }
+
             for (int i = 0; i < nodes.Count -1; i++)
             {
                 var j = nodes[i].CreateRbJoint(nodes[i+1]);
                 if (connected)
-                    j.SetupJoint();
-                else
                     j.SetupSp();
+                else
+                    j.SetupRb();
             }
         }
     }

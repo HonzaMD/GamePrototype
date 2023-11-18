@@ -46,6 +46,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         public Span<OutputCommand> OutputCommands => publicOutCommands.AsSpan();
         public void AddInCommand(in InputCommand command) => publicInCommands.Add(command);
         public void AddForceCommand(in ForceCommand command) => publicForceCommands.Add(command);
+        public int ReserveNodeIndex() => data.ReserveNodeIndex();
 
         public void Update()
         {

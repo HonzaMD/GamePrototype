@@ -28,5 +28,7 @@ namespace Assets.Scripts.Bases
         public float SpStretchLimit = 1000f;
         public float SpCompressLimit = 1000f;
         public float SpMomentLimit = 1000f;
+
+        public const float SpToRbLimitsMultiplier = 12;
     }
 }

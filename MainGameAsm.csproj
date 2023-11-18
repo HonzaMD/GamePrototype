@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Utils\ActivityTag.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Map\Level2.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
+    <Compile Include="Assets\Scripts\Map\Level3.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
   <ItemGroup>

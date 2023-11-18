@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HasSubPlaceables: 1
   UseSimpleBBCollisions: 0
-  Mass: 0
+  Mass: 2
   Density: 1000
   DensityMode: 0
   Prototype: {fileID: 2125296113061867701, guid: d2bd6b6b45fdc5b4ab2712c6451b94af,
     type: 3}
   Unseparable: 0
   AutoAtachRB: 0
-  SpStretchLimit: 500
-  SpCompressLimit: 500
-  SpMomentLimit: 400
+  SpStretchLimit: 300
+  SpCompressLimit: 300
+  SpMomentLimit: 200
