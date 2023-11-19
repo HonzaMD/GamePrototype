@@ -287,6 +287,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 ref var joint = ref data.GetJoint(pair.Key);
                 var compress = joint.compress + joint.tempCompress;
                 var moment = MathF.Abs(joint.moment + joint.tempMoment);
+
+                joint.tempCompress = 0; // vynuluju, protoze si muzu nechavat activeEdges do pristiho kola, kde chci tampforces zadat znovu.
+                joint.tempMoment = 0;
+
                 var damage = MathF.Max(0, compress - joint.compressLimit) + MathF.Max(0, -compress - joint.stretchLimit) + MathF.Max(0, moment - joint.momentLimit);
                 if (damage > 0)
                 {
@@ -305,28 +309,33 @@ namespace Assets.Scripts.Core.StaticPhysics
                 }
             }
 
-            activeEdges.Clear();
-
-            foreach (var edge in bigBrokemEdges.Values) 
+            if (bigBrokemEdges.Count == 0)
             {
-                inCommands.Add(new InputCommand()
-                {
-                    Command = SpCommand.RemoveJoint,
-                    indexA = edge.indexA,
-                    indexB = edge.indexB,
-                });
-
-                outCommands.Add(new OutputCommand()
-                {
-                    Command = SpCommand.RemoveJoint,
-                    indexA = edge.indexA,
-                    indexB = edge.indexB,
-                    nodeA = data.GetNode(edge.indexA).placeable,
-                    nodeB = data.GetNode(edge.indexB).placeable,
-                });
+                activeEdges.Clear();
             }
+            else
+            {
+                foreach (var edge in bigBrokemEdges.Values)
+                {
+                    inCommands.Add(new InputCommand()
+                    {
+                        Command = SpCommand.RemoveJoint,
+                        indexA = edge.indexA,
+                        indexB = edge.indexB,
+                    });
 
-            bigBrokemEdges.Clear();
+                    outCommands.Add(new OutputCommand()
+                    {
+                        Command = SpCommand.RemoveJoint,
+                        indexA = edge.indexA,
+                        indexB = edge.indexB,
+                        nodeA = data.GetNode(edge.indexA).placeable,
+                        nodeB = data.GetNode(edge.indexB).placeable,
+                    });
+                }
+
+                bigBrokemEdges.Clear();
+            }
         }
 
         internal void FreeJoint(int index) => activeEdges.Remove(index);

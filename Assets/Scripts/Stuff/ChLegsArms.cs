@@ -489,18 +489,21 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private bool TryHoldOne(Label p, int index, Vector3 center3d)
 	{
-		var pos = p.GetClosestPoint(center3d);
-		var zDiff = center3d.z - pos.z;
-		var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
-		if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
+		if (p.HasActiveRB || p.KsidGet.IsChildOf(Ksid.SandLike))
 		{
-			if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
+			var pos = p.GetClosestPoint(center3d);
+			var zDiff = center3d.z - pos.z;
+			var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
+			if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 			{
-				PlaceLeg3d(index, ref hitInfo, Hold);
-				IgnoreCollision(legsConnectedLabels[index], true);
-				SetHoldTarget(index);
-				TryCorrectZPos(legsConnectedLabels[index]);
-				return true;
+				if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
+				{
+					PlaceLeg3d(index, ref hitInfo, Hold);
+					IgnoreCollision(legsConnectedLabels[index], true);
+					SetHoldTarget(index);
+					TryCorrectZPos(legsConnectedLabels[index]);
+					return true;
+				}
 			}
 		}
 		return false;

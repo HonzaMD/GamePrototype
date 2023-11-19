@@ -27,6 +27,8 @@ namespace Assets.Scripts.Bases
         public RbJoint OtherConnectable;
         public State state;
 
+        public bool IsConnected => (state & State.SpConnection) != 0 || Joint;
+
         internal void Setup(Placeable myObj, Placeable otherObj, RbJoint otherJ)
         {
             MyObj = myObj;

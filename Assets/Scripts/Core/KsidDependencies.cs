@@ -16,6 +16,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.Stone, Ksid.CharacterHolds),
                 (Ksid.StickyBomb, Ksid.CharacterHolds),
+                (Ksid.Ladder, Ksid.CharacterHolds),
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
                 (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                

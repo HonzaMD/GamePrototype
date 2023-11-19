@@ -68,6 +68,7 @@
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
     <Compile Include="Assets\Scripts\Bases\IPhysicsEvents.cs" />
     <Compile Include="Assets\Scripts\Utils\ActivityTag.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Map\Level2.cs" />

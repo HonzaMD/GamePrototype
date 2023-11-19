@@ -31,6 +31,7 @@ namespace Assets.Scripts.Core
         SpFixed,
         SpMoving,
         SpNode,
+        ParticleEffect,
     }
 
     public static class KsidX

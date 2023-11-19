@@ -76,6 +76,11 @@ namespace Assets.Scripts.Core.StaticPhysics
                         semaphore.Release();
                     }
                 }
+                else if (runnerIdle && publicOutCommands.Count > 0)
+                {
+                    runnerIdle = false;
+                    semaphore.Release();
+                }
             }
 
             ProcessOutCommands();
@@ -94,7 +99,11 @@ namespace Assets.Scripts.Core.StaticPhysics
                 }
                 else if (commands[f].Command == SpCommand.FallEdge)
                 {
-                    commands[f].nodeA.SpConnectEdge(ref commands[f]);
+                    commands[f].nodeA.SpConnectEdgeAsRb(ref commands[f]);
+                }
+                else if (commands[f].Command == SpCommand.RemoveJoint)
+                {
+                    commands[f].nodeA.SpBreakEdge(ref commands[f]);
                 }
             }
 
@@ -143,7 +152,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                         }
 
                         if (moreBrokenEdges)
+                        {
+                            moreBrokenEdges = false;
                             worker.GetBrokenEdges(privateInCommands, privateOutCommands);
+                        }
 
                         if (privateInCommands.Count > 0 || privateForceCommands.Count > 0)
                         {
@@ -152,12 +164,22 @@ namespace Assets.Scripts.Core.StaticPhysics
                             privateInCommands.Clear();
 
                             worker.GetBrokenEdgesBigOnly(privateInCommands, privateOutCommands);
-                            
+
                             if (privateInCommands.Count > 0)
                             {
+                                // inner iteration 1:
                                 worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan(), privateOutCommands);
                                 privateInCommands.Clear();
-                                moreBrokenEdges = true;
+
+                                worker.GetBrokenEdgesBigOnly(privateInCommands, privateOutCommands);
+
+                                if (privateInCommands.Count > 0)
+                                {
+                                    // inner iteration 2:
+                                    worker.ApplyChanges(privateInCommands.AsSpan(), privateForceCommands.AsSpan(), privateOutCommands);
+                                    privateInCommands.Clear();
+                                    moreBrokenEdges = true;
+                                }
                             }
 
                             privateForceCommands.Clear();

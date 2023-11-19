@@ -68,6 +68,7 @@ public class Placeable : Label, ILevelPlaceabe
     }
 
     public Vector2 Center => Pivot + PosOffset + Size * 0.5f;
+    public Vector3 Center3D => transform.position + (Vector3)(PosOffset + Size * 0.5f);
 
     public virtual Ksid TriggerTargets => Ksid.Unknown;
     public virtual void AddTarget(Placeable p) { }
@@ -185,10 +186,48 @@ public class Placeable : Label, ILevelPlaceabe
             var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
             var rb = rbLabel.Rigidbody;
             rb.mass = GetMass();
-            rb.isKinematic = !startMoving;
             transform.SetParent(rbLabel.transform, true);
             if (incConnection)
                 rbLabel.ChengeConnectionCounter(1);
+            
+            if (startMoving)
+                rbLabel.StartMoving();
+            else
+                rbLabel.InitKinematic();
+        }
+    }
+
+    public void RegisterMovingObjRecursivelly()
+    {
+        if (IsMapPlaced)
+        {
+            Game.Instance.AddMovingObject(this);
+            if (Settings?.HasSubPlaceables == true)
+            {
+                var placeables = ListPool<Placeable>.Rent();
+                GetComponentsInChildren(placeables);
+                foreach (var p in placeables)
+                    if (p != this)
+                        Game.Instance.AddMovingObject(p);
+                placeables.Return();
+            }
+        }
+    }
+
+    public void UnRegisterMovingObjRecursivelly()
+    {
+        if (IsMapPlaced)
+        {
+            Game.Instance.RemoveMovingObject(this);
+            if (Settings?.HasSubPlaceables == true)
+            {
+                var placeables = ListPool<Placeable>.Rent();
+                GetComponentsInChildren(placeables);
+                foreach (var p in placeables)
+                    if (p != this)
+                        Game.Instance.RemoveMovingObject(p);
+                placeables.Return();
+            }
         }
     }
 
@@ -210,7 +249,9 @@ public class Placeable : Label, ILevelPlaceabe
         if (TryGetRbLabel(out var rbLabel))
         {
             if (stopMoving)
+            {
                 rbLabel.StopMoving();
+            }
             if (decConnection)
                 rbLabel.ChengeConnectionCounter(-1);
         }
@@ -245,6 +286,8 @@ public class Placeable : Label, ILevelPlaceabe
 
     public bool CanZMove(float newZ)
     {
+        if (HasRbJoints())
+            return false;
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
         var center = Center.AddZ(newZ);
         return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
@@ -253,6 +296,8 @@ public class Placeable : Label, ILevelPlaceabe
     private static Collider[] collidersBuff = new Collider[4];
     public bool CanZMove(float newZ, Label exception)
     {
+        if (HasRbJoints())
+            return false;
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
         var center = Center.AddZ(newZ);
         int count = Physics.OverlapBoxNonAlloc(center, halfSize.AddZ(0.2f), collidersBuff, Quaternion.identity, Game.Instance.CollisionLayaerMask);
@@ -307,7 +352,7 @@ public class Placeable : Label, ILevelPlaceabe
             AttachRigidBody(true, false);
     }
 
-    internal void SpConnectEdge(ref OutputCommand cmd)
+    internal void SpConnectEdgeAsRb(ref OutputCommand cmd)
     {
         if (spNodeIndex == cmd.indexA && cmd.nodeB.spNodeIndex == cmd.indexB)
         {
@@ -327,19 +372,55 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-    public RbJoint CreateRbJoint(Placeable to)
+    internal void SpBreakEdge(ref OutputCommand cmd)
+    {
+        if (spNodeIndex == cmd.indexA && cmd.nodeB.spNodeIndex == cmd.indexB && TryFindRbJoint(cmd.nodeB, out var j))
+        {
+            var pos = Center3D + (cmd.nodeB.Center3D - Center3D) * 0.5f;
+            var particleEffect = Game.Instance.PrefabsStore.ParticleEffect.Create(LevelGroup, pos);
+            particleEffect.Init(10);
+
+            j.ClearSp();
+            j.Disconnect();
+        }
+    }
+
+    public bool TryFindRbJoint(Placeable to, out RbJoint output)
+    {
+        var transform = ParentForConnections;
+        for (int f = 0; f < transform.childCount; f++)
+        {
+            if (transform.GetChild(f).TryGetComponent(out output))
+            {
+                if (output.OtherObj == to)
+                    return true;
+            }
+        }
+
+        output = null;
+        return false;
+    }
+
+    public bool HasRbJoints()
     {
         var transform = ParentForConnections;
         for (int f = 0; f < transform.childCount; f++)
         {
             if (transform.GetChild(f).TryGetComponent(out RbJoint j))
             {
-                if (j.OtherObj == to)
-                    return j;
+                if (j.IsConnected)
+                    return true;
             }
         }
+        return false;
+    }
+
+    public RbJoint CreateRbJoint(Placeable to)
+    {
+        if (TryFindRbJoint(to, out var j))
+            return j;
         
-        RbJoint myJ = Game.Instance.PrefabsStore.RbJoint.CreateCL(transform);
+        RbJoint myJ = Game.Instance.PrefabsStore.RbJoint.CreateCL(ParentForConnections);
         RbJoint otherJ = Game.Instance.PrefabsStore.RbJoint.CreateCL(to.ParentForConnections);
         myJ.Setup(this, to, otherJ);
         otherJ.Setup(to, this, myJ);

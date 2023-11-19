@@ -50,10 +50,12 @@ namespace Assets.Scripts.Bases
         public void StartMoving()
         {
             Rigidbody.isKinematic = false;
+            PlaceableC.RegisterMovingObjRecursivelly();
         }
 
         public void StopMoving()
         {
+            PlaceableC.UnRegisterMovingObjRecursivelly();
             if (connectionCounter == 0)
             {
                 DetachMe();
@@ -76,5 +78,7 @@ namespace Assets.Scripts.Bases
             SubLabel.transform.SetParent(transform.parent, true);
             Kill();
         }
+
+        internal void InitKinematic() => Rigidbody.isKinematic = true;
     }
 }

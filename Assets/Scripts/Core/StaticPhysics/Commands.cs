@@ -13,8 +13,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         AddJoint,
         AddNode,
         AddNodeAndJoint,
-        RemoveJoint,
-        RemoveNode, // i vystup, dostanes, kdyz hrana rupne
+        RemoveJoint, // i vystup, dostanes, kdyz hrana rupne
+        RemoveNode, 
         UpdateForce,  
 
         FallNode,  // vystup - uzel ktery neni k nicemu prichycen a ma zacit padat
