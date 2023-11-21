@@ -273,7 +273,7 @@ namespace Assets.Scripts.Map
             {
                 return Content.Speedy;
             }
-            else if (p.Rigidbody != null)
+            else if (p.HasActiveRB)
             {
                 if (ksids.IsParentOrEqual(p.Ksid, Ksid.SandLike))
                 {
@@ -383,14 +383,10 @@ namespace Assets.Scripts.Map
         {
             bool hasFloor = GetCellBlocking(cellXY + Vector2Int.down).HasSubFlag(SubCellFlags.HasFloor, cellz);
             bool isFullCell = sandCombo.IsFullCell;
-            if (isFullCell && !hasFloor)
-                return true;
 
             bufferUsed = true;
             int tag = GetNextTag();
             sandCombo.SetTagRecursive(tag);
-            if (!isFullCell)
-                MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
 
             int c = BuffCToBuffC(new Vector2Int(0, 0), cellz * buffZshift);
             if (!GetCellBlocking(cellXY + Vector2Int.left).HasSubFlag(SubCellFlags.FullEx, cellz))
@@ -407,8 +403,9 @@ namespace Assets.Scripts.Map
                     return true;
             }
 
-            if (!isFullCell)
+            if (!isFullCell || !hasFloor)
             {
+                MarkPlaceablesInBuffer(ref cells[cellPos], cellz, tag);
                 if (!buffer[BuffCToBuffC(new Vector2Int(1, 4 - sandCombo.L1), cellz * buffZshift)].Stattic
                     || !buffer[BuffCToBuffC(new Vector2Int(4, 4 - sandCombo.L4), cellz * buffZshift)].Stattic)
                     return true;

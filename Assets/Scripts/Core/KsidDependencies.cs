@@ -35,6 +35,8 @@ namespace Assets.Scripts.Core
                 (Ksid.SpMoving, Ksid.SpNode),
                 (Ksid.StoneBlock, Ksid.SpFixed),                
                 (Ksid.Ladder, Ksid.SpMoving),
+                (Ksid.SpMoving, Ksid.SpMovingOrSandCombiner),
+                (Ksid.SandCombiner, Ksid.SpMovingOrSandCombiner),
             })
         {
         }

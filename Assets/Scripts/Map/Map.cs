@@ -3,6 +3,7 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 namespace Assets.Scripts.Map
 {
@@ -459,6 +460,25 @@ namespace Assets.Scripts.Map
                             if (ksids.IsParentOrEqual(p.Ksid, ksid))
                                 output.Add(p);
                         }
+                    }
+                }
+            }
+        }
+
+        public void Get(List<Placeable> output, Vector2Int pos, Ksid ksid, ref int tag)
+        {
+            if (tag == 0)
+                tag = GetNextTag();
+
+            if (CellToCell(pos, out var cellPos))
+            {
+                foreach (var p in cells[cellPos])
+                {
+                    if (p.Tag != tag)
+                    {
+                        p.Tag = tag;
+                        if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                            output.Add(p);
                     }
                 }
             }

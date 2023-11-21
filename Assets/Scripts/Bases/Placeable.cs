@@ -340,6 +340,8 @@ public class Placeable : Label, ILevelPlaceabe
         }
         else
         {
+            if (!CanBeKilled)
+                Debug.LogError("Hejbes necim co neni samostatna entita");
             transform.position = transform.position.WithZ(newZ);
             TryCollapseSandCombiner();
         }

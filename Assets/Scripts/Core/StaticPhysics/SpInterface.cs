@@ -214,5 +214,10 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             AddInCommand(new InputCommand() { Command = SpCommand.RemoveJoint, indexA = spNodeIndex1, indexB = spNodeIndex2 });
         }
+
+        internal void ApplyForce(int spNodeIndex, Vector2 force)
+        {
+            AddInCommand(new InputCommand() { Command = SpCommand.UpdateForce, indexA = spNodeIndex, forceA = force });
+        }
     }
 }

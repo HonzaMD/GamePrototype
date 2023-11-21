@@ -1,3 +1,4 @@
+using Assets.Scripts.Bases;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -11,6 +12,10 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
     [HideInInspector]
     public int L4;
 
+    public Connectable MassTransferer;
+    private float mass;
+    private Placeable massTarget;
+
     private int collapsingToken;
 
     public bool IsFullCell => (SubCellFlags & SubCellFlags.FullEx) != 0;
@@ -18,10 +23,17 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
     int ISimpleTimerConsumer.ActiveTag { get => collapsingToken; set => collapsingToken = value; }
 
+    private void Start()
+    {
+        MassTransferer.Init(DisconnectMassTarget);
+    }
+
+
     public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children)
     {
         L1 = l1;
         L4 = l4;
+        mass = 0;
 
         SubCellFlags = isFullCell ? SubCellFlags.Full | SubCellFlags.Sand : SubCellFlags.Part | SubCellFlags.Sand;
 
@@ -34,11 +46,70 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         {
             if (p)
             {
+                mass += p.Rigidbody.mass;
                 p.DetachRigidBody(true, false);
                 p.transform.SetParent(transform, true);
             }
         }
+
+        TryTransferMass();
     }
+
+    private void TryTransferMass()
+    {
+        var mt = TryFindMassTarget();
+        if (mt && mt.SpNodeIndex != 0)
+        {
+            Game.Instance.StaticPhysics.ApplyForce(mt.SpNodeIndex, Vector2.down * mass);
+            massTarget = mt;
+            MassTransferer.transform.parent = mt.ParentForConnections;
+        }
+    }
+
+    private Placeable TryFindMassTarget()
+    {
+        int tag = 0;
+        var placeables = ListPool<Placeable>.Rent();
+        var myCell = Game.Map.WorldToCell(Pivot);
+        Game.Map.Get(placeables, myCell, Assets.Scripts.Core.Ksid.SpMovingOrSandCombiner, ref tag);
+        Game.Map.Get(placeables, myCell + Vector2Int.down, Assets.Scripts.Core.Ksid.SpMovingOrSandCombiner, ref tag);
+
+        Placeable mtCandidate = null;
+        float mtDistance = float.MaxValue;
+        var center = Center3D;
+
+        foreach (var p in placeables)
+        {
+            if (p != this && center.y >= p.Center.y && (p.SpNodeIndex != 0 || p is SandCombiner))
+            {
+                var dist = (p.GetClosestPoint(center) - center).sqrMagnitude;
+                if (dist < mtDistance)
+                {
+                    mtDistance = dist;
+                    mtCandidate = p;
+                }
+            }
+        }
+
+        placeables.Return();
+
+        if (mtCandidate is SandCombiner sc)
+            mtCandidate = sc.massTarget;
+
+        return mtCandidate;
+    }
+
+    private void DisconnectMassTarget()
+    {
+        if (massTarget)
+        {
+            if (massTarget.SpNodeIndex != 0)
+                Game.Instance.StaticPhysics.ApplyForce(massTarget.SpNodeIndex, Vector2.up * mass);
+            massTarget = null;
+            MassTransferer.transform.parent = transform;
+        }
+    }
+
 
     private void AdjustSize()
     {
@@ -99,6 +170,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
     {
         if (Collapsing)
             collapsingToken++;
+
+        DisconnectMassTarget();
 
         base.Cleanup();
 

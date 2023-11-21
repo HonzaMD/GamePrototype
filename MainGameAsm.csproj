@@ -59,7 +59,6 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.11f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Map\Level1.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
@@ -71,7 +70,6 @@
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
-    <Compile Include="Assets\Scripts\Map\Level2.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
@@ -79,11 +77,11 @@
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
-    <Compile Include="Assets\Scripts\Stuff\Rope.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
     <Compile Include="Assets\Scripts\Stuff\Explosion.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\Level1.cs" />
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
@@ -99,6 +97,7 @@
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
@@ -109,7 +108,6 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
-    <Compile Include="Assets\Scripts\Stuff\Plank.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
@@ -123,6 +121,7 @@
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\DeleteColorWorker.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
@@ -131,7 +130,7 @@
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
-    <Compile Include="Assets\Scripts\Map\Level3.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
   <ItemGroup>
