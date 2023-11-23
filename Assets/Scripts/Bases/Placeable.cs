@@ -113,7 +113,7 @@ public class Placeable : Label, ILevelPlaceabe
             Game.Instance.AddMovingObject(this);
         }
 
-        if (Settings?.HasSubPlaceables == true)
+        if (IsGroup)
         {
             var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
@@ -149,7 +149,7 @@ public class Placeable : Label, ILevelPlaceabe
     public void KinematicMove(Map map)
     {
         map.Move(this);
-        if (Settings?.HasSubPlaceables == true)
+        if (IsGroup)
         {
             var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
@@ -202,7 +202,7 @@ public class Placeable : Label, ILevelPlaceabe
         if (IsMapPlaced)
         {
             Game.Instance.AddMovingObject(this);
-            if (Settings?.HasSubPlaceables == true)
+            if (IsGroup)
             {
                 var placeables = ListPool<Placeable>.Rent();
                 GetComponentsInChildren(placeables);
@@ -219,7 +219,7 @@ public class Placeable : Label, ILevelPlaceabe
         if (IsMapPlaced)
         {
             Game.Instance.RemoveMovingObject(this);
-            if (Settings?.HasSubPlaceables == true)
+            if (IsGroup)
             {
                 var placeables = ListPool<Placeable>.Rent();
                 GetComponentsInChildren(placeables);
@@ -318,7 +318,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     public void SetTagRecursive(int tag)
     {
-        if (Settings?.HasSubPlaceables == true)
+        if (IsGroup)
         {
             var placeables = ListPool<Placeable>.Rent();
             GetComponentsInChildren(placeables);
@@ -433,7 +433,10 @@ public class Placeable : Label, ILevelPlaceabe
     internal void SpRemoveIndex(int index)
     {
         if (spNodeIndex == index)
+        {
             spNodeIndex = 0;
+            DisconnectConnectables(ConnectableType.MassTransfer);
+        }
     }
 
     public void FindTouchingObjs(List<Placeable> output, Ksid ksid, float margin, int tag = 0)
@@ -510,7 +513,7 @@ public class Placeable : Label, ILevelPlaceabe
         cmd.indexA = spNodeIndex;
         cmd.nodeA = this;
         cmd.pointA = Center;
-        var isFixed = Game.Instance.Ksids.IsParentOrEqual(Ksid, Ksid.SpFixed);
+        var isFixed = Ksid.IsChildOfOrEq(Ksid.SpFixed);
         cmd.isAFixed = isFixed;
         if (!isFixed)
             cmd.forceA = Vector2.down * GetMass();

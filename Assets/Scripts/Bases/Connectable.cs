@@ -7,9 +7,19 @@ using UnityEngine;
 
 namespace Assets.Scripts.Bases
 {
+    public enum ConnectableType
+    {
+        Off,
+        Physics,
+        LegArm,
+        MassTransfer,
+        StickyBomb,
+    }
+
     public interface IConnectable
     {
         public void Disconnect();
+        public ConnectableType Type { get; }
     }
 
     public interface IConnector
@@ -19,21 +29,38 @@ namespace Assets.Scripts.Bases
 
     public class Connectable : MonoBehaviour, IConnectable
     {
-        private Action disconnect;
+        private Func<Transform> disconnect;
+        public ConnectableType Type { get; private set; }
 
-        public void Init(Action disconnect)
+
+        public void Init(Func<Transform> disconnect)
         {
             this.disconnect = disconnect;
         }
 
         public void Disconnect()
         {
-            disconnect?.Invoke();
+            if (Type != ConnectableType.Off)
+            {
+                var storage = disconnect();
+                Type = ConnectableType.Off;
+                gameObject.SetActive(false);
+                transform.parent = storage;
+                transform.localPosition = Vector3.zero;
+            }
+        }
+
+        public void ConnectTo(Label target, ConnectableType type, bool worldPositionStays = true)
+        {
+            Type = type;
+            transform.SetParent(target.ParentForConnections, worldPositionStays);
+            gameObject.SetActive(true);
         }
     }
 
     public abstract class ConnectableLabel : MonoBehaviour, IConnectable
     {
+        public abstract ConnectableType Type { get; }
         public abstract void Disconnect();
     }
 }

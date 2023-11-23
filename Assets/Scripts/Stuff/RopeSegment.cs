@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Core;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -49,9 +50,9 @@ public class RopeSegment : Placeable
         int segCount = Mathf.CeilToInt((end - start).magnitude / segmentSize);
         Vector3 segOffset = (end - start).normalized * segmentSize;
 
-        Placeable prevNode = Game.Map.GetFirstTouching(start, Assets.Scripts.Core.Ksid.SpFixed, 0.05f);
+        Placeable prevNode = Game.Map.GetFirstTouching(start, Ksid.SpFixed, 0.05f);
         if (!prevNode)
-            prevNode = Game.Map.GetFirstTouching(start, Assets.Scripts.Core.Ksid.SpNode, 0.05f);
+            prevNode = Game.Map.GetFirstTouching(start, Ksid.SpNode, 0.05f);
 
         for (int i = 0; i < segCount; i++)
         {
@@ -83,9 +84,9 @@ public class RopeSegment : Placeable
 
     private static void ConnectEnd(Vector3 end, Placeable lastNode)
     {
-        Placeable anchor = Game.Map.GetFirstTouching(end, Assets.Scripts.Core.Ksid.SpFixed, 0.05f);
+        Placeable anchor = Game.Map.GetFirstTouching(end, Ksid.SpFixed, 0.05f);
         if (!anchor)
-            anchor = Game.Map.GetFirstTouching(end, Assets.Scripts.Core.Ksid.SpNode, 0.05f);
+            anchor = Game.Map.GetFirstTouching(end, Ksid.SpNode, 0.05f);
         if (anchor)
         {
             var j1 = lastNode.GetComponent<HingeJoint>();

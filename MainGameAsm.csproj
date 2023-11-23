@@ -129,8 +129,8 @@
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
-    <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
+    <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
   <ItemGroup>

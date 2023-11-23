@@ -35,7 +35,10 @@ public abstract class Label : MonoBehaviour
         var connectables = ListPool<IConnectable>.Rent();
         ParentForConnections.GetComponentsInLevel1Children(connectables);
         foreach (var c in connectables)
-            c.Disconnect();
+        {
+            if (c.Type != ConnectableType.Off)
+                c.Disconnect();
+        }
         connectables.Return();
 
         Game.Instance.GlobalTimerHandler.ObjectDied(this);
@@ -249,5 +252,35 @@ public abstract class Label : MonoBehaviour
                 Kill();
             labels.Return();
         }
+    }
+
+    public void DisconnectConnectables(ConnectableType type)
+    {
+        var connectables = ListPool<IConnectable>.Rent();
+        
+        DisconnectConnectables(this, type, connectables);
+
+        if (IsGroup)
+        {
+            var labels = ListPool<Label>.Rent();
+            GetComponentsInChildren(labels);
+            foreach (var l in labels)
+                if (l != this)
+                    DisconnectConnectables(l, type, connectables);
+            labels.Return();
+        }
+
+        connectables.Return();
+    }
+
+    private static void DisconnectConnectables(Label label, ConnectableType type, List<IConnectable> connectables)
+    {
+        label.ParentForConnections.GetComponentsInLevel1Children(connectables);
+        foreach (var c in connectables)
+        {
+            if (c.Type == type)
+                c.Disconnect();
+        }
+        connectables.Clear();
     }
 }

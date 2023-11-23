@@ -29,6 +29,8 @@ namespace Assets.Scripts.Bases
 
         public bool IsConnected => (state & State.SpConnection) != 0 || Joint;
 
+        public override ConnectableType Type => ConnectableType.Physics;
+
         internal void Setup(Placeable myObj, Placeable otherObj, RbJoint otherJ)
         {
             MyObj = myObj;

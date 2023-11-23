@@ -3,6 +3,7 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -49,10 +50,10 @@ namespace Assets.Scripts.Stuff
 
         private void Start()
         {
-            connectables[0].Init(() => DisconnectJoint(0));
-            connectables[1].Init(() => DisconnectJoint(1));
-            connectables[2].Init(() => DisconnectJoint(0));
-            connectables[3].Init(() => DisconnectJoint(1));
+            connectables[0].Init(() => DisconnectJointInner(0));
+            connectables[1].Init(() => DisconnectJointInner(1));
+            connectables[2].Init(() => DisconnectJointInner(0));
+            connectables[3].Init(() => DisconnectJointInner(1));
 
             var rb = GetComponent<Rigidbody>();
             CreateJoint(connectables[0].gameObject, rb);
@@ -121,33 +122,32 @@ namespace Assets.Scripts.Stuff
             Vector3 p1 = point - awayDir;
             Vector3 p2 = point + awayDir;
             var otherRB = label.Rigidbody;
-            ref var c = ref connections[index];
-            c.ActiveRBs = otherRB;
-            c.Label = label;
+            ref var cDesc = ref connections[index];
+            cDesc.ActiveRBs = otherRB;
+            cDesc.Label = label;
             if (otherRB)
             {
                 var j = CreateJoint(gameObject, otherRB);
                 j.anchor = transform.InverseTransformPoint(p1);
                 j.connectedBody = otherRB;
                 j.connectedAnchor = otherRB.transform.InverseTransformPoint(p2);
-                c.Joint = j;
+                cDesc.Joint = j;
 
                 var a = connectables[index + ArrOffest];
-                a.transform.SetParent(label.ParentForConnections, true);
-                a.gameObject.SetActive(true);
+                a.ConnectTo(label, ConnectableType.StickyBomb, true);
             }
             else
             {
-                var j = connectables[index].GetComponent<SpringJoint>();
+                var a = connectables[index];
+                var j = a.GetComponent<SpringJoint>();
                 if (!j)
-                    j = CreateJoint(connectables[index].gameObject, GetComponent<Rigidbody>());
-                j.transform.SetParent(label.ParentForConnections, true);
+                    j = CreateJoint(a.gameObject, GetComponent<Rigidbody>());
+                a.ConnectTo(label, ConnectableType.StickyBomb, true);
                 j.anchor = j.transform.InverseTransformPoint(p2);
                 j.connectedAnchor = transform.InverseTransformPoint(p1);
                 j.breakForce = BreakForce;
                 j.breakTorque = BreakTorque;
-                j.gameObject.SetActive(true);
-                c.Joint = j;
+                cDesc.Joint = j;
             }
         }
 
@@ -177,7 +177,9 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        public void DisconnectJoint(int index)
+        private void DisconnectJoint(int i) => connectables[connections[i].ActiveRBs ? i + ArrOffest : i].Disconnect();
+
+        public Transform DisconnectJointInner(int index)
         {
             ref var c = ref connections[index];
             if (c.Connected)
@@ -187,16 +189,15 @@ namespace Assets.Scripts.Stuff
                     var joint = c.Joint;
                     if (joint)
                         Destroy(joint);
-                    DisconnctConnectable(index + ArrOffest);
                 }
                 else
                 {
-                    DisconnctConnectable(index);
                     if (c.Broken)
                         CreateJoint(connectables[index].gameObject, GetComponent<Rigidbody>());
                 }
                 c = default;
             }
+            return transform;
         }
 
         private SpringJoint CreateJoint(GameObject go, Rigidbody rb)
@@ -210,14 +211,6 @@ namespace Assets.Scripts.Stuff
             j.breakTorque = BreakTorque;
             j.connectedBody = rb;
             return j;
-        }
-
-        private void DisconnctConnectable(int index)
-        {
-            var c = connectables[index];
-            c.gameObject.SetActive(false);
-            c.transform.parent = transform;
-            c.transform.localPosition = Vector3.zero;
         }
 
         void IConnector.Disconnect(Label label)

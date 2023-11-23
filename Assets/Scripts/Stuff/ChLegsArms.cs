@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
@@ -22,8 +23,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	public Transform[] Legs;
 	private float[] legArmStatus = new float[4];
 	private Label[] legsConnectedLabels = new Label[4];
-	
-	protected bool LegOnGround => legArmStatus[0] == Catch || legArmStatus[1] == Catch;
+    private Connectable[] legsConnectables = new Connectable[4];
+
+    protected bool LegOnGround => legArmStatus[0] == Catch || legArmStatus[1] == Catch;
 	protected bool ArmCatched => legArmStatus[2] == Catch || legArmStatus[3] == Catch;
 	protected bool ArmHolds => legArmStatus[2] == Hold || legArmStatus[3] == Hold;
 
@@ -70,7 +72,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		for (int f = 0; f < Legs.Length; f++)
 		{
 			int index = f;
-			Legs[f].GetComponent<Connectable>().Init(() => RemoveLegArmIfConnected(index));
+			legsConnectables[f] = Legs[f].GetComponent<Connectable>();
+            legsConnectables[f].Init(() => RemoveLegArmInner(index));
 		}
 	}
 
@@ -223,23 +226,23 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private int OtherIndex(int index) => index ^ 1;
 
-	private void RemoveLegArmIfConnected(int index)
-	{
-		if (legsConnectedLabels[index] != null)
-			RemoveLegArm(index);
-	}
-
 	private void RemoveLegArm(int index)
 	{
-		Legs[index].gameObject.SetActive(false);
-		Legs[index].SetParent(transform, true);
-		if (legArmStatus[index] == Hold && inventoryAccessor != null)
-			inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
-		legArmStatus[index] = Timeout;
-		legsConnectedLabels[index] = null;
+		legsConnectables[index].Disconnect();
+		if (legsConnectedLabels[index] || legArmStatus[index] > Timeout)
+			Debug.LogError("Dosconnect se neudelal");
 	}
 
-	private void RemoveAllLegs()
+    private Transform RemoveLegArmInner(int index)
+    {
+        if (legArmStatus[index] == Hold && inventoryAccessor != null)
+            inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
+        legArmStatus[index] = Timeout;
+        legsConnectedLabels[index] = null;
+		return transform;
+    }
+
+    private void RemoveAllLegs()
 	{
 		if (legArmStatus[0] == Catch)
 			RemoveLegArm(0);
@@ -339,7 +342,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		{
 			DisconnectOppositeAttachements(label);
 			legsConnectedLabels[index] = label;
-			Legs[index].SetParent(label.ParentForConnections, true);
+			legsConnectables[index].ConnectTo(label, ConnectableType.LegArm, true);
 			return true;
 		}
 		return false;
@@ -355,7 +358,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	{
 		Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.legZ[index] + transform.position.z);
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
-		Legs[index].gameObject.SetActive(true);
 		legArmStatus[index] = Catch;
 	}
 
@@ -363,7 +365,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	{
 		Legs[index].position = hitInfo.point;
 		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
-		Legs[index].gameObject.SetActive(true);
 		legArmStatus[index] = statusType;
 	}
 

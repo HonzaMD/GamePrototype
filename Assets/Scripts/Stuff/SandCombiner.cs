@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using Assets.Scripts.Core;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -62,7 +63,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         {
             Game.Instance.StaticPhysics.ApplyForce(mt.SpNodeIndex, Vector2.down * mass);
             massTarget = mt;
-            MassTransferer.transform.parent = mt.ParentForConnections;
+            MassTransferer.ConnectTo(mt, ConnectableType.MassTransfer);
         }
     }
 
@@ -71,8 +72,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         int tag = 0;
         var placeables = ListPool<Placeable>.Rent();
         var myCell = Game.Map.WorldToCell(Pivot);
-        Game.Map.Get(placeables, myCell, Assets.Scripts.Core.Ksid.SpMovingOrSandCombiner, ref tag);
-        Game.Map.Get(placeables, myCell + Vector2Int.down, Assets.Scripts.Core.Ksid.SpMovingOrSandCombiner, ref tag);
+        Game.Map.Get(placeables, myCell, Ksid.SpNodeOrSandCombiner, ref tag);
+        Game.Map.Get(placeables, myCell + Vector2Int.down, Ksid.SpNodeOrSandCombiner, ref tag);
 
         Placeable mtCandidate = null;
         float mtDistance = float.MaxValue;
@@ -80,7 +81,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
         foreach (var p in placeables)
         {
-            if (p != this && center.y >= p.Center.y && (p.SpNodeIndex != 0 || p is SandCombiner))
+            if (p != this && center.y >= p.Center.y && (p.SpNodeIndex != 0 || p is SandCombiner || p.Ksid.IsChildOfOrEq(Ksid.SpFixed)))
             {
                 var dist = (p.GetClosestPoint(center) - center).sqrMagnitude;
                 if (dist < mtDistance)
@@ -99,15 +100,15 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         return mtCandidate;
     }
 
-    private void DisconnectMassTarget()
+    private Transform DisconnectMassTarget()
     {
         if (massTarget)
         {
             if (massTarget.SpNodeIndex != 0)
                 Game.Instance.StaticPhysics.ApplyForce(massTarget.SpNodeIndex, Vector2.up * mass);
             massTarget = null;
-            MassTransferer.transform.parent = transform;
         }
+        return transform;
     }
 
 
@@ -171,7 +172,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         if (Collapsing)
             collapsingToken++;
 
-        DisconnectMassTarget();
+        MassTransferer.Disconnect();
 
         base.Cleanup();
 
