@@ -44,6 +44,11 @@ public class RopeSegment : Placeable
     }
 
 
+    public override void Cleanup()
+    {
+        GetComponent<Rigidbody>().Cleanup();
+    }
+
     internal static void AddToMap(Map map, Transform parent, Vector3 start, Vector3 end, bool fixEnd)
     {
         Quaternion rotation = Quaternion.FromToRotation(Vector3.down, end - start);

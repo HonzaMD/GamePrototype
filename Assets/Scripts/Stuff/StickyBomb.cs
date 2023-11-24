@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Stuff
 {
+    [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
     public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, ISimpleTimerConsumer, IConnector
     {
         private const float BreakForce = 600;
@@ -82,6 +83,7 @@ namespace Assets.Scripts.Stuff
         public void Cleanup()
         {
             Deactivate();
+            GetComponent<Rigidbody>().Cleanup();
         }
 
         private void Deactivate()

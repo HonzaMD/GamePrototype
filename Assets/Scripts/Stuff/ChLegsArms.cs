@@ -893,6 +893,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	public void Cleanup()
 	{
 		RemoveAllLegsArms();
+		body.Cleanup();
 	}
 }
 

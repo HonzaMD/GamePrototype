@@ -29,6 +29,7 @@ namespace Assets.Scripts.Bases
         {
             // schvalne vynechavam clenup connectables, protoze je nemam
             Game.Instance.GlobalTimerHandler.ObjectDied(this);
+            Rigidbody.Cleanup();
         }
 
         void ILevelPlaceabe.Instantiate(Map.Map map, Transform parent, Vector3 pos)

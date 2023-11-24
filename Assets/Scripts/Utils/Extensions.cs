@@ -67,6 +67,7 @@ namespace Assets.Scripts.Utils
             where T : ConnectableLabel
             => Game.Instance.ConnectablePool.Get(prototype, parent);
 
+        
         public static bool Touches(this Collider collider1, Collider collider2, float margin)
         {
             if (collider1.enabled && collider2.enabled)
@@ -111,6 +112,13 @@ namespace Assets.Scripts.Utils
             }
 
             return false;
+        }
+
+
+        public static void Cleanup(this Rigidbody rigidbody)
+        {
+            rigidbody.velocity = Vector3.zero;
+            rigidbody.angularVelocity = Vector3.zero;
         }
     }
 }
