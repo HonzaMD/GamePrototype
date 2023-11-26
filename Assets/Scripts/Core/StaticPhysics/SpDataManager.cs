@@ -93,5 +93,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                 edgeEndsPool[arr.Length - 1].Push(arr);
             }
         }
+
+        internal bool IsNodeValid(int index) => index < nodes.Length && nodes[index].edges != null;
     }
 }

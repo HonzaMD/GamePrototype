@@ -219,5 +219,11 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             AddInCommand(new InputCommand() { Command = SpCommand.UpdateForce, indexA = spNodeIndex, forceA = force });
         }
+
+        internal void ApplyTempForce(int spNodeIndex, Vector2 force)
+        {
+            Debug.Log(force);
+            AddForceCommand(new ForceCommand() { indexA = spNodeIndex, forceA = force });
+        }
     }
 }

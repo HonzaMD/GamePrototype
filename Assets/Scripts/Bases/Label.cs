@@ -79,18 +79,38 @@ public abstract class Label : MonoBehaviour
     /// <summary>
     /// Volat jen z jednorazovych efektu nebo z FixedUpdate
     /// </summary>
-    public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, bool limitVelocity = false)
+    public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, bool limitVelocity = false, bool dontAffectRb = false)
     {
-        var rb = Rigidbody;
+        var rb = dontAffectRb ? null : Rigidbody;
         if (rb)
         {
             rb.AddForce(velocity, sourceMass, limitVelocity);
         }
         else if (KsidGet.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
         {
-            CollapseSandByForce(velocity, sourceMass, limitVelocity, sandCombiner);
+            if (dontAffectRb)
+            {
+                sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
+            }
+            else
+            {
+                CollapseSandByForce(velocity, sourceMass, limitVelocity, sandCombiner);
+            }
+        }
+        else if (KsidGet.IsChildOf(Ksid.SpMoving) && this is Placeable p && p.SpNodeIndex != 0)
+        {
+            Game.Instance.StaticPhysics.ApplyTempForce(p.SpNodeIndex, velocity * sourceMass * 0.5f);
+        }
+        else if (this is SandCombiner sandCombiner2)
+        {
+            sandCombiner2.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
+        }
+        else if (!CanBeKilled)
+        {
+            KillableLabel().ApplyVelocity(velocity, sourceMass, limitVelocity, dontAffectRb);
         }
     }
+
 
     private void CollapseSandByForce(Vector3 velocity, float sourceMass, bool limitVelocity, SandCombiner sandCombiner)
     {
@@ -101,6 +121,10 @@ public abstract class Label : MonoBehaviour
         {
             sandCombiner.CollapseNow();
             Rigidbody.AddForce(velocity, sourceMass, limitVelocity);
+        }
+        else
+        {
+            sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
         }
     }
 

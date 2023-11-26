@@ -34,6 +34,8 @@ namespace Assets.Scripts.Core.StaticPhysics
             for (int f = 0; f < inputs.Length; f++)
             {
                 ref var ic = ref inputs[f];
+                EnsureValidNodes(ref ic);
+
                 if (ic.Command == SpCommand.AddNodeAndJoint || ic.Command == SpCommand.AddNode)
                 {
                     AddNode(ic);
@@ -107,6 +109,23 @@ namespace Assets.Scripts.Core.StaticPhysics
             FreeNodes(output);
         }
 
+        private void EnsureValidNodes(ref InputCommand ic)
+        {
+            if (ic.indexA == 0)
+                throw new InvalidOperationException("Zadal jdi sp index 0");
+
+            if (ic.Command != SpCommand.AddNode && ic.Command != SpCommand.AddNodeAndJoint)
+            {
+                if (!data.IsNodeValid(ic.indexA))
+                    ic.Command = SpCommand.None;
+            }
+
+            if (ic.indexB != 0)
+            {
+                if (!data.IsNodeValid(ic.indexB))
+                    ic.Command = SpCommand.None;
+            }
+        }
 
         private void AddNode(in InputCommand ic)
         {

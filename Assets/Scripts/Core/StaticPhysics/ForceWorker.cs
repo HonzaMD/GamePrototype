@@ -115,7 +115,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             for (int f = 0; f < tempForces.Length; f++)
             {
                 var index = tempForces[f].indexA;
-                if (!deletedNodes.Contains(index))
+                if (!deletedNodes.Contains(index) && EnsureValidNodes(index))
                 {
                     ref var node = ref data.GetNode(index);
                     if (node.isFixedRoot == 0)
@@ -127,6 +127,15 @@ namespace Assets.Scripts.Core.StaticPhysics
                 }
             }
         }
+
+        private bool EnsureValidNodes(int index)
+        {
+            if (index == 0)
+                throw new InvalidOperationException("Zadal jdi sp index 0");
+
+            return data.IsNodeValid(index);
+        }
+
 
 
         private void Update()

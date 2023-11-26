@@ -29,6 +29,7 @@ namespace Assets.Scripts.Core
                 (Ksid.DamagedByExplosion, Ksid.AffectedByExplosion),
                 (Ksid.Character, Ksid.AffectedByExplosion),
                 (Ksid.Rope, Ksid.AffectedByExplosion),
+                (Ksid.SpMoving, Ksid.AffectedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
 
                 (Ksid.SpFixed, Ksid.SpNode),

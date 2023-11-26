@@ -59,7 +59,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
     private void TryTransferMass()
     {
         var mt = TryFindMassTarget();
-        if (mt && mt.SpNodeIndex != 0)
+        if (mt && mt.SpNodeIndex != 0 && mt.Ksid.IsChildOf(Ksid.SpMoving))
         {
             Game.Instance.StaticPhysics.ApplyForce(mt.SpNodeIndex, Vector2.down * mass);
             massTarget = mt;
@@ -177,5 +177,17 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         base.Cleanup();
 
         CleanupSize();
+    }
+
+    internal void ApplyVelocityThroughSandCombiner(Vector2 velocity, float sourceMass)
+    {
+        if (massTarget && massTarget.SpNodeIndex != 0)
+        {
+            float len = velocity.magnitude;
+            if (len * sourceMass > 0.3f && Vector2.Dot(velocity, Vector2.down) > 0.95f * len)
+            {
+                Game.Instance.StaticPhysics.ApplyTempForce(massTarget.SpNodeIndex, velocity * sourceMass * 0.5f);
+            }
+        }
     }
 }

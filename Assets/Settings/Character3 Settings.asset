@@ -26,4 +26,4 @@ MonoBehaviour:
   HoldPosition: {x: 0.5, y: 0}
   HoldType: 7
   HoldMoveSpeed: 30
-  HoldMoveAcceleration: 4
+  HoldMoveAcceleration: 3
