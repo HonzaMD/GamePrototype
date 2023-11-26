@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 public interface IActiveObject
 {
     void GameUpdate();
+    void GameFixedUpdate();
 }
 

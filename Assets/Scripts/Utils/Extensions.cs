@@ -120,5 +120,19 @@ namespace Assets.Scripts.Utils
             rigidbody.velocity = Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }
+
+        public static void AddForce(this Rigidbody body, Vector3 velocity, float sourceMass, bool limitVelocity = false)
+        {
+            float koef = sourceMass / body.mass;
+            if (koef > 1)
+            {
+                koef = limitVelocity ? 1 : Mathf.Log(koef) * 0.5f + 1;
+            } 
+            else
+            {
+                koef = - 0.5f * koef * koef + 1.5f * koef;
+            }
+            body.AddForce(velocity * koef, ForceMode.VelocityChange);
+        }
     }
 }

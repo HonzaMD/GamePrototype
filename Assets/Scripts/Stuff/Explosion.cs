@@ -58,9 +58,12 @@ namespace Assets.Scripts.Stuff
                 var direction = p.GetClosestPoint(transform.position) - transform.position;
                 var distanceSq = direction.sqrMagnitude;
                 const float forceIntensity = 3;
+                const float explMassConst = 20;
+                const float explMassLin = 20;
                 if (distanceSq < sizeSq)
                 {
-                    p.ApplyVelocity(new Vector3((sizeSq - direction.x * direction.x) * Mathf.Sign(direction.x) * forceIntensity, (sizeSq - direction.y * direction.y) * Mathf.Sign(direction.y) * forceIntensity, 0));
+                    p.ApplyVelocity(new Vector3((sizeSq - direction.x * direction.x) * Mathf.Sign(direction.x) * forceIntensity, (sizeSq - direction.y * direction.y) * Mathf.Sign(direction.y) * forceIntensity, 0),
+                        explMassConst + explMassLin * (sizeSq - distanceSq));
                 }
                 if (distanceSq < sizeSq2)
                 {

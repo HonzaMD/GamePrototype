@@ -227,6 +227,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     void FixedUpdate()
     {
+        foreach (var o in activeObjects)
+        {
+            o.GameFixedUpdate();
+        }
         StaticPhysics.Update();
     }
 }

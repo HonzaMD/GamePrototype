@@ -76,20 +76,23 @@ public abstract class Label : MonoBehaviour
         return colliders2;
     }
 
-    public virtual void ApplyVelocity(Vector3 velocity)
+    /// <summary>
+    /// Volat jen z jednorazovych efektu nebo z FixedUpdate
+    /// </summary>
+    public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, bool limitVelocity = false)
     {
         var rb = Rigidbody;
         if (rb)
         {
-            rb.AddForce(velocity, ForceMode.VelocityChange);
+            rb.AddForce(velocity, sourceMass, limitVelocity);
         }
         else if (KsidGet.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
         {
-            CollapseSandByForce(velocity, sandCombiner);
+            CollapseSandByForce(velocity, sourceMass, limitVelocity, sandCombiner);
         }
     }
 
-    private void CollapseSandByForce(Vector3 velocity, SandCombiner sandCombiner)
+    private void CollapseSandByForce(Vector3 velocity, float sourceMass, bool limitVelocity, SandCombiner sandCombiner)
     {
         float scCenterX = sandCombiner.Pivot.x + 0.25f;
         float toCenterX = scCenterX - Pivot.x;
@@ -97,7 +100,7 @@ public abstract class Label : MonoBehaviour
         if (Vector2.Dot(toSand, velocity.XY()) < 0)
         {
             sandCombiner.CollapseNow();
-            Rigidbody.AddForce(velocity, ForceMode.VelocityChange);
+            Rigidbody.AddForce(velocity, sourceMass, limitVelocity);
         }
     }
 

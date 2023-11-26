@@ -295,10 +295,10 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 	}
 
 
-	new void FixedUpdate()
-	{
+    public override void GameFixedUpdate()
+    {
 		if (bodyToThrow == null)
-			base.FixedUpdate();
+			base.GameFixedUpdate();
 		if (throwActive)
 			ShowThrowMarker();
 		if (bodyToThrow != null)

@@ -199,7 +199,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			{
 				var lpos = Legs[index].position.XY();
 				var center = ArmSphere.transform.position.XY();
-				var radius = ArmSphere.radius;
+				var radius = ArmSphere.radius * 1.2f;
 				if ((lpos - center).sqrMagnitude > radius * radius)
 				{
 					EnableCollision(legsConnectedLabels[index]);
@@ -620,7 +620,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	}
 
 
-	protected void FixedUpdate()
+	public virtual void GameFixedUpdate()
 	{
 		if (body.velocity.x > Settings.maxSpeed * 0.1f)
 			lastXOrientation = 1;
@@ -709,19 +709,26 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		var label = legsConnectedLabels[index];
 		if (label != null) 
 		{
-			var armPos = Legs[index].position.XY();
-			var destPos = ArmSphere.transform.position.XY() + holdTarget;
-			destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
-			GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
-			destPos += decollision;
+            var lRB = label.Rigidbody;
+            if (lRB != null)
+            {
+                var armPos = Legs[index].position.XY();
+				var destPos = ArmSphere.transform.position.XY() + holdTarget;
+				destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
+				GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
+				destPos += decollision;
 
-			var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
-			var force = Vector2.ClampMagnitude(dist - label.Velocity.XY(), Settings.HoldMoveAcceleration);
-			label.ApplyVelocity(force);
-			var lRB = label.Rigidbody;
-			if (lRB != null)
+				var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
+				var koef = body.mass * 0.6f / lRB.mass;
+				if (koef > 1)
+					koef = 1;
+                var force = Vector2.ClampMagnitude(dist - label.Velocity.XY(), Settings.HoldMoveAcceleration * koef);
+				label.ApplyVelocity(force, body.mass * 0.6f, true);
+
 				lRB.angularVelocity = Vector3.zero;
-		}
+				body.AddForce(-force * 0.5f, lRB.mass);
+            }
+        }
 	}
 
 	private void GetDecollisionDistance(Label other, out Vector2 result)
@@ -878,7 +885,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void SendOppositeForce(Vector3 vector3, int index)
 	{
-		legsConnectedLabels[index].ApplyVelocity(-vector3);
+		legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass);
 	}
 
 	protected Label GetHoldObject()
