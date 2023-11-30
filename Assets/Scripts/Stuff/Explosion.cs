@@ -63,7 +63,7 @@ namespace Assets.Scripts.Stuff
                 if (distanceSq < sizeSq)
                 {
                     p.ApplyVelocity(new Vector3((sizeSq - direction.x * direction.x) * Mathf.Sign(direction.x) * forceIntensity, (sizeSq - direction.y * direction.y) * Mathf.Sign(direction.y) * forceIntensity, 0),
-                        explMassConst + explMassLin * (sizeSq - distanceSq));
+                        explMassConst + explMassLin * (sizeSq - distanceSq), VelocityFlags.IsImpact);
                 }
                 if (distanceSq < sizeSq2)
                 {

@@ -122,6 +122,7 @@
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\DeleteColorWorker.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
+    <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />

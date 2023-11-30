@@ -279,14 +279,15 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 				throwTimer = 0.3f;
 				var body = GetHoldObject();
 				if (body != null)
-				{
-					marker.transform.position = body.transform.position;
-					var mBody = marker.GetComponent<Rigidbody>();
-					mBody.mass = body.Rigidbody.mass;
-					Vector2 force = new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * 4.8f;
-					mBody.velocity = (Vector3)force + this.body.velocity;
-				}
-			}
+                {
+                    marker.transform.position = body.transform.position;
+                    var mBody = marker.GetComponent<Rigidbody>();
+					var throwMass = body.Rigidbody.mass;
+                    mBody.mass = throwMass;
+                    Vector2 force = ComputeThrowForce(throwMass);
+                    mBody.velocity = (Vector3)force + this.body.velocity;
+                }
+            }
 		} 
 		else
 		{
@@ -294,6 +295,11 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 		}
 	}
 
+    private Vector2 ComputeThrowForce(float throwMass)
+    {
+		var koef = Mathf.Min(5.5f, 10f / Mathf.Sqrt(throwMass));
+        return new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * koef;
+    }
 
     public override void GameFixedUpdate()
     {
@@ -303,11 +309,12 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 			ShowThrowMarker();
 		if (bodyToThrow != null)
 		{
-			Vector2 force = new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * 4.8f;
+			Vector2 force = ComputeThrowForce(bodyToThrow.mass);
 			bodyToThrow.velocity = (Vector3)force + this.body.velocity;
-			bodyToThrow = null;
-		}
-	}
+            body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
+            bodyToThrow = null;
+        }
+    }
 
 	Label IInventoryAccessor.InventoryGet()
 	{

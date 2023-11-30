@@ -220,9 +220,14 @@ namespace Assets.Scripts.Core.StaticPhysics
             AddInCommand(new InputCommand() { Command = SpCommand.UpdateForce, indexA = spNodeIndex, forceA = force });
         }
 
-        internal void ApplyTempForce(int spNodeIndex, Vector2 force)
+        internal void ApplyTempForce(int spNodeIndex, Vector2 force, float sourceMass, VelocityFlags flags)
         {
-            Debug.Log(force);
+            ApplyTempForce(spNodeIndex, force * (sourceMass * ((flags & VelocityFlags.IsImpact) != 0 ? PhysicsConsts.ImpulseToMassDumped : PhysicsConsts.ImpulseToMass)), flags);
+        }
+
+        internal void ApplyTempForce(int spNodeIndex, Vector2 force, VelocityFlags flags)
+        {
+            Debug.Log($"{force} RV: {CollisionForceToSp.RV} Flags: {flags}");
             AddForceCommand(new ForceCommand() { indexA = spNodeIndex, forceA = force });
         }
     }

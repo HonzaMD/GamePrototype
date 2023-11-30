@@ -654,7 +654,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			{
 				var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.velocity.y;
 				body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
-				SendOppositeForceToLegs(new Vector3(0, jumpForce, 0));
+				SendOppositeForceToLegs(new Vector3(0, jumpForce, 0), true);
 				desiredJump = false;
 				jumpStarted = true;
 				RemoveAllLegs();
@@ -668,7 +668,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		{
 			Vector3 legF = legUpDir * Mathf.Max(GetLegForce(0), GetLegForce(1));
 			body.AddForce(legF, ForceMode.VelocityChange);
-			SendOppositeForceToLegs(legF);
+			SendOppositeForceToLegs(legF, null);
 			float legSF = GetLegSideForce();
 			body.AddForce(legSF, 0, 0, ForceMode.VelocityChange);
 		}
@@ -723,10 +723,10 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 				if (koef > 1)
 					koef = 1;
                 var force = Vector2.ClampMagnitude(dist - label.Velocity.XY(), Settings.HoldMoveAcceleration * koef);
-				label.ApplyVelocity(force, body.mass * 0.6f, true);
+				label.ApplyVelocity(force, body.mass * 0.6f, VelocityFlags.LimitVelocity);
 
 				lRB.angularVelocity = Vector3.zero;
-				body.AddForce(-force * 0.5f, lRB.mass);
+				body.AddForce(-force * 0.5f, lRB.mass, VelocityFlags.None);
             }
         }
 	}
@@ -840,12 +840,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		var dot = 1 - Mathf.Clamp(Vector2.Dot(velocity, desiredVelocity), 0, 1);
 		Vector2 forceToReduce = dot * velocity;
 		Vector2 result = Vector2.zero;
-		GetArmCatchForce(2, ref forceToReduce, ref result);
-		GetArmCatchForce(3, ref forceToReduce, ref result);
+		GetArmCatchForce(2, ref forceToReduce, ref result, velocity);
+		GetArmCatchForce(3, ref forceToReduce, ref result, velocity);
 		return result;
 	}
 
-	private void GetArmCatchForce(int index, ref Vector2 forceToReduce, ref Vector2 result)
+	private void GetArmCatchForce(int index, ref Vector2 forceToReduce, ref Vector2 result, Vector2 myVelocity)
 	{
 		if (legArmStatus[index] == Catch)
 		{
@@ -859,33 +859,41 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			var armForce = -inForce * armDirNorm;
 			result += armForce;
 			forceToReduce += armForce;
-			SendOppositeForce(armForce, index);
-		}
+
+			var relVelocity = Vector2.Dot(armDirNorm, legsConnectedLabels[index].Velocity.XY() - myVelocity);
+			bool isImpact = relVelocity * relVelocity > PhysicsConsts.ImpactVelocitySqr;
+            SendOppositeForce(armForce, index, isImpact);
+        }
 	}
 
-	private void SendOppositeForceToLegs(Vector3 velocity)
+	private void SendOppositeForceToLegs(Vector3 velocity, bool? isImpact)
 	{
 		if (legArmStatus[0] == Catch)
 		{
 			if (legArmStatus[1] == Catch)
 			{
-				SendOppositeForce(velocity * 0.5f, 0);
-				SendOppositeForce(velocity * 0.5f, 1);
+				SendOppositeForce(velocity * 0.5f, 0, isImpact);
+				SendOppositeForce(velocity * 0.5f, 1, isImpact);
 			}
 			else
 			{
-				SendOppositeForce(velocity, 0);
+				SendOppositeForce(velocity, 0, isImpact);
 			}
 		}
 		else if (legArmStatus[1] == Catch)
 		{
-			SendOppositeForce(velocity, 1);
+			SendOppositeForce(velocity, 1, isImpact);
 		}
 	}
 
-	private void SendOppositeForce(Vector3 vector3, int index)
+	private void SendOppositeForce(Vector3 vector3, int index, bool? isImpact)
 	{
-		legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass);
+		if (isImpact == null)
+		{
+            var relVelocity = body.velocity.XY() - legsConnectedLabels[index].Velocity.XY();
+            isImpact = relVelocity.sqrMagnitude > PhysicsConsts.ImpactVelocitySqr;
+        }
+        legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass, isImpact.Value ? VelocityFlags.IsImpact : VelocityFlags.None);
 	}
 
 	protected Label GetHoldObject()

@@ -20,7 +20,13 @@ public class CollisionForceToSp : MonoBehaviour
     {
         if (Label.TryFind(collision.collider.transform, out var label))
         {
-            label.ApplyVelocity(collision.impulse * -0.1f, 10, dontAffectRb: true);
+            VelocityFlags flags = collision.relativeVelocity.sqrMagnitude > PhysicsConsts.ImpactVelocitySqr 
+                ? VelocityFlags.IsImpact | VelocityFlags.DontAffectRb
+                : VelocityFlags.DontAffectRb;
+            RV = collision.relativeVelocity;
+            label.ApplyVelocity(collision.impulse * -0.1f, 10, flags);
         }
     }
+
+    public static Vector3 RV;
 }

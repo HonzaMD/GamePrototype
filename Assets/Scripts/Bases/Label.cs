@@ -79,40 +79,41 @@ public abstract class Label : MonoBehaviour
     /// <summary>
     /// Volat jen z jednorazovych efektu nebo z FixedUpdate
     /// </summary>
-    public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, bool limitVelocity = false, bool dontAffectRb = false)
+    public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, VelocityFlags flags)
     {
+        bool dontAffectRb = (flags & VelocityFlags.DontAffectRb) != 0;
         var rb = dontAffectRb ? null : Rigidbody;
         if (rb)
         {
-            rb.AddForce(velocity, sourceMass, limitVelocity);
+            rb.AddForce(velocity, sourceMass, flags);
         }
         else if (KsidGet.IsChildOf(Ksid.SandLike) && TryGetParentLabel(out var pl) && pl is SandCombiner sandCombiner)
         {
             if (dontAffectRb)
             {
-                sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
+                sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass, flags);
             }
             else
             {
-                CollapseSandByForce(velocity, sourceMass, limitVelocity, sandCombiner);
+                CollapseSandByForce(velocity, sourceMass, flags, sandCombiner);
             }
         }
         else if (KsidGet.IsChildOf(Ksid.SpMoving) && this is Placeable p && p.SpNodeIndex != 0)
         {
-            Game.Instance.StaticPhysics.ApplyTempForce(p.SpNodeIndex, velocity * sourceMass * 0.5f);
+            Game.Instance.StaticPhysics.ApplyTempForce(p.SpNodeIndex, velocity, sourceMass, flags);
         }
         else if (this is SandCombiner sandCombiner2)
         {
-            sandCombiner2.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
+            sandCombiner2.ApplyVelocityThroughSandCombiner(velocity, sourceMass, flags);
         }
         else if (!CanBeKilled)
         {
-            KillableLabel().ApplyVelocity(velocity, sourceMass, limitVelocity, dontAffectRb);
+            KillableLabel().ApplyVelocity(velocity, sourceMass, flags);
         }
     }
 
 
-    private void CollapseSandByForce(Vector3 velocity, float sourceMass, bool limitVelocity, SandCombiner sandCombiner)
+    private void CollapseSandByForce(Vector3 velocity, float sourceMass, VelocityFlags flags, SandCombiner sandCombiner)
     {
         float scCenterX = sandCombiner.Pivot.x + 0.25f;
         float toCenterX = scCenterX - Pivot.x;
@@ -120,11 +121,11 @@ public abstract class Label : MonoBehaviour
         if (Vector2.Dot(toSand, velocity.XY()) < 0)
         {
             sandCombiner.CollapseNow();
-            Rigidbody.AddForce(velocity, sourceMass, limitVelocity);
+            Rigidbody.AddForce(velocity, sourceMass, flags);
         }
         else
         {
-            sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass);
+            sandCombiner.ApplyVelocityThroughSandCombiner(velocity, sourceMass, flags);
         }
     }
 

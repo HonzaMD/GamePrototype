@@ -121,17 +121,21 @@ namespace Assets.Scripts.Utils
             rigidbody.angularVelocity = Vector3.zero;
         }
 
-        public static void AddForce(this Rigidbody body, Vector3 velocity, float sourceMass, bool limitVelocity = false)
+        public static void AddForce(this Rigidbody body, Vector3 velocity, float sourceMass, VelocityFlags flags)
         {
             float koef = sourceMass / body.mass;
             if (koef > 1)
             {
-                koef = limitVelocity ? 1 : Mathf.Log(koef) * 0.5f + 1;
+                koef = (flags & VelocityFlags.LimitVelocity) != 0 ? 1 : Mathf.Log(koef) * 0.5f + 1;
             } 
             else
             {
                 koef = - 0.5f * koef * koef + 1.5f * koef;
             }
+
+            if ((flags & VelocityFlags.IsImpact) != 0)
+                koef *= PhysicsConsts.ImpactDump;
+
             body.AddForce(velocity * koef, ForceMode.VelocityChange);
         }
     }

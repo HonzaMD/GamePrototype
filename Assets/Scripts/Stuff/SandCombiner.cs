@@ -179,14 +179,14 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         CleanupSize();
     }
 
-    internal void ApplyVelocityThroughSandCombiner(Vector2 velocity, float sourceMass)
+    internal void ApplyVelocityThroughSandCombiner(Vector2 velocity, float sourceMass, VelocityFlags flags)
     {
         if (massTarget && massTarget.SpNodeIndex != 0)
         {
             float len = velocity.magnitude;
-            if (len * sourceMass > 0.3f && Vector2.Dot(velocity, Vector2.down) > 0.95f * len)
+            if (len * sourceMass > PhysicsConsts.SandCombinerTransferMinimum && Vector2.Dot(velocity, Vector2.down) > 0.95f * len)
             {
-                Game.Instance.StaticPhysics.ApplyTempForce(massTarget.SpNodeIndex, velocity * sourceMass * 0.5f);
+                Game.Instance.StaticPhysics.ApplyTempForce(massTarget.SpNodeIndex, velocity, sourceMass, flags);
             }
         }
     }

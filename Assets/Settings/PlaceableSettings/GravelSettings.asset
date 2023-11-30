@@ -21,3 +21,6 @@ MonoBehaviour:
     type: 3}
   Unseparable: 0
   AutoAtachRB: 1
+  SpStretchLimit: 1000
+  SpCompressLimit: 1000
+  SpMomentLimit: 1000

@@ -364,8 +364,8 @@ public class Placeable : Label, ILevelPlaceabe
             {
                 joint.SetupRb1(true);
                 var j = Rigidbody.gameObject.AddComponent<FixedJoint>();
-                j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit) * PlaceableSettings.SpToRbLimitsMultiplier;
-                j.breakTorque = cmd.momentLimit * PlaceableSettings.SpToRbLimitsMultiplier;
+                j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit) * PhysicsConsts.SpToRbLimitsMultiplier;
+                j.breakTorque = cmd.momentLimit * PhysicsConsts.SpToRbLimitsMultiplier;
                 //j.breakForce = float.PositiveInfinity;
                 //j.breakTorque = float.PositiveInfinity;
                 j.connectedBody = joint.OtherObj.Rigidbody;

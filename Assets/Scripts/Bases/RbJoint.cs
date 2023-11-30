@@ -95,8 +95,8 @@ namespace Assets.Scripts.Bases
             j.breakForce = MathF.Min(
                 Math.Min(limits1.CompressLimit, limits2.CompressLimit),
                 Math.Min(limits1.StretchLimit, limits2.StretchLimit)
-                ) * PlaceableSettings.SpToRbLimitsMultiplier;
-            j.breakTorque = Math.Min(limits1.MomentLimit, limits2.MomentLimit) * PlaceableSettings.SpToRbLimitsMultiplier;
+                ) * PhysicsConsts.SpToRbLimitsMultiplier;
+            j.breakTorque = Math.Min(limits1.MomentLimit, limits2.MomentLimit) * PhysicsConsts.SpToRbLimitsMultiplier;
             j.connectedBody = OtherObj.Rigidbody;
             SetupRb2(j);
         }
