@@ -108,11 +108,11 @@
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
+    <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
-    <Compile Include="Assets\Scripts\Stuff\StickyBomb.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />

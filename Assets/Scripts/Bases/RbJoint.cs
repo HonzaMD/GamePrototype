@@ -18,6 +18,7 @@ namespace Assets.Scripts.Bases
             RbConnection = 1,
             OwnsJoint = 2,
             SpConnection = 4,
+            DoRbjCleanup = 8,
         }
 
 
@@ -47,6 +48,8 @@ namespace Assets.Scripts.Bases
             OtherConnectable.ActiveDebugLine();
         }
 
+        public void EnableRbjCleanup() => state |= State.DoRbjCleanup;
+
         public override void Disconnect() => Disconnect(true);
 
         public void Disconnect(bool trueKill)
@@ -64,7 +67,10 @@ namespace Assets.Scripts.Bases
         {
             if ((state & State.RbConnection) != 0)
                 MyObj.DetachRigidBody(false, true);
-            
+
+            if ((state & State.DoRbjCleanup) != 0)
+                MyObj.GetComponent<IHasRbJointCleanup>().RbJointCleanup(this);
+
             DeactivateDebugLine();
 
             state = State.None;
@@ -80,9 +86,9 @@ namespace Assets.Scripts.Bases
         }
 
 
-        internal void SetupRb(Joint j, bool ownsJoint)
+        internal void SetupRb(Joint j, bool passJointOwnership)
         {
-            SetupRb1(ownsJoint);
+            SetupRb1(passJointOwnership);
             SetupRb2(j);
         }
 
@@ -102,11 +108,11 @@ namespace Assets.Scripts.Bases
         }
 
 
-        internal void SetupRb1(bool ownsJoint)
+        internal void SetupRb1(bool passJointOwnership)
         {
             if (state != State.None)
                 throw new InvalidOperationException("Necekal jsem pripojeny Joint");
-            SetState(ownsJoint ? State.RbConnection | State.OwnsJoint : State.RbConnection);
+            SetState(passJointOwnership ? State.RbConnection | State.OwnsJoint : State.RbConnection);
             MyObj.AttachRigidBody(false, true);
             OtherObj.AttachRigidBody(false, true);
         }
@@ -186,5 +192,10 @@ namespace Assets.Scripts.Bases
         }
 
         private void DeactivateDebugLine() => GetComponent<LineRenderer>().enabled = false;
+    }
+
+    public interface IHasRbJointCleanup
+    {
+        void RbJointCleanup(RbJoint rbj);
     }
 }

@@ -117,8 +117,11 @@ namespace Assets.Scripts.Utils
 
         public static void Cleanup(this Rigidbody rigidbody)
         {
-            rigidbody.velocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
+            if (!rigidbody.isKinematic)
+            {
+                rigidbody.velocity = Vector3.zero;
+                rigidbody.angularVelocity = Vector3.zero;
+            }
         }
 
         public static void AddForce(this Rigidbody body, Vector3 velocity, float sourceMass, VelocityFlags flags)

@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Assets.Scripts.Stuff
 {
     [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-    public class StickyBomb : MonoBehaviour, IHasCleanup, ICanActivate, ISimpleTimerConsumer, IConnector
+    public class StickyBomb2 : MonoBehaviour, IHasCleanup, ICanActivate, ISimpleTimerConsumer, IConnector, IHasRbJointCleanup
     {
         private const float BreakForce = 600;
         private const float BreakTorque = 600;
@@ -21,18 +21,22 @@ namespace Assets.Scripts.Stuff
 
         private int activeTag;
         public Renderer Renderer;
-        public Connectable[] connectables = new Connectable[4];
-        private ConnDesc[] connections = new ConnDesc[2];
-        private const int ArrOffest = 2;
+        private ConnDesc[] connections = new ConnDesc[3];
         private int lastConnection;
 
         private struct ConnDesc
         {
-            public Label Label;
+            public RbJoint MyRbJ;
             public SpringJoint Joint;
-            public bool ActiveRBs;
             public bool Broken => !Joint;
-            public bool Connected => Label;
+            public bool Connected => MyRbJ;
+            public Placeable OtherObj => MyRbJ ? MyRbJ.OtherObj : null;
+
+            internal void Disconnect()
+            {
+                if (MyRbJ)
+                    MyRbJ.Disconnect();
+            }
         }
 
         int ISimpleTimerConsumer.ActiveTag { get => activeTag; set => activeTag = value; }
@@ -47,18 +51,6 @@ namespace Assets.Scripts.Stuff
         void ISimpleTimerConsumer.OnTimer()
         {
             GetComponent<Label>().Explode();
-        }
-
-        private void Start()
-        {
-            connectables[0].Init(() => DisconnectJointInner(0));
-            connectables[1].Init(() => DisconnectJointInner(1));
-            connectables[2].Init(() => DisconnectJointInner(0));
-            connectables[3].Init(() => DisconnectJointInner(1));
-
-            var rb = GetComponent<Rigidbody>();
-            CreateJoint(connectables[0].gameObject, rb);
-            CreateJoint(connectables[1].gameObject, rb);
         }
 
         public void Activate()
@@ -100,56 +92,52 @@ namespace Assets.Scripts.Stuff
         {
             if (IsActive && Label.TryFind(collision.collider.transform, out var label))
             {
-                if (IsAlreadyAttached(label))
+                var otherObj = label.KillableLabel() as Placeable;
+                if (IsAlreadyAttached(otherObj))
                     return;
                 int index = FindNextConnectable();
                 if (index >= 0)
-                    AttachJoint(index, label, collision.contacts[0].point);
+                    AttachJoint(index, otherObj, collision.contacts[0].point);
             }
         }
 
-        private bool IsAlreadyAttached(Label label)
+        private bool IsAlreadyAttached(Placeable otherObj)
         {
             for (int f = 0; f < connections.Length; f++)
             {
-                if (connections[f].Label == label && !connections[f].Broken)
+                if (connections[f].OtherObj == otherObj && !connections[f].Broken)
                     return true;
             }
             return false;
         }
 
-        private void AttachJoint(int index, Label label, Vector3 point)
+        private void AttachJoint(int index, Placeable otherObj, Vector3 point)
         {
-            var awayDir = (point - transform.position).normalized * 0.1f;
-            Vector3 p1 = point - awayDir;
-            Vector3 p2 = point + awayDir;
-            var otherRB = label.Rigidbody;
-            ref var cDesc = ref connections[index];
-            cDesc.ActiveRBs = otherRB;
-            cDesc.Label = label;
-            if (otherRB)
+            var myObj = GetComponent<Placeable>();
+            var rbj = myObj.CreateRbJoint(otherObj);
+            if (rbj.state == RbJoint.State.None)
             {
-                var j = CreateJoint(gameObject, otherRB);
+                rbj.SetupRb1(false);
+
+                var awayDir = (point - transform.position).normalized * 0.1f;
+                Vector3 p1 = point - awayDir;
+                Vector3 p2 = point + awayDir;
+                var otherRB = otherObj.Rigidbody;
+                ref var cDesc = ref connections[index];
+                cDesc.MyRbJ = rbj;
+
+                var j = cDesc.Joint;
+                if (!j)
+                    j = CreateJoint(otherRB);
                 j.anchor = transform.InverseTransformPoint(p1);
                 j.connectedBody = otherRB;
                 j.connectedAnchor = otherRB.transform.InverseTransformPoint(p2);
-                cDesc.Joint = j;
-
-                var a = connectables[index + ArrOffest];
-                a.ConnectTo(label, ConnectableType.StickyBomb, true);
-            }
-            else
-            {
-                var a = connectables[index];
-                var j = a.GetComponent<SpringJoint>();
-                if (!j)
-                    j = CreateJoint(a.gameObject, GetComponent<Rigidbody>());
-                a.ConnectTo(label, ConnectableType.StickyBomb, true);
-                j.anchor = j.transform.InverseTransformPoint(p2);
-                j.connectedAnchor = transform.InverseTransformPoint(p1);
                 j.breakForce = BreakForce;
                 j.breakTorque = BreakTorque;
                 cDesc.Joint = j;
+
+                rbj.SetupRb2(j);
+                rbj.EnableRbjCleanup();
             }
         }
 
@@ -160,9 +148,16 @@ namespace Assets.Scripts.Stuff
             if (!connections[lastConnection].Connected)
                 return lastConnection;
             WeekenJoint(connections[lastConnection].Joint);
-            lastConnection ^= 1;
+            IncLastConnection();
             DisconnectJoint(lastConnection);
             return lastConnection;
+        }
+
+        private void IncLastConnection()
+        {
+            lastConnection++;
+            if (lastConnection == connections.Length)
+                lastConnection = 0;
         }
 
         private void WeekenJoint(SpringJoint j)
@@ -179,32 +174,12 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        private void DisconnectJoint(int i) => connectables[connections[i].ActiveRBs ? i + ArrOffest : i].Disconnect();
+        private void DisconnectJoint(int i) => connections[i].Disconnect();
 
-        public Transform DisconnectJointInner(int index)
-        {
-            ref var c = ref connections[index];
-            if (c.Connected)
-            {
-                if (c.ActiveRBs)
-                {
-                    var joint = c.Joint;
-                    if (joint)
-                        Destroy(joint);
-                }
-                else
-                {
-                    if (c.Broken)
-                        CreateJoint(connectables[index].gameObject, GetComponent<Rigidbody>());
-                }
-                c = default;
-            }
-            return transform;
-        }
 
-        private SpringJoint CreateJoint(GameObject go, Rigidbody rb)
+        private SpringJoint CreateJoint(Rigidbody rb)
         {
-            var j = go.AddComponent<SpringJoint>();
+            var j = gameObject.AddComponent<SpringJoint>();
             j.autoConfigureConnectedAnchor = false;
             j.spring = 1000;
             j.enableCollision = true;
@@ -219,8 +194,22 @@ namespace Assets.Scripts.Stuff
         {
             for (int f = 0; f < connections.Length; f++)
             {
-                if (connections[f].Label == label)
+                if (connections[f].OtherObj == label)
                     DisconnectJoint(f);
+            }
+        }
+
+        void IHasRbJointCleanup.RbJointCleanup(RbJoint rbj)
+        {
+            for (int f = 0; f < connections.Length; f++)
+            {
+                if (connections[f].MyRbJ == rbj)
+                {
+                    connections[f].MyRbJ = null;
+                    var j = connections[f].Joint;
+                    if (j)
+                        Destroy(j);
+                }
             }
         }
     }

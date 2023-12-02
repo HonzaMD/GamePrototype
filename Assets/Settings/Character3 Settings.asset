@@ -20,10 +20,10 @@ MonoBehaviour:
   LegForceDampening: 0.3
   LegSideLimit: 3
   DragCoef: 1
-  ArmInForceCoef: 2
+  ArmInForceCoef: 2.5
   maxGroundAngle: 40
   monsterMoveOnGround: 1
-  HoldPosition: {x: 0.5, y: 0}
+  HoldPosition: {x: 0.47, y: 0}
   HoldType: 7
-  HoldMoveSpeed: 30
-  HoldMoveAcceleration: 3
+  HoldMoveSpeed: 5
+  HoldMoveAcceleration: 2.5

@@ -185,8 +185,8 @@ public class Placeable : Label, ILevelPlaceabe
             Transform transform = KillableLabel().transform;
             var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
             var rb = rbLabel.Rigidbody;
-            rb.mass = GetMass();
             transform.SetParent(rbLabel.transform, true);
+            rb.mass = rbLabel.PlaceableC.GetMass();
             if (incConnection)
                 rbLabel.ChengeConnectionCounter(1);
             
