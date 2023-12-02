@@ -81,6 +81,9 @@ public abstract class Label : MonoBehaviour
     /// </summary>
     public virtual void ApplyVelocity(Vector3 velocity, float sourceMass, VelocityFlags flags)
     {
+        if (velocity.sqrMagnitude * sourceMass * sourceMass < PhysicsConsts.TooSmallSqr)
+            return;
+
         bool dontAffectRb = (flags & VelocityFlags.DontAffectRb) != 0;
         var rb = dontAffectRb ? null : Rigidbody;
         if (rb)
@@ -118,7 +121,7 @@ public abstract class Label : MonoBehaviour
         float scCenterX = sandCombiner.Pivot.x + 0.25f;
         float toCenterX = scCenterX - Pivot.x;
         var toSand = new Vector2(toCenterX, -0.25f);
-        if (Vector2.Dot(toSand, velocity.XY()) < 0)
+        if (Vector2.Dot(toSand, velocity.XY()) < -0.1f)
         {
             sandCombiner.CollapseNow();
             Rigidbody.AddForce(velocity, sourceMass, flags);

@@ -199,7 +199,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			{
 				var lpos = Legs[index].position.XY();
 				var center = ArmSphere.transform.position.XY();
-				var radius = ArmSphere.radius * 1.2f;
+				var radius = ArmSphere.radius * 1.5f;
 				if ((lpos - center).sqrMagnitude > radius * radius)
 				{
 					EnableCollision(legsConnectedLabels[index]);
@@ -474,7 +474,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		var map = Game.Map;
 		var center = ArmSphere.transform.position.XY();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
-		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
+		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
 		map.Get(placeables, center - radius2, 2 * radius2, Settings.HoldType);
 
 		EnsurePrevioslyHoldIsFirst();
@@ -494,11 +494,15 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		{
 			var pos = p.GetClosestPoint(center3d);
 			var zDiff = center3d.z - pos.z;
-			var radius = Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
+			var radius = p == delayedEnableCollisionLabel
+				? ArmSphere.radius * 1.5f
+                : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
 			if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 			{
 				if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
 				{
+					if (!p.HasActiveRB)
+						((Placeable)p).AttachRigidBody(true, false);
 					PlaceLeg3d(index, ref hitInfo, Hold);
 					IgnoreCollision(legsConnectedLabels[index], true);
 					SetHoldTarget(index);
@@ -627,12 +631,13 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		else if (body.velocity.x < -Settings.maxSpeed * 0.1f)
 			lastXOrientation = -1;
 
-		Vector3 groundVelocity = GetGroundVelocity();
+		Vector2 groundVelocity = GetGroundVelocity();
 		if (ArmCatched)
 		{
-			var force = Vector2.ClampMagnitude(groundVelocity.XY() + desiredVelocity - body.velocity.XY(), Settings.maxAcceleration);
+			var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.velocity.XY(), Settings.maxAcceleration);
 			body.AddForce(force, ForceMode.VelocityChange);
-			legUpDir = Vector3.up;
+			SendOppositeForceToLegArms(force * 0.8f);
+            legUpDir = Vector3.up;
 		}
 		else
 		{
@@ -642,10 +647,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 			var xVel = Vector3.Dot(xAxis, body.velocity);
 			var xGVel = Vector3.Dot(xAxis, groundVelocity);
 			var force = Mathf.Clamp(xGVel + desiredVelocity.x - xVel, -Settings.maxAcceleration, Settings.maxAcceleration);
-			body.AddForce(xAxis * force, ForceMode.VelocityChange);
-		}
+			var forceVec = xAxis * force;
+            body.AddForce(forceVec, ForceMode.VelocityChange);
+            SendOppositeForceToLegArms(forceVec * 0.8f);
+        }
 
-		body.AddForce(GetArmsCatchForce(), ForceMode.VelocityChange);
+        body.AddForce(GetArmsCatchForce(groundVelocity), ForceMode.VelocityChange);
 
 		bool jumpStarted = false;
 		if (desiredJump)
@@ -712,21 +719,21 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
             var lRB = label.Rigidbody;
             if (lRB != null)
             {
-                var armPos = Legs[index].position.XY();
+                var armPos = Legs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
 				var destPos = ArmSphere.transform.position.XY() + holdTarget;
 				destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
 				GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
 				destPos += decollision;
 
-				var dist = (destPos - armPos) * Settings.HoldMoveSpeed;
+				var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
 				var koef = body.mass * 0.6f / lRB.mass;
 				if (koef > 1)
 					koef = 1;
-                var force = Vector2.ClampMagnitude(dist - label.Velocity.XY(), Settings.HoldMoveAcceleration * koef);
+                var force = Vector2.ClampMagnitude(dist, Settings.HoldMoveAcceleration * koef);
 				label.ApplyVelocity(force, body.mass * 0.6f, VelocityFlags.LimitVelocity);
 
 				lRB.angularVelocity = Vector3.zero;
-				body.AddForce(-force * 0.5f, lRB.mass, VelocityFlags.None);
+				body.AddForce(-force * 0.8f, lRB.mass, VelocityFlags.None);
             }
         }
 	}
@@ -766,16 +773,16 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	}
 
 
-	private Vector3 GetGroundVelocity()
+	private Vector2 GetGroundVelocity()
 	{
 		int count = 0;
-		Vector3 res = Vector3.zero;
+		Vector2 res = Vector2.zero;
 		for (int f = 0; f < Legs.Length; f++)
 		{
 			if (legArmStatus[f] == Catch)
 			{
 				count++;
-				res += legsConnectedLabels[f].Velocity;
+				res += legsConnectedLabels[f].Velocity.XY();
 			}
 		}
 
@@ -834,11 +841,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		return 0;
 	}
 
-	private Vector2 GetArmsCatchForce()
+	private Vector2 GetArmsCatchForce(Vector2 groundVelocity)
 	{
 		var velocity = body.velocity.XY();
-		var dot = 1 - Mathf.Clamp(Vector2.Dot(velocity, desiredVelocity), 0, 1);
-		Vector2 forceToReduce = dot * velocity;
+		var localVelocity = velocity - groundVelocity;
+		var dot = 1 - Mathf.Clamp(Vector2.Dot(localVelocity, desiredVelocity), 0, 1);
+		Vector2 forceToReduce = dot * localVelocity;
 		Vector2 result = Vector2.zero;
 		GetArmCatchForce(2, ref forceToReduce, ref result, velocity);
 		GetArmCatchForce(3, ref forceToReduce, ref result, velocity);
@@ -866,7 +874,25 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
         }
 	}
 
-	private void SendOppositeForceToLegs(Vector3 velocity, bool? isImpact)
+    private void SendOppositeForceToLegArms(Vector3 velocity)
+	{
+		int count = 0;
+		foreach (var status in legArmStatus)
+			if (status == Catch)
+				count++;
+		
+		if (count > 0)
+		{
+			for (int f = 0; f < legArmStatus.Length; f++)
+			{
+				if (legArmStatus[f] == Catch)
+					SendOppositeForce(velocity / count, f, null);
+			}
+		}
+	}
+
+
+    private void SendOppositeForceToLegs(Vector3 velocity, bool? isImpact)
 	{
 		if (legArmStatus[0] == Catch)
 		{

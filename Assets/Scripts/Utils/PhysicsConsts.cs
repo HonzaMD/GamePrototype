@@ -13,6 +13,7 @@ public static class PhysicsConsts
     public const float ImpulseToMassDumped = ImpulseToMass * ImpactDump;
     public const float SandCombinerTransferMinimum = 0.3f;
     public const float ImpactVelocitySqr = 0.5f * 0.5f;
+    public const float TooSmallSqr = 0.1f * 0.1f;
 }
 
 
