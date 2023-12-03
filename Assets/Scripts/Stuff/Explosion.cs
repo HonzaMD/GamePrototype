@@ -57,8 +57,8 @@ namespace Assets.Scripts.Stuff
             {
                 var direction = p.GetClosestPoint(transform.position) - transform.position;
                 var distanceSq = direction.sqrMagnitude;
-                const float forceIntensity = 3;
-                const float explMassConst = 20;
+                const float forceIntensity = 10;
+                const float explMassConst = 10;
                 const float explMassLin = 20;
                 if (distanceSq < sizeSq)
                 {

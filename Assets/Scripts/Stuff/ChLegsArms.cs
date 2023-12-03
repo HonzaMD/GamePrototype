@@ -728,7 +728,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 				var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
 				var koef = body.mass * 0.6f / lRB.mass;
 				if (koef > 1)
-					koef = 1;
+					koef = Mathf.Log(koef) + 1;
                 var force = Vector2.ClampMagnitude(dist, Settings.HoldMoveAcceleration * koef);
 				label.ApplyVelocity(force, body.mass * 0.6f, VelocityFlags.LimitVelocity);
 
@@ -924,9 +924,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	protected Label GetHoldObject()
 	{
-		if (legArmStatus[2] == Hold)
+		if (legArmStatus[2] == Hold && legsConnectedLabels[2] && legsConnectedLabels[2].HasActiveRB)
 			return legsConnectedLabels[2];
-		if (legArmStatus[3] == Hold)
+		if (legArmStatus[3] == Hold && legsConnectedLabels[3] && legsConnectedLabels[3].HasActiveRB)
 			return legsConnectedLabels[3];
 		return null;
 	}

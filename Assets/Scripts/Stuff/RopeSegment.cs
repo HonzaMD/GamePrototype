@@ -53,6 +53,8 @@ public class RopeSegment : Placeable
     {
         Quaternion rotation = Quaternion.FromToRotation(Vector3.down, end - start);
         int segCount = Mathf.CeilToInt((end - start).magnitude / segmentSize);
+        if (segCount <= 0)
+            return;
         Vector3 segOffset = (end - start).normalized * segmentSize;
 
         Placeable prevNode = Game.Map.GetFirstTouching(start, Ksid.SpFixed, 0.05f);
@@ -70,12 +72,16 @@ public class RopeSegment : Placeable
             var joint = seg.GetComponent<HingeJoint>();
             if (prevNode)
             {
+                if (!joint)
+                    joint = CreateJoint(seg.gameObject, false);
+
                 seg.CreateRbJoint(prevNode).SetupRb(joint, false);
                 joint.connectedBody = prevNode.Rigidbody;
             }
             else
             {
-                Destroy(joint);
+                if (joint)
+                    Destroy(joint);
             }
 
             prevNode = seg;
@@ -94,20 +100,26 @@ public class RopeSegment : Placeable
             anchor = Game.Map.GetFirstTouching(end, Ksid.SpNode, 0.05f);
         if (anchor)
         {
-            var j1 = lastNode.GetComponent<HingeJoint>();
-            var j = lastNode.gameObject.AddComponent<HingeJoint>();
-            j.axis = j1.axis;
-            j.anchor = Vector3.down * segmentSize;
-            j.autoConfigureConnectedAnchor = j1.autoConfigureConnectedAnchor;
-            j.useSpring = j1.useSpring;
-            j.spring = j1.spring;
-            j.breakForce = j1.breakForce;
-            j.breakTorque = j1.breakTorque;
-            j.enablePreprocessing = j1.enablePreprocessing;
+            HingeJoint j = CreateJoint(lastNode.gameObject, true);
 
             lastNode.CreateRbJoint(anchor).SetupRb(j, true);
             j.connectedBody = anchor.Rigidbody;
         }
+    }
+
+    private static HingeJoint CreateJoint(GameObject gameObject, bool anchorDown)
+    {
+        var j2 = Game.Instance.PrefabsStore.RopeSegment.GetComponent<HingeJoint>();
+        var j = gameObject.AddComponent<HingeJoint>();
+        j.axis = j2.axis;
+        j.anchor = anchorDown ? Vector3.down * segmentSize : j2.anchor;
+        j.autoConfigureConnectedAnchor = j2.autoConfigureConnectedAnchor;
+        j.useSpring = j2.useSpring;
+        j.spring = j2.spring;
+        j.breakForce = j2.breakForce;
+        j.breakTorque = j2.breakTorque;
+        j.enablePreprocessing = j2.enablePreprocessing;
+        return j;
     }
 }
 
