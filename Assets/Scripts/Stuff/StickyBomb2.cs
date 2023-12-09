@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace Assets.Scripts.Stuff
 {
@@ -70,6 +71,12 @@ namespace Assets.Scripts.Stuff
             sharedPropertyBlock.SetFloat(time0Id, time0);
             sharedPropertyBlock.SetFloat(time1Id, time1);
             Renderer.SetPropertyBlock(sharedPropertyBlock);
+
+            //var material = Renderer.material;
+            //material.SetFloat("_Active", active);
+            //material.SetFloat(time0Id, time0);
+            //material.SetFloat(time1Id, time1);
+            //HDMaterial.ValidateMaterial(material);
         }
 
         public void Cleanup()
@@ -77,6 +84,11 @@ namespace Assets.Scripts.Stuff
             Deactivate();
             GetComponent<Rigidbody>().Cleanup();
         }
+
+        //private void Start()
+        //{
+        //    SetShader(1, 0, 1);
+        //}
 
         private void Deactivate()
         {
