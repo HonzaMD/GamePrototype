@@ -119,6 +119,7 @@
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\LevelLevelSLT.cs" />
     <Compile Include="Assets\Scripts\Utils\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\DeleteColorWorker.cs" />

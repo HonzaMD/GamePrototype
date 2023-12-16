@@ -22,7 +22,7 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
     {
         CellList.CheckEmpty();
 
-        var levelSource = new Level1();
+        var levelSource = new LevelSLT();
         Map = levelSource.CreateMap(Game.Ksids);
         Game.Map = Map;
 
