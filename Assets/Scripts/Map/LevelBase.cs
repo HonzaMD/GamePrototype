@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
-using static UnityEditor.PlayerSettings;
 
 namespace Assets.Scripts.Map
 {

@@ -3,7 +3,6 @@ using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 namespace Assets.Scripts.Map
 {
