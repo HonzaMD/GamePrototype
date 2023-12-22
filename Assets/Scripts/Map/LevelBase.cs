@@ -76,6 +76,7 @@ namespace Assets.Scripts.Map
                 case 'P': return SearchRope(ch, x, y);
                 case 'm': return prefabsStore.SmallMonster;
                 case 's': return prefabsStore.Stone;
+                case '*': return prefabsStore.PointLight;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

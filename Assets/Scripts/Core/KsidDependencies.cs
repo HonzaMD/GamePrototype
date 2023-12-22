@@ -22,6 +22,7 @@ namespace Assets.Scripts.Core
                 (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                
                 (Ksid.Stone, Ksid.SandLike),
 
+                (Ksid.Light, Ksid.DamagedByExplosion),
                 (Ksid.Stone, Ksid.DamagedByExplosion),
                 (Ksid.Explosive, Ksid.DamagedByExplosion),
                 (Ksid.SandCombiner, Ksid.DamagedByExplosion),

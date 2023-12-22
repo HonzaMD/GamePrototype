@@ -179,8 +179,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             Ksids = new KsidDependencies();
         if (StaticPhysics == null)
             StaticPhysics = new SpInterface();
-        Character.Camera = Camera;
-        Camera.SetTransform(Character.transform.position);
+        Camera.PairWithCharacter(Character);
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
     }
 

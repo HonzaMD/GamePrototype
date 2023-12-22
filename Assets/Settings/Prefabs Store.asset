@@ -31,3 +31,5 @@ MonoBehaviour:
   RbJoint: {fileID: 7839293749991515609, guid: 8a9b74df2cea31043a905caf8f3c5673, type: 3}
   ParticleEffect: {fileID: -2507574495529057384, guid: 77bbbb85f23454b4783327a8bc5ebe1b,
     type: 3}
+  PointLight: {fileID: 6926791521354329940, guid: 04bb0b5946bb9a14ab95431b4de75372,
+    type: 3}

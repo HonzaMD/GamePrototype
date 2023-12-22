@@ -17,4 +17,5 @@ public class PrefabsStore : ScriptableObject
     public Explosion Explosion;
     public RbJoint RbJoint;
     public ParticleEffect ParticleEffect;
+    public Placeable PointLight;
 }

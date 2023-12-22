@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityTemplateProjects
 {
@@ -180,6 +181,13 @@ namespace UnityTemplateProjects
         {
             ActiveControl = false;
             m_TargetCameraState.SetFromOther(m_StoredState);
+        }
+
+        internal void PairWithCharacter(Character3 character)
+        {
+            character.Camera = this;
+            SetTransform(character.transform.position);
+            GetComponent<HDAdditionalCameraData>().volumeAnchorOverride = character.transform;
         }
     }
 }

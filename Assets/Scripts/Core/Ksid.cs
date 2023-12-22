@@ -33,6 +33,7 @@ namespace Assets.Scripts.Core
         SpNode,
         ParticleEffect,
         SpNodeOrSandCombiner,
+        Light,
     }
 
     public static class KsidX
