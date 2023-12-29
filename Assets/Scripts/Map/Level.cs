@@ -13,23 +13,29 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
     [SerializeField]
     private Transform[] PlaceablesRoots = default;
 
+    public Mode BuildMode;
+
     internal Map Map { get; private set; }
     private bool mapCreated;
     private List<Placeable> mapContentToserialize;
     private MapSettings mapSettings;
 
+    public enum Mode
+    {
+        All,
+        Statics,
+        Dynamics,
+    }
+
+    internal static LevelBase LevelSource() => new LevelSLT();
+
     void Start()
     {
         CellList.CheckEmpty();
 
-        var levelSource = new LevelSLT();
+        var levelSource = LevelSource();
         Map = levelSource.CreateMap(Game.Ksids);
         Game.Map = Map;
-
-        foreach (var pair in levelSource.Placeables(PrefabsStore))
-        {
-            pair.Item1.Instantiate(Map, transform, pair.Item2);
-        }
 
         if (PlaceablesRoots != null)
         {
@@ -43,6 +49,11 @@ public class Level : MonoBehaviour, ISerializationCallbackReceiver
                     }
                 }
             }
+        }
+
+        foreach (var pair in levelSource.Placeables(PrefabsStore, BuildMode))
+        {
+            pair.Item1.Instantiate(Map, transform, pair.Item2);
         }
 
         mapCreated = true;

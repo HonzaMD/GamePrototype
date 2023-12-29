@@ -94,10 +94,15 @@ public class Placeable : Label, ILevelPlaceabe
 
     public void LevelPlaceAfterInstanciate(Map map, Vector3 pos)
     {
+        SetPlacedPosition(pos);
+        PlaceToMap(map);
+    }
+
+    public void SetPlacedPosition(Vector3 pos)
+    {
         if (PosOffset.x < 0 || PosOffset.y < 0)
             pos += new Vector3(0.25f, 0.25f, 0);
         transform.localPosition = pos;
-        PlaceToMap(map);
     }
 
     public void PlaceToMap(Map map)

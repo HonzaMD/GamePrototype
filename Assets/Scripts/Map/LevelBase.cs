@@ -26,7 +26,7 @@ namespace Assets.Scripts.Map
         }
 
 
-        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore)
+        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, Level.Mode buildMode)
         {
             var delayed = new List<(ILevelPlaceabe, Vector3)>();
 
@@ -38,7 +38,7 @@ namespace Assets.Scripts.Map
                 {
                     Vector2 pos = ToWorld(x, y);
 
-                    var p = PlaceableFromChar(ch, prefabsStore, x, y);
+                    var p = PlaceableFromChar(ch, prefabsStore, x, y, buildMode);
                     if (p != null)
                     {
                         if (p.SecondPhase)
@@ -64,8 +64,13 @@ namespace Assets.Scripts.Map
             return pos;
         }
 
-        private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y)
+        private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y, Level.Mode buildMode)
         {
+            if (buildMode == Level.Mode.Statics && ch != 'H')
+                return null;
+            if (buildMode == Level.Mode.Dynamics && ch == 'H')
+                return null;
+
             switch (ch)
             {
                 case 'H': return prefabsStore.Block;

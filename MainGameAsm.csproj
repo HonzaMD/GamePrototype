@@ -95,6 +95,7 @@
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
     <Compile Include="Assets\Scripts\Bases\StaticBehaviour.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Utils.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\Menu.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
