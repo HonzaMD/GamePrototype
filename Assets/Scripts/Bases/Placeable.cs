@@ -16,10 +16,10 @@ using UnityEngine.SocialPlatforms;
 public enum SubCellFlags : byte
 {
     Free   = 0b0000,
-    Full   = 0b0011,
     FullEx = 0b0010,
     Part   = 0b0001,
     Sand   = 0b0100,
+    Full   = 0b0011,
 
     HasFloor = 0b0110,
 }

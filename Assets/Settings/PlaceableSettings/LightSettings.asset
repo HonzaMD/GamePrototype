@@ -20,7 +20,7 @@ MonoBehaviour:
   Prototype: {fileID: 6926791521354329940, guid: 04bb0b5946bb9a14ab95431b4de75372,
     type: 3}
   Unseparable: 0
-  AutoAtachRB: 0
+  AutoAtachRB: 1
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000

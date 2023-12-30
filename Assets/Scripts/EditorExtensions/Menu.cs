@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditor;
 using Assets.Scripts.Map;
 using System;
@@ -40,3 +41,4 @@ public class Menu
     //    return PrefabUtility.IsPartOfPrefabAsset(go);
     //}
 }
+#endif

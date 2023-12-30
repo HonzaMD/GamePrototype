@@ -48,10 +48,10 @@ MonoBehaviour:
     m_Value: 1
   lastBounceFallbackHierarchy:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 0
   ambientProbeDimmer:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -64,8 +64,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 50
   m_ClampValue:
-    m_OverrideState: 1
-    m_Value: 0.63
+    m_OverrideState: 0
+    m_Value: 1
   mode:
     m_OverrideState: 1
     m_Value: 1
@@ -377,13 +377,13 @@ MonoBehaviour:
     m_Value: 32
   rayMiss:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 3
   lastBounceFallbackHierarchy:
     m_OverrideState: 1
     m_Value: 0
   ambientProbeDimmer:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
