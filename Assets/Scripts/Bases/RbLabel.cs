@@ -13,6 +13,7 @@ namespace Assets.Scripts.Bases
     public sealed class RbLabel : Label, ILevelPlaceabe
     {
         private int connectionCounter;
+        private bool isAlive;
 
         public override Placeable PlaceableC => (Placeable)SubLabel;
         public override Transform ParentForConnections => SubLabel.ParentForConnections;
@@ -20,6 +21,7 @@ namespace Assets.Scripts.Bases
         public override Label Prototype => Game.Instance.PrefabsStore.RbBase;
         public override Ksid KsidGet => SubLabel.KsidGet;
         public override Rigidbody Rigidbody => GetComponent<Rigidbody>();
+        public override bool IsAlive => isAlive;
         public override void DetachKilledChild(Label child)
         {
             child.transform.SetParent(LevelGroup, true);
@@ -30,6 +32,7 @@ namespace Assets.Scripts.Bases
             // schvalne vynechavam clenup connectables, protoze je nemam
             Game.Instance.GlobalTimerHandler.ObjectDied(this);
             Rigidbody.Cleanup();
+            isAlive = false;
         }
 
         void ILevelPlaceabe.Instantiate(Map.Map map, Transform parent, Vector3 pos)
@@ -48,10 +51,21 @@ namespace Assets.Scripts.Bases
                 dest.OnCollisionEnter(collision);
         }
 
-        public void StartMoving()
+        public void Init(bool startMoving, bool stopMoving, bool incConnection)
         {
-            Rigidbody.isKinematic = false;
-            PlaceableC.RegisterMovingObjRecursivelly();
+            isAlive = true;
+            if (startMoving)
+            {
+                Rigidbody.isKinematic = false;
+                PlaceableC.RegisterMovingObjRecursivelly();
+            }
+            else if (stopMoving)
+            {
+                Rigidbody.isKinematic = true;
+            }
+            
+            if (incConnection)
+                ChengeConnectionCounter(1);
         }
 
         public void StopMoving()
@@ -79,7 +93,5 @@ namespace Assets.Scripts.Bases
             SubLabel.transform.SetParent(transform.parent, true);
             Kill();
         }
-
-        internal void InitKinematic() => Rigidbody.isKinematic = true;
     }
 }

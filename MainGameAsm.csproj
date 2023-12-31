@@ -117,6 +117,7 @@
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />

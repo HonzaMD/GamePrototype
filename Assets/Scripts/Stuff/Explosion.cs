@@ -18,6 +18,7 @@ namespace Assets.Scripts.Stuff
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override Label Prototype => Game.Instance.PrefabsStore.Explosion;
         public override Ksid KsidGet => Ksid.Explosion;
+        public override bool IsAlive => activityTag.IsActive;
 
         public int ActiveTag { get => activityTag.Tag; set => activityTag.Tag = value; }
 

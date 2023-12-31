@@ -203,11 +203,15 @@ public abstract class Label : MonoBehaviour
     public Vector2 Pivot => transform.position.XY();
     public int CellZ => transform.position.z < 0.25f ? 0 : 1;
 
+    public abstract bool IsAlive { get; }
 
     public virtual void Kill()
     { 
         if (CanBeKilled)
         {
+            if (!IsAlive)
+                throw new InvalidOperationException("Zabijis neco, co nezije!");
+
             if (TryGetParentLabel(out var pl))
                 pl.DetachKilledChild(this);
 

@@ -16,6 +16,7 @@ namespace Assets.Scripts.Stuff
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override Label Prototype => Game.Instance.PrefabsStore.ParticleEffect;
         public override Ksid KsidGet => Ksid.ParticleEffect;
+        public override bool IsAlive => (ActiveTag & 1) != 0;
 
         public int ActiveTag { get; set; }
 

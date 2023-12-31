@@ -57,6 +57,7 @@ public class Placeable : Label, ILevelPlaceabe
     private int spNodeIndex;
 
     public bool IsMapPlaced => PlacedPosition != NotInMap;
+    public override bool IsAlive => IsMapPlaced;
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
@@ -179,10 +180,7 @@ public class Placeable : Label, ILevelPlaceabe
         {
             if (TryGetRbLabel(out var rbLabel))
             {
-                if (startMoving)
-                    rbLabel.StartMoving();
-                if (incConnection)
-                    rbLabel.ChengeConnectionCounter(1);
+                rbLabel.Init(startMoving, false, incConnection);
             }
         }
         else
@@ -192,13 +190,7 @@ public class Placeable : Label, ILevelPlaceabe
             var rb = rbLabel.Rigidbody;
             transform.SetParent(rbLabel.transform, true);
             rb.mass = rbLabel.PlaceableC.GetMass();
-            if (incConnection)
-                rbLabel.ChengeConnectionCounter(1);
-            
-            if (startMoving)
-                rbLabel.StartMoving();
-            else
-                rbLabel.InitKinematic();
+            rbLabel.Init(startMoving, !startMoving, incConnection);
         }
     }
 

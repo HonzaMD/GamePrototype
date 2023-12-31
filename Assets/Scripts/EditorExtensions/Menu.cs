@@ -22,6 +22,18 @@ public class Menu
         }
     }
 
+    [MenuItem("MyGame/Kill Selected")]
+    static void KillSelected()
+    {
+        foreach (var obj in Selection.transforms)
+        {
+            if (Label.TryFind(obj, out var label) && label.IsAlive)
+            {
+                label.Kill();
+            }
+        }
+    }
+
     private static void DeleteAllChildren(Transform parent)
     {
         while (parent.childCount > 0)
