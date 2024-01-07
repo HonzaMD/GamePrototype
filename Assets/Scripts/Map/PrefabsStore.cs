@@ -18,4 +18,5 @@ public class PrefabsStore : ScriptableObject
     public RbJoint RbJoint;
     public ParticleEffect ParticleEffect;
     public Placeable PointLight;
+    public GameObject DebugVisibility;
 }

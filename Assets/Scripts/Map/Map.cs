@@ -29,6 +29,8 @@ namespace Assets.Scripts.Map
         private readonly Ksids ksids;
         private int currentTag;
 
+        public Visibility Visibility { get; }
+
         public Map(MapSettings settings, Ksids ksids)
             : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids)
         {
@@ -47,6 +49,7 @@ namespace Assets.Scripts.Map
 
             this.ksids = ksids;
             cells = new Cell[sizex * sizey];
+            Visibility = new(this);
         }
 
         public MapSettings Settings => new MapSettings(posx, posy, sizex, sizey);

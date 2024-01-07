@@ -33,3 +33,5 @@ MonoBehaviour:
     type: 3}
   PointLight: {fileID: 6926791521354329940, guid: 04bb0b5946bb9a14ab95431b4de75372,
     type: 3}
+  DebugVisibility: {fileID: 894492133461429317, guid: c54c9a86e1a6a2644991b0b16038b27d,
+    type: 3}

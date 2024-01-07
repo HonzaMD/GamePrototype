@@ -39,6 +39,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private int movingObjectInsterPtr;
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
+    private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
 
     private bool cameraMode;
     private readonly Action<object, int> DeactivateHoldMarkerA;
@@ -95,7 +96,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
         Timer.GameUpdate();
         UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-        Map.ProcessCellStateTests(10);
+        if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
+            Map.Visibility.Compute(Character.ArmSphere.transform.position);
+        else
+            Map.ProcessCellStateTests(10);
         UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
 
         //if (!cameraMode)
