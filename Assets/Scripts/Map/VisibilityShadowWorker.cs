@@ -95,7 +95,7 @@ namespace Assets.Scripts.Map
                     return false;
                 }
 
-                if (posLS.x < 2 && posLS.x + 1 <= xDist && HasFloor(posLS + Vector2Int.right))
+                if (posLS.x < 2 && posLS.x < xDist && HasFloor(posLS + Vector2Int.right))
                 {
                     posLS = posLS + Vector2Int.right;
                     posF.x += 0.5f;
@@ -122,7 +122,7 @@ namespace Assets.Scripts.Map
 
                 for (; ; )
                 {
-                    if (p2.x > xDist || p2.y >= yDist)
+                    if (p2.x > 2 || p2.y > 2 || p2.x > xDist || p2.y >= yDist)
                         break;
                     
                     dx += xStep;
@@ -135,6 +135,8 @@ namespace Assets.Scripts.Map
                             return true;
                         }
                         p2 = p2 + Vector2Int.right;
+                        if (p2.x > 2 || p2.x > xDist)
+                            break;
                         posF2.x += 0.5f;
                     }
 

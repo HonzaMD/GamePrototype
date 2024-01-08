@@ -31,7 +31,7 @@ namespace Assets.Scripts.Map
             Unknown,
             Visible,    // neni full shadow (muzu prejit z PartShadow po testu)
             PartShadow, // kandidat na fullShadow (pak musim udelat detailni test
-            FullShadow, // potreba pro detekci Darku
+            FullShadow, // potreba pro detekci Darku. Vsechny stavy >= FullShadow odpovidaji FS
             Dark,       // bunka ve stinu darkCasteru
             DarkCandidate, // kandidat na darkCaster
         }
@@ -53,8 +53,8 @@ namespace Assets.Scripts.Map
             public CState state;
             public WallType wallType;
 
-            public readonly bool IsFloor(int shift) => (((int)WallType.Floor << shift) & (int)wallType) != 0;
-            public readonly bool IsSide(int shift) => (((int)WallType.Side << shift) & (int)wallType) != 0;
+            public readonly bool IsFloor(int shift) => state >= CState.FullShadow || (((int)WallType.Floor << shift) & (int)wallType) != 0;
+            public readonly bool IsSide(int shift) => state >= CState.FullShadow || (((int)WallType.Side << shift) & (int)wallType) != 0;
         }
 
 
@@ -252,7 +252,7 @@ namespace Assets.Scripts.Map
             return Get(pos).state switch
             {
                 CState.Visible => 1,
-                CState.FullShadow or CState.Dark or CState.DarkCandidate => 0,
+                >= CState.FullShadow => 0,
                 _ => throw new InvalidOperationException("neocekavany case")
             };
         }
