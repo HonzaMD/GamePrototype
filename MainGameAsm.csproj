@@ -79,7 +79,9 @@
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
+    <Compile Include="Assets\Scripts\Map\VisibilityDarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelEmpty.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Occluder.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
     <Compile Include="Assets\Scripts\Stuff\Explosion.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />

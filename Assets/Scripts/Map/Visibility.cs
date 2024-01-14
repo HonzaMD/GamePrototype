@@ -16,14 +16,22 @@ namespace Assets.Scripts.Map
         private const int sizeY = HalfYSize * 2 + 1;
 
         private const float centerRadius = 0.7f;
+        private const float centerRadiusSq = centerRadius * centerRadius;
+        private const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
         private readonly Map map;
         private Cell[] vmap = new Cell[sizeY * sizeX];
         private Vector2 centerPosLocal; // pozice od stedu mapy
         private Vector2Int offset;
 
-        private Action<Vector2Int> castShadowAction;
-        private Action<Vector2Int> createDarkersAction;
+        private delegate void NeighbourTest(Vector2Int pos, ref Cell cell);
+        private readonly Action<Vector2Int> castShadowAction;
+        private readonly Action<Vector2Int> createDarkersAction;
+        private readonly NeighbourTest findActiveCasterAction;
+        private readonly NeighbourTest joinOtherCasterAction;
+        private readonly NeighbourTest findTouchingShadowAction;
+        private readonly NeighbourTest recolorDCAction;
+
         private readonly ShadowWorker shadowWorker;
 
         private enum CState : byte
@@ -52,6 +60,7 @@ namespace Assets.Scripts.Map
         { 
             public CState state;
             public WallType wallType;
+            public short darkCaster;
 
             public readonly bool IsFloor(int shift) => state >= CState.FullShadow || (((int)WallType.Floor << shift) & (int)wallType) != 0;
             public readonly bool IsSide(int shift) => state >= CState.FullShadow || (((int)WallType.Side << shift) & (int)wallType) != 0;
@@ -64,6 +73,10 @@ namespace Assets.Scripts.Map
             shadowWorker = new(this);
             castShadowAction = CastShadows;
             createDarkersAction = CreateDarkers;
+            findActiveCasterAction = FindActiveCaster;
+            joinOtherCasterAction = JoinOtherCaster;
+            findTouchingShadowAction = FindTouchingShadow;
+            recolorDCAction = RecolorDC;
         }
 
         public void Compute(Vector2 center)
@@ -83,10 +96,14 @@ namespace Assets.Scripts.Map
                 DoCircle(cc, castShadowAction);
                 if (cc > 1)
                     DoCircle(cc - 1, createDarkersAction);
+
+                TryCastDark();
             }
+            TryCastDark();
 
             DrawDebug();
         }
+
 
         Stack<GameObject> debugMarkers = new Stack<GameObject>();
         Stack<GameObject> debugMarkers2 = new Stack<GameObject>();
@@ -126,7 +143,7 @@ namespace Assets.Scripts.Map
                             CState.PartShadow => Color.gray,
                             CState.FullShadow => Color.blue,
                             CState.DarkCandidate => Color.red,
-                            CState.Dark => Color.black,
+                            CState.Dark => new Color(0.5f, 0.4f, 0.2f),
                             _ => Color.magenta
                         };
 
@@ -162,6 +179,63 @@ namespace Assets.Scripts.Map
             action(centerLocal + Vector2Int.right * cc + Vector2Int.up * cc);
             action(centerLocal + Vector2Int.left * cc + Vector2Int.down * cc);
             action(centerLocal + Vector2Int.right * cc + Vector2Int.down * cc);
+        }
+
+        private void Test8(Vector2Int center, NeighbourTest action)
+        {
+            if (center.x > 0 && center.y > 0 && center.x < sizeX - 1 && center.y < sizeY - 1)
+            {
+                Vector2Int pos;
+                pos = new Vector2Int(center.x - 1, center.y - 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x, center.y - 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x + 1, center.y - 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x - 1, center.y);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x + 1, center.y);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x - 1, center.y + 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x, center.y + 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x + 1, center.y + 1);
+                action(pos, ref Get(pos));
+            }
+            else
+            {
+                Test8Slow(center, action);
+            }
+        }
+
+        private void Test8Slow(Vector2Int center, NeighbourTest action)
+        {
+            Vector2Int pos;
+            pos = new Vector2Int(center.x - 1, center.y - 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x, center.y - 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x + 1, center.y - 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x - 1, center.y);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x + 1, center.y);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x - 1, center.y + 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x, center.y + 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x + 1, center.y + 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
         }
 
         private void CastShadows(Vector2Int pos)
@@ -238,8 +312,9 @@ namespace Assets.Scripts.Map
             breakloop:
 
             if (score <= 3)
-                Get(pos).state = CState.DarkCandidate;
+                AddDarkCandidate(pos);
         }
+
 
         private int TestShadow(Vector2Int pos, Vector2Int dcPos, Vector2Int toCenter)
         {
@@ -264,39 +339,19 @@ namespace Assets.Scripts.Map
 
 
 
-        //private static readonly (int cx, int cy, WallType wallType, bool noTest, float sx, float sy, float ex, float ey)[] startTests = new[]
-        //{
-        //    (0, 0, WallType.Floor, true, 0f, 0.5f, 0.5f, 0.5f),
-        //    (0, 1, WallType.Floor, true, 0f, 1f, 0.5f, 1f),
-        //    (0, 2, WallType.Floor, true, 0f, 1.5f, 0.5f, 1.5f),
-        //    (1, 2, WallType.Floor, false, 0.5f, 1.5f, 1f, 1.5f),
-
-        //    (0, 2, WallType.Side, false, 0.5f, 1.5f, 0.5f, 1f),
-        //    (1, 1, WallType.Floor, false, 0.5f, 1f, 1f, 1f),
-        //    (0, 1, WallType.Side, false, 0.5f, 1f, 0.5f, 0.5f),
-        //    (1, 0, WallType.Floor, false, 0.5f, 0.5f, 1f, 0.5f),
-        //    (0, 0, WallType.Side, false, 0.5f, 0.5f, 0.5f, 0f),
-
-        //    (2, 2, WallType.Floor, false, 1f, 1.5f, 1.5f, 1.5f),
-        //    (1, 2, WallType.Side, false, 1f, 1.5f, 1f, 1f),
-        //    (2, 1, WallType.Floor, false, 1f, 1f, 1.5f, 1f),
-        //    (1, 1, WallType.Side, false, 1f, 1f, 1f, 0.5f),
-
-        //    (2, 2, WallType.Side, false, 1.5f, 1.5f, 1.5f, 1f),
-        //};
-
-
         private bool IsPosBehind(Vector2Int pos, Vector2Int dcPos, Vector2Int toCenter)
         {
             var dx = pos - dcPos;
             return dx.x * toCenter.x + dx.y * toCenter.y < 0;
         }
 
-        ref Cell Get(Vector2Int coords) => ref vmap[coords.y * sizeX + coords.x];
-        bool CellValid(Vector2Int coords) => coords.x >= 0 && coords.y >= 0 && coords.x < sizeX && coords.y < sizeY;
+        private ref Cell Get(Vector2Int coords) => ref vmap[coords.y * sizeX + coords.x];
+        private static bool CellValid(Vector2Int coords) => coords.x >= 0 && coords.y >= 0 && coords.x < sizeX && coords.y < sizeY;
+        private static Vector2 CellPivot(Vector2Int coords) => (Vector2)coords * 0.5f;
 
         private void Reset()
         {
+            FreeDarkCasters();
             vmap.AsSpan().Clear();
         }
     }
