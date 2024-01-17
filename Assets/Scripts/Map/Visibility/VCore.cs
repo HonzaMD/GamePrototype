@@ -5,9 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.Scripts.Map
+namespace Assets.Scripts.Map.Visibility
 {
-    public partial class Visibility
+
+    internal delegate void NeighbourTest(Vector2Int pos, ref Cell cell);
+
+    public class VCore
     {
         public const int HalfXSize = 32;
         public const int HalfYSize = 26;
@@ -15,68 +18,29 @@ namespace Assets.Scripts.Map
         private const int sizeX = HalfXSize * 2 + 1;
         private const int sizeY = HalfYSize * 2 + 1;
 
-        private const float centerRadius = 0.7f;
-        private const float centerRadiusSq = centerRadius * centerRadius;
-        private const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
+        internal const float centerRadius = 0.7f;
+        internal const float centerRadiusSq = centerRadius * centerRadius;
+        internal const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
         private readonly Map map;
         private Cell[] vmap = new Cell[sizeY * sizeX];
-        private Vector2 centerPosLocal; // pozice od stedu mapy
+        internal Vector2 centerPosLocal; // pozice od stedu mapy
         private Vector2Int offset;
 
-        private delegate void NeighbourTest(Vector2Int pos, ref Cell cell);
         private readonly Action<Vector2Int> castShadowAction;
         private readonly Action<Vector2Int> createDarkersAction;
-        private readonly NeighbourTest findActiveCasterAction;
-        private readonly NeighbourTest joinOtherCasterAction;
-        private readonly NeighbourTest findTouchingShadowAction;
-        private readonly NeighbourTest recolorDCAction;
 
         private readonly ShadowWorker shadowWorker;
-
-        private enum CState : byte
-        {
-            Unknown,
-            Visible,    // neni full shadow (muzu prejit z PartShadow po testu)
-            PartShadow, // kandidat na fullShadow (pak musim udelat detailni test
-            FullShadow, // potreba pro detekci Darku. Vsechny stavy >= FullShadow odpovidaji FS
-            Dark,       // bunka ve stinu darkCasteru
-            DarkCandidate, // kandidat na darkCaster
-        }
-
-        [Flags]
-        private enum WallType : byte
-        {
-            None = 0,
-            Floor = 1,
-            Side = 2,
-            FloorSet = 1 | 4,
-            LeftShadow = 8,
-            RightShadow = 16,
-            LeftShadowSet = 8 | 32,
-        }
-
-        private struct Cell 
-        { 
-            public CState state;
-            public WallType wallType;
-            public short darkCaster;
-
-            public readonly bool IsFloor(int shift) => state >= CState.FullShadow || (((int)WallType.Floor << shift) & (int)wallType) != 0;
-            public readonly bool IsSide(int shift) => state >= CState.FullShadow || (((int)WallType.Side << shift) & (int)wallType) != 0;
-        }
+        private readonly DCManager dcManager;
 
 
-        public Visibility(Map map)
+        public VCore(Map map)
         {
             this.map = map;
             shadowWorker = new(this);
+            dcManager = new(this);
             castShadowAction = CastShadows;
             createDarkersAction = CreateDarkers;
-            findActiveCasterAction = FindActiveCaster;
-            joinOtherCasterAction = JoinOtherCaster;
-            findTouchingShadowAction = FindTouchingShadow;
-            recolorDCAction = RecolorDC;
         }
 
         public void Compute(Vector2 center)
@@ -97,9 +61,9 @@ namespace Assets.Scripts.Map
                 if (cc > 1)
                     DoCircle(cc - 1, createDarkersAction);
 
-                TryCastDark();
+                dcManager.TryCastDark();
             }
-            TryCastDark();
+            dcManager.TryCastDark();
 
             DrawDebug();
         }
@@ -181,7 +145,7 @@ namespace Assets.Scripts.Map
             action(centerLocal + Vector2Int.right * cc + Vector2Int.down * cc);
         }
 
-        private void Test8(Vector2Int center, NeighbourTest action)
+        internal void Test8(Vector2Int center, NeighbourTest action)
         {
             if (center.x > 0 && center.y > 0 && center.x < sizeX - 1 && center.y < sizeY - 1)
             {
@@ -234,6 +198,43 @@ namespace Assets.Scripts.Map
             if (CellValid(pos))
                 action(pos, ref Get(pos));
             pos = new Vector2Int(center.x + 1, center.y + 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+        }
+
+        internal void Test4(Vector2Int center, NeighbourTest action)
+        {
+            if (center.x > 0 && center.y > 0 && center.x < sizeX - 1 && center.y < sizeY - 1)
+            {
+                Vector2Int pos;
+                pos = new Vector2Int(center.x, center.y - 1);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x - 1, center.y);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x + 1, center.y);
+                action(pos, ref Get(pos));
+                pos = new Vector2Int(center.x, center.y + 1);
+                action(pos, ref Get(pos));
+            }
+            else
+            {
+                Test4Slow(center, action);
+            }
+        }
+
+        private void Test4Slow(Vector2Int center, NeighbourTest action)
+        {
+            Vector2Int pos;
+            pos = new Vector2Int(center.x, center.y - 1);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x - 1, center.y);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x + 1, center.y);
+            if (CellValid(pos))
+                action(pos, ref Get(pos));
+            pos = new Vector2Int(center.x, center.y + 1);
             if (CellValid(pos))
                 action(pos, ref Get(pos));
         }
@@ -312,7 +313,7 @@ namespace Assets.Scripts.Map
             breakloop:
 
             if (score <= 3)
-                AddDarkCandidate(pos);
+                dcManager.AddDarkCandidate(pos);
         }
 
 
@@ -345,13 +346,16 @@ namespace Assets.Scripts.Map
             return dx.x * toCenter.x + dx.y * toCenter.y < 0;
         }
 
-        private ref Cell Get(Vector2Int coords) => ref vmap[coords.y * sizeX + coords.x];
-        private static bool CellValid(Vector2Int coords) => coords.x >= 0 && coords.y >= 0 && coords.x < sizeX && coords.y < sizeY;
-        private static Vector2 CellPivot(Vector2Int coords) => (Vector2)coords * 0.5f;
+        internal ref Cell Get(Vector2Int coords) => ref vmap[coords.y * sizeX + coords.x];
+        internal static bool CellValid(Vector2Int coords) => coords.x >= 0 && coords.y >= 0 && coords.x < sizeX && coords.y < sizeY;
+        internal static Vector2 CellPivot(Vector2Int coords) => (Vector2)coords * 0.5f;
+        internal static bool IsBetterOrder(Vector2 first, Vector2 second) => first.x * second.y - first.y * second.x > 0;
+        internal static Vector2 TurnLeft(Vector2 vec) => new Vector2(-vec.y, vec.x);
+        internal static Vector2Int TurnLeft(Vector2Int vec) => new Vector2Int(-vec.y, vec.x);
 
         private void Reset()
         {
-            FreeDarkCasters();
+            dcManager.FreeDarkCasters();
             vmap.AsSpan().Clear();
         }
     }

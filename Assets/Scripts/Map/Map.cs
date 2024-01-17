@@ -29,7 +29,7 @@ namespace Assets.Scripts.Map
         private readonly Ksids ksids;
         private int currentTag;
 
-        public Visibility Visibility { get; }
+        public Visibility.VCore Visibility { get; }
 
         public Map(MapSettings settings, Ksids ksids)
             : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids)

@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\Cell.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\ShadowWorker.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
@@ -79,7 +81,6 @@
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
-    <Compile Include="Assets\Scripts\Map\VisibilityDarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelEmpty.cs" />
     <Compile Include="Assets\Scripts\Stuff\Occluder.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\DCManager.cs" />
     <Compile Include="Assets\Scripts\Bases\StaticBehaviour.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Utils.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\Menu.cs" />
@@ -105,7 +107,6 @@
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
-    <Compile Include="Assets\Scripts\Map\VisibilityShadowWorker.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
@@ -121,8 +122,8 @@
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
-    <Compile Include="Assets\Scripts\Map\Visibility.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\VCore.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelLevelSLT.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
     <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\DarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
   <ItemGroup>
