@@ -14,54 +14,66 @@ namespace Assets.Scripts.Map.Visibility
     {
         public const int HalfXSize = 32;
         public const int HalfYSize = 26;
+        private static readonly Vector2Int centerCellLocal = new (HalfXSize, HalfYSize);
 
         private const int sizeX = HalfXSize * 2 + 1;
         private const int sizeY = HalfYSize * 2 + 1;
 
         internal const float centerRadius = 0.7f;
-        internal const float centerRadiusSq = centerRadius * centerRadius;
+        //internal const float centerRadiusSq = centerRadius * centerRadius;
         internal const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
         private readonly Map map;
         private Cell[] vmap = new Cell[sizeY * sizeX];
-        internal Vector2 centerPosLocal; // pozice od stedu mapy
-        private Vector2Int offset;
+        internal Vector2 centerPosLocal; // pozice stedu mapy
+        private Vector2Int cellToWorld; // Pozice nulte bunky v souradniciuch vnejsiho sveta
+        internal Vector2 posToWorld;
 
         private readonly Action<Vector2Int> castShadowAction;
         private readonly Action<Vector2Int> createDarkersAction;
 
         private readonly ShadowWorker shadowWorker;
         private readonly DCManager dcManager;
+        private readonly DarkBorders darkBorders;
 
 
         public VCore(Map map)
         {
             this.map = map;
             shadowWorker = new(this);
-            dcManager = new(this);
+            darkBorders = new();
+            dcManager = new(this, darkBorders);
             castShadowAction = CastShadows;
             createDarkersAction = CreateDarkers;
         }
 
+        bool debugBreak = false;
         public void Compute(Vector2 center)
         {
-            var centerCell = map.WorldToCell(center);
-            var centerLocal = new Vector2Int(HalfXSize, HalfYSize);
+            if (debugBreak)
+                return;
+            var centerCellWorld = map.WorldToCell(center);            
 
-            offset = centerCell - centerLocal;
-            centerPosLocal = center - map.CellToWorld(centerCell) - Map.CellSize2d * 0.5f + centerLocal * Map.CellSize2d;
+            cellToWorld = centerCellWorld - centerCellLocal;
+            posToWorld = map.CellToWorld(cellToWorld);
+            centerPosLocal = center - map.CellToWorld(centerCellWorld) - Map.CellSize2d * 0.5f + centerCellLocal * Map.CellSize2d;
             Reset();
 
-            Get(centerLocal).state = CState.Visible;
+            Get(centerCellLocal).state = CState.Visible;
             int maxCircles = Math.Max(HalfYSize, HalfXSize);
 
             for (int cc = 1; cc <= maxCircles; cc++)
             {
                 DoCircle(cc, castShadowAction);
+                DrawDarks(cc);
+                if (debugBreak)
+                    break;
                 if (cc > 1)
                     DoCircle(cc - 1, createDarkersAction);
-
                 dcManager.TryCastDark();
+                DrawDarks(cc);
+                if (debugBreak)
+                    break;
             }
             dcManager.TryCastDark();
 
@@ -99,7 +111,7 @@ namespace Assets.Scripts.Map.Visibility
                         }
                         debugMarkers2.Push(dm);
 
-                        dm.transform.position = map.CellToWorld(new Vector2Int(x, y) + offset);
+                        dm.transform.position = map.CellToWorld(new Vector2Int(x, y) + cellToWorld);
                         var line = dm.GetComponent<LineRenderer>();
 
                         var color = status switch
@@ -118,31 +130,30 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
+
         private void DoCircle(int cc, Action<Vector2Int> action)
         {
-            var centerLocal = new Vector2Int(HalfXSize, HalfYSize);
-
-            action(centerLocal + Vector2Int.left * cc);
-            action(centerLocal + Vector2Int.right * cc);
-            action(centerLocal + Vector2Int.up * cc);
-            action(centerLocal + Vector2Int.down * cc);
+            action(centerCellLocal + Vector2Int.left * cc);
+            action(centerCellLocal + Vector2Int.right * cc);
+            action(centerCellLocal + Vector2Int.up * cc);
+            action(centerCellLocal + Vector2Int.down * cc);
 
             for (int f = 1; f < cc; f++)
             {
-                action(centerLocal + Vector2Int.left * cc + Vector2Int.up * f);
-                action(centerLocal + Vector2Int.right * cc + Vector2Int.up * f);
-                action(centerLocal + Vector2Int.up * cc + Vector2Int.left * f);
-                action(centerLocal + Vector2Int.down * cc + Vector2Int.left * f);
-                action(centerLocal + Vector2Int.left * cc + Vector2Int.down * f);
-                action(centerLocal + Vector2Int.right * cc + Vector2Int.down * f);
-                action(centerLocal + Vector2Int.up * cc + Vector2Int.right * f);
-                action(centerLocal + Vector2Int.down * cc + Vector2Int.right * f);
+                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * f);
+                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * f);
+                action(centerCellLocal + Vector2Int.up * cc + Vector2Int.left * f);
+                action(centerCellLocal + Vector2Int.down * cc + Vector2Int.left * f);
+                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * f);
+                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * f);
+                action(centerCellLocal + Vector2Int.up * cc + Vector2Int.right * f);
+                action(centerCellLocal + Vector2Int.down * cc + Vector2Int.right * f);
             }
 
-            action(centerLocal + Vector2Int.left * cc + Vector2Int.up * cc);
-            action(centerLocal + Vector2Int.right * cc + Vector2Int.up * cc);
-            action(centerLocal + Vector2Int.left * cc + Vector2Int.down * cc);
-            action(centerLocal + Vector2Int.right * cc + Vector2Int.down * cc);
+            action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * cc);
+            action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * cc);
+            action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * cc);
+            action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * cc);
         }
 
         internal void Test8(Vector2Int center, NeighbourTest action)
@@ -250,7 +261,7 @@ namespace Assets.Scripts.Map.Visibility
             {
                 return;
             }
-            else if (map.GetCellBlocking(pos + offset).IsDoubleFull())
+            else if (map.GetCellBlocking(pos + cellToWorld).IsDoubleFull())
             {
                 cell.state = CState.FullShadow;
                 cell.wallType = WallType.Side | WallType.FloorSet;
@@ -338,7 +349,72 @@ namespace Assets.Scripts.Map.Visibility
             Get(pos).state = shadowWorker.ResolvePartShadow(pos) ? CState.FullShadow : CState.Visible;
         }
 
+        private void DrawDarks(int cc)
+        {
+            int ccx = cc > HalfXSize ? HalfXSize : cc;
+            int ccy = cc > HalfYSize ? HalfYSize : cc;
 
+            var ld = centerCellLocal + Vector2Int.left * ccx + Vector2Int.down * ccy;
+            var rd = centerCellLocal + Vector2Int.right * ccx + Vector2Int.down * ccy;
+            var lu = centerCellLocal + Vector2Int.left * ccx + Vector2Int.up * ccy;
+            var ru = centerCellLocal + Vector2Int.right * ccx + Vector2Int.up * ccy;
+
+            if (cc > HalfXSize)
+            {
+                DrawDarks(lu, Vector2Int.right, ccx * 2 + 1);
+                DrawDarks(rd, Vector2Int.left, ccx * 2 + 1);
+            }
+            else if (cc > HalfYSize)
+            {
+                DrawDarks(ru, Vector2Int.down, ccy * 2 + 1);
+                DrawDarks(ld, Vector2Int.up, ccy * 2 + 1);
+            }
+            else
+            {
+                DrawDarks(lu, Vector2Int.right, ccx * 2);
+                DrawDarks(ru, Vector2Int.down, ccy * 2);
+                DrawDarks(rd, Vector2Int.left, ccx * 2);
+                DrawDarks(ld, Vector2Int.up, ccy * 2);
+            }
+        }
+
+        private void DrawDarks(Vector2Int pos, Vector2Int dir, int count)
+        {
+            Vector2 center = CellCenter(pos);
+            Vector2 centerDir = TurnLeft(dir);
+            Vector2 toCenter = center - centerPosLocal;
+            Vector2 posDelta = (Vector2)dir * 0.5f;
+
+            short draw = darkBorders.StartDrawing(toCenter, out var ptr, out var nextDir, out var point);
+            if (Vector2.Dot(nextDir, centerDir) <= 0)
+                ptr = DarkBorders.BorderPtr.Null;
+            Vector2 normal = TurnLeft(nextDir);
+            Vector2 pToC = center - point;
+            while (count > 0)
+            {
+                if (ptr.AbsRelArrDist <= 1 && Vector2.Dot(pToC, normal) < 0)
+                {
+                    draw = darkBorders.ContinueDrawing(ref ptr, out nextDir, out point);
+                    if (Vector2.Dot(nextDir, centerDir) <= 0)
+                        ptr = DarkBorders.BorderPtr.Null;
+                    center = CellCenter(pos);
+                    normal = TurnLeft(nextDir);
+                    pToC = center - point;
+                }
+
+                count--;
+
+                if (draw != -1)
+                {
+                    ref var cell = ref Get(pos);
+                    cell.state = CState.Dark;
+                    cell.darkCaster = draw;
+                }
+
+                pToC += posDelta;
+                pos += dir;
+            }
+        }
 
         private bool IsPosBehind(Vector2Int pos, Vector2Int dcPos, Vector2Int toCenter)
         {
@@ -349,7 +425,10 @@ namespace Assets.Scripts.Map.Visibility
         internal ref Cell Get(Vector2Int coords) => ref vmap[coords.y * sizeX + coords.x];
         internal static bool CellValid(Vector2Int coords) => coords.x >= 0 && coords.y >= 0 && coords.x < sizeX && coords.y < sizeY;
         internal static Vector2 CellPivot(Vector2Int coords) => (Vector2)coords * 0.5f;
+        internal static Vector2 CellCenter(Vector2Int coords) => (Vector2)coords * 0.5f + new Vector2(0.25f, 0.25f);
+        // anti clock wise:
         internal static bool IsBetterOrder(Vector2 first, Vector2 second) => first.x * second.y - first.y * second.x > 0;
+        internal static float CrossProduct(Vector2 first, Vector2 second) => first.x * second.y - first.y * second.x;
         internal static Vector2 TurnLeft(Vector2 vec) => new Vector2(-vec.y, vec.x);
         internal static Vector2Int TurnLeft(Vector2Int vec) => new Vector2Int(-vec.y, vec.x);
 
@@ -357,6 +436,7 @@ namespace Assets.Scripts.Map.Visibility
         {
             dcManager.FreeDarkCasters();
             vmap.AsSpan().Clear();
+            darkBorders.Clear();
         }
     }
 }

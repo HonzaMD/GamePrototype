@@ -28,6 +28,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public ConnectablesPool ConnectablePool;
     public PrefabsStore PrefabsStore;
     public PlaceableSettings DefaultPlaceableSettings;
+    public LevelLabel OccludersRoot;
 
     public Transform[] HoldMarkers;
     public Transform LongThrowMarker;

@@ -78,6 +78,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\DarkGroup.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
@@ -131,6 +132,7 @@
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\DeleteColorWorker.cs" />
     <Compile Include="Assets\Scripts\Map\LevelBase.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />
     <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
     <Compile Include="Assets\Scripts\Utils\VectorX.cs" />

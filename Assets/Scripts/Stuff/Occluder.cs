@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Map.Visibility;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -21,15 +22,29 @@ namespace Assets.Scripts.Stuff
         public override Ksid KsidGet => Ksid.Unknown;
         public override bool IsAlive => isAlive;
 
-        public void Init()
+        private DarkCaster dc;
+
+        internal void Init(DarkCaster dc, Vector2 posToWorld)
         {
             isAlive = true;
+
+            this.dc = dc;
+            var line = GetComponentInChildren<LineRenderer>();
+            var leftPoint = (dc.LeftPoint + posToWorld).AddZ(-0.66f);
+            var rightPoint = (dc.RightPoint + posToWorld).AddZ(-0.66f);
+            var leftDir = dc.LeftDir.normalized.AddZ(0);
+            var rightDir = dc.RightDir.normalized.AddZ(0);
+            line.SetPosition(0, leftPoint + leftDir * 20f);
+            line.SetPosition(1, leftPoint);
+            line.SetPosition(2, rightPoint);
+            line.SetPosition(3, rightPoint + rightDir * 20f);
         }
 
 
         public override void Cleanup()
         {
             isAlive = false;
+            dc = null;
             base.Cleanup();
         }
     }

@@ -9,7 +9,7 @@ namespace Assets.Scripts.Map.Visibility
 {
     internal class ShadowWorker
     {
-        private readonly VCore visibility;
+        private readonly VCore core;
         private Vector2 centerPosAdj;
         private Vector2Int up;
         private Vector2Int right;
@@ -21,9 +21,9 @@ namespace Assets.Scripts.Map.Visibility
         private int xDist;
         private int yDist;
 
-        public ShadowWorker(VCore visibility)
+        public ShadowWorker(VCore core)
         {
-            this.visibility = visibility;
+            this.core = core;
         }
 
         public bool ResolvePartShadow(Vector2Int pos)
@@ -32,7 +32,7 @@ namespace Assets.Scripts.Map.Visibility
             yDist = Math.Abs(pos.y - VCore.HalfYSize);
             var toCenter = new Vector2Int(Math.Sign(VCore.HalfXSize - pos.x), Math.Sign(VCore.HalfYSize - pos.y));
                 
-            centerPosAdj = visibility.centerPosLocal - (Vector2)pos * 0.5f;
+            centerPosAdj = core.centerPosLocal - (Vector2)pos * 0.5f;
             centerPosAdj = new Vector2(Mathf.Abs(centerPosAdj.x), Mathf.Abs(centerPosAdj.y));
             this.pos = pos;
 
@@ -191,9 +191,9 @@ namespace Assets.Scripts.Map.Visibility
             return false;
         }
 
-        private bool HasFloor(Vector2Int offset) => visibility.Get(pos + right * offset.x + up * offset.y).IsFloor(shift);
-        private bool HasSide(Vector2Int offset) => visibility.Get(pos + right * offset.x + up * offset.y).IsSide(shift);
+        private bool HasFloor(Vector2Int offset) => core.Get(pos + right * offset.x + up * offset.y).IsFloor(shift);
+        private bool HasSide(Vector2Int offset) => core.Get(pos + right * offset.x + up * offset.y).IsSide(shift);
 
-        private bool IsInOrder(Vector2 first, Vector2 second) => first.x * second.y - first.y * second.x >= 0;
+        private bool IsInOrder(Vector2 first, Vector2 second) => first.x * second.y - first.y * second.x >= 0; // anti clock wise
     }
 }

@@ -1,8 +1,12 @@
 ﻿using Assets.Scripts.Stuff;
+using Assets.Scripts.Utils;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Map.Visibility
 {
+
     internal class DarkCaster
     {
         public short Id { get; }
@@ -11,11 +15,17 @@ namespace Assets.Scripts.Map.Visibility
         public Vector2 LeftPoint, RightPoint;
         public Vector2 LeftDir, RightDir;
         private Occluder Occluder;
-        public DarkCaster DCMostLeft;
-        public DarkCaster DCMostRight;
-        private int cellCount;
+        public DarkGroup Group;
+        public bool connectsLeft;
+        public bool connectsRight;
+        public readonly List<Vector2Int> cells = new();
         public bool Live;
         public bool Active;
+
+        public override string ToString()
+        {
+            return $"L:{(connectsLeft?"*":"")} {LeftDir.normalized} R:{(connectsRight ? "*" : "")} {RightDir.normalized} Id:{Id} CellCount:{cells.Count}";
+        }
 
         public DarkCaster(short id)
         {
@@ -23,7 +33,12 @@ namespace Assets.Scripts.Map.Visibility
         }
 
         private bool DirsValid => LeftDir != Vector2.zero && RightDir != Vector2.zero;
-        private bool DirsDiverge => VCore.IsBetterOrder(RightDir, LeftDir) || DCMostRight != null || DCMostLeft != null;
+        private bool DirsDiverge => VCore.IsBetterOrder(RightDir, LeftDir) || connectsRight || connectsLeft;
+        public bool IsReCastable => (connectsRight || connectsLeft) && DirsValid;
+        private bool EnoughtBig => cells.Count >= ((connectsLeft || connectsRight) ? 7 : 5);
+
+        Vector2 GroupLeftDir => Group?.LeftDC.LeftDir ?? LeftDir;
+        Vector2 GroupRightDir => Group?.RightDC.RightDir ?? RightDir;
 
         public void Free()
         {
@@ -32,24 +47,22 @@ namespace Assets.Scripts.Map.Visibility
                 Occluder.Kill();
                 Occluder = null;
             }
-            cellCount = 0;
+            Group?.Free();
+            cells.Clear();
             Active = false;
-            DCMostLeft = null;
-            DCMostRight = null;
+            connectsLeft = false;
+            connectsRight = false;
         }
 
-        internal void InitVectors(Vector2 centerPosLocal, Vector2 pivot, Vector2Int pos)
+        internal void InitVectors(Vector2 centerPosLocal, Vector2 center, Vector2Int pos)
         {
-            cellCount = 1;
+            cells.Add(pos);
             Active = true;
             LeftCell = pos;
             RightCell = pos;
-            LeftPoint = pivot;
-            RightPoint = pivot;
-            ComputeLeftRightDir(centerPosLocal, pivot, out LeftDir, out RightDir);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0.5f, 0), pos);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0.5f, 0.5f), pos);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0, 0.5f), pos);
+            LeftPoint = center;
+            RightPoint = center;
+            ComputeLeftRightDir(centerPosLocal, center, out LeftDir, out RightDir);
             Live = true;
         }
 
@@ -67,104 +80,139 @@ namespace Assets.Scripts.Map.Visibility
             rightDir = a - (centerPosLocal - toLeft);
         }
 
-        private void TestOtherPoint(Vector2 centerPosLocal, Vector2 a, Vector2Int pos)
+        private void TestOtherPoint(Vector2 centerPosLocal, Vector2 a, Vector2Int pos, DarkCaster darkDC, DarkBorders darkBorders)
         {
             Vector2 left, right;
             ComputeLeftRightDir(centerPosLocal, a, out left, out right);
-            if (DCMostLeft == null && VCore.IsBetterOrder(LeftDir, left) || (LeftDir == Vector2.zero && left != Vector2.zero))
+            if (!connectsLeft && (VCore.IsBetterOrder(LeftDir, left) || (LeftDir == Vector2.zero && left != Vector2.zero)))
             {
                 LeftPoint = a;
                 LeftDir = left;
                 LeftCell = pos;
             }
-            if (DCMostRight == null && VCore.IsBetterOrder(right, RightDir) || (RightDir == Vector2.zero && right != Vector2.zero))
+            if (!connectsRight && (VCore.IsBetterOrder(right, RightDir) || (RightDir == Vector2.zero && right != Vector2.zero)))
             {
                 RightPoint = a;
                 RightDir = right;
                 RightCell = pos;
             }
+
+            if (darkDC != null) 
+            {
+                var (gl, gr, lOK, rOK) = darkBorders.FindLeftRight(right);
+                if (!connectsLeft && rOK && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
+                {
+                    Debug.Assert(gr == darkDC.GroupRightDir);
+                    connectsLeft = true;
+                    LeftDir = gr;
+                }
+
+                if (!connectsRight && lOK && VCore.IsBetterOrder(gl, LeftDir) && VCore.IsBetterOrder(gl, RightDir))
+                {
+                    Debug.Assert(gl == darkDC.GroupLeftDir);
+                    connectsRight = true;
+                    RightDir = gl;
+                }
+            }
         }
 
-        internal void Attach(Vector2Int pos, Vector2 centerPosLocal)
+        internal void Attach(Vector2Int pos, Vector2 centerPosLocal, DarkCaster darkDC, DarkBorders darkBorders)
         {
-            cellCount++;
-            var pivot = VCore.CellPivot(pos);
-            TestOtherPoint(centerPosLocal, pivot, pos);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0.5f, 0), pos);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0.5f, 0.5f), pos);
-            TestOtherPoint(centerPosLocal, pivot + new Vector2(0, 0.5f), pos);
+            cells.Add(pos);
+            var center = VCore.CellCenter(pos);
+            TestOtherPoint(centerPosLocal, center, pos, darkDC, darkBorders);
             Live = true;
         }
 
-        internal void JoinWith(DarkCaster dcTJ, Vector2 centerPosLocal)
+        internal void JoinWith(DarkCaster dcTJ)
         {
-            cellCount += dcTJ.cellCount;
-            TestOtherPoint(centerPosLocal, dcTJ.RightPoint, dcTJ.RightCell);
-            TestOtherPoint(centerPosLocal, dcTJ.LeftPoint, dcTJ.LeftCell);
+            foreach (var cell in dcTJ.cells)
+            {
+                cells.Add(cell);
+            }
+            JoinExtendLeft(dcTJ);
+            JoinExtendRight(dcTJ);    
             dcTJ.Abandon();
+        }
+
+        private void JoinExtendLeft(DarkCaster dcTJ)
+        {
+            if (!connectsLeft && (VCore.IsBetterOrder(LeftDir, dcTJ.LeftDir) || (LeftDir == Vector2.zero && dcTJ.LeftDir != Vector2.zero) || dcTJ.connectsLeft))
+            {
+                LeftPoint = dcTJ.LeftPoint;
+                LeftDir = dcTJ.LeftDir;
+                LeftCell = dcTJ.LeftCell;
+                connectsLeft = dcTJ.connectsLeft;
+            }
+        }
+
+        private void JoinExtendRight(DarkCaster dcTJ)
+        {
+            if (!connectsRight && (VCore.IsBetterOrder(dcTJ.RightDir, RightDir) || (RightDir == Vector2.zero && dcTJ.RightDir != Vector2.zero) || dcTJ.connectsRight))
+            {
+                RightPoint = dcTJ.RightPoint;
+                RightDir = dcTJ.RightDir;
+                RightCell = dcTJ.RightCell;
+                connectsRight = dcTJ.connectsRight;
+            }
         }
 
         internal void Abandon()
         {
-            cellCount = 0;
+            cells.Clear();
             Live = false;
             Active = false;
         }
 
-        internal void TouchShadow(Vector2 centerPosLocal, DarkCaster dc2, Vector2Int pos)
-        {
-            var center1 = LeftPoint + RightPoint - 2 * centerPosLocal;
-            var center2 = dc2.LeftPoint + dc2.RightPoint - 2 * centerPosLocal;
-            var pivot = VCore.CellPivot(pos);
-            if (DCMostLeft == null && VCore.IsBetterOrder(center1, center2)) // L1 pak R2
-            {
-                LeftCell = pos;
-                LeftDir = dc2.RightDir;
-                LeftPoint = pivot;
-                DCMostLeft = dc2;
+        //internal void TouchShadow(Vector2 centerPosLocal, DarkCaster dc2, Vector2Int pos, Vector2Int shadowPos)
+        //{
+        //    var center1 = LeftPoint + RightPoint - 2 * centerPosLocal;
+        //    var center2 = dc2.LeftPoint + dc2.RightPoint - 2 * centerPosLocal;
+        //    var pivotShadow = VCore.CellCenter(shadowPos);
+        //    var pivotMy = VCore.CellCenter(pos);
+        //    var myToShadow = pivotShadow - pivotMy;
 
-                var normal = VCore.TurnLeft(LeftDir);
-                float x = Vector2.Dot(normal, pivot);
-                TestTouchPoint(pivot, new Vector2(0.5f, 0), normal, ref x, ref LeftPoint);
-                TestTouchPoint(pivot, new Vector2(0, 0.5f), normal, ref x, ref LeftPoint);
-                TestTouchPoint(pivot, new Vector2(0.5f, 0.5f), normal, ref x, ref LeftPoint);
-            }
-            if (DCMostRight == null && VCore.IsBetterOrder(center2, center1)) // L2 pak R1
-            {
-                RightCell = pos;
-                RightDir = dc2.LeftDir;
-                RightPoint = pivot;
-                DCMostRight = dc2;
+        //    if (!connectsLeft && VCore.IsBetterOrder(center1, center2) && VCore.IsBetterOrder(LeftDir, dc2.RightDir)) // L1 pak R2
+        //    {
+        //        LeftCell = pos;
+        //        LeftDir = dc2.RightDir;
+        //        connectsLeft = true;
 
-                var normal = -VCore.TurnLeft(RightDir);
-                float x = Vector2.Dot(normal, pivot);
-                TestTouchPoint(pivot, new Vector2(0.5f, 0), normal, ref x, ref RightPoint);
-                TestTouchPoint(pivot, new Vector2(0, 0.5f), normal, ref x, ref RightPoint);
-                TestTouchPoint(pivot, new Vector2(0.5f, 0.5f), normal, ref x, ref RightPoint);
-            }
-        }
+        //        var normal = VCore.TurnLeft(LeftDir);
+        //        LeftPoint = Vector2.Dot(normal, myToShadow) > 0 ? pivotShadow : pivotMy;
+        //    }
+        //    if (!connectsRight && VCore.IsBetterOrder(center2, center1) && VCore.IsBetterOrder(dc2.LeftDir, RightDir)) // L2 pak R1
+        //    {
+        //        RightCell = pos;
+        //        RightDir = dc2.LeftDir;
+        //        connectsRight = true;
 
-        private void TestTouchPoint(Vector2 pivot, Vector2 offset, Vector2 normal, ref float x, ref Vector2 output)
-        {
-            var pivot2 = pivot + offset;
-            float x2 = Vector2.Dot(normal, pivot2);
-            if (x2 > x)
-            {
-                x = x2;
-                output = pivot2;
-            }
-        }
+        //        var normal = -VCore.TurnLeft(RightDir);
+        //        RightPoint = Vector2.Dot(normal, myToShadow) > 0 ? pivotShadow : pivotMy;
+        //    }
+        //}
+
+        //private void TestTouchPoint(Vector2 pivot, Vector2 offset, Vector2 normal, ref float x, ref Vector2 output)
+        //{
+        //    var pivot2 = pivot + offset;
+        //    float x2 = Vector2.Dot(normal, pivot2);
+        //    if (x2 > x)
+        //    {
+        //        x = x2;
+        //        output = pivot2;
+        //    }
+        //}
 
         public (bool canCast, bool abandon) CanCast()
         {
             if (Active == false)
                 return (false, false);
-            if (DCMostLeft != null && DCMostRight != null)
+            if (connectsLeft && connectsRight)
                 return (true, false);
             if (Live)
             {
                 Live = false;
-                return (cellCount >= 5 && DirsDiverge && DirsValid, false);
+                return (EnoughtBig && DirsDiverge && DirsValid, false);
             }
             else
             {
@@ -172,11 +220,32 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        internal void RemoveCell(Vector2Int pos)
+        //internal void RemoveCell(Vector2Int pos)
+        //{
+        //    cellCount--;
+        //    if (cellCount == 0) 
+        //        Active = false;
+        //}
+
+        internal void CorrectRightDir(Vector2 dir)
         {
-            cellCount--;
-            if (cellCount == 0) 
-                Active = false;
+            RightDir = dir;
+            connectsRight = true;
         }
+
+        internal void CorrectLeftDir(Vector2 dir)
+        {
+            LeftDir = dir;
+            connectsLeft = true;
+        }
+
+        internal void InitOccluder(Vector2 posToWorld)
+        {
+            var occ = Game.Instance.PrefabsStore.Occluder.Create(Game.Instance.OccludersRoot.transform, Vector3.zero);
+            occ.Init(this, posToWorld);
+            Occluder = occ;
+        }
+
+        internal bool GroupEquals(DarkCaster darkCaster) => darkCaster == this || (Group == darkCaster.Group && Group != null);
     }
 }

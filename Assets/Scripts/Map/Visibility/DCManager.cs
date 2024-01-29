@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,31 +12,26 @@ namespace Assets.Scripts.Map.Visibility
     internal class DCManager
     {
         private readonly List<DarkCaster> darkCasters = new();
-        private readonly List<DarkCaster> liveDarkCasters = new();
-        private readonly VCore visibility;
         private int dcTop;
-
+        private readonly List<DarkCaster> liveDarkCasters = new();
+        private readonly VCore core;
+        private readonly DarkBorders darkBorders;
         private short dcToAttach;
-        private short dcToJoin;
         private short dcShadow;
-        private CState recolorState;
-        private Queue<Vector2Int> workPositions = new();
+        private Vector2Int shadowPos;
 
         private readonly NeighbourTest findActiveCasterAction;
-        private readonly NeighbourTest joinOtherCasterAction;
         private readonly NeighbourTest findTouchingShadowAction;
-        private readonly NeighbourTest recolorDCAction;
-        private readonly NeighbourTest drawShadowAction;
 
-        public DCManager(VCore visibility)
+        public DCManager(VCore core, DarkBorders darkBorders)
         {
-            this.visibility = visibility;
+            this.core = core;
+            this.darkBorders = darkBorders;
             findActiveCasterAction = FindActiveCaster;
-            joinOtherCasterAction = JoinOtherCaster;
             findTouchingShadowAction = FindTouchingShadow;
-            recolorDCAction = RecolorDC;
-            drawShadowAction = DrawShadow;
         }
+
+       // public DarkCaster this[int index] => darkCasters[index];
 
         public void FreeDarkCasters()
         {
@@ -50,7 +46,7 @@ namespace Assets.Scripts.Map.Visibility
         public void AddDarkCandidate(Vector2Int pos)
         {
             dcToAttach = -1;
-            visibility.Test8(pos, findActiveCasterAction);
+            core.Test8(pos, findActiveCasterAction);
             if (dcToAttach == -1)
             {
                 CreateNew(pos);
@@ -72,7 +68,7 @@ namespace Assets.Scripts.Map.Visibility
                 }
                 else if (cell.darkCaster != dcToAttach)
                 {
-                    JoinWith(pos, ref cell);
+                    JoinWith(ref cell);
                 }
             }
         }
@@ -80,38 +76,37 @@ namespace Assets.Scripts.Map.Visibility
         private void Attach(Vector2Int pos)
         {
             InitAttachedCell(pos);
-            darkCasters[dcToAttach].Attach(pos, visibility.centerPosLocal);
+            darkCasters[dcToAttach].Attach(pos, core.centerPosLocal, null, null);
             FindTouchingShadow(pos);
         }
 
         private void InitAttachedCell(Vector2Int pos)
         {
-            ref var cell = ref visibility.Get(pos);
+            ref var cell = ref core.Get(pos);
             cell.state = CState.DarkCandidate;
             cell.darkCaster = dcToAttach;
         }
 
-        private void JoinWith(Vector2Int pos, ref Cell cell)
+        private void JoinWith(ref Cell cell)
         {
-            dcToJoin = cell.darkCaster;
-            JoinOtherCaster(pos, ref cell);
-
-            while (workPositions.Count > 0)
-            {
-                visibility.Test8(workPositions.Dequeue(), joinOtherCasterAction);
-            }
-
+            var dcToJoin = cell.darkCaster;
             var dcTJ = darkCasters[dcToJoin];
             var dc = darkCasters[dcToAttach];
-            dc.JoinWith(dcTJ, visibility.centerPosLocal);
+
+            RecolorJoinedCells(dcTJ, dcToJoin);
+
+            dc.JoinWith(dcTJ);
         }
 
-        private void JoinOtherCaster(Vector2Int pos, ref Cell cell)
+        private void RecolorJoinedCells(DarkCaster dcTJ, short dcToJoin)
         {
-            if (cell.state == CState.DarkCandidate && cell.darkCaster == dcToJoin)
+            foreach (var cellPos in dcTJ.cells)
             {
-                cell.darkCaster = dcToAttach;
-                workPositions.Enqueue(pos);
+                ref var cell = ref core.Get(cellPos);
+                if (cell.state == CState.DarkCandidate && cell.darkCaster == dcToJoin)
+                {
+                    cell.darkCaster = dcToAttach;
+                }
             }
         }
 
@@ -119,49 +114,46 @@ namespace Assets.Scripts.Map.Visibility
         {
             var dc = CreateDC();
             InitAttachedCell(pos);
-            dc.InitVectors(visibility.centerPosLocal, VCore.CellPivot(pos), pos);
+            dc.InitVectors(core.centerPosLocal, VCore.CellCenter(pos), pos);
             FindTouchingShadow(pos);
         }
 
         private void FindTouchingShadow(Vector2Int pos)
         {
             dcShadow = -1;
-            visibility.Test8(pos, findTouchingShadowAction);
-            if (dcShadow != -1)
+            core.Test4(pos, findTouchingShadowAction);
+            if (dcShadow != -1 && !GroupEquals(dcShadow, dcToAttach))
             {
-                darkCasters[dcToAttach].TouchShadow(visibility.centerPosLocal, darkCasters[dcShadow], pos);
+                var dc = darkCasters[dcToAttach];
+                dc.Attach(shadowPos, core.centerPosLocal, darkCasters[dcShadow], darkBorders);
+                //if (dc.IsReCastable) 
+                //    darkBorders.Add(dc);
             }
         }
+
+        private bool GroupEquals(short dc1, short dc2) => darkCasters[dc1].GroupEquals(darkCasters[dc2]);
 
         private void FindTouchingShadow(Vector2Int pos, ref Cell cell)
         {
             if (cell.state == CState.Dark)
+            {
                 dcShadow = cell.darkCaster;
-        }
-
-        private void RecolorDC(short dc, CState state)
-        {
-            dcToJoin = dc;
-            recolorState = state;
-            var pos = darkCasters[dc].LeftCell;
-            ref var cell = ref visibility.Get(pos);
-
-            RecolorDC(pos, ref cell);
-
-            while (workPositions.Count > 0)
-            {
-                visibility.Test8(workPositions.Dequeue(), recolorDCAction);
+                shadowPos = pos;
             }
         }
 
-        private void RecolorDC(Vector2Int pos, ref Cell cell)
+        private void RecolorFinishedCells(DarkCaster dc, short dcId, CState state)
         {
-            if (cell.darkCaster == dcToJoin && cell.state == CState.DarkCandidate)
+            foreach (var cellPos in dc.cells)
             {
-                cell.state = recolorState;
-                workPositions.Enqueue(pos);
+                ref var cell = ref core.Get(cellPos);
+                if (cell.state == CState.DarkCandidate && cell.darkCaster == dcId)
+                {
+                    cell.state = state;
+                }
             }
         }
+
 
         private DarkCaster CreateDC()
         {
@@ -181,18 +173,24 @@ namespace Assets.Scripts.Map.Visibility
                 (bool canCast, bool abandon) = dc.CanCast();
                 if (!canCast && abandon)
                 {
-                    RecolorDC(dc.Id, CState.FullShadow);
+                    RecolorFinishedCells(dc, dc.Id, CState.FullShadow);
                     dc.Abandon();
                 }
                 else if (canCast)
                 {
-                    RecolorDC(dc.Id, CState.Dark);
-                    if (dc.DCMostLeft == null)
-                        DrawLine(dc.LeftPoint, dc.LeftDir, dc.Id, -1);
-                    if (dc.DCMostRight == null)
-                        DrawLine(dc.RightPoint, dc.RightDir, dc.Id, 1);
-                    DrawShadow(dc.Id);
+                    RecolorFinishedCells(dc, dc.Id, CState.Dark);
+                    darkBorders.Add(dc);
+                    dc.InitOccluder(core.posToWorld);
+                    //if (!dc.connectsLeft)
+                    //    DrawLine(dc.LeftPoint, dc.LeftDir, dc.Id, -1);
+                    //if (!dc.connectsRight)
+                    //    DrawLine(dc.RightPoint, dc.RightDir, dc.Id, 1);
+                    //DrawShadow(dc.Id);
                     dc.Abandon();
+                }
+                else if (dc.IsReCastable)
+                {
+                    darkBorders.Add(dc);
                 }
 
                 if (dc.Active)
@@ -207,89 +205,89 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        private void DrawLine(Vector2 point, Vector2 dir, short dc, int right)
-        {
-            dcShadow = dc;
-            Vector2Int primaryDir;
-            Vector2Int secondaryDir;
-            float xStep;
-            if (MathF.Abs(dir.x) > MathF.Abs(dir.y))
-            {
-                primaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
-                secondaryDir = new Vector2Int(0, MathF.Sign(dir.y));
-                xStep = MathF.Abs(dir.y / dir.x);
-            }
-            else
-            {
-                secondaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
-                primaryDir = new Vector2Int(0, MathF.Sign(dir.y));
-                xStep = MathF.Abs(dir.x / dir.y);
-            }
-            Vector2Int insideDir = VCore.TurnLeft(primaryDir) * right;
-            Vector2Int pos;
+        //private void DrawLine(Vector2 point, Vector2 dir, short dc, int right)
+        //{
+        //    dcShadow = dc;
+        //    Vector2Int primaryDir;
+        //    Vector2Int secondaryDir;
+        //    float xStep;
+        //    if (MathF.Abs(dir.x) > MathF.Abs(dir.y))
+        //    {
+        //        primaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
+        //        secondaryDir = new Vector2Int(0, MathF.Sign(dir.y));
+        //        xStep = MathF.Abs(dir.y / dir.x);
+        //    }
+        //    else
+        //    {
+        //        secondaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
+        //        primaryDir = new Vector2Int(0, MathF.Sign(dir.y));
+        //        xStep = MathF.Abs(dir.x / dir.y);
+        //    }
+        //    Vector2Int insideDir = VCore.TurnLeft(primaryDir) * right;
+        //    Vector2Int pos;
 
-            if (secondaryDir == Vector2Int.zero)
-            {
-                point = point + (Vector2)primaryDir * 0.1f + (Vector2)insideDir * 0.1f;
-                pos = Vector2Int.FloorToInt(point * 2);
-            }
-            else
-            {
-                point = point + (Vector2)primaryDir * 0.1f + (Vector2)secondaryDir * 0.1f;
-                pos = Vector2Int.FloorToInt(point * 2) + insideDir;
-            }
+        //    if (secondaryDir == Vector2Int.zero)
+        //    {
+        //        point = point + (Vector2)primaryDir * 0.1f + (Vector2)insideDir * 0.1f;
+        //        pos = Vector2Int.FloorToInt(point * 2);
+        //    }
+        //    else
+        //    {
+        //        point = point + (Vector2)primaryDir * 0.1f + (Vector2)secondaryDir * 0.1f;
+        //        pos = Vector2Int.FloorToInt(point * 2) + insideDir;
+        //    }
 
-            float dx = 0;
+        //    float dx = 0;
 
-            while (VCore.CellValid(pos))
-            {
-                ref var cell = ref visibility.Get(pos);
-                if (cell.state == CState.DarkCandidate)
-                {
-                    darkCasters[cell.darkCaster].TouchShadow(visibility.centerPosLocal, darkCasters[dc], pos - insideDir);
-                    darkCasters[cell.darkCaster].RemoveCell(pos);
-                }
-                cell.state = CState.Dark;
-                cell.darkCaster = dc;
-                //var insidePos = pos + insideDir;
-                //if (CellValid(insidePos))
-                //{
-                //    ref var cellInside = ref Get(insidePos);
-                //    if (cellInside.state == CState.Unknown)
-                //        DrawShadow(insidePos, ref Get(insidePos));
-                //}
+        //    while (VCore.CellValid(pos))
+        //    {
+        //        ref var cell = ref core.Get(pos);
+        //        if (cell.state == CState.DarkCandidate)
+        //        {
+        //            darkCasters[cell.darkCaster].TouchShadow(core.centerPosLocal, darkCasters[dc], pos - insideDir);
+        //            darkCasters[cell.darkCaster].RemoveCell(pos);
+        //        }
+        //        cell.state = CState.Dark;
+        //        cell.darkCaster = dc;
+        //        //var insidePos = pos + insideDir;
+        //        //if (CellValid(insidePos))
+        //        //{
+        //        //    ref var cellInside = ref Get(insidePos);
+        //        //    if (cellInside.state == CState.Unknown)
+        //        //        DrawShadow(insidePos, ref Get(insidePos));
+        //        //}
 
-                pos += primaryDir;
-                dx += xStep;
-                if (dx >= 1)
-                {
-                    dx -= 1;
-                    pos += secondaryDir;
-                }
-            }
-        }
+        //        pos += primaryDir;
+        //        dx += xStep;
+        //        if (dx >= 1)
+        //        {
+        //            dx -= 1;
+        //            pos += secondaryDir;
+        //        }
+        //    }
+        //}
 
-        private void DrawShadow(short dc)
-        {
-            dcShadow = dc;
-            while (workPositions.Count > 0)
-            {
-                visibility.Test4(workPositions.Dequeue(), drawShadowAction);
-            }
-        }
+        //private void DrawShadow(short dc)
+        //{
+        //    dcShadow = dc;
+        //    while (workPositions.Count > 0)
+        //    {
+        //        core.Test4(workPositions.Dequeue(), drawShadowAction);
+        //    }
+        //}
 
-        private void DrawShadow(Vector2Int pos, ref Cell cell)
-        {
-            if (cell.state != CState.Dark)
-            {
-                if (cell.state == CState.DarkCandidate)
-                {
-                    darkCasters[cell.darkCaster].RemoveCell(pos);
-                }
-                cell.state = CState.Dark;
-                cell.darkCaster = dcShadow;
-                workPositions.Enqueue(pos);
-            }
-        }
+        //private void DrawShadow(Vector2Int pos, ref Cell cell)
+        //{
+        //    if (cell.state != CState.Dark)
+        //    {
+        //        if (cell.state == CState.DarkCandidate)
+        //        {
+        //            darkCasters[cell.darkCaster].RemoveCell(pos);
+        //        }
+        //        cell.state = CState.Dark;
+        //        cell.darkCaster = dcShadow;
+        //        workPositions.Enqueue(pos);
+        //    }
+        //}
     }
 }

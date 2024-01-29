@@ -35,3 +35,5 @@ MonoBehaviour:
     type: 3}
   DebugVisibility: {fileID: 894492133461429317, guid: c54c9a86e1a6a2644991b0b16038b27d,
     type: 3}
+  Occluder: {fileID: 6204026288366265542, guid: 4a97323e63e635f4285be3da50874a14,
+    type: 3}
