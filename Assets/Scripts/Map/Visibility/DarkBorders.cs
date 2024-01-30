@@ -157,7 +157,7 @@ namespace Assets.Scripts.Map.Visibility
             else 
             {
                 var destArr = borders[arr];
-                if (destArr.Count == 0 || GoRight(new BorderPtr(arr, destArr.Count - 1, true, 0)).PosEq(ptr))
+                if (destArr.Count == 0 || !VCore.IsBetterOrder(destArr[destArr.Count-1].Dir, border.Dir))
                 {
                     destArr.Add(border);
                 }
@@ -257,6 +257,9 @@ namespace Assets.Scripts.Map.Visibility
             Vector2 leftNormal = VCore.TurnLeft(leftDir);
             Vector2 rightNormalNeg = VCore.TurnLeft(rightDir);
             Vector2 rTol = leftPoint - rightPoint;
+
+            if (!VCore.IsBetterOrder(leftDir, rightDir) && Vector2.Dot(leftDir, rightDir) <= 0)
+                Debug.LogError("otoceny TestCollapse");
 
             // test zda se poloprimky krizi
             if (Vector2.Dot(leftNormal, rTol) >= 0 && Vector2.Dot(rightNormalNeg, rTol) >= 0)

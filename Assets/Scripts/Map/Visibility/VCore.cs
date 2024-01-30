@@ -20,7 +20,6 @@ namespace Assets.Scripts.Map.Visibility
         private const int sizeY = HalfYSize * 2 + 1;
 
         internal const float centerRadius = 0.7f;
-        //internal const float centerRadiusSq = centerRadius * centerRadius;
         internal const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
         private readonly Map map;

@@ -31,7 +31,6 @@ namespace Assets.Scripts.Map.Visibility
             findTouchingShadowAction = FindTouchingShadow;
         }
 
-       // public DarkCaster this[int index] => darkCasters[index];
 
         public void FreeDarkCasters()
         {
@@ -181,11 +180,6 @@ namespace Assets.Scripts.Map.Visibility
                     RecolorFinishedCells(dc, dc.Id, CState.Dark);
                     darkBorders.Add(dc);
                     dc.InitOccluder(core.posToWorld);
-                    //if (!dc.connectsLeft)
-                    //    DrawLine(dc.LeftPoint, dc.LeftDir, dc.Id, -1);
-                    //if (!dc.connectsRight)
-                    //    DrawLine(dc.RightPoint, dc.RightDir, dc.Id, 1);
-                    //DrawShadow(dc.Id);
                     dc.Abandon();
                 }
                 else if (dc.IsReCastable)
@@ -205,89 +199,5 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        //private void DrawLine(Vector2 point, Vector2 dir, short dc, int right)
-        //{
-        //    dcShadow = dc;
-        //    Vector2Int primaryDir;
-        //    Vector2Int secondaryDir;
-        //    float xStep;
-        //    if (MathF.Abs(dir.x) > MathF.Abs(dir.y))
-        //    {
-        //        primaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
-        //        secondaryDir = new Vector2Int(0, MathF.Sign(dir.y));
-        //        xStep = MathF.Abs(dir.y / dir.x);
-        //    }
-        //    else
-        //    {
-        //        secondaryDir = new Vector2Int(MathF.Sign(dir.x), 0);
-        //        primaryDir = new Vector2Int(0, MathF.Sign(dir.y));
-        //        xStep = MathF.Abs(dir.x / dir.y);
-        //    }
-        //    Vector2Int insideDir = VCore.TurnLeft(primaryDir) * right;
-        //    Vector2Int pos;
-
-        //    if (secondaryDir == Vector2Int.zero)
-        //    {
-        //        point = point + (Vector2)primaryDir * 0.1f + (Vector2)insideDir * 0.1f;
-        //        pos = Vector2Int.FloorToInt(point * 2);
-        //    }
-        //    else
-        //    {
-        //        point = point + (Vector2)primaryDir * 0.1f + (Vector2)secondaryDir * 0.1f;
-        //        pos = Vector2Int.FloorToInt(point * 2) + insideDir;
-        //    }
-
-        //    float dx = 0;
-
-        //    while (VCore.CellValid(pos))
-        //    {
-        //        ref var cell = ref core.Get(pos);
-        //        if (cell.state == CState.DarkCandidate)
-        //        {
-        //            darkCasters[cell.darkCaster].TouchShadow(core.centerPosLocal, darkCasters[dc], pos - insideDir);
-        //            darkCasters[cell.darkCaster].RemoveCell(pos);
-        //        }
-        //        cell.state = CState.Dark;
-        //        cell.darkCaster = dc;
-        //        //var insidePos = pos + insideDir;
-        //        //if (CellValid(insidePos))
-        //        //{
-        //        //    ref var cellInside = ref Get(insidePos);
-        //        //    if (cellInside.state == CState.Unknown)
-        //        //        DrawShadow(insidePos, ref Get(insidePos));
-        //        //}
-
-        //        pos += primaryDir;
-        //        dx += xStep;
-        //        if (dx >= 1)
-        //        {
-        //            dx -= 1;
-        //            pos += secondaryDir;
-        //        }
-        //    }
-        //}
-
-        //private void DrawShadow(short dc)
-        //{
-        //    dcShadow = dc;
-        //    while (workPositions.Count > 0)
-        //    {
-        //        core.Test4(workPositions.Dequeue(), drawShadowAction);
-        //    }
-        //}
-
-        //private void DrawShadow(Vector2Int pos, ref Cell cell)
-        //{
-        //    if (cell.state != CState.Dark)
-        //    {
-        //        if (cell.state == CState.DarkCandidate)
-        //        {
-        //            darkCasters[cell.darkCaster].RemoveCell(pos);
-        //        }
-        //        cell.state = CState.Dark;
-        //        cell.darkCaster = dcShadow;
-        //        workPositions.Enqueue(pos);
-        //    }
-        //}
     }
 }

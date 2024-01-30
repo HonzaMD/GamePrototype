@@ -99,6 +99,8 @@ namespace Assets.Scripts.Map.Visibility
 
             if (darkDC != null) 
             {
+                if (right == Vector2.zero)
+                    right = a - centerPosLocal;
                 var (gl, gr, lOK, rOK) = darkBorders.FindLeftRight(right);
                 if (!connectsLeft && rOK && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
                 {
@@ -164,44 +166,6 @@ namespace Assets.Scripts.Map.Visibility
             Active = false;
         }
 
-        //internal void TouchShadow(Vector2 centerPosLocal, DarkCaster dc2, Vector2Int pos, Vector2Int shadowPos)
-        //{
-        //    var center1 = LeftPoint + RightPoint - 2 * centerPosLocal;
-        //    var center2 = dc2.LeftPoint + dc2.RightPoint - 2 * centerPosLocal;
-        //    var pivotShadow = VCore.CellCenter(shadowPos);
-        //    var pivotMy = VCore.CellCenter(pos);
-        //    var myToShadow = pivotShadow - pivotMy;
-
-        //    if (!connectsLeft && VCore.IsBetterOrder(center1, center2) && VCore.IsBetterOrder(LeftDir, dc2.RightDir)) // L1 pak R2
-        //    {
-        //        LeftCell = pos;
-        //        LeftDir = dc2.RightDir;
-        //        connectsLeft = true;
-
-        //        var normal = VCore.TurnLeft(LeftDir);
-        //        LeftPoint = Vector2.Dot(normal, myToShadow) > 0 ? pivotShadow : pivotMy;
-        //    }
-        //    if (!connectsRight && VCore.IsBetterOrder(center2, center1) && VCore.IsBetterOrder(dc2.LeftDir, RightDir)) // L2 pak R1
-        //    {
-        //        RightCell = pos;
-        //        RightDir = dc2.LeftDir;
-        //        connectsRight = true;
-
-        //        var normal = -VCore.TurnLeft(RightDir);
-        //        RightPoint = Vector2.Dot(normal, myToShadow) > 0 ? pivotShadow : pivotMy;
-        //    }
-        //}
-
-        //private void TestTouchPoint(Vector2 pivot, Vector2 offset, Vector2 normal, ref float x, ref Vector2 output)
-        //{
-        //    var pivot2 = pivot + offset;
-        //    float x2 = Vector2.Dot(normal, pivot2);
-        //    if (x2 > x)
-        //    {
-        //        x = x2;
-        //        output = pivot2;
-        //    }
-        //}
 
         public (bool canCast, bool abandon) CanCast()
         {
@@ -220,12 +184,6 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        //internal void RemoveCell(Vector2Int pos)
-        //{
-        //    cellCount--;
-        //    if (cellCount == 0) 
-        //        Active = false;
-        //}
 
         internal void CorrectRightDir(Vector2 dir)
         {
