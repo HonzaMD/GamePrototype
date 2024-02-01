@@ -111,6 +111,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
+    <Compile Include="Assets\Scripts\Utils\LinkedList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />

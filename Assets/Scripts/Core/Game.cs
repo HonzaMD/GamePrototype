@@ -98,10 +98,15 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Timer.GameUpdate();
         UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
         if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
+        {
             Map.Visibility.Compute(Character.ArmSphere.transform.position);
+            UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
+        }
         else
+        {
             Map.ProcessCellStateTests(10);
-        UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
+            UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
+        }
 
         //if (!cameraMode)
         //    Character.GameUpdate();
