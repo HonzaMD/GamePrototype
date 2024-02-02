@@ -15,7 +15,7 @@ namespace Assets.Scripts.Map.Visibility
         public Vector2 LeftPoint, RightPoint;
         public Vector2 LeftDir, RightDir;
         private Occluder Occluder;
-        public DarkGroup Group;
+        public DCGroup Group;
         public bool connectsLeft;
         public bool connectsRight;
         public readonly List<Vector2Int> cells = new();

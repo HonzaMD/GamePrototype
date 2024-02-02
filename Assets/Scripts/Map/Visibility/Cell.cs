@@ -12,9 +12,9 @@ namespace Assets.Scripts.Map.Visibility
         Unknown,
         Visible,    // neni full shadow (muzu prejit z PartShadow po testu)
         PartShadow, // kandidat na fullShadow (pak musim udelat detailni test
-        FullShadow, // potreba pro detekci Darku. Vsechny stavy >= FullShadow odpovidaji FS
+        FullShadow, // potreba pro detekci DCSeedu. Vsechny stavy >= FullShadow odpovidaji FullShadow
         Dark,       // bunka ve stinu darkCasteru
-        DarkCandidate, // kandidat na darkCaster
+        DSeed,      // kandidat na darkCaster
     }
 
     [Flags]
@@ -24,9 +24,6 @@ namespace Assets.Scripts.Map.Visibility
         Floor = 1,
         Side = 2,
         FloorSet = 1 | 4,
-        LeftShadow = 8,
-        RightShadow = 16,
-        LeftShadowSet = 8 | 32,
     }
 
     internal struct Cell

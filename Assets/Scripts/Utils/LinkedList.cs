@@ -100,18 +100,10 @@ namespace Assets.Scripts.Utils
         {
             if (count == 0)
                 return;
-            
-            var nextEmpty = data[EmptyHead].next;
-            var firstData = data[DataHead].next;
-            var lastData = data[DataHead].prev;
 
-            data[EmptyHead].next = firstData;
-            data[firstData].prev = EmptyHead;
-            data[lastData].next = nextEmpty;
-            data[nextEmpty].prev = lastData;
-            
-            data[DataHead] = new(default, DataHead, DataHead);
-
+            data[0] = new(default, DataHead, DataHead);
+            data[1] = new(default, EmptyHead, EmptyHead);
+            top = 2;
             ResetPtr();
             count = 0;
         }

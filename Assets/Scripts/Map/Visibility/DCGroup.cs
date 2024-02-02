@@ -2,16 +2,16 @@
 
 namespace Assets.Scripts.Map.Visibility
 {
-    internal class DarkGroup
+    internal class DCGroup
     {
         private List<DarkCaster> members = new();
         public DarkCaster LeftDC;
         public DarkCaster RightDC;
-        private static Stack<DarkGroup> pool = new ();
+        private static Stack<DCGroup> pool = new ();
 
-        public static DarkGroup Join(DarkCaster left, DarkCaster right)
+        public static DCGroup Join(DarkCaster left, DarkCaster right)
         {
-            DarkGroup group = left.Group ?? right.Group ?? Create();
+            DCGroup group = left.Group ?? right.Group ?? Create();
             group.LeftDC = left.Group?.LeftDC ?? left;
             group.RightDC = right.Group?.RightDC ?? right;
 
@@ -20,7 +20,7 @@ namespace Assets.Scripts.Map.Visibility
             return group;
         }
 
-        private static void JoinSide(DarkGroup group, DarkCaster dc)
+        private static void JoinSide(DCGroup group, DarkCaster dc)
         {
             if (dc.Group == null)
             {
@@ -39,7 +39,7 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        private static void Free(DarkGroup oldGroup)
+        private static void Free(DCGroup oldGroup)
         {
             oldGroup.members.Clear();
             oldGroup.LeftDC = null;
@@ -56,9 +56,9 @@ namespace Assets.Scripts.Map.Visibility
             Free(this);
         }
 
-        private static DarkGroup Create()
+        private static DCGroup Create()
         {
-            return pool.Count > 0 ? pool.Pop() : new DarkGroup();
+            return pool.Count > 0 ? pool.Pop() : new DCGroup();
         }
     }
 }

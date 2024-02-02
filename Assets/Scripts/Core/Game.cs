@@ -49,6 +49,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     public int CollisionLayaerMask { get; private set; }
     public double[] UpdateTimes = new double[8];
+    public double[] VisibiltyTimes = new double[4];
+    public int[] VisibiltyCounters = new int[6];
 
     public Game()
     {
@@ -100,6 +102,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
         {
             Map.Visibility.Compute(Character.ArmSphere.transform.position);
+            Map.Visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
             UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
         }
         else

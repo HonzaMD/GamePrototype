@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,18 +24,25 @@ namespace Assets.Scripts.Map.Visibility
         internal const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
         private readonly Map map;
-        private Cell[] vmap = new Cell[sizeY * sizeX];
+        private readonly Cell[] vmap = new Cell[sizeY * sizeX];
         internal Vector2 centerPosLocal; // pozice stedu mapy
         private Vector2Int cellToWorld; // Pozice nulte bunky v souradniciuch vnejsiho sveta
         internal Vector2 posToWorld;
 
         private readonly Action<Vector2Int> castShadowAction;
-        private readonly Action<Vector2Int> createDarkersAction;
+        private readonly Action<Vector2Int> createDarkSeedsAction;
 
         private readonly ShadowWorker shadowWorker;
         private readonly DCManager dcManager;
         private readonly DarkBorders darkBorders;
 
+        private readonly Stopwatch swCastShadows = new();
+        private readonly Stopwatch swCreateSeeds = new();
+        private readonly Stopwatch swDrawDarks = new();
+        private readonly Stopwatch swCreateDcs = new();
+        private int castShadowCounter;
+        private int dSeedTestCounter;
+        private int resolveShadowCounter;
 
         public VCore(Map map)
         {
@@ -43,7 +51,7 @@ namespace Assets.Scripts.Map.Visibility
             darkBorders = new();
             dcManager = new(this, darkBorders);
             castShadowAction = CastShadows;
-            createDarkersAction = CreateDarkers;
+            createDarkSeedsAction = CreateDarkSeeds;
         }
 
         bool debugBreak = false;
@@ -63,18 +71,18 @@ namespace Assets.Scripts.Map.Visibility
 
             for (int cc = 1; cc <= maxCircles; cc++)
             {
-                DoCircle(cc, castShadowAction);
+                DoCircle(cc, castShadowAction, swCastShadows);
                 DrawDarks(cc);
                 if (debugBreak)
                     break;
                 if (cc > 1)
-                    DoCircle(cc - 1, createDarkersAction);
-                dcManager.TryCastDark();
+                    DoCircle(cc - 1, createDarkSeedsAction, swCreateSeeds);
+                dcManager.TryCastDark(swCreateDcs);
                 DrawDarks(cc);
                 if (debugBreak)
                     break;
             }
-            dcManager.TryCastDark();
+            dcManager.TryCastDark(swCreateDcs);
 
             DrawDebug();
         }
@@ -117,7 +125,7 @@ namespace Assets.Scripts.Map.Visibility
                         {
                             CState.PartShadow => Color.gray,
                             CState.FullShadow => Color.blue,
-                            CState.DarkCandidate => Color.red,
+                            CState.DSeed => Color.red,
                             CState.Dark => new Color(0.5f, 0.4f, 0.2f),
                             _ => Color.magenta
                         };
@@ -130,8 +138,9 @@ namespace Assets.Scripts.Map.Visibility
         }
 
 
-        private void DoCircle(int cc, Action<Vector2Int> action)
+        private void DoCircle(int cc, Action<Vector2Int> action, Stopwatch sw)
         {
+            sw.Start();
             action(centerCellLocal + Vector2Int.left * cc);
             action(centerCellLocal + Vector2Int.right * cc);
             action(centerCellLocal + Vector2Int.up * cc);
@@ -153,6 +162,7 @@ namespace Assets.Scripts.Map.Visibility
             action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * cc);
             action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * cc);
             action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * cc);
+            sw.Stop();
         }
 
         internal void Test8(Vector2Int center, NeighbourTest action)
@@ -278,6 +288,7 @@ namespace Assets.Scripts.Map.Visibility
         {
             int dx = Math.Sign(pos.x - HalfXSize);
             int dy = Math.Sign(pos.y - HalfYSize);
+            castShadowCounter++;
 
             int maxX = dx == 0 ? 1 : 3;
             int maxY = dy == 0 ? 1 : 3;
@@ -300,7 +311,7 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        private void CreateDarkers(Vector2Int pos)
+        private void CreateDarkSeeds(Vector2Int pos)
         {
             if (!CellValid(pos))
                 return;
@@ -308,6 +319,7 @@ namespace Assets.Scripts.Map.Visibility
             if (Get(pos).state is CState.Visible or CState.Dark)
                 return;
 
+            dSeedTestCounter++;
             int score = 0;
             var toCenter = new Vector2Int(Math.Sign(HalfXSize - pos.x), Math.Sign(HalfYSize - pos.y));
 
@@ -345,11 +357,13 @@ namespace Assets.Scripts.Map.Visibility
 
         private void ResolvePartShadow(Vector2Int pos)
         { 
+            resolveShadowCounter++;
             Get(pos).state = shadowWorker.ResolvePartShadow(pos) ? CState.FullShadow : CState.Visible;
         }
 
         private void DrawDarks(int cc)
         {
+            swDrawDarks.Start();
             int ccx = cc > HalfXSize ? HalfXSize : cc;
             int ccy = cc > HalfYSize ? HalfYSize : cc;
 
@@ -375,6 +389,7 @@ namespace Assets.Scripts.Map.Visibility
                 DrawDarks(rd, Vector2Int.left, ccx * 2);
                 DrawDarks(ld, Vector2Int.up, ccy * 2);
             }
+            swDrawDarks.Stop();
         }
 
         private void DrawDarks(Vector2Int pos, Vector2Int dir, int count)
@@ -436,6 +451,30 @@ namespace Assets.Scripts.Map.Visibility
             dcManager.FreeDarkCasters();
             vmap.AsSpan().Clear();
             darkBorders.Clear();
+
+            swCastShadows.Reset();
+            swCreateDcs.Reset();
+            swCreateSeeds.Reset();
+            swDrawDarks.Reset();
+            castShadowCounter = 0;
+            dSeedTestCounter = 0;
+            resolveShadowCounter = 0;
+        }
+
+        internal void ReportDiagnostics(double[] visibiltyTimes, int[] visibilityCounters)
+        {
+            visibiltyTimes[0] = swCastShadows.Elapsed.TotalMilliseconds;
+            visibiltyTimes[1] = swCreateSeeds.Elapsed.TotalMilliseconds;
+            visibiltyTimes[2] = swDrawDarks.Elapsed.TotalMilliseconds;
+            visibiltyTimes[3] = swCreateDcs.Elapsed.TotalMilliseconds;
+
+            visibilityCounters[0] = castShadowCounter;
+            visibilityCounters[1] = dSeedTestCounter;
+            visibilityCounters[2] = resolveShadowCounter;
+            visibilityCounters[3] = dcManager.dcAbandonCounter;
+            visibilityCounters[4] = dcManager.dcCreateCounter;
+            visibilityCounters[5] = dcManager.dcBorderAddCounter;
+
         }
     }
 }

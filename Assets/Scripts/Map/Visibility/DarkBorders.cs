@@ -130,9 +130,9 @@ namespace Assets.Scripts.Map.Visibility
                     Debug.Log("Divnost: Byl jsem spojenej doprava");
 
                 if (collapseLeft)
-                    DarkGroup.Join(Get(left).DC, dc);
+                    DCGroup.Join(Get(left).DC, dc);
                 if (collapseRight)
-                    DarkGroup.Join(dc, Get(right).DC);
+                    DCGroup.Join(dc, Get(right).DC);
 
                 if (!collapseLeft && !collapseRight)
                     InsetrTwo(new Border(dc.LeftDir, dc, true), new Border(dc.RightDir, dc, false), right);

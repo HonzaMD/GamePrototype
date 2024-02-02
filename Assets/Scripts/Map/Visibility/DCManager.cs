@@ -20,14 +20,18 @@ namespace Assets.Scripts.Map.Visibility
         private short dcShadow;
         private Vector2Int shadowPos;
 
-        private readonly NeighbourTest findActiveCasterAction;
+        private readonly NeighbourTest findSeedAction;
         private readonly NeighbourTest findTouchingShadowAction;
+
+        public int dcAbandonCounter;
+        public int dcCreateCounter;
+        public int dcBorderAddCounter;
 
         public DCManager(VCore core, DarkBorders darkBorders)
         {
             this.core = core;
             this.darkBorders = darkBorders;
-            findActiveCasterAction = FindActiveCaster;
+            findSeedAction = FindSeed;
             findTouchingShadowAction = FindTouchingShadow;
         }
 
@@ -40,12 +44,16 @@ namespace Assets.Scripts.Map.Visibility
             }
             dcTop = 0;
             liveDarkCasters.Clear();
+
+            dcAbandonCounter = 0;
+            dcCreateCounter = 0;
+            dcBorderAddCounter = 0;
         }
 
         public void AddDarkCandidate(Vector2Int pos)
         {
             dcToAttach = -1;
-            core.Test8(pos, findActiveCasterAction);
+            core.Test8(pos, findSeedAction);
             if (dcToAttach == -1)
             {
                 CreateNew(pos);
@@ -57,9 +65,9 @@ namespace Assets.Scripts.Map.Visibility
         }
 
 
-        private void FindActiveCaster(Vector2Int pos, ref Cell cell)
+        private void FindSeed(Vector2Int pos, ref Cell cell)
         {
-            if (cell.state == CState.DarkCandidate)
+            if (cell.state == CState.DSeed)
             {
                 if (dcToAttach == -1)
                 {
@@ -74,15 +82,15 @@ namespace Assets.Scripts.Map.Visibility
 
         private void Attach(Vector2Int pos)
         {
-            InitAttachedCell(pos);
+            InitSeedCell(pos);
             darkCasters[dcToAttach].Attach(pos, core.centerPosLocal, null, null);
             FindTouchingShadow(pos);
         }
 
-        private void InitAttachedCell(Vector2Int pos)
+        private void InitSeedCell(Vector2Int pos)
         {
             ref var cell = ref core.Get(pos);
-            cell.state = CState.DarkCandidate;
+            cell.state = CState.DSeed;
             cell.darkCaster = dcToAttach;
         }
 
@@ -102,7 +110,7 @@ namespace Assets.Scripts.Map.Visibility
             foreach (var cellPos in dcTJ.cells)
             {
                 ref var cell = ref core.Get(cellPos);
-                if (cell.state == CState.DarkCandidate && cell.darkCaster == dcToJoin)
+                if (cell.state == CState.DSeed && cell.darkCaster == dcToJoin)
                 {
                     cell.darkCaster = dcToAttach;
                 }
@@ -112,7 +120,7 @@ namespace Assets.Scripts.Map.Visibility
         private void CreateNew(Vector2Int pos)
         {
             var dc = CreateDC();
-            InitAttachedCell(pos);
+            InitSeedCell(pos);
             dc.InitVectors(core.centerPosLocal, VCore.CellCenter(pos), pos);
             FindTouchingShadow(pos);
         }
@@ -121,7 +129,7 @@ namespace Assets.Scripts.Map.Visibility
         {
             dcShadow = -1;
             core.Test4(pos, findTouchingShadowAction);
-            if (dcShadow != -1 && !GroupEquals(dcShadow, dcToAttach))
+            if (dcShadow != -1)
             {
                 var dc = darkCasters[dcToAttach];
                 dc.Attach(shadowPos, core.centerPosLocal, darkCasters[dcShadow], darkBorders);
@@ -134,7 +142,7 @@ namespace Assets.Scripts.Map.Visibility
 
         private void FindTouchingShadow(Vector2Int pos, ref Cell cell)
         {
-            if (cell.state == CState.Dark)
+            if (cell.state == CState.Dark && dcShadow == -1 && !GroupEquals(cell.darkCaster, dcToAttach))
             {
                 dcShadow = cell.darkCaster;
                 shadowPos = pos;
@@ -146,7 +154,7 @@ namespace Assets.Scripts.Map.Visibility
             foreach (var cellPos in dc.cells)
             {
                 ref var cell = ref core.Get(cellPos);
-                if (cell.state == CState.DarkCandidate && cell.darkCaster == dcId)
+                if (cell.state == CState.DSeed && cell.darkCaster == dcId)
                 {
                     cell.state = state;
                 }
@@ -164,8 +172,9 @@ namespace Assets.Scripts.Map.Visibility
             return darkCasters[dcToAttach];
         }
 
-        public void TryCastDark()
+        public void TryCastDark(System.Diagnostics.Stopwatch swCreateDcs)
         {
+            swCreateDcs.Start();
             for (int i = 0; i < liveDarkCasters.Count; )
             {
                 var dc = liveDarkCasters[i];
@@ -174,6 +183,7 @@ namespace Assets.Scripts.Map.Visibility
                 {
                     RecolorFinishedCells(dc, dc.Id, CState.FullShadow);
                     dc.Abandon();
+                    dcAbandonCounter++;
                 }
                 else if (canCast)
                 {
@@ -181,10 +191,12 @@ namespace Assets.Scripts.Map.Visibility
                     darkBorders.Add(dc);
                     dc.InitOccluder(core.posToWorld);
                     dc.Abandon();
+                    dcCreateCounter++;
                 }
                 else if (dc.IsReCastable)
                 {
                     darkBorders.Add(dc);
+                    dcBorderAddCounter++;
                 }
 
                 if (dc.Active)
@@ -197,6 +209,7 @@ namespace Assets.Scripts.Map.Visibility
                     liveDarkCasters.RemoveAt(liveDarkCasters.Count-1);
                 }
             }
+            swCreateDcs.Stop();
         }
 
     }
