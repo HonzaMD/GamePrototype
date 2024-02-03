@@ -10,6 +10,7 @@ namespace Assets.Scripts.Map.Visibility
     internal class DarkCaster
     {
         public short Id { get; }
+        private readonly VCore core;
         public Vector2Int LeftCell;
         public Vector2Int RightCell;
         public Vector2 LeftPoint, RightPoint;
@@ -27,9 +28,10 @@ namespace Assets.Scripts.Map.Visibility
             return $"L:{(connectsLeft?"*":"")} {LeftDir.normalized} R:{(connectsRight ? "*" : "")} {RightDir.normalized} Id:{Id} CellCount:{cells.Count}";
         }
 
-        public DarkCaster(short id)
+        public DarkCaster(short id, VCore core)
         {
             Id = id;
+            this.core = core;
         }
 
         private bool DirsValid => LeftDir != Vector2.zero && RightDir != Vector2.zero;
@@ -60,6 +62,7 @@ namespace Assets.Scripts.Map.Visibility
             Active = true;
             LeftCell = pos;
             RightCell = pos;
+            core.MarkPartShadowsInNearCells(pos, 2);
             LeftPoint = center;
             RightPoint = center;
             ComputeLeftRightDir(centerPosLocal, center, out LeftDir, out RightDir);
@@ -88,13 +91,13 @@ namespace Assets.Scripts.Map.Visibility
             {
                 LeftPoint = a;
                 LeftDir = left;
-                LeftCell = pos;
+                SetCell(ref LeftCell, pos);
             }
             if (!connectsRight && (VCore.IsBetterOrder(right, RightDir) || (RightDir == Vector2.zero && right != Vector2.zero)))
             {
                 RightPoint = a;
                 RightDir = right;
-                RightCell = pos;
+                SetCell(ref RightCell, pos);
             }
 
             if (darkDC != null) 
@@ -104,18 +107,30 @@ namespace Assets.Scripts.Map.Visibility
                 var (gl, gr, lOK, rOK) = darkBorders.FindLeftRight(right);
                 if (!connectsLeft && rOK && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
                 {
-                    Debug.Assert(gr == darkDC.GroupRightDir);
+                    if (gr != darkDC.GroupRightDir)
+                        throw new InvalidOperationException();
+                    //Debug.Assert(gr == darkDC.GroupRightDir);
                     connectsLeft = true;
                     LeftDir = gr;
                 }
 
                 if (!connectsRight && lOK && VCore.IsBetterOrder(gl, LeftDir) && VCore.IsBetterOrder(gl, RightDir))
                 {
-                    Debug.Assert(gl == darkDC.GroupLeftDir);
+                    if (gl != darkDC.GroupLeftDir)
+                        throw new InvalidOperationException();
+                    //Debug.Assert(gl == darkDC.GroupLeftDir);
                     connectsRight = true;
                     RightDir = gl;
                 }
             }
+        }
+
+
+        private void SetCell(ref Vector2Int cell, Vector2Int pos)
+        {
+            core.MarkPartShadowsInNearCells(cell, -1);
+            core.MarkPartShadowsInNearCells(pos, 1);
+            cell = pos;
         }
 
         internal void Attach(Vector2Int pos, Vector2 centerPosLocal, DarkCaster darkDC, DarkBorders darkBorders)
@@ -143,7 +158,7 @@ namespace Assets.Scripts.Map.Visibility
             {
                 LeftPoint = dcTJ.LeftPoint;
                 LeftDir = dcTJ.LeftDir;
-                LeftCell = dcTJ.LeftCell;
+                SetCell(ref LeftCell, dcTJ.LeftCell);
                 connectsLeft = dcTJ.connectsLeft;
             }
         }
@@ -154,7 +169,7 @@ namespace Assets.Scripts.Map.Visibility
             {
                 RightPoint = dcTJ.RightPoint;
                 RightDir = dcTJ.RightDir;
-                RightCell = dcTJ.RightCell;
+                SetCell(ref RightCell, dcTJ.RightCell);
                 connectsRight = dcTJ.connectsRight;
             }
         }

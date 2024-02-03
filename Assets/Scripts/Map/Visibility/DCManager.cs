@@ -154,7 +154,7 @@ namespace Assets.Scripts.Map.Visibility
             foreach (var cellPos in dc.cells)
             {
                 ref var cell = ref core.Get(cellPos);
-                if (cell.state == CState.DSeed && cell.darkCaster == dcId)
+                if (cell.state is CState.DSeed or CState.Dark && cell.darkCaster == dcId)
                 {
                     cell.state = state;
                 }
@@ -167,14 +167,15 @@ namespace Assets.Scripts.Map.Visibility
             dcToAttach = (short)dcTop;
             dcTop++;
             if (darkCasters.Count <= dcToAttach)
-                darkCasters.Add(new(dcToAttach));
+                darkCasters.Add(new(dcToAttach, core));
             liveDarkCasters.Add(darkCasters[dcToAttach]);
             return darkCasters[dcToAttach];
         }
 
-        public void TryCastDark(System.Diagnostics.Stopwatch swCreateDcs)
+        public bool TryCastDark(System.Diagnostics.Stopwatch swCreateDcs)
         {
             swCreateDcs.Start();
+            bool bordersChanged = false;
             for (int i = 0; i < liveDarkCasters.Count; )
             {
                 var dc = liveDarkCasters[i];
@@ -187,15 +188,20 @@ namespace Assets.Scripts.Map.Visibility
                 }
                 else if (canCast)
                 {
-                    RecolorFinishedCells(dc, dc.Id, CState.Dark);
-                    darkBorders.Add(dc);
-                    dc.InitOccluder(core.posToWorld);
+                    bool added = darkBorders.Add(dc);
+                    RecolorFinishedCells(dc, dc.Id, added ? CState.Dark : CState.FullShadow);
+                    if (added)
+                    {
+                        dc.InitOccluder(core.posToWorld);
+                        bordersChanged = true;
+                    }
                     dc.Abandon();
                     dcCreateCounter++;
                 }
                 else if (dc.IsReCastable)
                 {
                     darkBorders.Add(dc);
+                    bordersChanged = true;
                     dcBorderAddCounter++;
                 }
 
@@ -210,6 +216,7 @@ namespace Assets.Scripts.Map.Visibility
                 }
             }
             swCreateDcs.Stop();
+            return bordersChanged;
         }
 
     }

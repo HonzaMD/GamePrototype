@@ -11,7 +11,7 @@ namespace Assets.Scripts.Map.Visibility
     {
         Unknown,
         Visible,    // neni full shadow (muzu prejit z PartShadow po testu)
-        PartShadow, // kandidat na fullShadow (pak musim udelat detailni test
+        //PartShadow, // kandidat na fullShadow (pak musim udelat detailni test
         FullShadow, // potreba pro detekci DCSeedu. Vsechny stavy >= FullShadow odpovidaji FullShadow
         Dark,       // bunka ve stinu darkCasteru
         DSeed,      // kandidat na darkCaster

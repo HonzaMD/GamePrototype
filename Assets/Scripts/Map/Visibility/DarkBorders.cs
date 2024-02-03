@@ -12,6 +12,8 @@ namespace Assets.Scripts.Map.Visibility
     {
         private readonly List<Border>[] borders = new List<Border>[4];
         private int count;
+        private bool fullCircle;
+        private short lastDC;
 
         public DarkBorders()
         {
@@ -73,6 +75,8 @@ namespace Assets.Scripts.Map.Visibility
         {
             if (count == 0)
             {
+                if (fullCircle)
+                    return false;
                 InsetrTwo(new Border(dc.LeftDir, dc, true), new Border(dc.RightDir, dc, false), BorderPtr.Null);
                 return true;
             }
@@ -133,6 +137,7 @@ namespace Assets.Scripts.Map.Visibility
                     DCGroup.Join(Get(left).DC, dc);
                 if (collapseRight)
                     DCGroup.Join(dc, Get(right).DC);
+                lastDC = dc.Id;
 
                 if (!collapseLeft && !collapseRight)
                     InsetrTwo(new Border(dc.LeftDir, dc, true), new Border(dc.RightDir, dc, false), right);
@@ -182,6 +187,9 @@ namespace Assets.Scripts.Map.Visibility
                 borders[ptr1.arr].RemoveAt(ptr1.pos);
                 borders[ptr2.arr].RemoveAt(ptr2.pos);
             }
+
+            if (count == 0)
+                fullCircle = true;
         }
 
 
@@ -312,6 +320,11 @@ namespace Assets.Scripts.Map.Visibility
 
         public (Vector2 left, Vector2 right, bool leftOk, bool rightOK) FindLeftRight(Vector2 dir)
         {
+            if (fullCircle)
+            {
+                return (Vector2.zero, Vector2.zero, false, false);
+            }
+
             var ptr = Find(dir);
             var border = Get(ptr);
             if (border.IsLeft)
@@ -328,7 +341,7 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
-        public static int DirToArr(Vector2 dir)
+        private static int DirToArr(Vector2 dir)
         {
             if (Mathf.Abs(dir.y) > Mathf.Abs(dir.x))
             {
@@ -407,7 +420,7 @@ namespace Assets.Scripts.Map.Visibility
                 nextPtr = BorderPtr.Null;
                 nextDir = -dir;
                 point = Vector2.zero;
-                return -1;
+                return fullCircle ? lastDC : (short)-1;
             }
             nextPtr = Find(dir);
             var border = Get(nextPtr);
@@ -429,6 +442,7 @@ namespace Assets.Scripts.Map.Visibility
         public void Clear() 
         {
             count = 0;
+            fullCircle = false;
             foreach (var b in borders) 
                 b.Clear();
         }

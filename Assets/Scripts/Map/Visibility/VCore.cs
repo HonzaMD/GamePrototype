@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace Assets.Scripts.Map.Visibility
 
         private readonly Map map;
         private readonly Cell[] vmap = new Cell[sizeY * sizeX];
+        private readonly byte[] seedsMap = new byte[sizeY * sizeX];
         internal Vector2 centerPosLocal; // pozice stedu mapy
         private Vector2Int cellToWorld; // Pozice nulte bunky v souradniciuch vnejsiho sveta
         internal Vector2 posToWorld;
@@ -69,16 +71,16 @@ namespace Assets.Scripts.Map.Visibility
             Get(centerCellLocal).state = CState.Visible;
             int maxCircles = Math.Max(HalfYSize, HalfXSize);
 
-            for (int cc = 1; cc <= maxCircles; cc++)
+            for (int cc = 1; cc < maxCircles; cc++)
             {
-                DoCircle(cc, castShadowAction, swCastShadows);
+                DoCircle(cc, castShadowAction, swCastShadows, new Vector2Int(HalfXSize - 1, HalfYSize - 1));
                 DrawDarks(cc);
                 if (debugBreak)
                     break;
                 if (cc > 1)
-                    DoCircle(cc - 1, createDarkSeedsAction, swCreateSeeds);
-                dcManager.TryCastDark(swCreateDcs);
-                DrawDarks(cc);
+                    DoCircle(cc - 1, createDarkSeedsAction, swCreateSeeds, new Vector2Int(HalfXSize - 2, HalfYSize - 2));
+                if (dcManager.TryCastDark(swCreateDcs))
+                    DrawDarks(cc);
                 if (debugBreak)
                     break;
             }
@@ -104,7 +106,7 @@ namespace Assets.Scripts.Map.Visibility
                 for (int x = 0; x < sizeX; x++)
                 {
                     var status = Get(new Vector2Int(x, y)).state;
-                    if (status != CState.Visible)
+                    if (status != CState.Unknown && status != CState.Visible)
                     {
                         GameObject dm;
                         if (debugMarkers.Count > 0)
@@ -123,10 +125,11 @@ namespace Assets.Scripts.Map.Visibility
 
                         var color = status switch
                         {
-                            CState.PartShadow => Color.gray,
+                            //CState.PartShadow => Color.gray,
                             CState.FullShadow => Color.blue,
                             CState.DSeed => Color.red,
                             CState.Dark => new Color(0.5f, 0.4f, 0.2f),
+                            CState.Visible => Color.yellow,
                             _ => Color.magenta
                         };
 
@@ -138,132 +141,95 @@ namespace Assets.Scripts.Map.Visibility
         }
 
 
-        private void DoCircle(int cc, Action<Vector2Int> action, Stopwatch sw)
+        private void DoCircle(int cc, Action<Vector2Int> action, Stopwatch sw, Vector2Int limit)
         {
-            sw.Start();
-            action(centerCellLocal + Vector2Int.left * cc);
-            action(centerCellLocal + Vector2Int.right * cc);
-            action(centerCellLocal + Vector2Int.up * cc);
-            action(centerCellLocal + Vector2Int.down * cc);
+            bool drawX = cc <= limit.x;
+            bool drawY = cc <= limit.y;
+            int ccx = drawX ? cc : limit.x + 1;
+            int ccy = drawY ? cc : limit.y + 1;
 
-            for (int f = 1; f < cc; f++)
+
+            sw.Start();
+            if (drawX)
             {
-                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * f);
-                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * f);
-                action(centerCellLocal + Vector2Int.up * cc + Vector2Int.left * f);
-                action(centerCellLocal + Vector2Int.down * cc + Vector2Int.left * f);
-                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * f);
-                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * f);
-                action(centerCellLocal + Vector2Int.up * cc + Vector2Int.right * f);
-                action(centerCellLocal + Vector2Int.down * cc + Vector2Int.right * f);
+                action(centerCellLocal + Vector2Int.left * cc);
+                action(centerCellLocal + Vector2Int.right * cc);
+            }
+            if (drawY)
+            {
+                action(centerCellLocal + Vector2Int.up * cc);
+                action(centerCellLocal + Vector2Int.down * cc);
             }
 
-            action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * cc);
-            action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * cc);
-            action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * cc);
-            action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * cc);
+            if (drawX)
+            {
+                for (int f = 1; f < ccy; f++)
+                {
+                    action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * f);
+                    action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * f);
+                    action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * f);
+                    action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * f);
+                }
+            }
+
+            if (drawY)
+            {
+                for (int f = 1; f < ccx; f++)
+                {
+                    action(centerCellLocal + Vector2Int.up * cc + Vector2Int.left * f);
+                    action(centerCellLocal + Vector2Int.down * cc + Vector2Int.left * f);
+                    action(centerCellLocal + Vector2Int.up * cc + Vector2Int.right * f);
+                    action(centerCellLocal + Vector2Int.down * cc + Vector2Int.right * f);
+                }
+            }
+
+            if (drawX && drawY)
+            {
+                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.up * cc);
+                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.up * cc);
+                action(centerCellLocal + Vector2Int.left * cc + Vector2Int.down * cc);
+                action(centerCellLocal + Vector2Int.right * cc + Vector2Int.down * cc);
+            }
             sw.Stop();
         }
 
         internal void Test8(Vector2Int center, NeighbourTest action)
         {
-            if (center.x > 0 && center.y > 0 && center.x < sizeX - 1 && center.y < sizeY - 1)
-            {
-                Vector2Int pos;
-                pos = new Vector2Int(center.x - 1, center.y - 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x, center.y - 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x + 1, center.y - 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x - 1, center.y);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x + 1, center.y);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x - 1, center.y + 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x, center.y + 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x + 1, center.y + 1);
-                action(pos, ref Get(pos));
-            }
-            else
-            {
-                Test8Slow(center, action);
-            }
-        }
-
-        private void Test8Slow(Vector2Int center, NeighbourTest action)
-        {
             Vector2Int pos;
             pos = new Vector2Int(center.x - 1, center.y - 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x, center.y - 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x + 1, center.y - 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x - 1, center.y);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x + 1, center.y);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x - 1, center.y + 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x, center.y + 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x + 1, center.y + 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
         }
 
         internal void Test4(Vector2Int center, NeighbourTest action)
         {
-            if (center.x > 0 && center.y > 0 && center.x < sizeX - 1 && center.y < sizeY - 1)
-            {
-                Vector2Int pos;
-                pos = new Vector2Int(center.x, center.y - 1);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x - 1, center.y);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x + 1, center.y);
-                action(pos, ref Get(pos));
-                pos = new Vector2Int(center.x, center.y + 1);
-                action(pos, ref Get(pos));
-            }
-            else
-            {
-                Test4Slow(center, action);
-            }
-        }
-
-        private void Test4Slow(Vector2Int center, NeighbourTest action)
-        {
             Vector2Int pos;
             pos = new Vector2Int(center.x, center.y - 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x - 1, center.y);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x + 1, center.y);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
             pos = new Vector2Int(center.x, center.y + 1);
-            if (CellValid(pos))
-                action(pos, ref Get(pos));
+            action(pos, ref Get(pos));
         }
+
 
         private void CastShadows(Vector2Int pos)
         {
-            if (!CellValid(pos))
-                return;
-
             ref var cell = ref Get(pos);
 
             if (cell.state == CState.Dark)
@@ -273,50 +239,56 @@ namespace Assets.Scripts.Map.Visibility
             else if (map.GetCellBlocking(pos + cellToWorld).IsDoubleFull())
             {
                 cell.state = CState.FullShadow;
-                cell.wallType = WallType.Side | WallType.FloorSet;
+                cell.wallType |= WallType.Side | WallType.FloorSet;
 
                 MarkPartShadowsInNearCells(pos);
 
             }
-            else if (cell.state == CState.Unknown)
-            {
-                cell.state = CState.Visible;
-            }
+            //else if (cell.state == CState.Unknown)
+            //{
+            //    cell.state = CState.Visible;
+            //}
         }
 
         private void MarkPartShadowsInNearCells(Vector2Int pos)
         {
-            int dx = Math.Sign(pos.x - HalfXSize);
-            int dy = Math.Sign(pos.y - HalfYSize);
             castShadowCounter++;
+            int dx = Math.Sign(pos.x - HalfXSize);
+            int dy = Math.Sign(pos.y - HalfYSize) * sizeX;
+            int p = pos.y * sizeX + pos.x;
 
-            int maxX = dx == 0 ? 1 : 3;
-            int maxY = dy == 0 ? 1 : 3;
+            seedsMap[p + dx] += 1;
+            seedsMap[p + dy] += 1;
+            seedsMap[p + dx + dy] += 1;
+        }
 
-            for (int x = 0; x < maxX; x++)
-            {
-                for (int y = 0; y < maxY; y++)
-                {
-                    if (x != 0 || y != 0)
-                    {
-                        var pos2 = new Vector2Int(x * dx, y * dy) + pos;
-                        if (CellValid(pos2))
-                        {
-                            ref var cell2 = ref Get(pos2);
-                            if (cell2.state == CState.Unknown)
-                                cell2.state = CState.PartShadow;
-                        }
-                    }
-                }
-            }
+        public void MarkPartShadowsInNearCells(Vector2Int pos, int delta)
+        {
+            int p = (pos.y - 1) * sizeX + pos.x - 1;
+            byte d2 = (byte)delta;
+            seedsMap[p] += d2;
+            p++;
+            seedsMap[p] += d2;
+            p++;
+            seedsMap[p] += d2;
+
+            p += sizeX;
+            seedsMap[p] += d2;
+            p += sizeX;
+            seedsMap[p] += d2;
+
+            p--;
+            seedsMap[p] += d2;
+            p--;
+            seedsMap[p] += d2;
+
+            p -= sizeX;
+            seedsMap[p] += d2;
         }
 
         private void CreateDarkSeeds(Vector2Int pos)
         {
-            if (!CellValid(pos))
-                return;
-
-            if (Get(pos).state is CState.Visible or CState.Dark)
+            if (seedsMap[pos.y * sizeX + pos.x] == 0 || Get(pos).state is CState.Visible or CState.Dark)
                 return;
 
             dSeedTestCounter++;
@@ -341,11 +313,9 @@ namespace Assets.Scripts.Map.Visibility
 
         private int TestShadow(Vector2Int pos, Vector2Int dcPos, Vector2Int toCenter)
         {
-            if (!CellValid(pos))
-                return 1;
             if (IsPosBehind(pos, dcPos, toCenter))
                 return 1;
-            if (Get(pos).state == CState.PartShadow)
+            if (Get(pos).state == CState.Unknown)
                 ResolvePartShadow(pos);
             return Get(pos).state switch
             {
@@ -450,6 +420,7 @@ namespace Assets.Scripts.Map.Visibility
         {
             dcManager.FreeDarkCasters();
             vmap.AsSpan().Clear();
+            seedsMap.AsSpan().Clear();
             darkBorders.Clear();
 
             swCastShadows.Reset();
