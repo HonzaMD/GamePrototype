@@ -73,11 +73,15 @@ namespace Assets.Scripts.Map.Visibility
 
         public bool Add(DarkCaster dc)
         {
+            if (!(dc.DirsValid && VCore.IsBetterOrder(dc.RightDir, dc.LeftDir)))
+                throw new InvalidOperationException("Chybny Add to darkBorders");
+
             if (count == 0)
             {
                 if (fullCircle)
                     return false;
                 InsetrTwo(new Border(dc.LeftDir, dc, true), new Border(dc.RightDir, dc, false), BorderPtr.Null);
+                IntegrityCheck();
                 return true;
             }
             else
@@ -148,6 +152,7 @@ namespace Assets.Scripts.Map.Visibility
                 else
                     Swap(right, new Border(dc.LeftDir, dc, true));
 
+                IntegrityCheck();
                 return true;
             }
         }
@@ -219,6 +224,12 @@ namespace Assets.Scripts.Map.Visibility
                         borders[arr][ptr.pos] = border2;
                     }
                 } 
+                else if (ptr.AbsRelArrDist > 2)
+                {
+                    borders[arr].Add(border1);
+                    arr = DirToArr(border2.Dir);
+                    borders[arr].Add(border2);
+                }
                 else
                 {
                     InflateArr(borders[arr], ptr.pos, 2);
@@ -445,6 +456,36 @@ namespace Assets.Scripts.Map.Visibility
             fullCircle = false;
             foreach (var b in borders) 
                 b.Clear();
+        }
+
+        public void IntegrityCheck()
+        {
+            bool? lastIsLeft = null;
+            Vector2 lastDir = Vector2.zero;
+            int myCount = 0;
+            for (int a = 0; a < 4; a++)
+            {
+                myCount += borders[a].Count;
+                for (int f=0; f < borders[a].Count; f++)
+                {
+                    bool isLeft = borders[a][f].IsLeft;
+                    var dir = borders[a][f].Dir;
+                    if (f > 0)
+                    {
+                        if (VCore.IsBetterOrder(lastDir, dir))
+                            throw new InvalidOperationException("Spatne poradi");
+                    }
+                    if (DirToArr(dir) != a)
+                        throw new InvalidOperationException("Dir je ve spatnem arr");
+                    if (lastIsLeft.HasValue && lastIsLeft.Value == isLeft)
+                        throw new InvalidOperationException("Left right se musi stridat");
+
+                    lastIsLeft = isLeft;
+                    lastDir = dir;
+                }
+            }
+            if (myCount != count)
+                throw new InvalidOperationException("Nesedi Count");
         }
     }
 }

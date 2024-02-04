@@ -22,6 +22,7 @@ namespace Assets.Scripts.Map.Visibility
         public readonly List<Vector2Int> cells = new();
         public bool Live;
         public bool Active;
+        private int iterations;
 
         public override string ToString()
         {
@@ -34,8 +35,8 @@ namespace Assets.Scripts.Map.Visibility
             this.core = core;
         }
 
-        private bool DirsValid => LeftDir != Vector2.zero && RightDir != Vector2.zero;
-        private bool DirsDiverge => VCore.IsBetterOrder(RightDir, LeftDir) || connectsRight || connectsLeft;
+        public bool DirsValid => LeftDir != Vector2.zero && RightDir != Vector2.zero;
+        public bool DirsDiverge => VCore.IsBetterOrder(RightDir, LeftDir) || connectsRight || connectsLeft;
         public bool IsReCastable => (connectsRight || connectsLeft) && DirsValid;
         private bool EnoughtBig => cells.Count >= ((connectsLeft || connectsRight) ? 7 : 5);
 
@@ -54,6 +55,7 @@ namespace Assets.Scripts.Map.Visibility
             Active = false;
             connectsLeft = false;
             connectsRight = false;
+            iterations = 0;
         }
 
         internal void InitVectors(Vector2 centerPosLocal, Vector2 center, Vector2Int pos)
@@ -108,7 +110,7 @@ namespace Assets.Scripts.Map.Visibility
                 if (!connectsLeft && rOK && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
                 {
                     if (gr != darkDC.GroupRightDir)
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException("Napojoju se na uplne jiny DC group nez cekam");
                     //Debug.Assert(gr == darkDC.GroupRightDir);
                     connectsLeft = true;
                     LeftDir = gr;
@@ -117,7 +119,7 @@ namespace Assets.Scripts.Map.Visibility
                 if (!connectsRight && lOK && VCore.IsBetterOrder(gl, LeftDir) && VCore.IsBetterOrder(gl, RightDir))
                 {
                     if (gl != darkDC.GroupLeftDir)
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException("Napojoju se na uplne jiny DC group nez cekam");
                     //Debug.Assert(gl == darkDC.GroupLeftDir);
                     connectsRight = true;
                     RightDir = gl;
@@ -154,23 +156,31 @@ namespace Assets.Scripts.Map.Visibility
 
         private void JoinExtendLeft(DarkCaster dcTJ)
         {
-            if (!connectsLeft && (VCore.IsBetterOrder(LeftDir, dcTJ.LeftDir) || (LeftDir == Vector2.zero && dcTJ.LeftDir != Vector2.zero) || dcTJ.connectsLeft))
+            if (!connectsLeft && (VCore.IsBetterOrder(LeftDir, dcTJ.LeftDir) || (LeftDir == Vector2.zero && dcTJ.LeftDir != Vector2.zero)))
             {
                 LeftPoint = dcTJ.LeftPoint;
                 LeftDir = dcTJ.LeftDir;
                 SetCell(ref LeftCell, dcTJ.LeftCell);
-                connectsLeft = dcTJ.connectsLeft;
+            }
+            
+            if (dcTJ.connectsLeft && DirsDiverge)
+            {
+                connectsLeft = true;
             }
         }
 
         private void JoinExtendRight(DarkCaster dcTJ)
         {
-            if (!connectsRight && (VCore.IsBetterOrder(dcTJ.RightDir, RightDir) || (RightDir == Vector2.zero && dcTJ.RightDir != Vector2.zero) || dcTJ.connectsRight))
+            if (!connectsRight && (VCore.IsBetterOrder(dcTJ.RightDir, RightDir) || (RightDir == Vector2.zero && dcTJ.RightDir != Vector2.zero)))
             {
                 RightPoint = dcTJ.RightPoint;
                 RightDir = dcTJ.RightDir;
                 SetCell(ref RightCell, dcTJ.RightCell);
-                connectsRight = dcTJ.connectsRight;
+            }
+            
+            if (dcTJ.connectsRight && DirsDiverge)
+            {
+                connectsRight = true;
             }
         }
 
@@ -191,7 +201,11 @@ namespace Assets.Scripts.Map.Visibility
             if (Live)
             {
                 Live = false;
-                return (EnoughtBig && DirsDiverge && DirsValid, false);
+                bool valid = DirsDiverge && DirsValid;
+                // obrana proti DC, ktery hodne pomalu 'konverguji' - takove zahodim.
+                bool abandon = !valid && iterations > 3 && cells.Count > 15;
+                iterations++;
+                return (EnoughtBig && valid, abandon);
             }
             else
             {

@@ -188,15 +188,19 @@ namespace Assets.Scripts.Map.Visibility
                 }
                 else if (canCast)
                 {
-                    bool added = darkBorders.Add(dc);
+                    bool added = darkBorders.Add(dc) || dc.IsReCastable;
                     RecolorFinishedCells(dc, dc.Id, added ? CState.Dark : CState.FullShadow);
                     if (added)
                     {
                         dc.InitOccluder(core.posToWorld);
                         bordersChanged = true;
+                        dcCreateCounter++;
+                    }
+                    else
+                    {
+                        dcAbandonCounter++;
                     }
                     dc.Abandon();
-                    dcCreateCounter++;
                 }
                 else if (dc.IsReCastable)
                 {
