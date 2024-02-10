@@ -11,8 +11,8 @@ namespace Assets.Scripts.Map.Visibility
 {
     internal class DCManager
     {
-        private readonly List<DarkCaster> darkCasters = new();
-        private int dcTop;
+        private readonly List<DarkCaster> darkCasters = new() { null}; // ID 0 nevyuzivam
+        private int dcTop = 1;
         private readonly List<DarkCaster> liveDarkCasters = new();
         private readonly VCore core;
         private readonly DarkBorders darkBorders;
@@ -27,22 +27,26 @@ namespace Assets.Scripts.Map.Visibility
         public int dcCreateCounter;
         public int dcBorderAddCounter;
 
+        private readonly MeshBuilderWorker meshBuilder;
+
         public DCManager(VCore core, DarkBorders darkBorders)
         {
+            meshBuilder = new(core);
             this.core = core;
             this.darkBorders = darkBorders;
             findSeedAction = FindSeed;
             findTouchingShadowAction = FindTouchingShadow;
         }
 
+        public DarkCaster GetDc(short id) => darkCasters[id];
 
         public void FreeDarkCasters()
         {
-            for (int i = 0; i < dcTop; i++)
+            for (int i = 1; i < dcTop; i++)
             {
                 darkCasters[i].Free();
             }
-            dcTop = 0;
+            dcTop = 1;
             liveDarkCasters.Clear();
 
             dcAbandonCounter = 0;
@@ -223,5 +227,23 @@ namespace Assets.Scripts.Map.Visibility
             return bordersChanged;
         }
 
+        public void BuildMeshes()
+        {
+            for (int i = 1; i < dcTop; i++)
+            {
+                if (darkCasters[i].Occluder != null)
+                {
+                    var meshFilter = darkCasters[i].Occluder.GetComponent<MeshFilter>();
+                    var mesh = meshFilter.sharedMesh;
+                    if (mesh == null)
+                    {
+                        mesh = new Mesh() { name = "Procedural Mesh" };
+                        meshFilter.mesh = mesh;
+                    }
+
+                    meshBuilder.Build(darkCasters[i], dcTop, mesh);
+                }
+            }
+        }
     }
 }

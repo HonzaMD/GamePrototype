@@ -88,6 +88,7 @@
     <Compile Include="Assets\Scripts\Stuff\Explosion.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilderWorker.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level1.cs" />
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
     <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
+    <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
@@ -111,7 +113,6 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
-    <Compile Include="Assets\Scripts\Utils\LinkedList.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
+    <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\MainGameAsm.asmdef" />

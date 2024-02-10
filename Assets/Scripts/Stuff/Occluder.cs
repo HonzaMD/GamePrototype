@@ -24,14 +24,14 @@ namespace Assets.Scripts.Stuff
 
         private DarkCaster dc;
 
-        internal void Init(DarkCaster dc, Vector2 posToWorld)
+        internal void Init(DarkCaster dc)
         {
             isAlive = true;
 
             this.dc = dc;
             var line = GetComponentInChildren<LineRenderer>();
-            var leftPoint = (dc.LeftPoint + posToWorld).AddZ(-0.66f);
-            var rightPoint = (dc.RightPoint + posToWorld).AddZ(-0.66f);
+            var leftPoint = dc.LeftPoint.AddZ(-0.66f);
+            var rightPoint = dc.RightPoint.AddZ(-0.66f);
             var leftDir = dc.LeftDir.normalized.AddZ(0);
             var rightDir = dc.RightDir.normalized.AddZ(0);
             line.SetPosition(0, leftPoint + leftDir * 20f);

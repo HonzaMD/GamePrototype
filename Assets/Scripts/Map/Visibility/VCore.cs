@@ -86,7 +86,17 @@ namespace Assets.Scripts.Map.Visibility
             }
             dcManager.TryCastDark(swCreateDcs);
 
-            DrawDebug();
+            try
+            {
+                dcManager.BuildMeshes();
+            }
+            catch (CyclusException ex)
+            {
+                UnityEngine.Debug.LogError($"{ex.Message} {ex.DcId}");
+                debugDc = ex.DcId;
+            }
+            //DrawDebug();
+            DrawDebugOne();
         }
 
 
@@ -138,6 +148,69 @@ namespace Assets.Scripts.Map.Visibility
                     }
                 }
             }
+        }
+
+        private short debugDc; 
+        private void DrawDebugOne()
+        {
+            while (debugMarkers2.Count > 0)
+            {
+                var dm = debugMarkers2.Pop();
+                dm.SetActive(false);
+                debugMarkers.Push(dm);
+            }
+
+            if (debugDc != 0)
+            {
+                var dc = dcManager.GetDc(debugDc);
+                HashSet<Vector2Int> cells = dc.cells.ToHashSet();
+
+                for (int y = 0; y < sizeY; y++)
+                {
+                    for (int x = 0; x < sizeX; x++)
+                    {
+                        ref var cell = ref Get(new Vector2Int(x, y));
+                        var pos = new Vector2Int(x, y);
+
+                        Color color = Color.black;
+                        if (dc.LeftCell == pos || dc.RightCell == pos)
+                        {
+                            color = Color.yellow;
+                        }
+                        else if (cells.Contains(pos))
+                        {
+                            color = Color.red;
+                        }
+                        else if (cell.darkCaster == debugDc)
+                        {
+                            color = new Color(0.5f, 0.4f, 0.2f);
+                        }
+
+                        if (color != Color.black)
+                        {
+                            GameObject dm;
+                            if (debugMarkers.Count > 0)
+                            {
+                                dm = debugMarkers.Pop();
+                                dm.SetActive(true);
+                            }
+                            else
+                            {
+                                dm = GameObject.Instantiate(Game.Instance.PrefabsStore.DebugVisibility);
+                            }
+                            debugMarkers2.Push(dm);
+
+                            dm.transform.position = map.CellToWorld(new Vector2Int(x, y) + cellToWorld);
+                            var line = dm.GetComponent<LineRenderer>();
+
+                            line.startColor = color;
+                            line.endColor = color;
+                        }
+                    }
+                }
+            }
+
+            debugDc = 0;
         }
 
 
@@ -446,6 +519,12 @@ namespace Assets.Scripts.Map.Visibility
             visibilityCounters[4] = dcManager.dcCreateCounter;
             visibilityCounters[5] = dcManager.dcBorderAddCounter;
 
+        }
+
+        internal void ReMarkCells(List<Vector2Int> cells, short markId)
+        {
+            foreach (var cell in cells)
+                Get(cell).darkCaster = markId;
         }
     }
 }

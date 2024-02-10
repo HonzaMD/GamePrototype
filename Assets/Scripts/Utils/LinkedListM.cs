@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Assertions.Must;
 
 namespace Assets.Scripts.Utils
 {
-    public class LinkedList<T> : IEnumerable<T>, IEnumerator<T>
+    public class LinkedListM<T> : IEnumerable<T>, IEnumerator<T>
     {
         private const ushort DataHead = 0;
         private const ushort EmptyHead = 1;
@@ -31,7 +32,7 @@ namespace Assets.Scripts.Utils
         private ushort ptr;
         private int count;
 
-        public LinkedList(int capacity = 16)
+        public LinkedListM(int capacity = 16)
         {
             if (capacity > ushort.MaxValue)
                 throw new ArgumentException("Prilis velka kapacita LinkedListu");
@@ -46,6 +47,7 @@ namespace Assets.Scripts.Utils
             ptr = data[ptr].next;
             return ptr != DataHead;
         }
+        public ushort MoveNext(ushort ptr) => data[ptr].next;
 
         public bool HasPrev => data[ptr].prev != DataHead;
         public bool MovePrev()
@@ -53,10 +55,14 @@ namespace Assets.Scripts.Utils
             ptr = data[ptr].prev;
             return ptr != DataHead;
         }
+        public ushort MovePrev(ushort ptr) => data[ptr].prev;
 
         public int Count => count;
 
-        public ref T Get => ref data[ptr].item;
+        public ref T Get() => ref data[ptr].item;
+        public ref T Get(ushort ptr) => ref data[ptr].item;
+        public ref T GetPrev() => ref data[data[ptr].prev].item;
+        public ref T GetNext() => ref data[data[ptr].next].item;
 
         public ushort Ptr { get => ptr; set => ptr = value; }
 
@@ -66,25 +72,26 @@ namespace Assets.Scripts.Utils
 
         public void ResetPtr() => ptr = 0;
 
-        public void InsertAfter(T item)
+        public ref T InsertAfter()
         {
-            ushort ptr2 = Alloc();
-            ushort ptr3 = data[ptr].next;
-            data[ptr2] = new(item, ptr, ptr3);
-            data[ptr].next = ptr2;
-            data[ptr3].prev = ptr2;
-            count++;
+            return ref InsertBetween(ptr, data[ptr].next);
+        }
+        public ref T InsertBefore()
+        {
+            return ref InsertBetween(data[ptr].prev, ptr);
         }
 
-        public void InsertBefore(T item)
+        private ref T InsertBetween(ushort ptr1, ushort ptr3)
         {
-            ushort ptr2 = Alloc();
-            ushort ptr3 = data[ptr].prev;
-            data[ptr2] = new(item, ptr3, ptr2);
-            data[ptr].prev = ptr2;
-            data[ptr3].next = ptr2;
+            ptr = Alloc();
+            data[ptr].prev = ptr1;
+            data[ptr].next = ptr3;
+            data[ptr1].next = ptr;
+            data[ptr3].prev = ptr;
             count++;
+            return ref data[ptr].item;
         }
+
 
         public void Remove()
         {
@@ -94,6 +101,12 @@ namespace Assets.Scripts.Utils
             MoveNext();
             Free(ptr2);
             count--;
+        }
+
+        internal void Remove(ushort ptr)
+        {
+            this.ptr = ptr;
+            Remove();
         }
 
         public void Clear()
@@ -115,10 +128,14 @@ namespace Assets.Scripts.Utils
 
         private void Free(ushort ptr)
         {
-            var next = data[EmptyHead].next;
-            data[ptr] = new(default, EmptyHead, next);
+            var eNext = data[EmptyHead].next;
+            var dPrev = data[ptr].prev;
+            var dNext = data[ptr].next;
+            data[ptr] = new(default, EmptyHead, eNext);
             data[EmptyHead].next = ptr;
-            data[next].prev = ptr;
+            data[eNext].prev = ptr;
+            data[dPrev].next = dNext;
+            data[dNext].prev = dPrev;
         }
 
         private ushort Alloc()
@@ -149,7 +166,7 @@ namespace Assets.Scripts.Utils
             Array.Resize(ref data, capacity);
         }
 
-        public LinkedList<T> GetEnumerator()
+        public LinkedListM<T> GetEnumerator()
         {
             ResetPtr();
             return this;

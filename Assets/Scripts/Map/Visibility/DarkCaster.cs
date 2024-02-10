@@ -10,12 +10,12 @@ namespace Assets.Scripts.Map.Visibility
     internal class DarkCaster
     {
         public short Id { get; }
-        private readonly VCore core;
+        public readonly VCore core;
         public Vector2Int LeftCell;
         public Vector2Int RightCell;
         public Vector2 LeftPoint, RightPoint;
         public Vector2 LeftDir, RightDir;
-        private Occluder Occluder;
+        public Occluder Occluder;
         public DCGroup Group;
         public bool connectsLeft;
         public bool connectsRight;
@@ -52,6 +52,7 @@ namespace Assets.Scripts.Map.Visibility
             }
             Group?.Free();
             cells.Clear();
+            Live = false;
             Active = false;
             connectsLeft = false;
             connectsRight = false;
@@ -135,6 +136,12 @@ namespace Assets.Scripts.Map.Visibility
             cell = pos;
         }
 
+        private void UnmarkCells()
+        {
+            core.MarkPartShadowsInNearCells(LeftCell, -1);
+            core.MarkPartShadowsInNearCells(RightCell, -1);
+        }
+
         internal void Attach(Vector2Int pos, Vector2 centerPosLocal, DarkCaster darkDC, DarkBorders darkBorders)
         {
             cells.Add(pos);
@@ -186,7 +193,6 @@ namespace Assets.Scripts.Map.Visibility
 
         internal void Abandon()
         {
-            cells.Clear();
             Live = false;
             Active = false;
         }
@@ -203,7 +209,9 @@ namespace Assets.Scripts.Map.Visibility
                 Live = false;
                 bool valid = DirsDiverge && DirsValid;
                 // obrana proti DC, ktery hodne pomalu 'konverguji' - takove zahodim.
-                bool abandon = !valid && iterations > 3 && cells.Count > 15;
+                bool abandon = !valid && iterations > 3 && cells.Count > 10;
+                if (abandon)
+                    UnmarkCells();
                 iterations++;
                 return (EnoughtBig && valid, abandon);
             }
@@ -228,8 +236,8 @@ namespace Assets.Scripts.Map.Visibility
 
         internal void InitOccluder(Vector2 posToWorld)
         {
-            var occ = Game.Instance.PrefabsStore.Occluder.Create(Game.Instance.OccludersRoot.transform, Vector3.zero);
-            occ.Init(this, posToWorld);
+            var occ = Game.Instance.PrefabsStore.Occluder.Create(Game.Instance.OccludersRoot.transform, posToWorld);
+            occ.Init(this);
             Occluder = occ;
         }
 
