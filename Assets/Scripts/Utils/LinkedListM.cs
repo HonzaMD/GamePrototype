@@ -121,6 +121,16 @@ namespace Assets.Scripts.Utils
             count = 0;
         }
 
+        public void MakeLoop()
+        {
+            var first = data[0].next;
+            var last = data[0].prev;
+            data[first].prev = last;
+            data[last].next = first;
+            data[0].next = DataHead;
+            data[0].prev = DataHead;
+        }
+
         private static void ThrowDeleteHead()
         {
             throw new InvalidOperationException("Nemuzes odebirat HEAD");

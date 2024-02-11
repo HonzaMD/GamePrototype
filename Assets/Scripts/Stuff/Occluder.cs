@@ -29,15 +29,16 @@ namespace Assets.Scripts.Stuff
             isAlive = true;
 
             this.dc = dc;
-            var line = GetComponentInChildren<LineRenderer>();
-            var leftPoint = dc.LeftPoint.AddZ(-0.66f);
-            var rightPoint = dc.RightPoint.AddZ(-0.66f);
-            var leftDir = dc.LeftDir.normalized.AddZ(0);
-            var rightDir = dc.RightDir.normalized.AddZ(0);
-            line.SetPosition(0, leftPoint + leftDir * 20f);
-            line.SetPosition(1, leftPoint);
-            line.SetPosition(2, rightPoint);
-            line.SetPosition(3, rightPoint + rightDir * 20f);
+            
+            //var line = GetComponentInChildren<LineRenderer>();
+            //var leftPoint = dc.LeftPoint.AddZ(-0.66f);
+            //var rightPoint = dc.RightPoint.AddZ(-0.66f);
+            //var leftDir = dc.LeftDir.normalized.AddZ(0);
+            //var rightDir = dc.RightDir.normalized.AddZ(0);
+            //line.SetPosition(0, leftPoint + leftDir * 20f);
+            //line.SetPosition(1, leftPoint);
+            //line.SetPosition(2, rightPoint);
+            //line.SetPosition(3, rightPoint + rightDir * 20f);
         }
 
 

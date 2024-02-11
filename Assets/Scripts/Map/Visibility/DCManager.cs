@@ -227,7 +227,7 @@ namespace Assets.Scripts.Map.Visibility
             return bordersChanged;
         }
 
-        public void BuildMeshes()
+        public void BuildMeshes(Vector2 centerPosLocal)
         {
             for (int i = 1; i < dcTop; i++)
             {
@@ -241,7 +241,7 @@ namespace Assets.Scripts.Map.Visibility
                         meshFilter.mesh = mesh;
                     }
 
-                    meshBuilder.Build(darkCasters[i], dcTop, mesh);
+                    meshBuilder.Build(darkCasters[i], dcTop, mesh, centerPosLocal);
                 }
             }
         }

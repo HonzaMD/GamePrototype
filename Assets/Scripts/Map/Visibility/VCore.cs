@@ -17,6 +17,9 @@ namespace Assets.Scripts.Map.Visibility
         public const int HalfXSize = 32;
         public const int HalfYSize = 26;
         private static readonly Vector2Int centerCellLocal = new (HalfXSize, HalfYSize);
+        public static readonly float ShadowRadius = ((Vector2)centerCellLocal * 0.5f).magnitude * 1.2f;
+        public const float ShadowFrontZ = -1.05f;
+        public const float ShadowBackZ = 2.05f;
 
         private const int sizeX = HalfXSize * 2 + 1;
         private const int sizeY = HalfYSize * 2 + 1;
@@ -88,7 +91,7 @@ namespace Assets.Scripts.Map.Visibility
 
             try
             {
-                dcManager.BuildMeshes();
+                dcManager.BuildMeshes(centerPosLocal);
             }
             catch (CyclusException ex)
             {

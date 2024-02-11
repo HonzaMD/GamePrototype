@@ -71,14 +71,15 @@ namespace Assets.Scripts.Map.Visibility
 
         private float minX, minY, maxX, maxY;
 
-
+        ushort leftPNode, rightPNode;
+        private int rightPIndex;
 
         public MeshBuilderWorker(VCore core)
         {
             this.core = core;
         }
 
-        public void Build(DarkCaster dc, int dcTop, Mesh mesh)
+        public void Build(DarkCaster dc, int dcTop, Mesh mesh, Vector2 centerPosLocal)
         {
             try
             {
@@ -93,6 +94,9 @@ namespace Assets.Scripts.Map.Visibility
                 FindFrontEdge();
                 CalcCutDistances();
                 TriangulateFront();
+                AddBackEdge(centerPosLocal);
+                TriangulateBack();
+                TriangulateSide();
 
                 SetMesh(mesh);
             }
@@ -111,8 +115,8 @@ namespace Assets.Scripts.Map.Visibility
         {
             minX = Mathf.Min(minX, point.x);
             maxX = Mathf.Max(maxX, point.x);
-            minY = Mathf.Min(minY, point.x);
-            maxY = Mathf.Max(maxY, point.x);
+            minY = Mathf.Min(minY, point.y);
+            maxY = Mathf.Max(maxY, point.y);
         }
 
         private void Clear()
@@ -174,6 +178,7 @@ namespace Assets.Scripts.Map.Visibility
         private void FindFrontEdge()
         {
             AddPoint(leftPoint);
+            leftPNode = pointNodes.Ptr;
 
             Vector2 point = leftPoint;
             Vector2Int cell = leftCell;
@@ -216,7 +221,9 @@ namespace Assets.Scripts.Map.Visibility
             }
 
             Debug.Assert(point + 0.55f * (Vector2)dir == rightPoint, "nedojel jsem do rightPoint");
+            rightPIndex = points.Count;
             AddPoint(rightPoint);
+            rightPNode = pointNodes.Ptr;
         }
 
         private void AddPoint(Vector2 point)
@@ -377,6 +384,133 @@ namespace Assets.Scripts.Map.Visibility
             workNodes.Remove(pointNodes.Get().workNode);
         }
 
+        private void AddBackEdge(Vector2 centerPosLocal)
+        {
+            var leftDir = dc.LeftDir.normalized;
+            var rightDir = dc.RightDir.normalized;
+            var leftLen = VCore.ShadowRadius - Vector2.Dot(leftPoint - centerPosLocal, leftDir);
+            var rightLen = VCore.ShadowRadius - Vector2.Dot(rightPoint - centerPosLocal, rightDir);
+
+            pointNodes.Ptr = leftPNode;
+            pointNodes.MovePrev();
+            AddPoint(leftPoint + leftDir * leftLen);
+
+            pointNodes.Ptr = rightPNode;
+            AddPoint(rightPoint + rightDir * rightLen);
+
+            if (Vector2.Dot(leftDir, rightDir) < 0.5f)
+            {
+                var centerDir = (leftDir + rightDir).normalized;
+                AddPoint(centerPosLocal + centerDir * VCore.ShadowRadius);
+            }
+
+            pointNodes.MakeLoop();
+        }
+
+        private void TriangulateBack()
+        {
+            ushort ptr = LeftRightTringulate();
+            TringulateRest(ptr);
+            ptr = pointNodes.Ptr;
+            Collapse(ref ptr, true);
+        }
+
+
+        private ushort LeftRightTringulate()
+        {
+            ushort ptr1 = leftPNode;
+            ushort ptr2 = rightPNode;
+            var a1 = TestAngle(ptr1);
+            var a2 = TestAngle(ptr2);
+
+            while (pointNodes.Count > 3)
+            {
+                if (a1 < a2 && a1 < 0)
+                {
+                    Collapse(ref ptr1, moveNext: true);
+                    if (ptr1 == ptr2)
+                        break;
+                    a1 = TestAngle(ptr1);
+                }
+                else if (a2 < a1 && a2 < 0)
+                {
+                    Collapse(ref ptr2, moveNext: false);
+                    if (ptr1 == ptr2)
+                        break;
+                    a2 = TestAngle(ptr2);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return ptr1;
+        }
+
+        private void TringulateRest(ushort ptr)
+        {
+            while (pointNodes.Count > 3)
+            {
+                var a = TestAngle(ptr);
+                if (a == 0)
+                {
+                    pointNodes.Remove(ptr);
+                    ptr = pointNodes.Ptr;
+                }
+                else if (a < 0)
+                {
+                    Collapse(ref ptr, moveNext: true);
+                }
+                else
+                {
+                    ptr = pointNodes.MoveNext(ptr);
+                }
+            }
+        }
+
+        private void Collapse(ref ushort ptr, bool moveNext)
+        {
+            pointNodes.Ptr = ptr;
+            triangles.Add(pointNodes.GetPrev().index);
+            triangles.Add(pointNodes.GetNext().index);
+            triangles.Add(pointNodes.Get().index);
+            
+            pointNodes.Remove();
+            if (!moveNext)
+                pointNodes.MovePrev();
+            ptr = pointNodes.Ptr;
+        }
+
+        private float TestAngle(ushort ptr)
+        {
+            pointNodes.Ptr = ptr;
+            var pointCenter = pointNodes.Get().point;
+            var dir1 = pointNodes.GetPrev().point - pointCenter;
+            var dir2 = pointNodes.GetNext().point - pointCenter;
+            return VCore.CrossProduct(dir1, dir2);
+
+        }
+
+        private void TriangulateSide()
+        {
+            MakeSide(rightPIndex + 1, 0);
+            MakeSide(rightPIndex, rightPIndex + 2);
+            for (int i = 0; i < rightPIndex; i++)
+            {
+                MakeSide(i, i + 1);
+            }
+        }
+
+        private void MakeSide(int i1, int i2)
+        {
+            triangles.Add((ushort)i1);
+            triangles.Add((ushort)i2);
+            triangles.Add((ushort)(i2 + points.Count));
+            triangles.Add((ushort)(i2 + points.Count));
+            triangles.Add((ushort)(i1 + points.Count));
+            triangles.Add((ushort)i1);
+        }
 
         private bool IsColored(Vector2Int pos) => core.Get(pos).darkCaster == markId;
         private static Vector2Int CrossPos(Vector2Int dir) => new Vector2Int(dir.x + dir.y, dir.y - dir.x);
@@ -389,7 +523,7 @@ namespace Assets.Scripts.Map.Visibility
             Mesh.MeshData meshData = meshDataArray[0];
 
             int vertexAttributeCount = 1;
-            int vertexCount = points.Count;
+            int vertexCount = points.Count * 2;
             int triangleIndexCount = triangles.Count;
 
             var vertexAttributes = new NativeArray<VertexAttributeDescriptor>(vertexAttributeCount, Allocator.Temp);
@@ -400,7 +534,11 @@ namespace Assets.Scripts.Map.Visibility
             NativeArray<Vector3> positions = meshData.GetVertexData<Vector3>();
             for (int i = 0; i < points.Count; i++)
             {
-                positions[i] = points[i].AddZ(-1);
+                positions[i] = points[i].AddZ(VCore.ShadowFrontZ);
+            }
+            for (int i = 0; i < points.Count; i++)
+            {
+                positions[i + points.Count] = points[i].AddZ(VCore.ShadowBackZ);
             }
 
             meshData.SetIndexBufferParams(triangleIndexCount, IndexFormat.UInt16);
@@ -411,7 +549,9 @@ namespace Assets.Scripts.Map.Visibility
             }
 
             meshData.subMeshCount = 1;
-            var bounds = new Bounds(new Vector3((maxX + minX) / 2, (maxY + minY) / 2, -1f), new Vector3(maxX - minX, maxY - minY));
+            var bounds = new Bounds(
+                new Vector3((maxX + minX) / 2, (maxY + minY) / 2, (VCore.ShadowFrontZ + VCore.ShadowBackZ) / 2), 
+                new Vector3(maxX - minX, maxY - minY, VCore.ShadowBackZ - VCore.ShadowFrontZ));
             meshData.SetSubMesh(0, new SubMeshDescriptor(0, triangleIndexCount)
             {
                 bounds = bounds,
