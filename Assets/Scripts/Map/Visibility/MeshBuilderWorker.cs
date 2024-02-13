@@ -145,21 +145,22 @@ namespace Assets.Scripts.Map.Visibility
 
             if (IsColored(cell + nextCellDir))
             {
+                // kdyz je startovni bunka zanorena, potrebuju se vyskrabat na kraj
                 outCell = cell + nextCellDir;
                 outDir = nextCellDir;
                 point -= (Vector2)nextCellDir * 0.1f;
+
+                nextCellDir = isLeft ? TurnRight(outDir) : TurnLeft(outDir);
+                while (IsColored(outCell + nextCellDir))
+                {
+                    outCell += nextCellDir;
+                    point += (Vector2)nextCellDir * 0.5f;
+                }
             }
             else
             {
                 outCell = cell;
             }
-            
-
-            //while (IsColored(cell + nextCellDir))
-            //{
-            //    cell += nextCellDir;
-            //    point += 0.5f * (Vector2)nextCellDir;
-            //}
         }
 
         private void TestBetterPoint(Vector2 pivot, int index, Vector2 normal, ref float x, ref Vector2 result, ref int outIndex)
@@ -221,6 +222,7 @@ namespace Assets.Scripts.Map.Visibility
             }
 
             Debug.Assert(point + 0.55f * (Vector2)dir == rightPoint, "nedojel jsem do rightPoint");
+
             rightPIndex = points.Count;
             AddPoint(rightPoint);
             rightPNode = pointNodes.Ptr;
@@ -450,6 +452,7 @@ namespace Assets.Scripts.Map.Visibility
 
         private void TringulateRest(ushort ptr)
         {
+            int badCounter = 0;
             while (pointNodes.Count > 3)
             {
                 var a = TestAngle(ptr);
@@ -457,14 +460,19 @@ namespace Assets.Scripts.Map.Visibility
                 {
                     pointNodes.Remove(ptr);
                     ptr = pointNodes.Ptr;
+                    badCounter = 0;
                 }
                 else if (a < 0)
                 {
                     Collapse(ref ptr, moveNext: true);
+                    badCounter = 0;
                 }
                 else
                 {
                     ptr = pointNodes.MoveNext(ptr);
+                    badCounter++;
+                    if (badCounter > pointNodes.Count)
+                        throw new InvalidOperationException("Cyklus v TringulateRest");
                 }
             }
         }

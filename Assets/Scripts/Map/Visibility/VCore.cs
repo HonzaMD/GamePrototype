@@ -18,8 +18,8 @@ namespace Assets.Scripts.Map.Visibility
         public const int HalfYSize = 26;
         private static readonly Vector2Int centerCellLocal = new (HalfXSize, HalfYSize);
         public static readonly float ShadowRadius = ((Vector2)centerCellLocal * 0.5f).magnitude * 1.2f;
-        public const float ShadowFrontZ = -1.05f;
-        public const float ShadowBackZ = 2.05f;
+        public const float ShadowFrontZ = -1.30f;
+        public const float ShadowBackZ = 1.80f;
 
         private const int sizeX = HalfXSize * 2 + 1;
         private const int sizeY = HalfYSize * 2 + 1;
@@ -34,17 +34,22 @@ namespace Assets.Scripts.Map.Visibility
         private Vector2Int cellToWorld; // Pozice nulte bunky v souradniciuch vnejsiho sveta
         internal Vector2 posToWorld;
 
-        private readonly Action<Vector2Int> castShadowAction;
         private readonly Action<Vector2Int> createDarkSeedsAction;
+        private readonly Queue<int>[] ffvQueue = new Queue<int>[5];
+        private int ffvQueueCount;
+        private int ffDistance;
+        private const int ffMaxDistance = 10 * 3;
 
         private readonly ShadowWorker shadowWorker;
         private readonly DCManager dcManager;
         private readonly DarkBorders darkBorders;
 
+        private readonly Stopwatch swFloodFillVisible = new();
         private readonly Stopwatch swCastShadows = new();
         private readonly Stopwatch swCreateSeeds = new();
         private readonly Stopwatch swDrawDarks = new();
         private readonly Stopwatch swCreateDcs = new();
+        private readonly Stopwatch swBuildMesh = new();
         private int castShadowCounter;
         private int dSeedTestCounter;
         private int resolveShadowCounter;
@@ -55,8 +60,9 @@ namespace Assets.Scripts.Map.Visibility
             shadowWorker = new(this);
             darkBorders = new();
             dcManager = new(this, darkBorders);
-            castShadowAction = CastShadows;
             createDarkSeedsAction = CreateDarkSeeds;
+            for (int i = 0; i < ffvQueue.Length; i++)
+                ffvQueue[i] = new();
         }
 
         bool debugBreak = false;
@@ -71,12 +77,13 @@ namespace Assets.Scripts.Map.Visibility
             centerPosLocal = center - map.CellToWorld(centerCellWorld) - Map.CellSize2d * 0.5f + centerCellLocal * Map.CellSize2d;
             Reset();
 
-            Get(centerCellLocal).state = CState.Visible;
+            CastShadows();
+            FloodFillVisible();
+
             int maxCircles = Math.Max(HalfYSize, HalfXSize);
 
             for (int cc = 1; cc < maxCircles; cc++)
             {
-                DoCircle(cc, castShadowAction, swCastShadows, new Vector2Int(HalfXSize - 1, HalfYSize - 1));
                 DrawDarks(cc);
                 if (debugBreak)
                     break;
@@ -91,7 +98,9 @@ namespace Assets.Scripts.Map.Visibility
 
             try
             {
+                swBuildMesh.Start();
                 dcManager.BuildMeshes(centerPosLocal);
+                swBuildMesh.Stop();
             }
             catch (CyclusException ex)
             {
@@ -99,9 +108,141 @@ namespace Assets.Scripts.Map.Visibility
                 debugDc = ex.DcId;
             }
             //DrawDebug();
-            DrawDebugOne();
+            //DrawDebugOne();
         }
 
+        private void FloodFillVisible()
+        {
+            swFloodFillVisible.Start();
+
+            Get(centerCellLocal).state = CState.Visible;
+            ffEnqueue(centerCellLocal.y * sizeX + centerCellLocal.x, 0);
+
+            while(PopFFQueue(out int pos))
+            {
+                ffTestNeightbours(pos);
+            }
+
+            swFloodFillVisible.Stop();
+        }
+
+        private bool PopFFQueue(out int posXY)
+        {
+            if (ffvQueue[0].Count > 0)
+            {
+                ffvQueueCount--;
+                posXY = ffvQueue[0].Dequeue();
+                return true;
+            }
+            return PopFFQueueSlow(out posXY);
+        }
+
+        private bool PopFFQueueSlow(out int posXY)
+        {
+            if (ffvQueueCount == 0)
+            {
+                posXY = default;
+                return false;
+            }
+
+            int f = 1;
+            for (; ; f++)
+            {
+                ffDistance++;
+                if (ffvQueue[f].Count > 0)
+                    break;
+            }
+            int offset = f;
+            for (; f < ffvQueue.Length; f++)
+            {
+                (ffvQueue[f - offset], ffvQueue[f]) = (ffvQueue[f], ffvQueue[f - offset]);
+            }
+
+            ffvQueueCount--;
+            posXY = ffvQueue[0].Dequeue();
+            return true;
+        }
+
+        private void ffTestNeightbours(int posxy)
+        {
+            int posL = posxy - 1;
+            int posR = posxy + 1;
+            int posU = posxy - sizeX;
+            int posD = posxy + sizeX;
+
+            if (vmap[posU].state == CState.Unknown)
+            {
+                vmap[posU].state = CState.Visible;
+                ffEnqueue(posU, 3);
+            }
+            if (vmap[posD].state == CState.Unknown)
+            {
+                vmap[posD].state = CState.Visible;
+                ffEnqueue(posD, 3);
+            }
+            if (vmap[posL].state == CState.Unknown)
+            {
+                vmap[posL].state = CState.Visible;
+                ffEnqueue(posL, 3);
+            }
+            if (vmap[posR].state == CState.Unknown)
+            {
+                vmap[posR].state = CState.Visible;
+                ffEnqueue(posR, 3);
+            }
+
+            if (vmap[posU].state == CState.Visible)
+            {
+                if (vmap[posL].state == CState.Visible)
+                {
+                    var pos = posU - 1;
+                    if (vmap[pos].state == CState.Unknown)
+                    {
+                        vmap[pos].state = CState.Visible;
+                        ffEnqueue(pos, 4);
+                    }
+                }
+                if (vmap[posR].state == CState.Visible)
+                {
+                    var pos = posU + 1;
+                    if (vmap[pos].state == CState.Unknown)
+                    {
+                        vmap[pos].state = CState.Visible;
+                        ffEnqueue(pos, 4);
+                    }
+                }
+            }
+
+            if (vmap[posD].state == CState.Visible)
+            {
+                if (vmap[posL].state == CState.Visible)
+                {
+                    var pos = posD - 1;
+                    if (vmap[pos].state == CState.Unknown)
+                    {
+                        vmap[pos].state = CState.Visible;
+                        ffEnqueue(pos, 4);
+                    }
+                }
+                if (vmap[posR].state == CState.Visible)
+                {
+                    var pos = posD + 1;
+                    if (vmap[pos].state == CState.Unknown)
+                    {
+                        vmap[pos].state = CState.Visible;
+                        ffEnqueue(pos, 4);
+                    }
+                }
+            }
+        }
+
+        private void ffEnqueue(int posxy, int distDelta)
+        {
+            if (ffDistance + distDelta > ffMaxDistance)
+                return;
+            ffvQueueCount++;
+            ffvQueue[distDelta].Enqueue(posxy);
+        }
 
         Stack<GameObject> debugMarkers = new Stack<GameObject>();
         Stack<GameObject> debugMarkers2 = new Stack<GameObject>();
@@ -119,7 +260,7 @@ namespace Assets.Scripts.Map.Visibility
                 for (int x = 0; x < sizeX; x++)
                 {
                     var status = Get(new Vector2Int(x, y)).state;
-                    if (status != CState.Unknown && status != CState.Visible)
+                    if (status != CState.Unknown /*&& status != CState.Visible*/)
                     {
                         GameObject dm;
                         if (debugMarkers.Count > 0)
@@ -304,26 +445,29 @@ namespace Assets.Scripts.Map.Visibility
         }
 
 
-        private void CastShadows(Vector2Int pos)
+        private void CastShadows()
         {
-            ref var cell = ref Get(pos);
+            swCastShadows.Start();
 
-            if (cell.state == CState.Dark)
+            for (int y = 1; y < HalfYSize * 2; y++)
             {
-                return;
-            }
-            else if (map.GetCellBlocking(pos + cellToWorld).IsDoubleFull())
-            {
-                cell.state = CState.FullShadow;
-                cell.wallType |= WallType.Side | WallType.FloorSet;
+                int yMult = y * sizeX;
+                for (int x = 1; x < HalfXSize * 2; x++)
+                {
+                    ref var cell = ref vmap[yMult + x];
+                    var pos = new Vector2Int(x, y);
 
-                MarkPartShadowsInNearCells(pos);
+                    if (map.GetCellBlocking(pos + cellToWorld).IsDoubleFull())
+                    {
+                        cell.state = CState.FullShadow;
+                        cell.wallType |= WallType.Side | WallType.FloorSet;
 
+                        MarkPartShadowsInNearCells(pos);
+                    }
+                }
             }
-            //else if (cell.state == CState.Unknown)
-            //{
-            //    cell.state = CState.Visible;
-            //}
+
+            swCastShadows.Stop();
         }
 
         private void MarkPartShadowsInNearCells(Vector2Int pos)
@@ -498,11 +642,14 @@ namespace Assets.Scripts.Map.Visibility
             vmap.AsSpan().Clear();
             seedsMap.AsSpan().Clear();
             darkBorders.Clear();
+            ffDistance = 0;
 
+            swFloodFillVisible.Reset();
             swCastShadows.Reset();
             swCreateDcs.Reset();
             swCreateSeeds.Reset();
             swDrawDarks.Reset();
+            swBuildMesh.Reset();
             castShadowCounter = 0;
             dSeedTestCounter = 0;
             resolveShadowCounter = 0;
@@ -511,9 +658,11 @@ namespace Assets.Scripts.Map.Visibility
         internal void ReportDiagnostics(double[] visibiltyTimes, int[] visibilityCounters)
         {
             visibiltyTimes[0] = swCastShadows.Elapsed.TotalMilliseconds;
-            visibiltyTimes[1] = swCreateSeeds.Elapsed.TotalMilliseconds;
-            visibiltyTimes[2] = swDrawDarks.Elapsed.TotalMilliseconds;
-            visibiltyTimes[3] = swCreateDcs.Elapsed.TotalMilliseconds;
+            visibiltyTimes[1] = swFloodFillVisible.Elapsed.TotalMilliseconds;
+            visibiltyTimes[2] = swCreateSeeds.Elapsed.TotalMilliseconds;
+            visibiltyTimes[3] = swDrawDarks.Elapsed.TotalMilliseconds;
+            visibiltyTimes[4] = swCreateDcs.Elapsed.TotalMilliseconds;
+            visibiltyTimes[5] = swBuildMesh.Elapsed.TotalMilliseconds;
 
             visibilityCounters[0] = castShadowCounter;
             visibilityCounters[1] = dSeedTestCounter;

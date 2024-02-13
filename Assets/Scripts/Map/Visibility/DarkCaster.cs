@@ -204,12 +204,13 @@ namespace Assets.Scripts.Map.Visibility
                 return (false, false);
             if (connectsLeft && connectsRight)
                 return (true, false);
+            bool valid = DirsValid && DirsDiverge;
             if (Live)
             {
                 Live = false;
-                bool valid = DirsDiverge && DirsValid;
+
                 // obrana proti DC, ktery hodne pomalu 'konverguji' - takove zahodim.
-                bool abandon = !valid && iterations > 3 && cells.Count > 10;
+                bool abandon = false;// !valid && iterations > 3 && cells.Count > 10;
                 if (abandon)
                     UnmarkCells();
                 iterations++;
@@ -217,7 +218,7 @@ namespace Assets.Scripts.Map.Visibility
             }
             else
             {
-                return (DirsDiverge && DirsValid, true);
+                return (valid, true);
             }
         }
 
