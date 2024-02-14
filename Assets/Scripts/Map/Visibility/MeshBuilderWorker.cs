@@ -63,16 +63,16 @@ namespace Assets.Scripts.Map.Visibility
         Vector2 leftPoint, rightPoint;
         Vector2Int startDir, endDir;
         Vector2Int leftCell, rightCell;
+        ushort leftPNode, rightPNode; // ptr do pointNodes
+        private int rightPIndex; // index do points
 
-        private readonly List<Vector2> points = new();
-        private readonly List<ushort> triangles = new();
-        private readonly LinkedListM<PointDesc> pointNodes = new();
-        private readonly LinkedListM<Work> workNodes = new();
+        private readonly List<Vector2> points = new(); // vystupni vrcholy. Bez Z, predstavuji predni starnu, zadni se vytvori duplikaci
+        private readonly List<ushort> triangles = new(); // vystupni trijuhelniky
+        private readonly LinkedListM<PointDesc> pointNodes = new(); // vrcholy k triangulaci
+        private readonly LinkedListM<Work> workNodes = new(); // pro prvni cast (FindFrontEdge), kde se vybira od nejmensich prepon
 
-        private float minX, minY, maxX, maxY;
+        private float minX, minY, maxX, maxY; // vypocet bounds
 
-        ushort leftPNode, rightPNode;
-        private int rightPIndex;
 
         public MeshBuilderWorker(VCore core)
         {

@@ -35,10 +35,11 @@ namespace Assets.Scripts.Map.Visibility
         internal Vector2 posToWorld;
 
         private readonly Action<Vector2Int> createDarkSeedsAction;
+        
         private readonly Queue<int>[] ffvQueue = new Queue<int>[5];
         private int ffvQueueCount;
-        private int ffDistance;
-        private const int ffMaxDistance = 10 * 3;
+        private int ffvDistance;
+        private const int ffvMaxDistance = 10 * 3;
 
         private readonly ShadowWorker shadowWorker;
         private readonly DCManager dcManager;
@@ -65,16 +66,10 @@ namespace Assets.Scripts.Map.Visibility
                 ffvQueue[i] = new();
         }
 
-        bool debugBreak = false;
         public void Compute(Vector2 center)
         {
-            if (debugBreak)
-                return;
-            var centerCellWorld = map.WorldToCell(center);            
+            CalcCoordinateOffsets(center);
 
-            cellToWorld = centerCellWorld - centerCellLocal;
-            posToWorld = map.CellToWorld(cellToWorld);
-            centerPosLocal = center - map.CellToWorld(centerCellWorld) - Map.CellSize2d * 0.5f + centerCellLocal * Map.CellSize2d;
             Reset();
 
             CastShadows();
@@ -82,33 +77,27 @@ namespace Assets.Scripts.Map.Visibility
 
             int maxCircles = Math.Max(HalfYSize, HalfXSize);
 
-            for (int cc = 1; cc < maxCircles; cc++)
+            for (int cc = 2; cc < maxCircles; cc++)
             {
                 DrawDarks(cc);
-                if (debugBreak)
-                    break;
-                if (cc > 1)
-                    DoCircle(cc - 1, createDarkSeedsAction, swCreateSeeds, new Vector2Int(HalfXSize - 2, HalfYSize - 2));
+                DoCircle(cc - 1, createDarkSeedsAction, swCreateSeeds, new Vector2Int(HalfXSize - 2, HalfYSize - 2));
                 if (dcManager.TryCastDark(swCreateDcs))
                     DrawDarks(cc);
-                if (debugBreak)
-                    break;
             }
             dcManager.TryCastDark(swCreateDcs);
 
-            try
-            {
-                swBuildMesh.Start();
-                dcManager.BuildMeshes(centerPosLocal);
-                swBuildMesh.Stop();
-            }
-            catch (CyclusException ex)
-            {
-                UnityEngine.Debug.LogError($"{ex.Message} {ex.DcId}");
-                debugDc = ex.DcId;
-            }
+            BuildMeshes();
             //DrawDebug();
             //DrawDebugOne();
+        }
+
+
+        private void CalcCoordinateOffsets(Vector2 center)
+        {
+            var centerCellWorld = map.WorldToCell(center);
+            cellToWorld = centerCellWorld - centerCellLocal;
+            posToWorld = map.CellToWorld(cellToWorld);
+            centerPosLocal = center - map.CellToWorld(centerCellWorld) - Map.CellSize2d * 0.5f + centerCellLocal * Map.CellSize2d;
         }
 
         private void FloodFillVisible()
@@ -116,17 +105,17 @@ namespace Assets.Scripts.Map.Visibility
             swFloodFillVisible.Start();
 
             Get(centerCellLocal).state = CState.Visible;
-            ffEnqueue(centerCellLocal.y * sizeX + centerCellLocal.x, 0);
+            FfvEnqueue(centerCellLocal.y * sizeX + centerCellLocal.x, 0);
 
-            while(PopFFQueue(out int pos))
+            while(PopFfvQueue(out int pos))
             {
-                ffTestNeightbours(pos);
+                FfvTestNeightbours(pos);
             }
 
             swFloodFillVisible.Stop();
         }
 
-        private bool PopFFQueue(out int posXY)
+        private bool PopFfvQueue(out int posXY)
         {
             if (ffvQueue[0].Count > 0)
             {
@@ -134,10 +123,10 @@ namespace Assets.Scripts.Map.Visibility
                 posXY = ffvQueue[0].Dequeue();
                 return true;
             }
-            return PopFFQueueSlow(out posXY);
+            return PopFfvQueueSlow(out posXY);
         }
 
-        private bool PopFFQueueSlow(out int posXY)
+        private bool PopFfvQueueSlow(out int posXY)
         {
             if (ffvQueueCount == 0)
             {
@@ -148,7 +137,7 @@ namespace Assets.Scripts.Map.Visibility
             int f = 1;
             for (; ; f++)
             {
-                ffDistance++;
+                ffvDistance++;
                 if (ffvQueue[f].Count > 0)
                     break;
             }
@@ -163,7 +152,7 @@ namespace Assets.Scripts.Map.Visibility
             return true;
         }
 
-        private void ffTestNeightbours(int posxy)
+        private void FfvTestNeightbours(int posxy)
         {
             int posL = posxy - 1;
             int posR = posxy + 1;
@@ -173,22 +162,22 @@ namespace Assets.Scripts.Map.Visibility
             if (vmap[posU].state == CState.Unknown)
             {
                 vmap[posU].state = CState.Visible;
-                ffEnqueue(posU, 3);
+                FfvEnqueue(posU, 3);
             }
             if (vmap[posD].state == CState.Unknown)
             {
                 vmap[posD].state = CState.Visible;
-                ffEnqueue(posD, 3);
+                FfvEnqueue(posD, 3);
             }
             if (vmap[posL].state == CState.Unknown)
             {
                 vmap[posL].state = CState.Visible;
-                ffEnqueue(posL, 3);
+                FfvEnqueue(posL, 3);
             }
             if (vmap[posR].state == CState.Unknown)
             {
                 vmap[posR].state = CState.Visible;
-                ffEnqueue(posR, 3);
+                FfvEnqueue(posR, 3);
             }
 
             if (vmap[posU].state == CState.Visible)
@@ -199,7 +188,7 @@ namespace Assets.Scripts.Map.Visibility
                     if (vmap[pos].state == CState.Unknown)
                     {
                         vmap[pos].state = CState.Visible;
-                        ffEnqueue(pos, 4);
+                        FfvEnqueue(pos, 4);
                     }
                 }
                 if (vmap[posR].state == CState.Visible)
@@ -208,7 +197,7 @@ namespace Assets.Scripts.Map.Visibility
                     if (vmap[pos].state == CState.Unknown)
                     {
                         vmap[pos].state = CState.Visible;
-                        ffEnqueue(pos, 4);
+                        FfvEnqueue(pos, 4);
                     }
                 }
             }
@@ -221,7 +210,7 @@ namespace Assets.Scripts.Map.Visibility
                     if (vmap[pos].state == CState.Unknown)
                     {
                         vmap[pos].state = CState.Visible;
-                        ffEnqueue(pos, 4);
+                        FfvEnqueue(pos, 4);
                     }
                 }
                 if (vmap[posR].state == CState.Visible)
@@ -230,20 +219,21 @@ namespace Assets.Scripts.Map.Visibility
                     if (vmap[pos].state == CState.Unknown)
                     {
                         vmap[pos].state = CState.Visible;
-                        ffEnqueue(pos, 4);
+                        FfvEnqueue(pos, 4);
                     }
                 }
             }
         }
 
-        private void ffEnqueue(int posxy, int distDelta)
+        private void FfvEnqueue(int posxy, int distDelta)
         {
-            if (ffDistance + distDelta > ffMaxDistance)
+            if (ffvDistance + distDelta > ffvMaxDistance)
                 return;
             ffvQueueCount++;
             ffvQueue[distDelta].Enqueue(posxy);
         }
 
+        #region DrawDebug
         Stack<GameObject> debugMarkers = new Stack<GameObject>();
         Stack<GameObject> debugMarkers2 = new Stack<GameObject>();
         private void DrawDebug()
@@ -356,6 +346,7 @@ namespace Assets.Scripts.Map.Visibility
 
             debugDc = 0;
         }
+        #endregion
 
 
         private void DoCircle(int cc, Action<Vector2Int> action, Stopwatch sw, Vector2Int limit)
@@ -506,6 +497,7 @@ namespace Assets.Scripts.Map.Visibility
             seedsMap[p] += d2;
         }
 
+
         private void CreateDarkSeeds(Vector2Int pos)
         {
             if (seedsMap[pos.y * sizeX + pos.x] == 0 || Get(pos).state is CState.Visible or CState.Dark)
@@ -620,6 +612,23 @@ namespace Assets.Scripts.Map.Visibility
             }
         }
 
+
+        private void BuildMeshes()
+        {
+            try
+            {
+                swBuildMesh.Start();
+                dcManager.BuildMeshes(centerPosLocal);
+                swBuildMesh.Stop();
+            }
+            catch (CyclusException ex)
+            {
+                UnityEngine.Debug.LogError($"{ex.Message} {ex.DcId}");
+                debugDc = ex.DcId;
+            }
+        }
+
+
         private bool IsPosBehind(Vector2Int pos, Vector2Int dcPos, Vector2Int toCenter)
         {
             var dx = pos - dcPos;
@@ -642,7 +651,7 @@ namespace Assets.Scripts.Map.Visibility
             vmap.AsSpan().Clear();
             seedsMap.AsSpan().Clear();
             darkBorders.Clear();
-            ffDistance = 0;
+            ffvDistance = 0;
 
             swFloodFillVisible.Reset();
             swCastShadows.Reset();

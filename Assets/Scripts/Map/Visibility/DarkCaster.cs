@@ -210,7 +210,7 @@ namespace Assets.Scripts.Map.Visibility
                 Live = false;
 
                 // obrana proti DC, ktery hodne pomalu 'konverguji' - takove zahodim.
-                bool abandon = false;// !valid && iterations > 3 && cells.Count > 10;
+                bool abandon = !valid && iterations > 3 && cells.Count > 10;
                 if (abandon)
                     UnmarkCells();
                 iterations++;
