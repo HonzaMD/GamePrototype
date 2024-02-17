@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4448.6216, g: 2913.0784, b: 2195.2854, a: 1}
+  m_IndirectSpecularColor: {r: 4450.973, g: 2910.4885, b: 2185.8752, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1137,7 +1137,6 @@ Transform:
   - {fileID: 436192661}
   - {fileID: 1879431448}
   - {fileID: 222245417}
-  - {fileID: 1973045248}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1574304535 stripped
@@ -1668,7 +1667,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1470925543}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &251501171302598481
 PrefabInstance:
@@ -1825,6 +1824,7 @@ SceneRoots:
   - {fileID: 653260038}
   - {fileID: 1470925543}
   - {fileID: 739283313}
+  - {fileID: 1973045248}
   - {fileID: 1396929420100785624}
   - {fileID: 251501171302598481}
   - {fileID: 1118955279}
