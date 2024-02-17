@@ -86,7 +86,7 @@ namespace Assets.Scripts.Map
 "            RH                                                                    HHHHHH                                                        ",
 "            RH                                                                                                                     HHHHHH       ",
 "            RH                                                                                                                                  ",
-"            RH                           HHHH    HHHHHHHHH                                                                                      ",
+"            RH                           HHHH    HHHHHHHHH          A                                                                           ",
 "            RH                                            HH                                                                                    ",
 "     s      RH                                              HHHHHHHHHHH       HHHH       HHHH                                      sss          ",
 "HHHHHHHHHHHHHHHH                                                                                                           RHHHHHHHHHHHHHHHHHHHH",

@@ -13,21 +13,13 @@ namespace Assets.Scripts.Map
     abstract class LevelBase
     {
         protected abstract string[] Data { get; }
-        private Map map;
+        private Vector2Int levelOffset;
 
-        public Map CreateMap(Ksids ksids)
+        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, LvlBuildMode buildMode, Vector2Int levelOffset)
         {
+            this.levelOffset = levelOffset;
             Assert.IsTrue(Data.GroupBy(s => s.Length).Count() == 1);
-            int sizex = Data[0].Length;
-            int sizey = Data.Length;
 
-            map = new Map(-sizex / 2, -sizey / 2, sizex, sizey, ksids);
-            return map;
-        }
-
-
-        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, Level.Mode buildMode)
-        {
             var delayed = new List<(ILevelPlaceabe, Vector3)>();
 
             int y = Data.Length - 1;
@@ -58,17 +50,16 @@ namespace Assets.Scripts.Map
 
         private Vector2 ToWorld(int x, int y)
         {
-            var pos = new Vector2(x, y);
+            var pos = new Vector2(x + levelOffset.x, y + levelOffset.y);
             pos.Scale(Map.CellSize2d);
-            pos += map.mapOffset;
             return pos;
         }
 
-        private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y, Level.Mode buildMode)
+        private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y, LvlBuildMode buildMode)
         {
-            if (buildMode == Level.Mode.Statics && ch != 'H')
+            if (buildMode == LvlBuildMode.Statics && ch != 'H')
                 return null;
-            if (buildMode == Level.Mode.Dynamics && ch == 'H')
+            if (buildMode == LvlBuildMode.Dynamics && ch == 'H')
                 return null;
 
             switch (ch)
@@ -82,6 +73,7 @@ namespace Assets.Scripts.Map
                 case 'm': return prefabsStore.SmallMonster;
                 case 's': return prefabsStore.Stone;
                 case '*': return prefabsStore.PointLight;
+                case 'A': return Game.Instance.Character;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

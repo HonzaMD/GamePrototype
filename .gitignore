@@ -25,5 +25,5 @@
 #/[Aa]ssets/[Ss]treamingAssets/aa.meta
 #/[Aa]ssets/[Ss]treamingAssets/aa/*
 /debug.log
-/Assets/Scenes/SampleScene/LightingData*
-/Assets/Scenes/SampleScene/ProbeVolumeData*
+/Assets/Scenes/*/LightingData*
+/Assets/Scenes/*/ProbeVolumeData*

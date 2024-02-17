@@ -19,7 +19,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     public Character3 Character;
     public SimpleCameraController Camera;
-    public Level Level;
     public Ksids Ksids { get; private set; }
     public SpInterface StaticPhysics { get; private set; }
     public Timer Timer;
@@ -29,6 +28,9 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public PrefabsStore PrefabsStore;
     public PlaceableSettings DefaultPlaceableSettings;
     public LevelLabel OccludersRoot;
+    public MapWorlds MapWorlds;
+    public bool IsPaused { get; private set; }
+    public GameState State { get; private set; }
 
     public Transform[] HoldMarkers;
     public Transform LongThrowMarker;
@@ -52,6 +54,13 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public double[] VisibiltyTimes = new double[6];
     public int[] VisibiltyCounters = new int[6];
 
+    public enum GameState
+    {
+        Awaked,
+        CreatingLevels,
+        Ready,
+    }
+
     public Game()
     {
         DeactivateHoldMarkerA = DeactivateHoldMarker;
@@ -59,11 +68,14 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     void Update()
     {
+        if (State != GameState.Ready)
+        {
+            DoSpecificStates();
+            return;
+        }
+
         sw.Restart();
         TimeSpan swStart;
-
-        UpdateTriggers();
-        UpdateTimes[1] = sw.Elapsed.TotalMilliseconds;
 
         // Exit Sample  
         if (Input.GetKey(KeyCode.Escape))
@@ -92,23 +104,28 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 #endif
 
-        swStart = sw.Elapsed;
-        UpdateMovingObjects();
-        UpdateTimes[2] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-        UpdateObjects();
-        UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-        Timer.GameUpdate();
-        UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-        if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
+        if (!IsPaused)
         {
-            Map.Visibility.Compute(Character.ArmSphere.transform.position);
-            Map.Visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
-            UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
-        }
-        else
-        {
-            Map.ProcessCellStateTests(10);
-            UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
+            swStart = sw.Elapsed;
+            UpdateTriggers();
+            UpdateTimes[1] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            UpdateMovingObjects();
+            UpdateTimes[2] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            UpdateObjects();
+            UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            Timer.GameUpdate();
+            UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
+            {
+                Map.Visibility.Compute(Character.ArmSphere.transform.position);
+                Map.Visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
+                UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
+            }
+            else
+            {
+                Map.ProcessCellStateTests(10);
+                UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
+            }
         }
 
         //if (!cameraMode)
@@ -118,6 +135,32 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
     }
 
+    private void DoSpecificStates()
+    {
+        if (State == GameState.Awaked)
+        {
+            PauseGame();
+            State = GameState.CreatingLevels;
+            MapWorlds.CreateMaps(Ksids);
+        }
+        else if (State == GameState.CreatingLevels && !MapWorlds.IsWorking)
+        {
+            State = GameState.Ready;
+            UnPauseGame();
+        }
+    }
+
+    private void PauseGame()
+    {
+        Time.timeScale = 0;
+        IsPaused = true;
+    }
+
+    private void UnPauseGame()
+    {
+        Time.timeScale = 1;
+        IsPaused = false;
+    }
 
     private void UpdateObjects()
     {

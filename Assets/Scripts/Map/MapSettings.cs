@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 namespace Assets.Scripts.Map
 {
     [Serializable]
-    public struct MapSettings
+    public class MapSettings
     {
         public int posx;
         public int posy;
         public int sizex;
         public int sizey;
+
+        public string[] Scenes;
 
         public MapSettings(int posx, int posy, int sizex, int sizey)
         {

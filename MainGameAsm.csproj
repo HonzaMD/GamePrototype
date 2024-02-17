@@ -74,6 +74,7 @@
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\ShadowWorker.cs" />
+    <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
@@ -149,6 +150,7 @@
     <Compile Include="Assets\Scripts\Map\Visibility\DarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\Map\LevelPairing.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\MainGameAsm.asmdef" />

@@ -1,105 +1,61 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class Level : MonoBehaviour, ISerializationCallbackReceiver
+public class Level : MonoBehaviour
 {
-    public Game Game;
     [SerializeField]
-    private PrefabsStore PrefabsStore = default;
-    [SerializeField]
-    private Transform[] PlaceablesRoots = default;
+    private LevelLabel[] PlaceablesRoots = default;
+    public LevelName LevelName;
+    public int posx;
+    public int posy;
 
-    public Mode BuildMode;
 
     internal Map Map { get; private set; }
-    private bool mapCreated;
-    private List<Placeable> mapContentToserialize;
-    private MapSettings mapSettings;
+    private LevelBase levelSource;
 
-    public enum Mode
+    public void Create(Map map, LvlBuildMode buildMode)
     {
-        All,
-        Statics,
-        Dynamics,
-    }
+        AssignMap(map);
+        levelSource = LevelPairing.Get(LevelName);
 
-    internal static LevelBase LevelSource() => new LevelSLT();
-
-    void Start()
-    {
-        CellList.CheckEmpty();
-
-        var levelSource = LevelSource();
-        Map = levelSource.CreateMap(Game.Ksids);
-        Game.Map = Map;
-
-        if (PlaceablesRoots != null)
+        foreach (var root in PlaceablesRoots)
         {
-            foreach (var root in PlaceablesRoots)
+            if (root.gameObject.activeInHierarchy)
             {
-                if (root.gameObject.activeInHierarchy)
+                foreach (var p in root.GetComponentsInChildren<Placeable>())
                 {
-                    foreach (var p in root.GetComponentsInChildren<Placeable>())
-                    {
-                        p.PlaceToMap(Map);
-                    }
+                    p.PlaceToMap(Map);
                 }
             }
         }
 
-        foreach (var pair in levelSource.Placeables(PrefabsStore, BuildMode))
+        foreach (var pair in levelSource.Placeables(Game.Instance.PrefabsStore, buildMode, new Vector2Int(posx, posy)))
         {
-            pair.Item1.Instantiate(Map, transform, pair.Item2);
-        }
-
-        mapCreated = true;
-    }
-
-    public void OnAfterDeserialize()
-    {
-    }
-
-#if UNITY_EDITOR
-    void OnEnable()
-    {
-        AssemblyReloadEvents.afterAssemblyReload += AssemblyReloadEvents_afterAssemblyReload;
-    }
-
-    void OnDisable()
-    {
-        AssemblyReloadEvents.afterAssemblyReload -= AssemblyReloadEvents_afterAssemblyReload;
-    }
-
-    private void AssemblyReloadEvents_afterAssemblyReload()
-    {
-        if (mapContentToserialize != null)
-        {
-            if (Map != null)
-                throw new InvalidOperationException("Divnost, cekal jsem ze Map bude null!");
-            CellList.CheckEmpty();
-            Map = new Map(mapSettings, Game.Ksids);
-            Game.Map = Map;
-
-            foreach (var p in mapContentToserialize)
-            {
-                Map.Add(p, true);
-            }
-            mapContentToserialize = null;
+            pair.Item1.Instantiate(Map, PlaceablesRoots[0].transform, pair.Item2);
         }
     }
-#endif
 
-    public void OnBeforeSerialize()
+    private void AssignMap(Map map)
     {
-        if (mapCreated)
+        Map = map;
+        foreach (var root in PlaceablesRoots)
         {
-            mapSettings = Map.Settings;
-            mapContentToserialize = new List<Placeable>();
-            Map.GetEverything(mapContentToserialize);
+            root.Map = map;
+        }
+    }
+
+    internal void InstantiateInEditor(PrefabsStore prefabStore)
+    {
+        foreach (var pair in LevelPairing.Get(LevelName).Placeables(prefabStore, LvlBuildMode.Statics, new Vector2Int(posx, posy)))
+        {
+            var obj = PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
+            obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
         }
     }
 }

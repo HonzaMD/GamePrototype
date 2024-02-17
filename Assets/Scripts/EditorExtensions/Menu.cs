@@ -9,16 +9,13 @@ public class Menu
     [MenuItem("MyGame/BuildLevel")]
     static void InstantiatePrefab()
     {
-        var levelSource = Level.LevelSource();
-        levelSource.CreateMap(null);
         var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
-        Transform parent = GameObject.Find("LevelRoot").transform;
+        var levels = GameObject.FindObjectsOfType<Level>();
 //        DeleteAllChildren(parent);
 
-        foreach (var pair in levelSource.Placeables(prefabStore, Level.Mode.Statics))
+        foreach (var level in levels)
         {
-            var obj = PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, parent) as GameObject;
-            obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
+            level.InstantiateInEditor(prefabStore);
         }
     }
 

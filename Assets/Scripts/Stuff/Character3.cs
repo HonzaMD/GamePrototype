@@ -12,12 +12,12 @@ using UnityEngine;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
+public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelPlaceabe
 {
 	[HideInInspector]
 	public SimpleCameraController Camera { get; set; }
 
-	private Vector3 oldPos;
+    private Vector3 oldPos;
 	private float lastJumpTime;
 
 	private float zMoveTimeout;
@@ -337,4 +337,15 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor
 			inventoryObj = null;
 		}
 	}
+
+    void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
+    {
+		var placeable = GetComponent<Placeable>();
+		if (!placeable.IsMapPlaced)
+		{
+			transform.parent = parent;
+			placeable.LevelPlaceAfterInstanciate(map, pos);
+		}
+    }
+    bool ILevelPlaceabe.SecondPhase => false;
 }

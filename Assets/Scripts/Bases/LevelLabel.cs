@@ -9,5 +9,7 @@ namespace Assets.Scripts.Bases
 {
     public class LevelLabel : MonoBehaviour
     {
+        [NonSerialized]
+        internal Map.Map Map;
     }
 }
