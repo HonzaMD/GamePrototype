@@ -20,7 +20,7 @@ namespace Assets.Scripts.Map
         [NonSerialized]
         public Map[] Maps;
 
-        private readonly Queue<(string, Map)> scenesToLoad = new();
+        private readonly Dictionary<string, Map> scenesToLoad = new();
         public bool IsWorking;
 
         private void Awake()
@@ -42,27 +42,35 @@ namespace Assets.Scripts.Map
                     Game.Map = Maps[f]; // TODO odebrat
 
                     foreach (var scene in Settings[f].Scenes)
-                        scenesToLoad.Enqueue((scene, Maps[f]));
+                        scenesToLoad.Add(scene, Maps[f]);
                 }
             }
 
-            IsWorking = StartSceneLoad();
+            IsWorking = scenesToLoad.Count > 0;
+            StartSceneLoad();
         }
 
-        private bool StartSceneLoad()
+        private void StartSceneLoad()
         {
-            if (scenesToLoad.Count == 0)
-                return false;
-
-            SceneManager.LoadSceneAsync(scenesToLoad.Peek().Item1, LoadSceneMode.Additive);
-            return true;
+            foreach (var s in scenesToLoad.ToArray())
+            {
+                var scene = SceneManager.GetSceneByName(s.Key);
+                if (scene != null && scene.isLoaded)
+                {
+                    SceneManager_sceneLoaded(scene, LoadSceneMode.Additive);
+                }
+                else
+                {
+                    SceneManager.LoadSceneAsync(s.Key, LoadSceneMode.Additive);
+                }
+            }
         }
 
         private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scenesToLoad.Count > 0 && scenesToLoad.Peek().Item1 == scene.name)
+            if (scenesToLoad.TryGetValue(scene.name, out var map))
             {
-                var map = scenesToLoad.Dequeue().Item2;
+                scenesToLoad.Remove(scene.name);
                 Level level = null;
 
                 var list = ListPool<GameObject>.Rent();
@@ -72,10 +80,10 @@ namespace Assets.Scripts.Map
                         break;
                 list.Return();
 
-                IsWorking = StartSceneLoad();
-
                 level.Create(map, BuildMode);
             }
+
+            IsWorking = scenesToLoad.Count > 0;
         }
     }
 

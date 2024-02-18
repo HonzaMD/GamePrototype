@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 4
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4450.973, g: 2910.4885, b: 2185.8752, a: 1}
+  m_IndirectSpecularColor: {r: 4436.8306, g: 2918.1663, b: 2222.094, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000006, guid: 67b429c316cf6da448061ea6e3eb3bc8,
+  m_LightingDataAsset: {fileID: 112000016, guid: 67b429c316cf6da448061ea6e3eb3bc8,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
@@ -1042,7 +1042,7 @@ Transform:
   m_GameObject: {fileID: 1464633178}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7064338, y: 0.47771442, z: 0.030843567, w: 0.5213338}
-  m_LocalPosition: {x: 0.24, y: 3, z: 4.18}
+  m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1649,10 +1649,17 @@ MonoBehaviour:
   - posx: 0
     posy: 0
     sizex: 432
-    sizey: 288
+    sizey: 432
     Scenes:
     - Lvl_0a_1a
     - Lvl_0a_2a
+    - Lvl_0a_3a
+    - Lvl_0a_4a
+    - Lvl_0a_5a
+    - Lvl_0a_6a
+    - Lvl_0a_7a
+    - Lvl_0a_8a
+    - Lvl_0a_9a
   IsWorking: 0
 --- !u!4 &1973045248
 Transform:

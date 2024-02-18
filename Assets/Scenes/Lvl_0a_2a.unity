@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4457.104, g: 2910.1897, b: 2178.6526, a: 1}
+  m_IndirectSpecularColor: {r: 4436.8306, g: 2918.1663, b: 2222.094, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,9 +97,9 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 67b429c316cf6da448061ea6e3eb3bc8,
+  m_LightingDataAsset: {fileID: 112000006, guid: 67b429c316cf6da448061ea6e3eb3bc8,
     type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: d68c67c8977962f48932050f0d7d309d,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -4088,7 +4088,7 @@ MonoBehaviour:
     sh[24]: 0
     sh[25]: -0
     sh[26]: 0
-  m_SHValidForCapturePosition: {x: 0, y: -13.469483, z: 0}
+  m_SHValidForCapturePosition: {x: 108, y: 22.53052, z: 0}
   m_SHValidForSourcePosition: {x: 0, y: 0, z: 0}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
@@ -11617,7 +11617,7 @@ MonoBehaviour:
   serializedScenarios:
   - scenario: Default
     data:
-      sceneHash: 614348601
+      sceneHash: 1606948143
       cellDataAsset: {fileID: 4900000, guid: 226b2ed4abbf867499a5d009851198c3, type: 3}
       cellOptionalDataAsset: {fileID: 4900000, guid: da26b4243a2b2fc4baa0047ca5e358b8,
         type: 3}
