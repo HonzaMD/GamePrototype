@@ -12,9 +12,9 @@ namespace Assets.Scripts.Map
         protected override string[] Data => new[]
         { // line 13
 "                                                                                              s                                        HHHHHHHHH",
-"                                                                      L        HHHHHHHHHHHHHHHHHHHHHHHHH    HHHHHHHHHH   HHHHHHHHHHHO  HHHHHHHHH",
-"       HHH       HHH                    HHHH       m       s  HHHHHHHHL   HHHHH                        P                 H          O           ",
-"                   HHHH              HHHH   HHHHHHHHHHHHHHHHHH        L                                 PPPPPPPPPPPPPPPPP           O           ",
+"                                                                      L             HHHHHHHHHHHHHHHHHHHH    HHHHHHHHHH   HHHHHHHHHHHO  HHHHHHHHH",
+"       HHH       HHH                    HHHH       m       s  HHHHHHHHL             H                  P                 H          O           ",
+"                   HHHH              HHHH   HHHHHHHHHHHHHHHHHH        L   HHHHHHHHHHH                   PPPPPPPPPPPPPPPPP           O           ",
 "                            H        H                                L                                                             O  H       H",
 "                            H        H                                L                                                                H    m  H",
 "    HHHHHHH          HHHHHHHHH      HH                                L                                         s                      HHHHHHHHH",

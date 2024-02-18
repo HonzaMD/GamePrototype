@@ -27,3 +27,4 @@
 /debug.log
 /Assets/Scenes/*/LightingData*
 /Assets/Scenes/*/ProbeVolumeData*
+/Build.*

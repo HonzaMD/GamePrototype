@@ -3,8 +3,6 @@ using Assets.Scripts.Map;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class Level : MonoBehaviour
@@ -50,12 +48,14 @@ public class Level : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     internal void InstantiateInEditor(PrefabsStore prefabStore)
     {
         foreach (var pair in LevelPairing.Get(LevelName).Placeables(prefabStore, LvlBuildMode.Statics, new Vector2Int(posx, posy)))
         {
-            var obj = PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
+            var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
             obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
         }
     }
+#endif
 }
