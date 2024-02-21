@@ -17,12 +17,16 @@ namespace Assets.Scripts.Stuff
 
         private void Update()
         {
-            CellPos = Game.Map.WorldToCell(transform.position);
-            ref Cell cell = ref Game.Map.GetCell(CellPos);
-            Blocking = cell.Blocking;
-            CellContent.Clear();
-            foreach (Placeable p in cell)
-                CellContent.Add(p);            
+            Map.Map map = Game.MapFromPos(transform.position.x);
+            if (map != null)
+            {
+                CellPos = map.WorldToCell(transform.position);
+                ref Cell cell = ref map.GetCell(CellPos);
+                Blocking = cell.Blocking;
+                CellContent.Clear();
+                foreach (Placeable p in cell)
+                    CellContent.Add(p);
+            }
         }
     }
 }

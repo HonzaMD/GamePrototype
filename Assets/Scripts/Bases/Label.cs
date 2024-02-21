@@ -174,6 +174,7 @@ public abstract class Label : MonoBehaviour
 
     public bool HasRB => Rigidbody;
     public Transform LevelGroup => GetComponentInParent<LevelLabel>().transform;
+    public virtual Map GetMap() => GetComponentInParent<LevelLabel>().Map;
     public bool TryGetParentLabel(out Label label) => transform.TryFindInParents(out label);
     public bool TryGetKillableParentLabel(out Label label)
     {

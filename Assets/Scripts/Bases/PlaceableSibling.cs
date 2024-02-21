@@ -12,6 +12,11 @@ namespace Assets.Scripts.Bases
         void Cleanup();
     }
 
+    public interface IHasAfterMapPlaced
+    {
+        void AfterMapPlaced(Map.Map map);
+    }
+
     public class PlaceableSibling : Placeable
     {
         public override void Cleanup()
@@ -22,6 +27,16 @@ namespace Assets.Scripts.Bases
             foreach (var c in cleanups)
                 c.Cleanup();
             cleanups.Return();
+        }
+
+        protected override void AfterMapPlaced(Map.Map map)
+        {
+            base.AfterMapPlaced(map);
+            var components = ListPool<IHasAfterMapPlaced>.Rent();
+            GetComponents(components);
+            foreach (var c in components)
+                c.AfterMapPlaced(map);
+            components.Return();
         }
     }
 }

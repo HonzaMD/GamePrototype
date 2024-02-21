@@ -1,5 +1,6 @@
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -30,7 +31,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
     }
 
 
-    public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children)
+    public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children, Map map)
     {
         L1 = l1;
         L4 = l4;
@@ -41,7 +42,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         if (!isFullCell)
             AdjustSize();
 
-        PlaceToMap(Game.Map);
+        PlaceToMap(map);
 
         foreach (var p in children)
         {
@@ -53,12 +54,12 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
             }
         }
 
-        TryTransferMass();
+        TryTransferMass(map);
     }
 
-    private void TryTransferMass()
+    private void TryTransferMass(Map map)
     {
-        var mt = TryFindMassTarget();
+        var mt = TryFindMassTarget(map);
         if (mt && mt.SpNodeIndex != 0 && mt.Ksid.IsChildOf(Ksid.SpMoving))
         {
             Game.Instance.StaticPhysics.ApplyForce(mt.SpNodeIndex, Vector2.down * mass);
@@ -67,13 +68,13 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         }
     }
 
-    private Placeable TryFindMassTarget()
+    private Placeable TryFindMassTarget(Map map)
     {
         int tag = 0;
         var placeables = ListPool<Placeable>.Rent();
-        var myCell = Game.Map.WorldToCell(Pivot);
-        Game.Map.Get(placeables, myCell, Ksid.SpNodeOrSandCombiner, ref tag);
-        Game.Map.Get(placeables, myCell + Vector2Int.down, Ksid.SpNodeOrSandCombiner, ref tag);
+        var myCell = map.WorldToCell(Pivot);
+        map.Get(placeables, myCell, Ksid.SpNodeOrSandCombiner, ref tag);
+        map.Get(placeables, myCell + Vector2Int.down, Ksid.SpNodeOrSandCombiner, ref tag);
 
         Placeable mtCandidate = null;
         float mtDistance = float.MaxValue;

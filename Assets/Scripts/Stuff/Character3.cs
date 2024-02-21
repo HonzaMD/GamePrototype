@@ -324,7 +324,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 			? ArmSphere.transform.position + holdTarget.AddZ(0)
 			: ArmSphere.transform.position + new Vector3(Settings.HoldPosition.x * lastXOrientation, Settings.HoldPosition.y, 0);
 		var l = inventoryPrototype.Create(placeable.LevelGroup, pos);
-		l.PlaceableC.PlaceToMap(Game.Map);
+		l.PlaceableC.PlaceToMap(map);
 		inventoryObj = l;
 		return l;
 	}

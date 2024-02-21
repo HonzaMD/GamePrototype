@@ -81,6 +81,7 @@ public class Placeable : Label, ILevelPlaceabe
     public override Placeable PlaceableC => this;
     public override bool CanBeKilled => !(Settings?.Unseparable == true);
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
+    protected virtual void AfterMapPlaced(Map map) { }
 
     public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
     public int SpNodeIndex => spNodeIndex;
@@ -116,7 +117,7 @@ public class Placeable : Label, ILevelPlaceabe
         }
         else if (HasActiveRB)
         {
-            Game.Instance.AddMovingObject(this);
+            Game.Instance.AddMovingObject(this, map);
         }
 
         if (IsGroup)
@@ -128,6 +129,8 @@ public class Placeable : Label, ILevelPlaceabe
                     p.PlaceToMap(map);
             placeables.Return();
         }
+
+        AfterMapPlaced(map);
     }
 
     private void AutoAttachRB()
@@ -138,7 +141,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     public override void Cleanup()
     {
-        Game.Map.Remove(this);
+        GetMap().Remove(this);
         if (TryGetComponent<IActiveObject>(out var ao))
         {
             Game.Instance.DeactivateObject(ao);
@@ -198,14 +201,15 @@ public class Placeable : Label, ILevelPlaceabe
     {
         if (IsMapPlaced)
         {
-            Game.Instance.AddMovingObject(this);
+            var map = GetMap();
+            Game.Instance.AddMovingObject(this, map);
             if (IsGroup)
             {
                 var placeables = ListPool<Placeable>.Rent();
                 GetComponentsInChildren(placeables);
                 foreach (var p in placeables)
                     if (p != this)
-                        Game.Instance.AddMovingObject(p);
+                        Game.Instance.AddMovingObject(p, map);
                 placeables.Return();
             }
         }
@@ -328,7 +332,7 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-    internal virtual void MoveZ(float newZ)
+    internal virtual void MoveZ(float newZ, Map map)
     {
         var rb = Rigidbody;
         if (rb)
@@ -342,7 +346,7 @@ public class Placeable : Label, ILevelPlaceabe
             transform.position = transform.position.WithZ(newZ);
             TryCollapseSandCombiner();
         }
-        KinematicMove(Game.Map);
+        KinematicMove(map);
     }
 
     internal void SpFall(int index)
@@ -436,11 +440,11 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-    public void FindTouchingObjs(List<Placeable> output, Ksid ksid, float margin, int tag = 0)
+    public void FindTouchingObjs(Map map, List<Placeable> output, Ksid ksid, float margin, int tag = 0)
     {
         var marginVec = new Vector2(margin, margin);
         var placeables = ListPool<Placeable>.Rent();
-        Game.Map.Get(placeables, PlacedPosition - marginVec, Size + 2 * marginVec, ksid, tag);
+        map.Get(placeables, PlacedPosition - marginVec, Size + 2 * marginVec, ksid, tag);
 
         foreach (Placeable p in placeables)
         {

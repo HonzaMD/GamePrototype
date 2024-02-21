@@ -17,12 +17,16 @@ namespace Assets.Scripts.Stuff
 
         private void Update()
         {
-            var p = GetComponent<Placeable>();
-            p.KinematicMove(Game.Map);
-            var list = ListPool<Placeable>.Rent();
-            p.FindTouchingObjs(list, TestKsid, 0.1f);
-            Touch = list.Count > 0;
-            list.Return();
+            Map.Map map = Game.MapFromPos(transform.position.x);
+            if (map != null)
+            {
+                var p = GetComponent<Placeable>();
+                p.KinematicMove(map);
+                var list = ListPool<Placeable>.Rent();
+                p.FindTouchingObjs(map, list, TestKsid, 0.1f);
+                Touch = list.Count > 0;
+                list.Return();
+            }
         }
     }
 }

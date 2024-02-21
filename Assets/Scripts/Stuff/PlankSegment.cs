@@ -46,7 +46,7 @@ public class PlankSegment : Placeable
 
         Physics.SyncTransforms();
 
-        var connector = new SpConnectionFinder(segments);
+        var connector = new SpConnectionFinder(segments, map);
         connector.TryConnect();
     }
 }

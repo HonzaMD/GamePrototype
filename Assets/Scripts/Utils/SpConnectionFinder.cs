@@ -13,6 +13,7 @@ namespace Assets.Scripts.Utils
         private readonly int tag;
         private bool connected;
         private readonly List<Placeable> nodes;
+        private readonly Map.Map map;
         private readonly List<Placeable> candidates;
         private readonly Ksids ksids;
 
@@ -28,9 +29,10 @@ namespace Assets.Scripts.Utils
         }
 
 
-        public SpConnectionFinder(List<Placeable> nodes)
+        public SpConnectionFinder(List<Placeable> nodes, Map.Map map)
         {
-            tag = Game.Map.GetNextTag();
+            this.map = map;
+            tag = map.GetNextTag();
             this.nodes = nodes;
             candidates = ListPool<Placeable>.Rent();
             connected = false;
@@ -102,7 +104,7 @@ namespace Assets.Scripts.Utils
 
         private bool TryConnectOne(Placeable p)
         {
-            p.FindTouchingObjs(candidates, Ksid.SpNode, 0.05f, tag);
+            p.FindTouchingObjs(map, candidates, Ksid.SpNode, 0.05f, tag);
             Vector2 center = p.Center;
 
             int size = candidates.Count;

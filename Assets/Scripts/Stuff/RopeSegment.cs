@@ -57,9 +57,9 @@ public class RopeSegment : Placeable
             return;
         Vector3 segOffset = (end - start).normalized * segmentSize;
 
-        Placeable prevNode = Game.Map.GetFirstTouching(start, Ksid.SpFixed, 0.05f);
+        Placeable prevNode = map.GetFirstTouching(start, Ksid.SpFixed, 0.05f);
         if (!prevNode)
-            prevNode = Game.Map.GetFirstTouching(start, Ksid.SpNode, 0.05f);
+            prevNode = map.GetFirstTouching(start, Ksid.SpNode, 0.05f);
 
         for (int i = 0; i < segCount; i++)
         {
@@ -89,15 +89,15 @@ public class RopeSegment : Placeable
 
         if (fixEnd)
         {
-            ConnectEnd(end, prevNode);
+            ConnectEnd(end, prevNode, map);
         }
     }
 
-    private static void ConnectEnd(Vector3 end, Placeable lastNode)
+    private static void ConnectEnd(Vector3 end, Placeable lastNode, Map map)
     {
-        Placeable anchor = Game.Map.GetFirstTouching(end, Ksid.SpFixed, 0.05f);
+        Placeable anchor = map.GetFirstTouching(end, Ksid.SpFixed, 0.05f);
         if (!anchor)
-            anchor = Game.Map.GetFirstTouching(end, Ksid.SpNode, 0.05f);
+            anchor = map.GetFirstTouching(end, Ksid.SpNode, 0.05f);
         if (anchor)
         {
             HingeJoint j = CreateJoint(lastNode.gameObject, true);

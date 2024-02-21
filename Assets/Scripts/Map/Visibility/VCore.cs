@@ -27,9 +27,9 @@ namespace Assets.Scripts.Map.Visibility
         internal const float centerRadius = 0.7f;
         internal const float centerRadiusMarginSq = centerRadius * centerRadius * 1.8f * 1.8f;
 
-        private readonly Map map;
         private readonly Cell[] vmap = new Cell[sizeY * sizeX];
         private readonly byte[] seedsMap = new byte[sizeY * sizeX];
+        private Map map;
         internal Vector2 centerPosLocal; // pozice stedu mapy
         private Vector2Int cellToWorld; // Pozice nulte bunky v souradniciuch vnejsiho sveta
         internal Vector2 posToWorld;
@@ -55,9 +55,8 @@ namespace Assets.Scripts.Map.Visibility
         private int dSeedTestCounter;
         private int resolveShadowCounter;
 
-        public VCore(Map map)
+        public VCore()
         {
-            this.map = map;
             shadowWorker = new(this);
             darkBorders = new();
             dcManager = new(this, darkBorders);
@@ -66,8 +65,9 @@ namespace Assets.Scripts.Map.Visibility
                 ffvQueue[i] = new();
         }
 
-        public void Compute(Vector2 center)
+        public void Compute(Vector2 center, Map map)
         {
+            this.map = map;
             CalcCoordinateOffsets(center);
 
             Reset();

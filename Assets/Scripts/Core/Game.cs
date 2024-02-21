@@ -3,6 +3,7 @@ using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
+using Assets.Scripts.Map.Visibility;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -15,7 +16,6 @@ using UnityTemplateProjects;
 public class Game : MonoBehaviour, ISerializationCallbackReceiver
 {
     public static Game Instance { get; private set; }
-    public static Map Map;
 
     public Character3 Character;
     public SimpleCameraController Camera;
@@ -36,9 +36,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public Transform LongThrowMarker;
     private int holdMarkersToken;
 
-    private List<Trigger> triggers = new List<Trigger>();
-    private HashSet<IActiveObject> activeObjects = new HashSet<IActiveObject>();
-    private Dictionary<Placeable, int> movingObjects = new Dictionary<Placeable, int>();
+    private readonly List<Trigger> triggers = new();
+    private readonly HashSet<IActiveObject> activeObjects = new();
+    private readonly Dictionary<Placeable, (int Tag, Map Map)> movingObjects = new();
+    private readonly VCore visibility = new();
     private int movingObjectInsterPtr;
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
@@ -47,7 +48,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private bool cameraMode;
     private readonly Action<object, int> DeactivateHoldMarkerA;
 
-    private readonly Stopwatch sw = new Stopwatch();
+    private readonly Stopwatch sw = new();
 
     public int CollisionLayaerMask { get; private set; }
     public double[] UpdateTimes = new double[8];
@@ -117,13 +118,13 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
             {
-                Map.Visibility.Compute(Character.ArmSphere.transform.position);
-                Map.Visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
+                visibility.Compute(Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
+                visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
                 UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
             else
             {
-                Map.ProcessCellStateTests(10);
+                MapWorlds.ProcessCellStateTests(10);
                 UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
         }
@@ -174,14 +175,14 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     {
         foreach (var p in movingObjects)
         {
-            if (p.Value == movingObjectWorkPtr)
+            if (p.Value.Tag == movingObjectWorkPtr)
             {
-                Map.Move(p.Key);
-                MovingObjTest(p.Key);
+                p.Value.Map.Move(p.Key);
+                MovingObjTest(p.Key, p.Value.Map);
             }
             else
             {
-                p.Key.UpdateMapPosIfMoved(Map);
+                p.Key.UpdateMapPosIfMoved(p.Value.Map);
             }
         }
 
@@ -190,7 +191,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             movingObjectWorkPtr = 0;
     }
 
-    private void MovingObjTest(Placeable p)
+    private void MovingObjTest(Placeable p, Map map)
     {
         if (Ksids.IsParentOrEqual(p.Ksid, Ksid.SandLike) && p.IsNonMoving)
         {
@@ -198,7 +199,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             float dy = p.PosOffset.y + p.Size.y;
 
             if (y + dy > Map.CellSizeY3div4)
-                Map.AddCellStateTest(Map.WorldToCell(p.Pivot), p.CellZ == 0 ? CellStateCahnge.CompactSand0 : CellStateCahnge.CompactSand1);
+                map.AddCellStateTest(map.WorldToCell(p.Pivot), p.CellZ == 0 ? CellStateCahnge.CompactSand0 : CellStateCahnge.CompactSand1);
         }
     }
 
@@ -219,9 +220,9 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public void ActivateObject(IActiveObject o) => activeObjects.Add(o);
     public void DeactivateObject(IActiveObject o) => activeObjects.Remove(o);
 
-    internal void AddMovingObject(Placeable p)
+    internal void AddMovingObject(Placeable p, Map map)
     {
-        movingObjects[p] = movingObjectInsterPtr++;
+        movingObjects[p] = (movingObjectInsterPtr++, map);
         if (movingObjectInsterPtr >= movingObjectMaxPtr)
             movingObjectInsterPtr = 0;
     }
@@ -288,4 +289,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
         StaticPhysics.Update();
     }
+
+    public static Map MapFromPos(float posX) => Instance.MapWorlds.MapFromPos(posX);
 }

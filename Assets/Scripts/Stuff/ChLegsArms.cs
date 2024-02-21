@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
+public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlaced
 {
 	private const float Free = 0;
 	private const float Timeout = 1;
@@ -36,6 +36,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	protected Rigidbody body;
 	protected Placeable placeable;
+	protected Map map;
 	
 	protected Vector2 desiredVelocity;
 	protected int lastXOrientation = 1;
@@ -79,7 +80,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	protected void AdjustLegsArms()
 	{
-		Game.Map.Move(placeable);
+		map.Move(placeable);
 
 		DoTimeouts();
 
@@ -390,7 +391,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void TryPlaceArm(int index)
 	{
-		var map = Game.Map;
 		bool otherPlaced = ArmCatched;
 		var center = ArmSphere.transform.position.XY();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
@@ -471,7 +471,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 
 	private void TryHoldNearItem(int index)
 	{
-		var map = Game.Map;
 		var center = ArmSphere.transform.position.XY();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
 		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
@@ -521,7 +520,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 		if (!p.CellBlocking.IsDoubleCell() && p.CellZ != myCellZ)
 		{
 			if (p.CanZMove(myCellZ * Map.CellSize.z, placeable))
-				p.MoveZ(myCellZ * Map.CellSize.z);
+				p.MoveZ(myCellZ * Map.CellSize.z, map);
 		}
 	}
 
@@ -935,6 +934,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup
 	{
 		RemoveAllLegsArms();
 		body.Cleanup();
+		map = null;
 	}
+
+    void IHasAfterMapPlaced.AfterMapPlaced(Map map)
+    {
+        this.map = map;
+    }
 }
 

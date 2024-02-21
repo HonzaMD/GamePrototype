@@ -22,7 +22,7 @@ namespace Assets.Scripts.Map
     public partial class Map
     {
         private readonly Dictionary<int, CellStateCahnge> candidates = new Dictionary<int, CellStateCahnge>();
-        private readonly Queue<int> candidatesQ = new Queue<int>();
+        private readonly MapWorlds mapWorlds;
 
         private readonly SubCell[] buffer = new SubCell[6*4*2];
 
@@ -38,34 +38,29 @@ namespace Assets.Scripts.Map
             if (CellToCell(cPoss, out int cellPoss))
             {
                 if (!candidates.TryGetValue(cellPoss, out var origChange))
-                    candidatesQ.Enqueue(cellPoss);
+                    mapWorlds.EnqueueCellStateTest(cellPoss, Id);
                 if (change != origChange)
                     candidates[cellPoss] = origChange | change;
             }
         }
 
-        public void ProcessCellStateTests(int count)
-        {
-            for (int f = 0; f < count && candidatesQ.Count > 0; f++)
-            {
-                cellPos = candidatesQ.Dequeue();
-                candidates.Remove(cellPos, out var change);
-                ProcessCellStateTest(change);
-            }
-        }
 
-        private void ProcessCellStateTest(CellStateCahnge change)
+        public void ProcessCellStateTest(int cellPos)
         {
-            InitBufferCoords();
-            if ((change & CellStateCahnge.CompactSand0) != 0)
-                TestCompactSand(0);
-            if ((change & CellStateCahnge.CompactSand1) != 0)
-                TestCompactSand(1);
-            if ((change & CellStateCahnge.FreeSand0) != 0)
-                TestFreeSand(0);
-            if ((change & CellStateCahnge.FreeSand1) != 0)
-                TestFreeSand(1);
-            ClearBuffer();
+            this.cellPos = cellPos;
+            if (candidates.Remove(cellPos, out var change))
+            {
+                InitBufferCoords();
+                if ((change & CellStateCahnge.CompactSand0) != 0)
+                    TestCompactSand(0);
+                if ((change & CellStateCahnge.CompactSand1) != 0)
+                    TestCompactSand(1);
+                if ((change & CellStateCahnge.FreeSand0) != 0)
+                    TestFreeSand(0);
+                if ((change & CellStateCahnge.FreeSand1) != 0)
+                    TestFreeSand(1);
+                ClearBuffer();
+            }
         }
 
         private void InitBufferCoords()
@@ -150,7 +145,7 @@ namespace Assets.Scripts.Map
             }
 
             var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(sands[0].LevelGroup, CellToWorld(cellXY).AddZ(cellz * 0.5f));
-            combiner.Init(l1, l4, isFullCell, sands);
+            combiner.Init(l1, l4, isFullCell, sands, this);
             sands.Return();
         }
 

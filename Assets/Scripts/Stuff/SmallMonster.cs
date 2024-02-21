@@ -44,7 +44,6 @@ class SmallMonster : ChLegsArms, IActiveObject
 	{
 		if (Settings.monsterMoveOnGround)
 		{
-			var map = Game.Map;
 			var cell = map.WorldToCell(transform.position);
 			var surface = CellUtils.Combine(SubCellFlags.HasFloor, transform);
 

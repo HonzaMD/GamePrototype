@@ -29,14 +29,14 @@ namespace Assets.Scripts.Map
         private readonly Ksids ksids;
         private int currentTag;
 
-        public Visibility.VCore Visibility { get; }
+        public int Id { get; }
 
-        public Map(MapSettings settings, Ksids ksids)
-            : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids)
+        public Map(MapSettings settings, Ksids ksids, int id, MapWorlds mapWorlds)
+            : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids, id, mapWorlds)
         {
         }
 
-        public Map(int posx, int posy, int sizex, int sizey, Ksids ksids)
+        public Map(int posx, int posy, int sizex, int sizey, Ksids ksids, int id, MapWorlds mapWorlds)
         {
             this.posx = posx;
             this.posy = posy;
@@ -48,8 +48,9 @@ namespace Assets.Scripts.Map
             mapOffset = mo;
 
             this.ksids = ksids;
+            this.mapWorlds = mapWorlds;
             cells = new Cell[sizex * sizey];
-            Visibility = new(this);
+            Id = id;
         }
 
         public MapSettings Settings => new MapSettings(posx, posy, sizex, sizey);

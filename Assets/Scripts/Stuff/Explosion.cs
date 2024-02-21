@@ -46,7 +46,8 @@ namespace Assets.Scripts.Stuff
             var size = new Vector2(1f, 1f);
             const float sizeSq = 1.2f * 1.2f;
             const float sizeSq2 = 0.9f * 0.9f;
-            Game.Map.Get(placeables, Pivot - size, size * 2, Ksid.AffectedByExplosion);
+            Map.Map map = Game.MapFromPos(Pivot.x);
+            map.Get(placeables, Pivot - size, size * 2, Ksid.AffectedByExplosion);
             foreach (Placeable p in placeables)
                 ApplyExplosionEffects(p, sizeSq, sizeSq2);
             placeables.Return();
