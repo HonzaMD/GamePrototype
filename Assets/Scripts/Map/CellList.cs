@@ -3,61 +3,53 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static UnityEditor.Experimental.GraphView.Port;
 
 namespace Assets.Scripts.Map
 {
     public struct CellListInfo
     {
-        public const int SizeMask = 0x3F; // 63
-        
-        int indexAndSize;
+        public const int MaxSize = 65;
 
-        public int Index
-        {
-            get => (indexAndSize >> 6) << 1;
-            set => indexAndSize = (value >> 1) << 6 | (indexAndSize & 0x3F);
-        }
+        public ushort ArrSelector;
+        public byte ArrPtr;
+        public byte Size; // bacha prvni prvek je mimo arr, takze size je jakoby o 1 vetsi
 
-        public int Size
+        public CellListInfo(ushort arrSelector, byte arrPtr, byte size)
         {
-            get => indexAndSize & SizeMask;
-            set => indexAndSize = (indexAndSize & ~SizeMask) | value;
-        }
-
-        public CellListInfo(int index, int size)
-        {
-            indexAndSize = (index >> 1) << 6 | size;
+            ArrSelector = arrSelector;
+            ArrPtr = arrPtr;
+            Size = size;
         }
     }
 
 
     static class CellList
     {
-        private const int blockSize = 32 * 1024;
-        private const int blockMask = blockSize - 1;
-        private const int blockShift = 15;
-        public const int maxCapacity = CellListInfo.SizeMask + 1; // 64
-        private readonly static List<(Placeable[] Arr, int Capacity)> data = new List<(Placeable[], int)>();
-        private readonly static (Queue<int> List, int LastGi)[] freeLists = InitFreeLists();
+        private const int sizeShift = 8;
+        public const int maxCapacity = CellListInfo.MaxSize - 1; // 64
+
+        private readonly static List<Placeable[]> data = new() { null };
+        private readonly static (Queue<CellListInfo> List, CellListInfo LastGi)[] freeLists = InitFreeLists();
         private static readonly int[] sizeToCapacity = InitSizeToCapacity();
 
         public static void CheckEmpty()
         {
-            if (data.Count != 0)
+            if (data.Count != 1)
                 throw new InvalidOperationException("Cekal jsem ze CellList bude prazdny");
             if (freeLists.Length != maxCapacity + 1)
                 throw new InvalidOperationException("Cekal jsem ze CellList bude prazdny 2");
-            if (freeLists[2].LastGi != 0 || freeLists[2].List.Count > 0)
+            if (freeLists[2].LastGi.ArrSelector != 0 || freeLists[2].List.Count > 0)
                 throw new InvalidOperationException("Cekal jsem ze CellList bude prazdny 2");
         }
 
-        private static (Queue<int> List, int LastGi)[] InitFreeLists()
+        private static (Queue<CellListInfo> List, CellListInfo LastGi)[] InitFreeLists()
         {
-            var ret = new (Queue<int> List, int LastGi)[maxCapacity + 1];
+            var ret = new (Queue<CellListInfo> List, CellListInfo LastGi)[maxCapacity + 1];
             int value = 2;
             while (value <= maxCapacity)
             {
-                ret[value].List = new Queue<int>();
+                ret[value].List = new ();
                 value *= 2;
             }
             return ret;
@@ -82,110 +74,187 @@ namespace Assets.Scripts.Map
             return ret;
         }
 
-        public static Placeable[] GetData(CellListInfo info, out int index)
+        
+        public static Span<Placeable> GetData(CellListInfo info)
         {
-            return GetData(info.Index, out index);
+            var arr = data[info.ArrSelector];
+            int capacity = arr.Length >> sizeShift;
+            return arr.AsSpan(info.ArrPtr * capacity, capacity);
         }
 
-        public static Placeable[] GetData(int gi, out int index)
+        private static Span<Placeable> PopData(CellListInfo info)
         {
-            index = gi & blockMask;
-            return data[gi >> blockShift].Arr;
+            var arr = data[info.ArrSelector];
+            int capacity = arr.Length >> sizeShift;
+            freeLists[capacity].List.Enqueue(info);
+            return arr.AsSpan(info.ArrPtr * capacity, capacity);
         }
 
-        public static Placeable[] ReserveData(int size, out CellListInfo info, out int index)
+        public static Span<Placeable> GetData(ref CellListInfo info, byte newSize)
         {
-            int gi = GetFreeIndex(size);
-            info = new CellListInfo(gi, size);
-            return GetData(gi, out index);
-        }
-
-        private static int GetFreeIndex(int size)
-        {
-            int capacity = sizeToCapacity[size];
-
-            if (freeLists[capacity].List.Count > 0)
-                return freeLists[capacity].List.Dequeue();
-
-            int gi = freeLists[capacity].LastGi;
-            if ((gi & blockMask) == 0)
-            {
-                gi = AllocNewBloc(capacity);
-            }
-
-            freeLists[capacity].LastGi = gi + capacity;
-
-            return gi;
-        }
-
-        private static int AllocNewBloc(int capacity)
-        {
-            int gi = data.Count * blockSize;
-            data.Add((new Placeable[blockSize], capacity));
-            return gi;
-        }
-
-
-        public static void IncSize(ref CellListInfo info, int newSize)
-        {
-            int gi = info.Index;
-            int capacity = data[gi >> blockShift].Capacity;
+            var arr = data[info.ArrSelector];
+            int capacity = arr.Length >> sizeShift;
             if (newSize - 1 > capacity)
             {
-                Relocate(ref info, gi, newSize);
-                freeLists[capacity].List.Enqueue(gi);
+                return RelocateAndGet(ref info, newSize);
             }
             else
             {
                 info.Size = newSize;
+                return arr.AsSpan(info.ArrPtr * capacity, capacity);
             }
         }
 
-        public static void DecSize(ref CellListInfo info, int newSize)
+
+        //public static void IncSize(ref CellListInfo info, int newSize)
+        //{
+        //    int gi = info.Index;
+        //    int capacity = data[gi >> blockShift].Capacity;
+        //    if (newSize - 1 > capacity)
+        //    {
+        //        Relocate(ref info, gi, newSize);
+        //        freeLists[capacity].List.Enqueue(gi);
+        //    }
+        //    else
+        //    {
+        //        info.Size = newSize;
+        //    }
+        //}
+
+        public static void DecSizeBy1(ref CellListInfo info, Span<Placeable> currData)
         {
-            int gi = info.Index;
-            int capacity = data[gi >> blockShift].Capacity;
+            int capacity = currData.Length;
+            int newSize = --info.Size;
+            currData[newSize-1] = null;
 
-            ClaerArr(newSize, ref info);
-
-            if (newSize <= 1)
+            if (newSize < capacity >> 1)
             {
-                info.Index = -1;
-                freeLists[capacity].List.Enqueue(gi);
-            }
-            else if (capacity >> 2 >= 2 && newSize - 1 <= capacity >> 2)
-            {
-                Relocate(ref info, gi, newSize);
-                freeLists[capacity].List.Enqueue(gi);
+                freeLists[capacity].List.Enqueue(info);
+                if (newSize <= 1)
+                {
+                    info.ArrSelector = 0;
+                }
+                else
+                {
+                    RelocateDown(ref info, currData);
+                }
             }
         }
 
-        private static void ClaerArr(int newSize, ref CellListInfo info)
+        public static void DecSize(ref CellListInfo info, byte newSize, Span<Placeable> currData)
         {
-            var arr = GetData(info, out var index);
-            var size = info.Size;
-            var start = newSize == 0 ? 1 : newSize;
-            index--;
+            int capacity = currData.Length;
+            ClearArr(ref info, newSize, currData);
 
-            for (int i = start; i < size; i++)
+            if (newSize < capacity >> 1)
             {
-                arr[index + i] = null;
+                freeLists[capacity].List.Enqueue(info);
+                if (newSize <= 1)
+                {
+                    info.ArrSelector = 0;
+                }
+                else
+                {
+                    RelocateDown(ref info, currData);
+                }
             }
+        }
 
+        internal static void Free(ref CellListInfo info)
+        {
+            if (info.ArrSelector != 0)
+            {
+                var capacity = data[info.ArrSelector].Length >> sizeShift;
+                freeLists[capacity].List.Enqueue(info);
+                info.ArrSelector = 0;
+            }
+        }
+
+        private static void ClearArr(ref CellListInfo info, byte newSize, Span<Placeable> currData)
+        {
+            int sizeDelta = info.Size - newSize;
+            int clearStart;
+            if (newSize > 0)
+            {
+                clearStart = newSize - 1;
+            }
+            else
+            {
+                clearStart = 0;
+                sizeDelta--;
+            }
+            currData.Slice(clearStart, sizeDelta).Clear();
             info.Size = newSize;
         }
 
-        private static void Relocate(ref CellListInfo info, int gi, int newSize)
+       
+        private static void RelocateDown(ref CellListInfo info, Span<Placeable> src)
         {
             int size = info.Size - 1;
-            var src = GetData(gi, out int srcIndex);
-            var dest = ReserveData(newSize, out info, out int destIndex);
+            src = src.Slice(0, size);
+            var dest = ReserveData(info.Size, out info);
 
-            for (int f = 0; f < size; f++)
+            src.CopyTo(dest);
+            src.Clear();
+        }
+
+        private static Span<Placeable> RelocateAndGet(ref CellListInfo info, byte newSize)
+        {
+            int size = info.Size - 1;
+            var src = PopData(info).Slice(0, size);
+            var dest = ReserveData(newSize, out info);
+
+            src.CopyTo(dest);
+            src.Clear();
+
+            return dest;
+        }
+
+
+        public static Span<Placeable> ReserveData(byte size, out CellListInfo info)
+        {
+            info = GetFreeIndex(size);
+            return GetData(info);
+        }
+
+        private static CellListInfo GetFreeIndex(byte size)
+        {
+            int capacity = sizeToCapacity[size];
+            CellListInfo gi;
+            ref var freeInfo = ref freeLists[capacity];
+
+            if (freeInfo.List.Count > 0)
             {
-                dest[destIndex + f] = src[srcIndex + f];
-                src[srcIndex + f] = null;
+                gi = freeInfo.List.Dequeue();
             }
+            else
+            {
+                gi = freeInfo.LastGi;
+                if (gi.ArrPtr == 0)
+                {
+                    gi = AllocNewBloc(capacity);
+                    freeInfo.LastGi = gi;
+                }
+
+                freeInfo.LastGi.ArrPtr++;
+            }
+
+            gi.Size = size;
+            return gi;
+        }
+
+        private static CellListInfo AllocNewBloc(int capacity)
+        {
+            CellListInfo gi = new((ushort)data.Count, 0, 0);
+            if (gi.ArrSelector == 0)
+                ThrowOutOfMemory();
+            data.Add(new Placeable[capacity << sizeShift]);
+            return gi;
+        }
+
+        private static void ThrowOutOfMemory()
+        {
+            throw new InvalidOperationException("Dosla pamet v CellList strukturach");
         }
     }
 }
