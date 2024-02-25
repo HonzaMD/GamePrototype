@@ -472,7 +472,11 @@ namespace Assets.Scripts.Map.Visibility
                     ptr = pointNodes.MoveNext(ptr);
                     badCounter++;
                     if (badCounter > pointNodes.Count)
-                        throw new InvalidOperationException("Cyklus v TringulateRest");
+                    {
+                        Debug.LogError("Triangulate Rest Cyclus: " + dc.Id);
+                        return;
+                        //throw new CyclusException(dc.Id);
+                    }
                 }
             }
         }

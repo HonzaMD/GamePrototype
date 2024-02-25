@@ -108,20 +108,15 @@ namespace Assets.Scripts.Map.Visibility
                 if (right == Vector2.zero)
                     right = a - centerPosLocal;
                 var (gl, gr, lOK, rOK) = darkBorders.FindLeftRight(right);
-                if (!connectsLeft && rOK && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
+
+                if (!connectsLeft && rOK && gr == darkDC.GroupRightDir && VCore.IsBetterOrder(RightDir, gr) && VCore.IsBetterOrder(LeftDir, gr))
                 {
-                    if (gr != darkDC.GroupRightDir)
-                        throw new InvalidOperationException("Napojoju se na uplne jiny DC group nez cekam");
-                    //Debug.Assert(gr == darkDC.GroupRightDir);
                     connectsLeft = true;
                     LeftDir = gr;
                 }
 
-                if (!connectsRight && lOK && VCore.IsBetterOrder(gl, LeftDir) && VCore.IsBetterOrder(gl, RightDir))
+                if (!connectsRight && lOK && gl == darkDC.GroupLeftDir && VCore.IsBetterOrder(gl, LeftDir) && VCore.IsBetterOrder(gl, RightDir))
                 {
-                    if (gl != darkDC.GroupLeftDir)
-                        throw new InvalidOperationException("Napojoju se na uplne jiny DC group nez cekam");
-                    //Debug.Assert(gl == darkDC.GroupLeftDir);
                     connectsRight = true;
                     RightDir = gl;
                 }
