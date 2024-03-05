@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4456.8657, g: 2907.9592, b: 2173.3245, a: 1}
+  m_IndirectSpecularColor: {r: 4450.93, g: 2910.5276, b: 2186.1565, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -329,7 +329,6 @@ MonoBehaviour:
     sizey: 144
     Scenes:
     - Lvl_0a_1a
-  IsWorking: 0
 --- !u!4 &292982616
 Transform:
   m_ObjectHideFlags: 0
@@ -344,6 +343,59 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &301410160
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 301410162}
+  - component: {fileID: 301410161}
+  m_Layer: 0
+  m_Name: ThrowController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &301410161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301410160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e873e41573013446b0b8564265e7349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  InputController: {fileID: 1099895535}
+  HoldMarkers:
+  - {fileID: 1872268152}
+  - {fileID: 1405430145}
+  - {fileID: 1574304535}
+  - {fileID: 156282704}
+  - {fileID: 680283851}
+  - {fileID: 903025029}
+  LongThrowMarker: {fileID: 694212666}
+--- !u!4 &301410162
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301410160}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1470925543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &436192659
 GameObject:
@@ -757,6 +809,53 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 903025028}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1099895534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1099895536}
+  - component: {fileID: 1099895535}
+  m_Layer: 0
+  m_Name: InputController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1099895535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099895534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c80f3b674fbdfc44287e5d5014336fd3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Character: {fileID: 531436553}
+  Camera: {fileID: 1687258583}
+  ThrowController: {fileID: 301410161}
+--- !u!4 &1099895536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099895534}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1470925543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1118955277
 GameObject:
   m_ObjectHideFlags: 1
@@ -1130,8 +1229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56cb3c4d9f37bee45bf6a2a392397ea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Character: {fileID: 531436553}
-  Camera: {fileID: 1687258583}
+  InputController: {fileID: 1099895535}
   Timer: {fileID: 39436022}
   GlobalTimerHandler: {fileID: 1879431447}
   Pool: {fileID: 436192660}
@@ -1141,14 +1239,6 @@ MonoBehaviour:
     type: 2}
   OccludersRoot: {fileID: 739283312}
   MapWorlds: {fileID: 292982615}
-  HoldMarkers:
-  - {fileID: 1872268152}
-  - {fileID: 1405430145}
-  - {fileID: 1574304535}
-  - {fileID: 156282704}
-  - {fileID: 680283851}
-  - {fileID: 903025029}
-  LongThrowMarker: {fileID: 694212666}
   UpdateTimes:
   - 0
   - 0
@@ -1190,6 +1280,8 @@ Transform:
   - {fileID: 436192661}
   - {fileID: 1879431448}
   - {fileID: 222245417}
+  - {fileID: 1099895536}
+  - {fileID: 301410162}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1574304535 stripped
@@ -1713,7 +1805,6 @@ MonoBehaviour:
     - Lvl_0a_7a
     - Lvl_0a_8a
     - Lvl_0a_9a
-  IsWorking: 0
 --- !u!4 &1973045248
 Transform:
   m_ObjectHideFlags: 0

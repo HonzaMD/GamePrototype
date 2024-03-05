@@ -73,7 +73,7 @@ namespace Assets.Scripts.Map
                 case 'm': return prefabsStore.SmallMonster;
                 case 's': return prefabsStore.Stone;
                 case '*': return prefabsStore.PointLight;
-                case 'A': return Game.Instance.Character;
+                case 'A': return Game.Instance.InputController.Character;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

@@ -921,7 +921,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass, isImpact.Value ? VelocityFlags.IsImpact : VelocityFlags.None);
 	}
 
-	protected Label GetHoldObject()
+	public Label GetHoldObject()
 	{
 		if (legArmStatus[2] == Hold && legsConnectedLabels[2] && legsConnectedLabels[2].HasActiveRB)
 			return legsConnectedLabels[2];

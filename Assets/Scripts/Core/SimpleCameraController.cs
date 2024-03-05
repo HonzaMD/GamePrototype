@@ -62,6 +62,8 @@ namespace UnityTemplateProjects
             }
         }
 
+        public Camera Camera { get; private set; }
+
         internal void SetTransform(Vector3 delta)
         {
             transform.position += delta;
@@ -93,6 +95,7 @@ namespace UnityTemplateProjects
 
         void OnEnable()
         {
+            Camera = GetComponent<Camera>();
             m_TargetCameraState.SetFromTransform(transform);
             m_InterpolatingCameraState.SetFromTransform(transform);
             m_StoredState.SetFromTransform(transform);

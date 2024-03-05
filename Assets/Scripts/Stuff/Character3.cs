@@ -24,19 +24,14 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 	private bool dropHold;
 	private float holdRotationAngle = 0;
 
-	private bool throwActive;
-	private float throwAngle = 1.1f;
-	private float throwForce = 0.5f;
-	private float throwTimer;
-	private float throwRotationAngle = 0;
-	private float throwForceDir = 0;
-	private Rigidbody bodyToThrow;
-
 	private Label inventoryPrototype;
 	private Label inventoryObj;
 	private int inventoryHoldAttempts;
 
-	void Awake()
+	private InputController inputController;
+    private Rigidbody bodyToThrow;
+
+    void Awake()
 	{
 		oldPos = transform.position;
 		AwakeB();
@@ -44,19 +39,30 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
 	public void GameUpdate()
 	{
+		if (!inputController)
+			UncontrolledUpdate();
+		else
+			ControlledUpdate();
+	}
+
+    private void ControlledUpdate()
+    {
+	    var throwCtrl = inputController.ThrowController;
+
 		var delta = transform.position - oldPos;
 		delta.z = 0;
 		oldPos = transform.position;
 		Camera.SetTransform(delta);
+		inputController.GameUpdate();
 
 		bool jumpButton = Input.GetButtonDown("Jump");
-		bool catchButton = Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftAlt);
+		desiredCatch = Input.GetMouseButton(1);
 
-		if (Input.GetKeyDown(KeyCode.Alpha1) && !throwActive)
+		if (Input.GetKeyDown(KeyCode.Alpha1) && !throwCtrl.ThrowActive)
 		{
 			InventoryAccess(Game.Instance.PrefabsStore.Gravel);
 		} 
-		else if (Input.GetKeyDown(KeyCode.Alpha2) && !throwActive)
+		else if (Input.GetKeyDown(KeyCode.Alpha2) && !throwCtrl.ThrowActive)
 		{
 			InventoryAccess(Game.Instance.PrefabsStore.StickyBomb);
 		}
@@ -73,16 +79,16 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 				dropHold = false;
 			}
 
-			if (throwActive)
+			if (throwCtrl.ThrowActive)
 			{
-				SetThrowActive(false, false);
+				throwCtrl.SetThrowActive(false, false, this);
 				dropHold = false;
 			}
 		}
 		if (Input.GetKeyUp(KeyCode.V))
 		{
 			holdRotationAngle = 0;
-			if (!throwActive)
+			if (!throwCtrl.ThrowActive)
 			{
 				if (dropHold)
 				{
@@ -96,8 +102,6 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 				}
 			}
 		}
-
-		desiredCatch = catchButton;
 
 		if (ArmCatched && desiredCatch)
 		{
@@ -118,8 +122,8 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
 		AdjustLegsArms();
 
-		SetThrowActive((Input.GetKeyDown(KeyCode.B) ^ throwActive) && ArmHolds, Input.GetKeyDown(KeyCode.B));
-		bool holdButton = Input.GetKey(KeyCode.V) && !throwActive;
+		throwCtrl.SetThrowActive((Input.GetKeyDown(KeyCode.B) ^ throwCtrl.ThrowActive) && ArmHolds, Input.GetKeyDown(KeyCode.B), this);
+		bool holdButton = Input.GetKey(KeyCode.V) && !throwCtrl.ThrowActive;
 
 
 		if (!holdButton && desiredHold && !ArmHolds && inventoryHoldAttempts == 0)
@@ -147,11 +151,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 		float inY = Mathf.Clamp(Input.GetAxis("Vertical"), -1, 1);
 		var speedMode =  (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 0.5f : (ArmCatched || desiredCrouch)? 0.6f : 1f;
 
-		if (throwActive)
-		{
-			desiredVelocity = Vector2.zero;
-		} 
-		else if (ArmCatched)
+		if (ArmCatched)
 		{
 			desiredVelocity = new Vector2(inX, inY) * Settings.maxSpeed * speedMode;
 		}
@@ -172,33 +172,9 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 			dropHold = false;
 		}
 
-		if (throwActive)
+		if (throwCtrl.ThrowActive)
 		{
-			if (Mathf.Abs(inY) > 0.2f)
-			{
-				if (throwRotationAngle == 0)
-				{
-					throwRotationAngle = Mathf.Cos(throwAngle) > 0 ? 2f : -2f;
-				}
-				throwAngle += inY * throwRotationAngle * Time.deltaTime;
-			}
-			else
-			{
-				throwRotationAngle = 0;
-			}
-			if (Mathf.Abs(inX) > 0.2f)
-			{
-				if (throwForceDir == 0)
-				{
-					throwForceDir = Mathf.Cos(throwAngle) > 0 ? 1.5f : -1.5f;
-				}
-				throwForce = Mathf.Clamp01(throwForce + inX * Time.deltaTime * throwForceDir);
-			}
-			else
-			{
-				throwForceDir = 0;
-			}
-			PositionLongThrowMarker();
+			throwCtrl.PositionLongThrowMarker(this);
 		}
 
 		if (zMoveTimeout <= 0 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
@@ -208,7 +184,12 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 		}
 	}
 
-	private void InventoryAccess(Label prototype)
+    private void UncontrolledUpdate()
+    {
+        AdjustLegsArms();
+    }
+
+    private void InventoryAccess(Label prototype)
 	{
 		if (ArmHolds)
 			RecatchHold();
@@ -218,102 +199,23 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 		inventoryHoldAttempts = 3;
 	}
 
-	private void SetThrowActive(bool activate, bool throwIt)
-	{
-		if (throwActive != activate)
-		{
-			throwActive = activate;
-			if (throwActive)
-			{
-				throwTimer = 0;
-				throwRotationAngle = 0;
-				throwForceDir = 0;
-				Game.Instance.LongThrowMarker.gameObject.SetActive(true);
-				PositionLongThrowMarker();
-			}
-			else
-			{
-				Game.Instance.ClearAllHoldMarkers();
-				Game.Instance.LongThrowMarker.gameObject.SetActive(false);
-				if (throwIt)
-				{
-					var body = GetHoldObject();
-					if (body != null)
-					{
-						ActivateByThrow(body);
-						bodyToThrow = body.Rigidbody;
-						holdTarget = Vector2.zero;
-						desiredHold = false;
-					}
-				}
-			}
-		}
-	}
-
-	private void ActivateByThrow(Label body)
-	{
-		if (body.KsidGet.IsChildOf(Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
-			ao.Activate();
-	}
-
-	private void PositionLongThrowMarker()
-	{
-		var body = GetHoldObject();
-		if (body != null)
-		{
-			Game.Instance.LongThrowMarker.position = body.transform.position;
-			Game.Instance.LongThrowMarker.rotation = Quaternion.AngleAxis(Mathf.Rad2Deg * throwAngle, Vector3.forward);
-			var child = Game.Instance.LongThrowMarker.GetChild(0);
-			child.localScale = new Vector3((1 + throwForce) * 0.4f, child.localScale.y, child.localScale.z);
-			child.localPosition = new Vector3((1 + throwForce) * 0.2f + 0.4f, child.localPosition.y, child.localPosition.z);
-		}
-	}
-
-	private void ShowThrowMarker()
-	{
-		if (throwTimer <= 0)
-		{
-			var marker = Game.Instance.GetHoldMarker(1.8f);
-			if (marker != null)
-			{
-				throwTimer = 0.3f;
-				var body = GetHoldObject();
-				if (body != null)
-                {
-                    marker.transform.position = body.transform.position;
-                    var mBody = marker.GetComponent<Rigidbody>();
-					var throwMass = body.Rigidbody.mass;
-                    mBody.mass = throwMass;
-                    Vector2 force = ComputeThrowForce(throwMass);
-                    mBody.velocity = (Vector3)force + this.body.velocity;
-                }
-            }
-		} 
-		else
-		{
-			throwTimer -= Time.deltaTime;
-		}
-	}
-
-    private Vector2 ComputeThrowForce(float throwMass)
-    {
-		var koef = Mathf.Min(5.5f, 10f / Mathf.Sqrt(throwMass));
-        return new Vector2(Mathf.Cos(throwAngle), Mathf.Sin(throwAngle)) * (1 + throwForce) * koef;
-    }
 
     public override void GameFixedUpdate()
     {
 		if (bodyToThrow == null)
 			base.GameFixedUpdate();
-		if (throwActive)
-			ShowThrowMarker();
-		if (bodyToThrow != null)
+		if (inputController)
 		{
-			Vector2 force = ComputeThrowForce(bodyToThrow.mass);
-			bodyToThrow.velocity = (Vector3)force + this.body.velocity;
-            body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
-            bodyToThrow = null;
-        }
+			if (inputController.ThrowController.ThrowActive)
+				inputController.ThrowController.ShowThrowMarker(this, body.velocity);
+			if (bodyToThrow != null)
+			{
+				Vector2 force = inputController.ThrowController.ComputeThrowForce(bodyToThrow.mass);
+				bodyToThrow.velocity = (Vector3)force + this.body.velocity;
+				body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
+				bodyToThrow = null;
+			}
+		}
     }
 
 	Label IInventoryAccessor.InventoryGet()
@@ -347,5 +249,18 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 			placeable.LevelPlaceAfterInstanciate(map, pos);
 		}
     }
+
+    internal void ThrowObj(Rigidbody bodyToThrow)
+    {
+        this.bodyToThrow = bodyToThrow;
+        holdTarget = Vector2.zero;
+        desiredHold = false;
+    }
+
+    internal void ActivateInput(InputController inputController)
+    {
+		this.inputController = inputController;
+    }
+
     bool ILevelPlaceabe.SecondPhase => false;
 }

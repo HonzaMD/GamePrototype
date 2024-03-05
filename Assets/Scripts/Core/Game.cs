@@ -17,8 +17,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 {
     public static Game Instance { get; private set; }
 
-    public Character3 Character;
-    public SimpleCameraController Camera;
+    public InputController InputController;
     public Ksids Ksids { get; private set; }
     public SpInterface StaticPhysics { get; private set; }
     public Timer Timer;
@@ -32,10 +31,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public bool IsPaused { get; private set; }
     public GameState State { get; private set; }
 
-    public Transform[] HoldMarkers;
-    public Transform LongThrowMarker;
-    private int holdMarkersToken;
-
     private readonly List<Trigger> triggers = new();
     private readonly HashSet<IActiveObject> activeObjects = new();
     private readonly Dictionary<Placeable, (int Tag, Map Map)> movingObjects = new();
@@ -44,9 +39,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
     private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
-
-    private bool cameraMode;
-    private readonly Action<object, int> DeactivateHoldMarkerA;
 
     private readonly Stopwatch sw = new();
 
@@ -60,11 +52,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Awaked,
         CreatingLevels,
         Ready,
-    }
-
-    public Game()
-    {
-        DeactivateHoldMarkerA = DeactivateHoldMarker;
     }
 
     void Update()
@@ -87,14 +74,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 #endif
         }
 
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            cameraMode = !cameraMode;
-            if (cameraMode)
-                Camera.ActivateControl();
-            else
-                Camera.DeactivateControl();
-        }
 
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.BackQuote))
@@ -107,6 +86,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         if (!IsPaused)
         {
+            InputController.GameUpdate();
             swStart = sw.Elapsed;
             UpdateTriggers();
             UpdateTimes[1] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
@@ -118,7 +98,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
             {
-                visibility.Compute(Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
+                visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
                 visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
                 UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
@@ -131,7 +111,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         //if (!cameraMode)
         //    Character.GameUpdate();
-        Camera.GameUpdate();
+        InputController.Camera.GameUpdate();
         sw.Stop();
         UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
     }
@@ -236,7 +216,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             Ksids = new KsidDependencies();
         if (StaticPhysics == null)
             StaticPhysics = new SpInterface();
-        Camera.PairWithCharacter(Character);
+        InputController.Init();
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
     }
 
@@ -251,38 +231,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             Ksids = new KsidDependencies();
     }
 
-    public Transform GetHoldMarker(float life)
-    {
-        foreach (var hm in HoldMarkers)
-        {
-            if (!hm.gameObject.activeInHierarchy)
-            {
-                hm.gameObject.SetActive(true);
-                Timer.Plan(DeactivateHoldMarkerA, life, hm.gameObject, holdMarkersToken);
-                return hm;
-            }
-        }
-        return null;
-    }
-
-    private void DeactivateHoldMarker(object prm, int token)
-    {
-        if (token == holdMarkersToken)
-            ((GameObject)prm).SetActive(false);
-    }
-
-    public void ClearAllHoldMarkers()
-    {
-        holdMarkersToken++;
-        foreach (var hm in HoldMarkers)
-        {
-            if (hm.gameObject.activeInHierarchy)
-                hm.gameObject.SetActive(false);
-        }
-    }
 
     void FixedUpdate()
     {
+        InputController.GameFixedUpdate();
         foreach (var o in activeObjects)
         {
             o.GameFixedUpdate();
