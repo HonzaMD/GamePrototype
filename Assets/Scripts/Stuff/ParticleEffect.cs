@@ -20,6 +20,8 @@ namespace Assets.Scripts.Stuff
 
         public int ActiveTag { get; set; }
 
+        public override void Init(Map.Map map) { }
+
         public void Init(float duration)
         {
             this.Plan(duration);

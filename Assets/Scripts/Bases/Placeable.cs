@@ -107,6 +107,8 @@ public class Placeable : Label, ILevelPlaceabe
         transform.localPosition = pos;
     }
 
+    public override void Init(Map map) => PlaceToMap(map);
+
     public void PlaceToMap(Map map)
     {
         AutoAttachRB();
@@ -189,7 +191,7 @@ public class Placeable : Label, ILevelPlaceabe
         else
         {
             Transform transform = KillableLabel().transform;
-            var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition);
+            var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition, null);
             var rb = rbLabel.Rigidbody;
             transform.SetParent(rbLabel.transform, true);
             rb.mass = rbLabel.PlaceableC.GetMass();
@@ -258,7 +260,7 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-    private float GetMass()
+    public override float GetMass()
     {
         var settings = Settings;
         if (!settings)
@@ -380,7 +382,7 @@ public class Placeable : Label, ILevelPlaceabe
         if (spNodeIndex == cmd.indexA && cmd.nodeB.spNodeIndex == cmd.indexB && TryFindRbJoint(cmd.nodeB, out var j))
         {
             var pos = Center3D + (cmd.nodeB.Center3D - Center3D) * 0.5f;
-            var particleEffect = Game.Instance.PrefabsStore.ParticleEffect.Create(LevelGroup, pos);
+            var particleEffect = Game.Instance.PrefabsStore.ParticleEffect.CreateWithotInit(LevelGroup, pos);
             particleEffect.Init(10);
 
             j.ClearSp();

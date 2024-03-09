@@ -25,11 +25,14 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
     int ISimpleTimerConsumer.ActiveTag { get => collapsingToken; set => collapsingToken = value; }
 
+    public override float GetMass() => mass;
+
     private void Start()
     {
         MassTransferer.Init(DisconnectMassTarget);
     }
 
+    public override void Init(Map map) {}
 
     public void Init(int l1, int l4, bool isFullCell, IEnumerable<Placeable> children, Map map)
     {

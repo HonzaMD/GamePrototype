@@ -144,7 +144,7 @@ namespace Assets.Scripts.Map
                 return;
             }
 
-            var combiner = Game.Instance.PrefabsStore.SandCombiner.Create(sands[0].LevelGroup, CellToWorld(cellXY).AddZ(cellz * 0.5f));
+            var combiner = Game.Instance.PrefabsStore.SandCombiner.CreateWithotInit(sands[0].LevelGroup, CellToWorld(cellXY).AddZ(cellz * 0.5f));
             combiner.Init(l1, l4, isFullCell, sands, this);
             sands.Return();
         }

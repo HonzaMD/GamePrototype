@@ -22,6 +22,7 @@ namespace Assets.Scripts.Bases
         public override Ksid KsidGet => SubLabel.KsidGet;
         public override Rigidbody Rigidbody => GetComponent<Rigidbody>();
         public override bool IsAlive => isAlive;
+        public override float GetMass() => Rigidbody.mass;
         public override void DetachKilledChild(Label child)
         {
             child.transform.SetParent(LevelGroup, true);
@@ -51,9 +52,10 @@ namespace Assets.Scripts.Bases
                 dest.OnCollisionEnter(collision);
         }
 
+        public override void Init(Map.Map map) => isAlive = true;
+
         public void Init(bool startMoving, bool stopMoving, bool incConnection)
         {
-            isAlive = true;
             if (startMoving)
             {
                 Rigidbody.isKinematic = false;

@@ -10,5 +10,6 @@ namespace Assets.Scripts.Core.Inventory
     {
         Label InventoryGet();
         void InventoryReturn(Label label);
+        void InventoryDrop(Label label);
     }
 }

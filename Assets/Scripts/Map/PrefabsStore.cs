@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Stuff;
 using UnityEngine;
 
@@ -20,4 +21,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable PointLight;
     public GameObject DebugVisibility;
     public Occluder Occluder;
+    public Inventory Inventory;
 }

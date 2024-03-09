@@ -930,14 +930,14 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		return null;
 	}
 
-	public void Cleanup()
+	public virtual void Cleanup()
 	{
 		RemoveAllLegsArms();
 		body.Cleanup();
 		map = null;
 	}
 
-    void IHasAfterMapPlaced.AfterMapPlaced(Map map)
+    public virtual void AfterMapPlaced(Map map)
     {
         this.map = map;
     }

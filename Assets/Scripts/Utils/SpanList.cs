@@ -29,9 +29,18 @@ namespace Assets.Scripts.Utils
         public Span<T> AsSpan() => data.AsSpan(0, count);
         public Span<T> AsSpan(int start, int length) => data.AsSpan(start, length);
 
+        public ref T this[int index] => ref data[index];
+
+        public void RemoveAt(int index)
+        {
+            count--;
+            data[index] = data[count];
+            data[count] = default;
+        }
+
         public void Clear()
         {
-            //AsSpan().Clear(); // ?
+            AsSpan().Clear();
             count = 0;
         }
     }

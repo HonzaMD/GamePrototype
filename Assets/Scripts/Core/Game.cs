@@ -28,6 +28,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public PlaceableSettings DefaultPlaceableSettings;
     public LevelLabel OccludersRoot;
     public MapWorlds MapWorlds;
+    public Transform InventoryRoot;
     public bool IsPaused { get; private set; }
     public GameState State { get; private set; }
 

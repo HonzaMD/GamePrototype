@@ -232,7 +232,7 @@ namespace Assets.Scripts.Map.Visibility
 
         internal void InitOccluder(Vector2 posToWorld)
         {
-            var occ = Game.Instance.PrefabsStore.Occluder.Create(Game.Instance.OccludersRoot.transform, posToWorld);
+            var occ = Game.Instance.PrefabsStore.Occluder.Create(Game.Instance.OccludersRoot.transform, posToWorld, null);
             occ.Init(this);
             Occluder = occ;
         }

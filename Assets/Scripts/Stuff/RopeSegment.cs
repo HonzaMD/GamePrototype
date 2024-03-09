@@ -63,11 +63,11 @@ public class RopeSegment : Placeable
 
         for (int i = 0; i < segCount; i++)
         {
-            Placeable seg = Game.Instance.PrefabsStore.RopeSegment.Create(parent);
+            Placeable seg = Game.Instance.PrefabsStore.RopeSegment.CreateWithotInit(parent);
             seg.transform.position = start + i * segOffset;
             seg.transform.rotation = rotation;
 
-            seg.PlaceToMap(map);
+            seg.Init(map);
 
             var joint = seg.GetComponent<HingeJoint>();
             if (prevNode)

@@ -51,13 +51,21 @@ namespace Assets.Scripts.Utils
             return obj;
         }
 
-        public static T Create<T>(this T prototype, Transform parent, Vector3 localPosition)
+        public static T Create<T>(this T prototype, Transform parent, Vector3 localPosition, Map.Map map)
+            where T : Label
+        {
+            var obj = Game.Instance.Pool.Get(prototype, parent, localPosition);
+            obj.Init(map); 
+            return obj;
+        }
+
+        public static T CreateWithotInit<T>(this T prototype, Transform parent)
+            where T : Label 
+            => Game.Instance.Pool.Get(prototype, parent);
+
+        public static T CreateWithotInit<T>(this T prototype, Transform parent, Vector3 localPosition)
             where T : Label
             => Game.Instance.Pool.Get(prototype, parent, localPosition);
-
-        public static T Create<T>(this T prototype, Transform parent)
-            where T : Label
-            => Game.Instance.Pool.Get(prototype, parent);
 
         public static T CreateCL<T>(this T prototype, Transform parent, Vector3 localPosition)
             where T : ConnectableLabel

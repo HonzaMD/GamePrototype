@@ -18,6 +18,7 @@ namespace Assets.Scripts.Bases
         public override Ksid KsidGet => Ksid;
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override bool IsAlive => isAlive;
+        public override float GetMass() => Settings?.Mass ?? 0f;
 
         public override void Cleanup()
         {
@@ -25,6 +26,6 @@ namespace Assets.Scripts.Bases
             base.Cleanup();
         }
 
-        public void Init() => isAlive = true;
+        public override void Init(Map.Map map) => isAlive = true;
     }
 }

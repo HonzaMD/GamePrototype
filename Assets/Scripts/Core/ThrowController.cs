@@ -81,7 +81,7 @@ namespace Assets.Scripts.Core
                         if (body != null)
                         {
                             ActivateByThrow(body);
-                            character.ThrowObj(body.Rigidbody);
+                            character.ThrowObj(body);
                         }
                     }
                 }

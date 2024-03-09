@@ -22,10 +22,7 @@ namespace Assets.Scripts.Stuff
 
         public int ActiveTag { get => activityTag.Tag; set => activityTag.Tag = value; }
 
-        public void Init()
-        {
-            this.Plan(0.1f);
-        }
+        public override void Init(Map.Map map) => this.Plan(0.1f);
 
         public void OnTimer()
         {

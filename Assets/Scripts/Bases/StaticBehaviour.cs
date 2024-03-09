@@ -15,8 +15,7 @@ namespace Assets.Scripts.Bases
 
         public static void Explode(this Label label)
         {
-            var explosion = Game.Instance.PrefabsStore.Explosion.Create(label.LevelGroup, label.transform.position);
-            explosion.Init();
+            Game.Instance.PrefabsStore.Explosion.Create(label.LevelGroup, label.transform.position, null);
             label.Kill();
         }
 

@@ -36,12 +36,12 @@ public class PlankSegment : Placeable
 
         for (int i = 0; i < segCount; i++)
         {
-            Placeable seg = prototype.Create(parent);
+            Placeable seg = prototype.CreateWithotInit(parent);
             seg.transform.position = start + i * segOffset;
             seg.transform.rotation = rotation;
 
             segments.Add(seg);
-            seg.PlaceToMap(map);
+            seg.Init(map);
         }
 
         Physics.SyncTransforms();

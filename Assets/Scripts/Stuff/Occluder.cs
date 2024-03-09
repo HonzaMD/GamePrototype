@@ -24,10 +24,10 @@ namespace Assets.Scripts.Stuff
 
         private DarkCaster dc;
 
+        public override void Init(Map.Map map) => isAlive = true;
+
         internal void Init(DarkCaster dc)
         {
-            isAlive = true;
-
             this.dc = dc;
             
             //var line = GetComponentInChildren<LineRenderer>();

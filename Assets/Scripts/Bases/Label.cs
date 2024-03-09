@@ -1,11 +1,13 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 public abstract class Label : MonoBehaviour
@@ -15,6 +17,8 @@ public abstract class Label : MonoBehaviour
     public virtual bool CanBeKilled => true;
     public virtual bool IsGroup => false;
     public abstract Label Prototype { get; }
+    public abstract void Init(Map map);
+    public virtual float GetMass() => 0;
 
     public virtual Rigidbody Rigidbody
     {
@@ -319,4 +323,45 @@ public abstract class Label : MonoBehaviour
         }
         connectables.Clear();
     }
+
+    public bool CanBeInInventory()
+    {
+        var kl = KillableLabel();
+        if (kl.IsGroup)
+        {
+            var labels = ListPool<Label>.Rent();
+            kl.GetComponentsInChildren(labels);
+            bool ret = true;
+            foreach (var l in labels)
+            {
+                if (!l.CanBeInInventoryInner())
+                {
+                    ret = false;
+                    break;
+                }
+            }
+            labels.Return();
+            return ret;
+        }
+        else
+        {
+            return kl.CanBeInInventoryInner();
+        }
+    }
+
+    public virtual bool CanBeInInventoryInner()
+    {
+        var connectables = ListPool<IConnectable>.Rent();
+        ParentForConnections.GetComponentsInLevel1Children(connectables);
+        foreach (var c in connectables)
+        {
+            if (c.Type != ConnectableType.Off)
+                return false;
+        }
+        return true;
+    }
+
+    public virtual void InventoryPush(Inventory inventory) => throw new NotSupportedException();
+    public virtual void InventoryPop(Transform parent, Vector3 pos, Map map) => throw new NotSupportedException();
+    public virtual bool IsInInventory => false;
 }
