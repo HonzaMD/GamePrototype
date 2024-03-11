@@ -24,7 +24,6 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     private bool dropHold;
     private float holdRotationAngle = 0;
 
-    private int inventoryHoldAttempts;
     private Inventory inventory;
 
     private InputController inputController;
@@ -81,7 +80,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
                 InventoryAccess(slot);
         }
 
-        if (Input.GetKeyDown(KeyCode.V))
+        if (Input.GetKeyDown(KeyCode.E))
         {
             if (ArmHolds)
             {
@@ -99,7 +98,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
                 dropHold = false;
             }
         }
-        if (Input.GetKeyUp(KeyCode.V))
+        if (Input.GetKeyUp(KeyCode.E))
         {
             holdRotationAngle = 0;
             if (!throwCtrl.ThrowActive)
@@ -136,21 +135,14 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
         AdjustLegsArms();
 
-        throwCtrl.SetThrowActive((Input.GetKeyDown(KeyCode.B) ^ throwCtrl.ThrowActive) && ArmHolds, Input.GetKeyDown(KeyCode.B), this);
-        bool holdButton = Input.GetKey(KeyCode.V) && !throwCtrl.ThrowActive;
+        throwCtrl.SetThrowActive((Input.GetKeyDown(KeyCode.R) ^ throwCtrl.ThrowActive) && ArmHolds, Input.GetKeyDown(KeyCode.R), this);
+        bool holdButton = Input.GetKey(KeyCode.E) && !throwCtrl.ThrowActive;
 
 
-        if (!holdButton && desiredHold && !ArmHolds && inventoryHoldAttempts == 0)
+        if (!holdButton && desiredHold && !ArmHolds && inventoryAccessor == null)
         {
             holdTarget = Vector2.zero;
             desiredHold = false;
-        }
-
-        if (inventoryHoldAttempts > 0)
-        {
-            inventoryHoldAttempts--;
-            if (ArmHolds)
-                inventoryHoldAttempts = 0;
         }
 
         desiredCrouch = holdButton && !ArmHolds;
@@ -206,6 +198,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
     private void InventoryAccess(int quickSlot)
     {
+        desiredHold = false;
         if (ArmHolds)
             RecatchHold();
         Vector3 pos = holdTarget != Vector2.zero
@@ -216,7 +209,6 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         {
             desiredHold = true;
             inventoryAccessor = this;
-            inventoryHoldAttempts = 3;
         }
     }
 
@@ -243,17 +235,13 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
     void IInventoryAccessor.InventoryReturn(Label label)
     {
-        if (inventoryHoldAttempts == 0)
-        {
-            inventoryAccessor = null;
-            inventory.DeactivateObj(label);
-        }
+        inventoryAccessor = null;
+        inventory.DeactivateObj(label);
     }
 
     void IInventoryAccessor.InventoryDrop(Label label)
     {
         inventoryAccessor = null;
-        inventoryHoldAttempts = 0;
         inventory.DropObjActive();
     }
 

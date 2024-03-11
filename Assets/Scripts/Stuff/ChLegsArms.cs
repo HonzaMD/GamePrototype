@@ -236,7 +236,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private Transform RemoveLegArmInner(int index)
     {
-        if (legArmStatus[index] == Hold && inventoryAccessor != null)
+        if (legArmStatus[index] == Hold && inventoryAccessor != null && !desiredHold)
             inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
         legArmStatus[index] = Timeout;
         legsConnectedLabels[index] = null;
@@ -480,14 +480,21 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 		foreach (var p in placeables)
 		{
-			if (TryHoldOne(p, index, center3d))
+			if (TryHoldOne(p, index, center3d) == HoldOneResult.Ok)
 				break;
 		}
 
 		placeables.Clear();
 	}
 
-	private bool TryHoldOne(Label p, int index, Vector3 center3d)
+	private enum HoldOneResult
+	{
+		Ok,
+		Failed,
+		FailedToHit,
+	}
+
+	private HoldOneResult TryHoldOne(Label p, int index, Vector3 center3d)
 	{
 		if (p.HasActiveRB || p.KsidGet.IsChildOf(Ksid.SandLike))
 		{
@@ -496,21 +503,25 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			var radius = p == delayedEnableCollisionLabel
 				? ArmSphere.radius * 1.5f
                 : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
-			if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
+			if ((center3d - pos).magnitude <= radius)
 			{
-				if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
+				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
 				{
-					if (!p.HasActiveRB)
-						((Placeable)p).AttachRigidBody(true, false);
-					PlaceLeg3d(index, ref hitInfo, Hold);
-					IgnoreCollision(legsConnectedLabels[index], true);
-					SetHoldTarget(index);
-					TryCorrectZPos(legsConnectedLabels[index]);
-					return true;
+					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
+					{
+						if (!p.HasActiveRB)
+							((Placeable)p).AttachRigidBody(true, false);
+						PlaceLeg3d(index, ref hitInfo, Hold);
+						IgnoreCollision(legsConnectedLabels[index], true);
+						SetHoldTarget(index);
+						TryCorrectZPos(legsConnectedLabels[index]);
+						return HoldOneResult.Ok;
+					}
 				}
+				return HoldOneResult.FailedToHit;
 			}
 		}
-		return false;
+		return HoldOneResult.Failed;
 	}
 
 	private void TryCorrectZPos(Label label)
@@ -528,7 +539,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	{
 		var item = inventoryAccessor.InventoryGet();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
-		if (!TryHoldOne(item, index, center3d))
+		if (TryHoldOne(item, index, center3d) == HoldOneResult.Failed)
 			inventoryAccessor.InventoryReturn(item);
 	}
 
