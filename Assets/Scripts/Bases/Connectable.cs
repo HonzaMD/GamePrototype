@@ -42,8 +42,8 @@ namespace Assets.Scripts.Bases
         {
             if (Type != ConnectableType.Off)
             {
-                var storage = disconnect();
                 Type = ConnectableType.Off;
+                var storage = disconnect();
                 gameObject.SetActive(false);
                 transform.parent = storage;
                 transform.localPosition = Vector3.zero;

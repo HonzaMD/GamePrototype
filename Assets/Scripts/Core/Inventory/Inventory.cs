@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace Assets.Scripts.Core.Inventory
@@ -85,6 +86,41 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
+        public void Store(Label obj)
+        {
+            if (obj.KsidGet.IsChildOf(Ksid.InventoryAsObj))
+            {
+                obj.InventoryPush(this);
+                StoreObj(obj);
+            }
+            else
+            {
+                var prototype = obj.Prototype;
+                obj.Kill();
+                StoreProto(prototype);
+            }
+        }
+
+        internal void StoreAsActive(Label obj)
+        {
+            if (activeObj != null)
+                throw new InvalidOperationException("Nemuzu aktivovat, kdyz je neco jineho aktivni");
+            if (obj.KsidGet.IsChildOf(Ksid.InventoryAsObj))
+            {
+                activeSlot = StoreObj(obj);
+            }
+            else
+            {
+                var prototype = obj.Prototype;
+                activeSlot = StoreProto2(prototype);
+            }
+
+            activeObj = obj;
+            ref var slot = ref GetSlot(activeSlot);
+            mass -= slot.Mass;
+            slot.IsActivated = true;
+        }
+
         public void StoreProto(Label prototype, int count = 1)
         {
             if (IsDesired(prototype)) 
@@ -117,11 +153,13 @@ namespace Assets.Scripts.Core.Inventory
             TryFreeSlot(ref sO);
         }
 
-        public void StoreObj(Label obj)
+        private int StoreObj(Label obj)
         {
             float m = obj.GetMass();
             mass += m;
-            slots.Add(new Slot() { Count = 1, Mass = m, Obj = obj, Index = slots.Count });
+            int index = slots.Count;
+            slots.Add(new Slot() { Count = 1, Mass = m, Obj = obj, Index = index });
+            return index;
         }
 
         public Label ActivateObj(int slotNum, Transform parent, Vector3 pos, Map.Map map)

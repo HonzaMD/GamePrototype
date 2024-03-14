@@ -17,8 +17,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	private const float Timeout = 1;
 	private const float Catch = 2;
 	private const float Hold = 3;
+    private const float PickUp = 4;
 
-	public ChSettings Settings;
+    public ChSettings Settings;
 
 	public Transform[] Legs;
 	private float[] legArmStatus = new float[4];
@@ -44,7 +45,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	protected float desiredZMove;
 	protected bool desiredCatch;
 	protected bool desiredHold;
-	protected bool desiredCrouch;
+    protected bool desiredPickUp;
+    protected bool desiredCrouch;
 	protected Vector2 holdTarget;
 	protected IInventoryAccessor inventoryAccessor;
 
@@ -53,7 +55,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	private static List<Placeable> placeables = new List<Placeable>();
 
 	private Label delayedEnableCollisionLabel;
-	private readonly Action<object, int> DelayedEnableCollisionsA;
+    private Vector3 mClose;
+    private readonly Action<object, int> DelayedEnableCollisionsA;
 
 	public ChLegsArms()
 	{
@@ -99,9 +102,10 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			TryPlaceArm(index);
 		}
 
-		if (desiredHold && !ArmHolds && SelectFreeArm(out index))
+		bool tryHold = desiredHold && !ArmHolds;
+        if ((tryHold || desiredPickUp) && SelectFreeArm(out index))
 		{
-			TryHold(index);
+			TryHold(index, tryHold);
 		}
 
 		RemoveCatchIfHold();
@@ -111,7 +115,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	{
 		for (int f = 0; f < legArmStatus.Length; f++)
 		{
-			if (legArmStatus[f] == Hold)
+			if (legArmStatus[f] == Hold || legArmStatus[f] == PickUp)
 			{
 				for (int g = 0; g < legArmStatus.Length; g++)
 				{
@@ -208,7 +212,27 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 				}
 			}
 		}
-	}
+        else if (legArmStatus[index] == PickUp)
+		{
+            var lpos = Legs[index].position.XY();
+            var center = ArmSphere.transform.position.XY();
+            var radius = ArmSphere.radius * 1.5f;
+			var dist = (lpos - center).sqrMagnitude;
+            if (dist > radius * radius)
+            {
+				legArmStatus[index] = Timeout;
+                EnableCollision(legsConnectedLabels[index]);
+                RemoveLegArm(index);
+            }
+			var dest = ArmSphere.transform.position.XY() + ComputeHoldTarget(index);
+            dist = (lpos - dest).sqrMagnitude;
+            if (dist < 0.3f * 0.3f)
+            {
+                EnableCollision(legsConnectedLabels[index]);
+                RemoveLegArm(index);
+            }
+        }
+    }
 
 	protected void RecatchHold()
 	{
@@ -238,10 +262,15 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     {
         if (legArmStatus[index] == Hold && inventoryAccessor != null && !desiredHold)
             inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
+		if (legArmStatus[index] == PickUp)
+			InventoryPickup(legsConnectedLabels[index]);
         legArmStatus[index] = Timeout;
         legsConnectedLabels[index] = null;
 		return transform;
     }
+
+	protected virtual void InventoryPickup(Label label) { }
+    protected virtual void InventoryPickupAndActivate(Label label) { }
 
     private void RemoveAllLegs()
 	{
@@ -457,30 +486,30 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		armCandidates.Clear();
 	}
 
-	private void TryHold(int index)
+	private void TryHold(int index, bool tryHold)
 	{
-		if (inventoryAccessor != null)
+		if (tryHold && inventoryAccessor != null)
 		{
 			TryHoldInventory(index);
 		}
 		else
 		{
-			TryHoldNearItem(index);
+			TryHoldNearItem(index, tryHold);
 		}
 	}
 
-	private void TryHoldNearItem(int index)
+	private void TryHoldNearItem(int index, bool tryHold)
 	{
 		var center = ArmSphere.transform.position.XY();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
 		var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
-		map.Get(placeables, center - radius2, 2 * radius2, Settings.HoldType);
+		map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, Settings.HoldType);
 
 		EnsurePrevioslyHoldIsFirst();
 
 		foreach (var p in placeables)
 		{
-			if (TryHoldOne(p, index, center3d) == HoldOneResult.Ok)
+			if (TryHoldOne(p, index, center3d, tryPickUp: true, tryHold) == HoldOneResult.Ok)
 				break;
 		}
 
@@ -494,7 +523,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		FailedToHit,
 	}
 
-	private HoldOneResult TryHoldOne(Label p, int index, Vector3 center3d)
+	private HoldOneResult TryHoldOne(Label p, int index, Vector3 center3d, bool tryPickUp, bool tryHold)
 	{
 		if (p.HasActiveRB || p.KsidGet.IsChildOf(Ksid.SandLike))
 		{
@@ -502,7 +531,20 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			var zDiff = center3d.z - pos.z;
 			var radius = p == delayedEnableCollisionLabel
 				? ArmSphere.radius * 1.5f
-                : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius);
+                : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius * 1.4f * 1.4f);
+			
+			bool pickUpAllowed = false;
+			if (tryPickUp)
+			{
+				pickUpAllowed = IsPickupAllowed(p);
+				if (!tryHold && !pickUpAllowed)
+                    return HoldOneResult.Failed;
+                Vector3 mousePos = GetPickupMousePos(p.transform.position.z);
+                var mClose = p.GetClosestPoint(mousePos);
+				if ((mousePos - mClose).sqrMagnitude > 0.2f * 0.2f)
+					return HoldOneResult.Failed;
+            }
+			
 			if ((center3d - pos).magnitude <= radius)
 			{
 				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
@@ -511,9 +553,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 					{
 						if (!p.HasActiveRB)
 							((Placeable)p).AttachRigidBody(true, false);
-						PlaceLeg3d(index, ref hitInfo, Hold);
+						PlaceLeg3d(index, ref hitInfo, tryHold ? Hold : PickUp);
 						IgnoreCollision(legsConnectedLabels[index], true);
-						SetHoldTarget(index);
+						if (tryHold && pickUpAllowed)
+							InventoryPickupAndActivate(p);
+						if (tryHold)
+							SetHoldTarget(index);
 						TryCorrectZPos(legsConnectedLabels[index]);
 						return HoldOneResult.Ok;
 					}
@@ -524,7 +569,10 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		return HoldOneResult.Failed;
 	}
 
-	private void TryCorrectZPos(Label label)
+	protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
+	protected virtual bool IsPickupAllowed(Label p) => false;
+
+    private void TryCorrectZPos(Label label)
 	{
 		var p = label.PlaceableC;
 		int myCellZ = placeable.CellZ;
@@ -539,7 +587,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	{
 		var item = inventoryAccessor.InventoryGet();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
-		if (TryHoldOne(item, index, center3d) == HoldOneResult.Failed)
+		if (TryHoldOne(item, index, center3d, tryPickUp: false, tryHold: true) == HoldOneResult.Failed)
 			inventoryAccessor.InventoryReturn(item);
 	}
 
@@ -563,19 +611,22 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	private void SetHoldTarget(int index)
 	{
 		if (holdTarget == Vector2.zero)
-		{
-			if (ArmSphere.transform.position.x < Legs[index].position.x)
-			{
-				holdTarget += Settings.HoldPosition;
-			}
-			else
-			{
-				holdTarget += new Vector2(-Settings.HoldPosition.x, Settings.HoldPosition.y);
-			}
-		}
+			holdTarget = ComputeHoldTarget(index);
 	}
 
-	private void EnableCollision(Label other)
+    private Vector2 ComputeHoldTarget(int index)
+    {
+        if (ArmSphere.transform.position.x < Legs[index].position.x)
+        {
+            return Settings.HoldPosition;
+        }
+        else
+        {
+            return new Vector2(-Settings.HoldPosition.x, Settings.HoldPosition.y);
+        }
+    }
+
+    private void EnableCollision(Label other)
 	{
 		if (other == delayedEnableCollisionLabel)
 			return;
@@ -716,12 +767,16 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	private void ApplyHoldForce()
 	{
 		if (legArmStatus[2] == Hold)
-			ApplyHoldForce(2);
+			ApplyHoldForce(2, false);
 		if (legArmStatus[3] == Hold)
-			ApplyHoldForce(3);
-	}
+			ApplyHoldForce(3, false);
+        if (legArmStatus[2] == PickUp)
+            ApplyHoldForce(2, true);
+        if (legArmStatus[3] == PickUp)
+            ApplyHoldForce(3, true);
+    }
 
-	private void ApplyHoldForce(int index)
+    private void ApplyHoldForce(int index, bool isPickUp)
 	{
 		var label = legsConnectedLabels[index];
 		if (label != null) 
@@ -730,10 +785,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             if (lRB != null)
             {
                 var armPos = Legs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
-				var destPos = ArmSphere.transform.position.XY() + holdTarget;
-				destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
-				GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
-				destPos += decollision;
+				var destPos = ArmSphere.transform.position.XY();
+				var holdTarget = isPickUp ? ComputeHoldTarget(index) : this.holdTarget;
+				destPos += holdTarget;
+                GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
+                destPos += decollision;
+                destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
 
 				var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
 				var koef = body.mass * 0.6f / lRB.mass;

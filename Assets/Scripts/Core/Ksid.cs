@@ -34,6 +34,8 @@ namespace Assets.Scripts.Core
         ParticleEffect,
         SpNodeOrSandCombiner,
         Light,
+        InventoryItem,
+        InventoryAsObj,
     }
 
     public static class KsidX

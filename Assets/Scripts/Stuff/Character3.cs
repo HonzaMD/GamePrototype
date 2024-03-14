@@ -21,13 +21,13 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     private float lastJumpTime;
 
     private float zMoveTimeout;
-    private bool dropHold;
     private float holdRotationAngle = 0;
 
     private Inventory inventory;
 
     private InputController inputController;
     private Rigidbody bodyToThrow;
+    private bool desiredPickupAndHold;
 
     void Awake()
     {
@@ -73,48 +73,54 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         bool jumpButton = Input.GetButtonDown("Jump");
         desiredCatch = Input.GetMouseButton(1);
 
-        if (!throwCtrl.ThrowActive)
-        {
-            var slot = KeysToInventory.TestKeys();
-            if (slot != 0)
-                InventoryAccess(slot);
-        }
+        var slot = KeysToInventory.TestKeys();
+        if (slot != 0)
+            InventoryAccess(slot);
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (ArmHolds)
-            {
-                dropHold = true;
-            }
-            else
-            {
-                desiredHold = true;
-                dropHold = false;
-            }
-
             if (throwCtrl.ThrowActive)
-            {
                 throwCtrl.SetThrowActive(false, false, this);
-                dropHold = false;
-            }
+
+            desiredPickUp = true;
         }
-        if (Input.GetKeyUp(KeyCode.E))
+        if (Input.GetKeyUp(KeyCode.E) && !desiredPickupAndHold)
         {
-            holdRotationAngle = 0;
-            if (!throwCtrl.ThrowActive)
-            {
-                if (dropHold)
-                {
-                    holdTarget = Vector2.zero;
-                    dropHold = false;
-                    desiredHold = false;
-                }
-                else
-                {
-                    RecatchHold();
-                }
-            }
+            desiredPickUp = false;
+            //holdRotationAngle = 0;
+            //if (!throwCtrl.ThrowActive)
+            //{
+            //    if (dropHold)
+            //    {
+            //        holdTarget = Vector2.zero;
+            //        dropHold = false;
+            //        desiredHold = false;
+            //    }
+            //    else
+            //    {
+            //        RecatchHold();
+            //    }
+            //}
         }
+
+        bool mouseDown = Input.GetMouseButtonDown(0);
+        bool mouseUp = Input.GetMouseButtonUp(0);
+
+        if (mouseDown && desiredPickUp)
+        {
+            desiredHold = false;
+            if (ArmHolds)
+                RecatchHold();
+            desiredHold = true;
+            desiredPickupAndHold = true;
+        }
+        if (mouseUp && desiredPickupAndHold)
+        {
+            desiredPickupAndHold = false;
+            if (!Input.GetKey(KeyCode.E))
+                desiredPickUp = false;
+        }
+
 
         if (ArmCatched && desiredCatch)
         {
@@ -135,17 +141,21 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
         AdjustLegsArms();
 
-        throwCtrl.SetThrowActive((Input.GetKeyDown(KeyCode.R) ^ throwCtrl.ThrowActive) && ArmHolds, Input.GetKeyDown(KeyCode.R), this);
-        bool holdButton = Input.GetKey(KeyCode.E) && !throwCtrl.ThrowActive;
+        throwCtrl.SetThrowActive(((Input.GetKeyDown(KeyCode.R) || (mouseDown && throwCtrl.ThrowActive)) ^ throwCtrl.ThrowActive) && ArmHolds, mouseDown, this);
 
+        if (throwCtrl.ThrowActive)
+        {
+            desiredPickUp = false;
+            desiredPickupAndHold = false;
+        }
 
-        if (!holdButton && desiredHold && !ArmHolds && inventoryAccessor == null)
+        if (!desiredPickupAndHold && desiredHold && !ArmHolds && inventoryAccessor == null)
         {
             holdTarget = Vector2.zero;
             desiredHold = false;
         }
 
-        desiredCrouch = holdButton && !ArmHolds;
+        //desiredCrouch = holdButton && !ArmHolds;
 
         if (zMoveTimeout > 0)
             zMoveTimeout -= Time.deltaTime * 3f;
@@ -167,16 +177,16 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
             desiredVelocity.y = 0;
         }
 
-        if (holdButton && ArmHolds && Mathf.Abs(inY) > 0.2f)
-        {
-            if (holdRotationAngle == 0)
-            {
-                holdRotationAngle = holdTarget.x > 0 ? 340 : -340;
-            }
-            var rot = Quaternion.AngleAxis(inY * holdRotationAngle * Time.deltaTime, Vector3.forward);
-            holdTarget = rot * holdTarget;
-            dropHold = false;
-        }
+        //if (holdButton && ArmHolds && Mathf.Abs(inY) > 0.2f)
+        //{
+        //    if (holdRotationAngle == 0)
+        //    {
+        //        holdRotationAngle = holdTarget.x > 0 ? 340 : -340;
+        //    }
+        //    var rot = Quaternion.AngleAxis(inY * holdRotationAngle * Time.deltaTime, Vector3.forward);
+        //    holdTarget = rot * holdTarget;
+        //    dropHold = false;
+        //}
 
         if (throwCtrl.ThrowActive)
         {
@@ -236,7 +246,14 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     void IInventoryAccessor.InventoryReturn(Label label)
     {
         inventoryAccessor = null;
-        inventory.DeactivateObj(label);
+        if (label.CanBeInInventory())
+        {
+            inventory.DeactivateObj(label);
+        }
+        else
+        {
+            inventory.DropObjActive();
+        }
     }
 
     void IInventoryAccessor.InventoryDrop(Label label)
@@ -262,6 +279,24 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         desiredHold = false;
         if (inventoryAccessor != null)
             inventoryAccessor.InventoryDrop(obj);
+    }
+
+    protected override Vector3 GetPickupMousePos(float z) => inputController.GetMousePosOnZPlane(z);
+
+    protected override bool IsPickupAllowed(Label p) => p.KsidGet.IsChildOf(Ksid.InventoryItem);
+
+    protected override void InventoryPickup(Label label)
+    {
+        if (label.CanBeInInventory())
+            inventory.Store(label);
+    }
+
+    protected override void InventoryPickupAndActivate(Label label)
+    {
+        Debug.Assert(inventoryAccessor == null, "Cekam ze nebudu mit inventoryAccessor");
+        desiredHold = true;
+        inventoryAccessor = this;
+        inventory.StoreAsActive(label);
     }
 
     internal void ActivateInput(InputController inputController)
