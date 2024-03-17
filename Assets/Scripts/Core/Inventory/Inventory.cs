@@ -43,6 +43,7 @@ namespace Assets.Scripts.Core.Inventory
 
         public float Mass => mass;
         public Label ActiveObj => activeObj;
+        public int LastSlot { get; private set; }
 
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override Label Prototype => Game.Instance.PrefabsStore.Inventory;
@@ -116,6 +117,7 @@ namespace Assets.Scripts.Core.Inventory
             }
 
             activeObj = obj;
+            LastSlot = activeSlot;
             ref var slot = ref GetSlot(activeSlot);
             mass -= slot.Mass;
             slot.IsActivated = true;
@@ -185,6 +187,7 @@ namespace Assets.Scripts.Core.Inventory
 
             mass -= slot.Mass;
             activeSlot = slotNum;
+            LastSlot = slotNum;
             slot.IsActivated = true;
             return activeObj;
         }

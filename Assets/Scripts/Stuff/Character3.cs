@@ -21,13 +21,27 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     private float lastJumpTime;
 
     private float zMoveTimeout;
-    private float holdRotationAngle = 0;
+    private float controlTimeout;
+    private float resetHoldTimeout;
 
     private Inventory inventory;
 
     private InputController inputController;
     private Rigidbody bodyToThrow;
-    private bool desiredPickupAndHold;
+    private ControlState cState;
+    private bool firstPress;
+
+    private enum ControlState
+    { 
+        EmptyHands,
+        PickupPrepare,
+        Pickup,
+        TryHold,
+        ItemAdjust,
+        Throw,
+        ThrowReload,
+        ItemUse,
+    }
 
     void Awake()
     {
@@ -64,11 +78,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     {
         var throwCtrl = inputController.ThrowController;
 
-        var delta = transform.position - oldPos;
-        delta.z = 0;
-        oldPos = transform.position;
-        Camera.SetTransform(delta);
-        inputController.GameUpdate();
+        UpdatePosition();
 
         bool jumpButton = Input.GetButtonDown("Jump");
         desiredCatch = Input.GetMouseButton(1);
@@ -77,16 +87,50 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         if (slot != 0)
             InventoryAccess(slot);
 
+        controlTimeout += Time.deltaTime;
+        if (cState == ControlState.Pickup && controlTimeout > 2f)
+            ResetControl();
+        if (cState == ControlState.ThrowReload && controlTimeout > 0.2f)
+        {
+            if (inventoryAccessor == null)
+            {
+                InventoryAccess(inventory.LastSlot);
+                if (inventoryAccessor == null)
+                {
+                    ResetControl();
+                }
+                else
+                {
+                    throwCtrl.SetThrowActive(true, false, this);
+                }
+            }
+        }
+
+        if (resetHoldTimeout > 0)
+            resetHoldTimeout += Time.deltaTime;
+        if (resetHoldTimeout > 0.6f && !(cState is ControlState.ItemAdjust or ControlState.TryHold))
+        {
+            RecatchHold();
+            resetHoldTimeout = 0;
+        }
+
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (throwCtrl.ThrowActive)
-                throwCtrl.SetThrowActive(false, false, this);
-
-            desiredPickUp = true;
+            if (ResetControl() != ControlState.Pickup)
+                firstPress = true;
+            cState = ControlState.PickupPrepare;
         }
-        if (Input.GetKeyUp(KeyCode.E) && !desiredPickupAndHold)
+        if (Input.GetKeyUp(KeyCode.E) && cState == ControlState.PickupPrepare)
         {
-            desiredPickUp = false;
+            if (firstPress)
+            {
+                desiredPickUp = true;
+                cState = ControlState.Pickup;
+            }
+            else
+            {
+                ResetControl();
+            }
             //holdRotationAngle = 0;
             //if (!throwCtrl.ThrowActive)
             //{
@@ -106,21 +150,16 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         bool mouseDown = Input.GetMouseButtonDown(0);
         bool mouseUp = Input.GetMouseButtonUp(0);
 
-        if (mouseDown && desiredPickUp)
+        if (mouseDown && (cState is ControlState.PickupPrepare or ControlState.EmptyHands || (cState is ControlState.ItemUse && Input.GetKey(KeyCode.E))))
         {
-            desiredHold = false;
-            if (ArmHolds)
-                RecatchHold();
+            desiredPickUp = false;
+            pickupToHold = true;
             desiredHold = true;
-            desiredPickupAndHold = true;
-        }
-        if (mouseUp && desiredPickupAndHold)
-        {
-            desiredPickupAndHold = false;
-            if (!Input.GetKey(KeyCode.E))
-                desiredPickUp = false;
+            cState = ControlState.TryHold;
         }
 
+        if (mouseDown && cState == ControlState.Pickup)
+            ResetControl();
 
         if (ArmCatched && desiredCatch)
         {
@@ -141,17 +180,63 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
         AdjustLegsArms();
 
-        throwCtrl.SetThrowActive(((Input.GetKeyDown(KeyCode.R) || (mouseDown && throwCtrl.ThrowActive)) ^ throwCtrl.ThrowActive) && ArmHolds, mouseDown, this);
-
-        if (throwCtrl.ThrowActive)
+        bool armHolds = ArmHolds;
+        
+        if (armHolds)
         {
-            desiredPickUp = false;
-            desiredPickupAndHold = false;
+            if (cState == ControlState.EmptyHands)
+                cState = ControlState.ItemUse;
+            if (cState == ControlState.ThrowReload)
+                cState = ControlState.Throw;
+        }
+        else
+        {
+            if (cState == ControlState.Throw)
+                ResetControl();
+            if (cState == ControlState.ItemUse)
+                cState = ControlState.EmptyHands;
         }
 
-        if (!desiredPickupAndHold && desiredHold && !ArmHolds && inventoryAccessor == null)
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            holdTarget = Vector2.zero;
+            firstPress = false;
+            if (cState != ControlState.Throw && armHolds)
+            {
+                ResetControl();
+                firstPress = true;
+                cState = ControlState.Throw;
+                throwCtrl.SetThrowActive(true, false, this);
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.R) && !firstPress)
+        {
+            ResetControl();
+        }
+
+        if (mouseDown && throwCtrl.ThrowActive && cState == ControlState.Throw)
+        {
+            throwCtrl.SetThrowActive(false, true, this);
+            if (cState != ControlState.ThrowReload)
+                ResetControl();
+        }
+
+
+        if (mouseUp && cState is ControlState.TryHold or ControlState.ItemAdjust)
+        {
+            if (pickupToHold)
+            {
+                desiredHold = false;
+            }
+            else
+            {
+                resetHoldTimeout = 0.2f;
+            }
+            ResetControl();
+        }
+
+        if (cState != ControlState.TryHold && desiredHold && !armHolds && inventoryAccessor == null)
+        {
             desiredHold = false;
         }
 
@@ -177,16 +262,25 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
             desiredVelocity.y = 0;
         }
 
-        //if (holdButton && ArmHolds && Mathf.Abs(inY) > 0.2f)
-        //{
-        //    if (holdRotationAngle == 0)
-        //    {
-        //        holdRotationAngle = holdTarget.x > 0 ? 340 : -340;
-        //    }
-        //    var rot = Quaternion.AngleAxis(inY * holdRotationAngle * Time.deltaTime, Vector3.forward);
-        //    holdTarget = rot * holdTarget;
-        //    dropHold = false;
-        //}
+        if (armHolds && cState is ControlState.TryHold or ControlState.ItemAdjust && holdTarget != Vector2.zero)
+        {
+            Vector2 shift;
+            // udelam kolmy
+            shift.y = -Input.GetAxis("Mouse X");
+            shift.x = Input.GetAxis("Mouse Y");
+
+            float amount = Vector2.Dot(holdTarget, shift);
+
+            if (Mathf.Abs(amount) > 0.05f)
+            {
+                if (cState == ControlState.TryHold)
+                    ResetControl();
+                cState = ControlState.ItemAdjust;
+
+                var rot = Quaternion.AngleAxis(amount * 70, Vector3.forward);
+                holdTarget = rot * holdTarget;
+            }
+        }
 
         if (throwCtrl.ThrowActive)
         {
@@ -200,6 +294,28 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         }
     }
 
+    private ControlState ResetControl()
+    {
+        var throwCtrl = inputController.ThrowController;
+        if (throwCtrl.ThrowActive)
+            throwCtrl.SetThrowActive(false, false, this);
+        controlTimeout = 0;
+        desiredPickUp = false;
+        pickupToHold = false;
+        firstPress = false;
+        var oldState = cState;
+        cState = ArmHolds ? ControlState.ItemUse : ControlState.EmptyHands;
+        return oldState;
+    }
+
+    private void UpdatePosition()
+    {
+        var delta = transform.position - oldPos;
+        delta.z = 0;
+        oldPos = transform.position;
+        Camera.SetTransform(delta);
+        inputController.GameUpdate();
+    }
 
     private void UncontrolledUpdate()
     {
@@ -258,8 +374,8 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
     void IInventoryAccessor.InventoryDrop(Label label)
     {
-        inventoryAccessor = null;
         inventory.DropObjActive();
+        inventoryAccessor = null;
     }
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
@@ -275,10 +391,16 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     internal void ThrowObj(Label obj)
     {
         this.bodyToThrow = obj.Rigidbody;
-        holdTarget = Vector2.zero;
         desiredHold = false;
         if (inventoryAccessor != null)
+        {
             inventoryAccessor.InventoryDrop(obj);
+            if (cState == ControlState.Throw && Input.GetKey(KeyCode.R))
+            {
+                cState = ControlState.ThrowReload;
+                controlTimeout = 0;
+            }                    
+        }
     }
 
     protected override Vector3 GetPickupMousePos(float z) => inputController.GetMousePosOnZPlane(z);
@@ -287,6 +409,8 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
 
     protected override void InventoryPickup(Label label)
     {
+        if (cState == ControlState.Pickup)
+            controlTimeout = 0;
         if (label.CanBeInInventory())
             inventory.Store(label);
     }
@@ -297,6 +421,31 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         desiredHold = true;
         inventoryAccessor = this;
         inventory.StoreAsActive(label);
+    }
+
+    private const float mouseXDeadZone = 0.6f;
+    protected override void AdjustXOrientation()
+    {
+        var mouseX = inputController.GetMousePosOnZPlane(transform.position.z).x;
+        if (lastXOrientation < 0 && mouseX > transform.position.x + mouseXDeadZone)
+        {
+            lastXOrientation = 1;
+            FlipHoldTarget();
+        }
+        else if (lastXOrientation > 0 && mouseX < transform.position.x - mouseXDeadZone)
+        {
+            lastXOrientation = -1;
+            FlipHoldTarget();
+        }
+    }
+
+    private void FlipHoldTarget()
+    {
+        if (holdTarget != Vector2.zero && cState != ControlState.ItemAdjust)
+        {
+            holdTarget.x *= -1;
+            resetHoldTimeout = 0.01f;
+        }
     }
 
     internal void ActivateInput(InputController inputController)

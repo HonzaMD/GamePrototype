@@ -25,5 +25,5 @@ MonoBehaviour:
   monsterMoveOnGround: 1
   HoldPosition: {x: 0.47, y: 0}
   HoldType: 7
-  HoldMoveSpeed: 4
+  HoldMoveSpeed: 3
   HoldMoveAcceleration: 1.5
