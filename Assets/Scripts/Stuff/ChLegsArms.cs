@@ -49,7 +49,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	protected bool pickupToHold;
     protected bool desiredCrouch;
 	protected Vector2 holdTarget;
-	protected IInventoryAccessor inventoryAccessor;
 
 
 	private static List<Vector2> armCandidates = new List<Vector2>();
@@ -268,8 +267,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private Transform RemoveLegArmInner(int index)
     {
-        if (legArmStatus[index] == Hold && inventoryAccessor != null && !desiredHold)
-            inventoryAccessor.InventoryReturn(legsConnectedLabels[index]);
+        if (legArmStatus[index] == Hold && IsInventoryActive && !desiredHold)
+            InventoryReturn();
 		if (legArmStatus[index] == PickUp)
 			InventoryPickup(legsConnectedLabels[index]);
         legArmStatus[index] = Timeout;
@@ -496,7 +495,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private void TryHold(int index, bool tryHold)
 	{
-        if (tryHold && inventoryAccessor != null)
+        if (tryHold && IsInventoryActive)
         {
             TryHoldInventory(index);
         }
@@ -589,8 +588,10 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 							RecatchHold();
 							desiredHold = true;
 						}
+						if (tryHold && IsInventoryActive && InventoryGet() != p)
+							InventoryReturn();
 
-                        if (ConnectLabel(index, ref hitInfo, p))
+						if (ConnectLabel(index, ref hitInfo, p))
 						{
                             pickupToHold = false;
                             if (!p.HasActiveRB)
@@ -628,10 +629,10 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private void TryHoldInventory(int index)
 	{
-		var item = inventoryAccessor.InventoryGet();
+		var item = InventoryGet();
 		var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
 		if (TryHoldOne(item, index, center3d, tryPickUp: false, tryHold: true) == HoldOneResult.Failed)
-			inventoryAccessor.InventoryReturn(item);
+			InventoryReturn();
 	}
 
 	//private void EnsurePrevioslyHoldIsFirst()
@@ -1069,5 +1070,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     {
         this.map = map;
     }
+
+
+    public virtual Label InventoryGet() => null;
+    public virtual bool IsInventoryActive => false;
+	public virtual void InventoryReturn() => throw new NotSupportedException();
+    public virtual void InventoryDrop() => throw new NotSupportedException();
 }
 

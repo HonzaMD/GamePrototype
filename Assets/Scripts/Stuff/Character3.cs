@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelPlaceabe
+public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
 {
     [HideInInspector]
     public SimpleCameraController Camera { get; set; }
@@ -60,7 +60,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         inventory = Game.Instance.PrefabsStore.Inventory.Create(Game.Instance.InventoryRoot, Vector3.zero, null);
         inventory.StoreProto(Game.Instance.PrefabsStore.Gravel, 5);
         inventory.SetQuickSlot(-9, Game.Instance.PrefabsStore.Gravel);
-        inventory.StoreProto(Game.Instance.PrefabsStore.StickyBomb, 3);
+        inventory.StoreProto(Game.Instance.PrefabsStore.StickyBomb, 30);
         inventory.SetQuickSlot(-8, Game.Instance.PrefabsStore.StickyBomb);
         inventory.StoreProto(Game.Instance.PrefabsStore.PointLight, 3);
         inventory.SetQuickSlot(-7, Game.Instance.PrefabsStore.PointLight);
@@ -92,10 +92,10 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
             ResetControl();
         if (cState == ControlState.ThrowReload && controlTimeout > 0.2f)
         {
-            if (inventoryAccessor == null)
+            if (!IsInventoryActive)
             {
                 InventoryAccess(inventory.LastSlot);
-                if (inventoryAccessor == null)
+                if (!IsInventoryActive)
                 {
                     ResetControl();
                 }
@@ -235,7 +235,7 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
             ResetControl();
         }
 
-        if (cState != ControlState.TryHold && desiredHold && !armHolds && inventoryAccessor == null)
+        if (cState != ControlState.TryHold && desiredHold && !armHolds && !IsInventoryActive)
         {
             desiredHold = false;
         }
@@ -327,6 +327,8 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         desiredHold = false;
         if (ArmHolds)
             RecatchHold();
+        if (IsInventoryActive)
+            InventoryReturn();
         Vector3 pos = holdTarget != Vector2.zero
             ? ArmSphere.transform.position + holdTarget.AddZ(0)
             : ArmSphere.transform.position + new Vector3(Settings.HoldPosition.x * lastXOrientation, Settings.HoldPosition.y, 0);
@@ -334,7 +336,6 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         if (obj != null)
         {
             desiredHold = true;
-            inventoryAccessor = this;
         }
     }
 
@@ -357,25 +358,18 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
         }
     }
 
-    Label IInventoryAccessor.InventoryGet() => inventory.ActiveObj;
+    public override Label InventoryGet() => inventory.ActiveObj;
 
-    void IInventoryAccessor.InventoryReturn(Label label)
+    public override bool IsInventoryActive => inventory.ActiveObj != null;
+
+    public override void InventoryReturn()
     {
-        inventoryAccessor = null;
-        if (label.CanBeInInventory())
-        {
-            inventory.DeactivateObj(label);
-        }
-        else
-        {
-            inventory.DropObjActive();
-        }
+        inventory.ReturnActiveObj();
     }
 
-    void IInventoryAccessor.InventoryDrop(Label label)
+    public override void InventoryDrop()
     {
         inventory.DropObjActive();
-        inventoryAccessor = null;
     }
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
@@ -392,9 +386,9 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     {
         this.bodyToThrow = obj.Rigidbody;
         desiredHold = false;
-        if (inventoryAccessor != null)
+        if (IsInventoryActive)
         {
-            inventoryAccessor.InventoryDrop(obj);
+            InventoryDrop();
             if (cState == ControlState.Throw && Input.GetKey(KeyCode.R))
             {
                 cState = ControlState.ThrowReload;
@@ -411,15 +405,14 @@ public class Character3 : ChLegsArms, IActiveObject, IInventoryAccessor, ILevelP
     {
         if (cState == ControlState.Pickup)
             controlTimeout = 0;
-        if (label.CanBeInInventory())
+        if (label.CanBeInInventory(inventory))
             inventory.Store(label);
     }
 
     protected override void InventoryPickupAndActivate(Label label)
     {
-        Debug.Assert(inventoryAccessor == null, "Cekam ze nebudu mit inventoryAccessor");
+        Debug.Assert(!IsInventoryActive, "Cekam ze nebudu mit inventoryAccessor");
         desiredHold = true;
-        inventoryAccessor = this;
         inventory.StoreAsActive(label);
     }
 

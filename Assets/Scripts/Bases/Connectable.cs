@@ -14,6 +14,7 @@ namespace Assets.Scripts.Bases
         LegArm,
         MassTransfer,
         StickyBomb,
+        OwnedByInventory,
     }
 
     public interface IConnectable

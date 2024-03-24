@@ -40,6 +40,11 @@ public abstract class Label : MonoBehaviour
         ParentForConnections.GetComponentsInLevel1Children(connectables);
         foreach (var c in connectables)
         {
+            if (c.Type == ConnectableType.OwnedByInventory)
+                c.Disconnect();
+        }
+        foreach (var c in connectables)
+        {
             if (c.Type != ConnectableType.Off)
                 c.Disconnect();
         }
@@ -324,7 +329,7 @@ public abstract class Label : MonoBehaviour
         connectables.Clear();
     }
 
-    public bool CanBeInInventory()
+    public bool CanBeInInventory(Inventory inventory)
     {
         var kl = KillableLabel();
         if (kl.IsGroup)
@@ -334,7 +339,7 @@ public abstract class Label : MonoBehaviour
             bool ret = true;
             foreach (var l in labels)
             {
-                if (!l.CanBeInInventoryInner())
+                if (!l.CanBeInInventoryInner(inventory))
                 {
                     ret = false;
                     break;
@@ -345,18 +350,21 @@ public abstract class Label : MonoBehaviour
         }
         else
         {
-            return kl.CanBeInInventoryInner();
+            return kl.CanBeInInventoryInner(inventory);
         }
     }
 
-    public virtual bool CanBeInInventoryInner()
+    public virtual bool CanBeInInventoryInner(Inventory inventory)
     {
         var connectables = ListPool<IConnectable>.Rent();
         ParentForConnections.GetComponentsInLevel1Children(connectables);
         foreach (var c in connectables)
         {
             if (c.Type != ConnectableType.Off)
-                return false;
+            {
+                if (c.Type != ConnectableType.OwnedByInventory || inventory.ActiveObj != this)
+                    return false;
+            }
         }
         return true;
     }

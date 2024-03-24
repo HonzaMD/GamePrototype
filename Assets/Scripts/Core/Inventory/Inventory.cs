@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -43,12 +44,25 @@ namespace Assets.Scripts.Core.Inventory
 
         public float Mass => mass;
         public Label ActiveObj => activeObj;
+        public Connectable ActiveObjHandle;
         public int LastSlot { get; private set; }
 
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override Label Prototype => Game.Instance.PrefabsStore.Inventory;
         public override Ksid KsidGet => Ksid.Unknown;
         public override bool IsAlive => isAlive;
+
+        private void Awake()
+        {
+            ActiveObjHandle.Init(Disconnect);
+        }
+
+        private Transform Disconnect()
+        {
+            if (ActiveObj)
+                DropObjActive();
+            return transform;
+        }
 
         public Inventory()
         {
@@ -62,6 +76,7 @@ namespace Assets.Scripts.Core.Inventory
 
         public void Clear()
         {
+            DropObjActive();
             ClearSlots(quickAccess.AsSpan());
             quickAccess.AsSpan().Clear();
             ClearSlots(slots.AsSpan());
@@ -116,12 +131,29 @@ namespace Assets.Scripts.Core.Inventory
                 activeSlot = StoreProto2(prototype);
             }
 
+            ActivateObj(obj, activeSlot);
+        }
+
+        private void ActivateObj(Label obj, int slotNum)
+        {
+            activeSlot = slotNum;
             activeObj = obj;
-            LastSlot = activeSlot;
-            ref var slot = ref GetSlot(activeSlot);
+            LastSlot = slotNum;
+            ref var slot = ref GetSlot(slotNum);
             mass -= slot.Mass;
             slot.IsActivated = true;
+            ActiveObjHandle.ConnectTo(obj, ConnectableType.OwnedByInventory);
         }
+
+        private void DeactivateObj(ref Slot slot)
+        {
+            slot.IsActivated = false;
+            mass += slot.Mass;
+            activeSlot = 0;
+            activeObj = null;
+            ActiveObjHandle.Disconnect();
+        }
+
 
         public void StoreProto(Label prototype, int count = 1)
         {
@@ -175,40 +207,53 @@ namespace Assets.Scripts.Core.Inventory
                 BalanceSlot(ref slot, Math.Max(slot.DesiredCount, 1));
             if (slot.Count == 0)
                 return null;
+            Label newActiveObj;
             if (slot.Obj == null)
             {
-                activeObj = slot.Prototype.Create(parent, pos, map);
+                newActiveObj = slot.Prototype.Create(parent, pos, map);
             }
             else
             {
                 slot.Obj.InventoryPop(parent, pos, map);
-                activeObj = slot.Obj;
+                newActiveObj = slot.Obj;
             }
 
-            mass -= slot.Mass;
-            activeSlot = slotNum;
-            LastSlot = slotNum;
-            slot.IsActivated = true;
+            ActivateObj(newActiveObj, slotNum);
             return activeObj;
+        }
+
+        public void ReturnActiveObj()
+        {
+            if (activeObj != null)
+            {
+                if (activeObj.CanBeInInventory(this))
+                {
+                    DeactivateObj(activeObj);
+                }
+                else
+                {
+                    DropObjActive();
+                }
+            }
         }
 
         public void DeactivateObj(Label obj)
         {
             Debug.Assert(activeObj == obj, "Cekam ze inventoryObj == label");
             ref var slot = ref GetSlot(activeSlot);
+            bool killIt = false;
             if (slot.Obj == null)
             {
-                obj.Kill();
+                killIt = true;
             }
             else
             {
                 slot.Mass = obj.GetMass();
                 obj.InventoryPush(this);
             }
-            slot.IsActivated = false;
-            mass += slot.Mass;
-            activeSlot = 0;
-            activeObj = null;
+            DeactivateObj(ref slot);
+            if (killIt)
+                obj.Kill();
         }
 
         internal void DropObjActive()
@@ -226,10 +271,7 @@ namespace Assets.Scripts.Core.Inventory
                 return;
             if (slotNum == activeSlot && activeObj != null)
             {
-                slot.IsActivated = false;
-                mass += slot.Mass;
-                activeSlot = 0;
-                activeObj = null;
+                DeactivateObj(ref slot);
             } 
             else if (slot.Obj != null)
             {
