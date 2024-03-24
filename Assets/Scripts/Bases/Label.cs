@@ -178,6 +178,8 @@ public abstract class Label : MonoBehaviour
     {
         while (!collision.TryGetComponent(out lb) && collision.parent != null)
             collision = collision.parent;
+        if (lb && !lb.IsAlive)
+            lb = null;
         return lb != null;
     }
 

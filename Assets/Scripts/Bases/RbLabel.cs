@@ -92,7 +92,7 @@ namespace Assets.Scripts.Bases
 
         private void DetachMe()
         {
-            SubLabel.transform.SetParent(transform.parent, true);
+            SubLabel.transform.SetParent(LevelGroup, true);
             Kill();
         }
     }

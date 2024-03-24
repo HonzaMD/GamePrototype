@@ -163,7 +163,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
         foreach (var p in children)
         {
-            p.transform.SetParent(transform.parent, true);
+            p.transform.SetParent(LevelGroup, true);
             p.AttachRigidBody(true, false);
         }
         children.Return();
