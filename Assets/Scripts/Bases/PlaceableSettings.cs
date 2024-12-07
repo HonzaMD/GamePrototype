@@ -16,17 +16,28 @@ namespace Assets.Scripts.Bases
     [CreateAssetMenu]
     public class PlaceableSettings : ScriptableObject
     {
+        [Tooltip("IsGroup")]
         public bool HasSubPlaceables;
+        [Tooltip("Pri kolizich s piskem: Pokud true pouzije se BoundingBox. Pokud false, pouzije se sampling z kollideru (pamalejsi)")]
         public bool UseSimpleBBCollisions;
+        [Tooltip("Jak je vec tezka v kg? Pokud 0, vypocita se Mass z objemuu a hustoty")]
         public float Mass;
+        [Tooltip("Pouziti pro vypocet hmotnosti. Default: 1000 - hustota vody")]
         public float Density = 1000f; // hustota vody
+        [Tooltip("Jak se pro vypocet hmotnosti vypocita objem?")]
         public DensityMode DensityMode;
+        [Tooltip("Nastavte nenull, pokud se objekt ma poolovat")]
         public Label Prototype;
+        [Tooltip("Je soucast vetsiho celku? a tudiz nejde zabit, samostatne pohybovat a pod")]
         public bool Unseparable;
+        [Tooltip("Pro objekty ktere maji byt ovladany pomoci pripojovaneho RbLabel")]
         public bool AutoAtachRB;
 
+        [Tooltip("Limity pro staticke spoje mezi objekty: Tah")]
         public float SpStretchLimit = 1000f;
+        [Tooltip("Limity pro staticke spoje mezi objekty: Tlak")]
         public float SpCompressLimit = 1000f;
+        [Tooltip("Limity pro staticke spoje mezi objekty: Ohyb")]
         public float SpMomentLimit = 1000f;
     }
 }

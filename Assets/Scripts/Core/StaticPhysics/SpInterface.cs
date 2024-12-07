@@ -227,7 +227,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         internal void ApplyTempForce(int spNodeIndex, Vector2 force, VelocityFlags flags)
         {
-            Debug.Log($"{force} RV: {CollisionForceToSp.RV} Flags: {flags}");
+            //Debug.Log($"{force} RV: {CollisionForceToSp.RV} Flags: {flags}");
             AddForceCommand(new ForceCommand() { indexA = spNodeIndex, forceA = force });
         }
     }

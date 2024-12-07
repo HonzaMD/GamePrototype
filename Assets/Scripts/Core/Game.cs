@@ -25,7 +25,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public ObjectPool Pool;
     public ConnectablesPool ConnectablePool;
     public PrefabsStore PrefabsStore;
-    public PlaceableSettings DefaultPlaceableSettings;
     public LevelLabel OccludersRoot;
     public MapWorlds MapWorlds;
     public Transform InventoryRoot;

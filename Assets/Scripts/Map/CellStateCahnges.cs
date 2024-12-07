@@ -256,7 +256,7 @@ namespace Assets.Scripts.Map
         private void MarkPInBuffer(Placeable p, int zShift)
         {
             Content content = ClassifyContent(p);
-            if (p.Settings?.UseSimpleBBCollisions == true)
+            if (p.Settings.UseSimpleBBCollisions)
                 MarkByBB(p, zShift, content);
             else
                 MarkByCP(p, zShift, content);

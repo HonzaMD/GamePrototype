@@ -14,11 +14,11 @@ namespace Assets.Scripts.Bases
         public PlaceableSettings Settings;
         public Ksid Ksid;
 
-        public override Label Prototype => Settings?.Prototype;
+        public override Label Prototype => Settings.Prototype;
         public override Ksid KsidGet => Ksid;
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override bool IsAlive => isAlive;
-        public override float GetMass() => Settings?.Mass ?? 0f;
+        public override float GetMass() => Settings.Mass;
 
         public override void Cleanup()
         {

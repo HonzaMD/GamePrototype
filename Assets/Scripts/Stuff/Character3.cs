@@ -81,7 +81,7 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
         UpdatePosition();
 
         bool jumpButton = Input.GetButtonDown("Jump");
-        desiredCatch = Input.GetMouseButton(1);
+        desiredCatch = Input.GetMouseButton(1) || Input.GetKey(KeyCode.C);
 
         var slot = KeysToInventory.TestKeys();
         if (slot != 0)

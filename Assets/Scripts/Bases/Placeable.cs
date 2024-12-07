@@ -8,8 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Playables;
-using UnityEngine.SocialPlatforms;
 
 
 [Flags]
@@ -76,10 +74,10 @@ public class Placeable : Label, ILevelPlaceabe
     public virtual void RemoveTarget(Placeable p) { }
 
     public override Ksid KsidGet => Ksid;
-    public override bool IsGroup => Settings?.HasSubPlaceables == true;
-    public override Label Prototype => Settings?.Prototype;
+    public override bool IsGroup => Settings.HasSubPlaceables;
+    public override Label Prototype => Settings.Prototype;
     public override Placeable PlaceableC => this;
-    public override bool CanBeKilled => !(Settings?.Unseparable == true);
+    public override bool CanBeKilled => !Settings.Unseparable;
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
     protected virtual void AfterMapPlaced(Map map) { }
 
@@ -137,7 +135,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     private void AutoAttachRB()
     {
-        if (Settings?.AutoAtachRB == true && IsTopLabel)
+        if (Settings.AutoAtachRB && IsTopLabel)
             AttachRigidBody(true, false);
     }
 
@@ -263,8 +261,6 @@ public class Placeable : Label, ILevelPlaceabe
     public override float GetMass()
     {
         var settings = Settings;
-        if (!settings)
-            settings = Game.Instance.DefaultPlaceableSettings;
 
         if (settings.Mass > 0)
             return settings.Mass;

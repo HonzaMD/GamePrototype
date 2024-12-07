@@ -11,7 +11,7 @@ namespace Assets.Scripts.Map
     {
         public const int MaxSize = 65;
 
-        public ushort ArrSelector;
+        public ushort ArrSelector; // 0 znamena NULL
         public byte ArrPtr;
         public byte Size; // bacha prvni prvek je mimo arr, takze size je jakoby o 1 vetsi
 
