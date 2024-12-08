@@ -190,8 +190,8 @@ public class Placeable : Label, ILevelPlaceabe
             Transform transform = KillableLabel().transform;
             var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition, null);
             var rb = rbLabel.Rigidbody;
+            rb.mass = GetMass();
             transform.SetParent(rbLabel.transform, true);
-            rb.mass = rbLabel.PlaceableC.GetMass();
             rbLabel.Init(startMoving, !startMoving, incConnection);
         }
     }
@@ -260,7 +260,7 @@ public class Placeable : Label, ILevelPlaceabe
     public override float GetMass()
     {
         var rb = Rigidbody;
-        if (rb)
+        if (rb && rb.mass > 0)
             return rb.mass;
 
         var settings = Settings;
