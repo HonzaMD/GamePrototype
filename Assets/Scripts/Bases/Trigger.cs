@@ -22,10 +22,6 @@ namespace Assets.Scripts
         public event Action<Trigger> ObjectsRemovedEvent;
         public event Action<Trigger> TriggerOffEvent;
 
-        public Trigger()
-        {
-            CellBlocking = CellFlags.Trigger;
-        }
 
         public override Ksid TriggerTargets => Targets;
 

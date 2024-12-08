@@ -6,13 +6,12 @@ using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
-    public struct Cell : ICell
+    public struct CellSecondary : ICell
     {
         private Placeable first;
-        public CellFlags Blocking { get; private set; }
         private CellListInfo listInfo;
 
-        public static Cell Empty;
+        public static CellSecondary Empty;
 
         public void Add(Placeable p, Ksids ksids)
         {
@@ -21,7 +20,6 @@ namespace Assets.Scripts.Map
             {
                 first = p;
                 listInfo.Size = 1;
-                Blocking = p.CellBlocking;
             }
             else
             {
@@ -35,7 +33,6 @@ namespace Assets.Scripts.Map
                 {
                     var arr = CellList.ReserveData(2, out listInfo);
                     arr[0] = p;
-                    Blocking = first.CellBlocking | p.CellBlocking;
                     TriggerAddTest(p, first, ksids);
                 }
                 else if (size == CellListInfo.MaxSize)
@@ -48,12 +45,10 @@ namespace Assets.Scripts.Map
                     var arr = CellList.GetData(ref listInfo, (byte)(size + 1));
                     size--;
                     arr[size] = p;
-                    Blocking = first.CellBlocking | p.CellBlocking;
                     TriggerAddTest(p, first, ksids);
 
                     for (int f = 0; f < size; f++)
                     {
-                        Blocking |= arr[f].CellBlocking;
                         TriggerAddTest(p, arr[f], ksids);
                         if (arr[f] == p)
                             Debug.LogError("Duplikujes pridavani !" + p.name);
@@ -85,13 +80,11 @@ namespace Assets.Scripts.Map
             {
                 if (size > 1)
                 {
-                    Blocking = CellFlags.Free;
                     var arr = CellList.GetData(listInfo);
                     size--;
 
                     for (int f = 0; f < size; f++)
                     {
-                        Blocking |= arr[f].CellBlocking;
                         TriggerRemoveTest(p, arr[f], ksids);
                     }
 
@@ -103,12 +96,10 @@ namespace Assets.Scripts.Map
                     CellList.Free(ref listInfo);
                     first = null;
                     listInfo.Size = 0;
-                    Blocking = CellFlags.Free;
                 }
             }
             else if (size > 1)
             {
-                Blocking = first.CellBlocking;
                 TriggerRemoveTest(p, first, ksids);
                 bool found = false;
 
@@ -123,7 +114,6 @@ namespace Assets.Scripts.Map
                     }
                     else
                     {
-                        Blocking |= arr[f].CellBlocking;
                         TriggerRemoveTest(p, arr[f], ksids);
                     }
                 }
@@ -142,58 +132,8 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public void RecomputeBlocking()
-        {
-            Blocking = CellFlags.Free;
-            foreach (var placeable in this)
-            {
-                Blocking |= placeable.CellBlocking;
-            }
-        }
 
-        public CellFlags BlockingExcept(Placeable exclude)
-        {
-            var ret = CellFlags.Free;
-            foreach (var placeable in this)
-            {
-                if (placeable != exclude)
-                    ret |= placeable.CellBlocking;
-            }
-            return ret;
-        }
+        public Cell.Enumerator GetEnumerator() => new Cell.Enumerator(listInfo, first);
 
-        public Enumerator GetEnumerator() => new Enumerator(listInfo, first);
-
-        public ref struct Enumerator
-        {
-            private int index;
-            private int size;
-            private readonly Span<Placeable> arr;
-            public Placeable Current { get; private set; }
-
-            public Enumerator(CellListInfo info, Placeable first)
-            {
-                Current = first;
-                index = -2;
-                size = info.Size-1;
-                if (size > 0)
-                    arr = CellList.GetData(info);
-                else
-                    arr = default;
-            }
-
-            public bool MoveNext()
-            {
-                var ni = index + 1;
-                if (ni < size)
-                {
-                    index = ni;
-                    if (ni >= 0)
-                        Current = arr[index];
-                    return true;
-                }
-                return false;
-            }
-        }
     }
 }

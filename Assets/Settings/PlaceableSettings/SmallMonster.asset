@@ -17,3 +17,11 @@ MonoBehaviour:
   Mass: 0
   Density: 1000
   DensityMode: 0
+  Prototype: {fileID: 0}
+  Unseparable: 0
+  AutoAtachRB: 0
+  IsTrigger: 0
+  SecondaryMapIndex: 1
+  SpStretchLimit: 1000
+  SpCompressLimit: 1000
+  SpMomentLimit: 1000

@@ -77,7 +77,9 @@
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
+    <Compile Include="Assets\Scripts\Map\CellSecondary.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
+    <Compile Include="Assets\Scripts\Map\MapBase.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
@@ -148,6 +150,7 @@
     <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
+    <Compile Include="Assets\Scripts\Map\MapSecondary.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />

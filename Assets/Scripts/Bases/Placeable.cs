@@ -26,7 +26,6 @@ public enum SubCellFlags : byte
 public enum CellFlags
 {
     Free              = 0b0000,
-    Trigger           = 0b0001,
 
     Cell0     = SubCellFlags.Full << CellUtils.Cell0Shift,
     Cell0Part = SubCellFlags.Part << CellUtils.Cell0Shift,
@@ -81,7 +80,7 @@ public class Placeable : Label, ILevelPlaceabe
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
     protected virtual void AfterMapPlaced(Map map) { }
 
-    public bool IsTrigger => (CellBlocking & CellFlags.Trigger) != 0;
+    public bool IsTrigger => Settings.IsTrigger;
     public int SpNodeIndex => spNodeIndex;
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
@@ -260,6 +259,10 @@ public class Placeable : Label, ILevelPlaceabe
 
     public override float GetMass()
     {
+        var rb = Rigidbody;
+        if (rb)
+            return rb.mass;
+
         var settings = Settings;
 
         if (settings.Mass > 0)

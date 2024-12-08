@@ -27,7 +27,7 @@ public abstract class Label : MonoBehaviour
             var kl = KillableLabel();
             if (kl.TryGetComponent<Rigidbody>(out var res))
                 return res;
-            return kl.transform.parent.TryGetComponent(out res) ? res : null;
+            return kl.transform.parent && kl.transform.parent.TryGetComponent(out res) ? res : null;
         }
     }
 

@@ -13,6 +13,14 @@ namespace Assets.Scripts.Bases
         Circle,
     }
 
+    public enum SecondaryMap
+    {
+        None,
+        Beasts,
+        Navigation,
+        Last,
+    }
+
     [CreateAssetMenu]
     public class PlaceableSettings : ScriptableObject
     {
@@ -20,7 +28,7 @@ namespace Assets.Scripts.Bases
         public bool HasSubPlaceables;
         [Tooltip("Pri kolizich s piskem: Pokud true pouzije se BoundingBox. Pokud false, pouzije se sampling z kollideru (pamalejsi)")]
         public bool UseSimpleBBCollisions;
-        [Tooltip("Jak je vec tezka v kg? Pokud 0, vypocita se Mass z objemuu a hustoty")]
+        [Tooltip("Jak je vec tezka v kg? Pokud je mass vyplnena u RB, ma prednost. Pokud 0, vypocita se Mass z objemuu a hustoty")]
         public float Mass;
         [Tooltip("Pouziti pro vypocet hmotnosti. Default: 1000 - hustota vody")]
         public float Density = 1000f; // hustota vody
@@ -32,6 +40,10 @@ namespace Assets.Scripts.Bases
         public bool Unseparable;
         [Tooltip("Pro objekty ktere maji byt ovladany pomoci pripojovaneho RbLabel")]
         public bool AutoAtachRB;
+        [Tooltip("Trigger. Pokud se ma tragger dat i do sekundarni mapy, da se tam exklusivne")]
+        public bool IsTrigger;
+        [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]
+        public SecondaryMap SecondaryMapIndex;
 
         [Tooltip("Limity pro staticke spoje mezi objekty: Tah")]
         public float SpStretchLimit = 1000f;

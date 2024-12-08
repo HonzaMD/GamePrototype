@@ -39,7 +39,7 @@ namespace Assets.Scripts.Map
         public Map MapFromPos(float posX)
         {
             int id = (int)((posX + MarginOffset) * PosToMapId);
-            id = Math.Clamp(id, 0, WorldsCount);
+            id = Math.Clamp(id, 0, WorldsCount - 1);
             return Maps[id];
         }
 
