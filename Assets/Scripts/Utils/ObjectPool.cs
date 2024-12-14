@@ -11,38 +11,46 @@ namespace Assets.Scripts.Utils
     public class ObjectPool : ObjectPool<Label>
     { }
 
-    public class ObjectPool<TLabel> : MonoBehaviour
+    public abstract class ObjectPool<TLabel> : MonoBehaviour
         where TLabel : MonoBehaviour
     {
-        private readonly Dictionary<TLabel, Stack<TLabel>> cache = new Dictionary<TLabel, Stack<TLabel>>();       
+        private readonly Dictionary<TLabel, Queue<(TLabel Obj, uint Age)>> cache = new Dictionary<TLabel, Queue<(TLabel, uint)>>();
+        private uint counter;
 
         public void Store(TLabel obj, TLabel prototype)
         {
             obj.gameObject.SetActive(false);
             obj.transform.parent = transform;
 
-            Stack<TLabel> stack = GetStack(prototype);
-            stack.Push(obj);
+            var stack = GetStack(prototype);
+            stack.Enqueue((obj, counter));
         }
 
-        private Stack<TLabel> GetStack(TLabel prototype)
+        public void UpdateAgeAtPhysicsUpdate() => counter++;
+
+        private Queue<(TLabel Obj, uint Age)> GetStack(TLabel prototype)
         {
             if (!cache.TryGetValue(prototype, out var stack))
             {
-                stack = new Stack<TLabel>();
+                stack = new Queue<(TLabel, uint)>();
                 cache.Add(prototype, stack);
             }
             return stack;
         }
 
+        private bool HasItem(Queue<(TLabel Obj, uint Age)> stack)
+        {
+            return stack.Count > 0 && stack.Peek().Age + 2 < counter;
+        }
+
         public T Get<T>(T prototype, Transform parent, Vector3 localPosition)
             where T : TLabel
         {
-            Stack<TLabel> stack = GetStack(prototype);
+            var stack = GetStack(prototype);
             T ret;
-            if (stack.Count > 0)
+            if (HasItem(stack))
             {
-                ret = (T)stack.Pop();
+                ret = (T)stack.Dequeue().Obj;
                 ret.transform.parent = parent;
                 ret.transform.localPosition = localPosition;
                 ret.gameObject.SetActive(true);
@@ -55,14 +63,15 @@ namespace Assets.Scripts.Utils
             return ret;
         }
 
+
         public T Get<T>(T prototype, Transform parent)
             where T : TLabel
         {
-            Stack<TLabel> stack = GetStack(prototype);
+            var stack = GetStack(prototype);
             T ret;
-            if (stack.Count > 0)
+            if (HasItem(stack))
             {
-                ret = (T)stack.Pop();
+                ret = (T)stack.Dequeue().Obj;
                 ret.transform.parent = parent;
                 ret.gameObject.SetActive(true);
             }

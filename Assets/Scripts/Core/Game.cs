@@ -240,6 +240,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             o.GameFixedUpdate();
         }
         StaticPhysics.Update();
+        Pool.UpdateAgeAtPhysicsUpdate();
+        ConnectablePool.UpdateAgeAtPhysicsUpdate();
     }
 
     public static Map MapFromPos(float posX) => Instance.MapWorlds.MapFromPos(posX);
