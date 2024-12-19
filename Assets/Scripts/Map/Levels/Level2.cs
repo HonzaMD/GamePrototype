@@ -14,7 +14,7 @@ namespace Assets.Scripts.Map
 "                                      R    ",
 "                                      R    ",
 "                                      R    ",
-"                                      R    ",
+"                           A          R    ",
 "                                      R    ",
 "                        LLLLLLLL      R    ",
 "               HHHHHHHHH              R    ",

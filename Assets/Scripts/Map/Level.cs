@@ -17,9 +17,11 @@ public class Level : MonoBehaviour
     internal Map Map { get; private set; }
     private LevelBase levelSource;
 
-    public void Create(Map map, LvlBuildMode buildMode)
+    public void Create(Map map, LvlBuildMode buildMode, LevelName debugLevel)
     {
         AssignMap(map);
+        if (LevelName == LevelName.DebugLvl)
+            LevelName = debugLevel;
         levelSource = LevelPairing.Get(LevelName);
 
         foreach (var root in PlaceablesRoots)

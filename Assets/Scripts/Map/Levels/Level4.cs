@@ -14,7 +14,7 @@ namespace Assets.Scripts.Map
 "                                           ",
 "                                           ",
 "                                           ",
-"                            H        H     ",
+"                     A      H        H     ",
 "                            H        H     ",
 "                     HHHHHHHHH      HH     ",
 "                             RRRRRRRR      ",

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4450.93, g: 2910.5276, b: 2186.1565, a: 1}
+  m_IndirectSpecularColor: {r: 4450.973, g: 2910.4963, b: 2185.8752, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -353,6 +353,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BuildMode: 0
+  DebugLevel: 0
   Settings:
   - posx: 0
     posy: 0
@@ -1266,8 +1267,6 @@ MonoBehaviour:
   Pool: {fileID: 436192660}
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
-  DefaultPlaceableSettings: {fileID: 11400000, guid: 657256e36061bef4186834667138896d,
-    type: 2}
   OccludersRoot: {fileID: 739283312}
   MapWorlds: {fileID: 292982615}
   InventoryRoot: {fileID: 224758079}
@@ -1822,6 +1821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BuildMode: 0
+  DebugLevel: 0
   Settings:
   - posx: 0
     posy: 0
@@ -1844,6 +1844,59 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973045246}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2075615586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2075615588}
+  - component: {fileID: 2075615587}
+  m_Layer: 0
+  m_Name: MapWorldsDebug
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2075615587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075615586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bef8f74746d444d961ce556773eed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BuildMode: 0
+  DebugLevel: 0
+  Settings:
+  - posx: 0
+    posy: 0
+    sizex: 300
+    sizey: 144
+    Scenes:
+    - DebugScene
+--- !u!4 &2075615588
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075615586}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -2010,6 +2063,7 @@ SceneRoots:
   - {fileID: 224758079}
   - {fileID: 1973045248}
   - {fileID: 292982616}
+  - {fileID: 2075615588}
   - {fileID: 1396929420100785624}
   - {fileID: 251501171302598481}
   - {fileID: 1118955279}

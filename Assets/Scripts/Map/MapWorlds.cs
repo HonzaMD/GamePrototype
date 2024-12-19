@@ -18,6 +18,7 @@ namespace Assets.Scripts.Map
         private const float PosToMapId = 1 / (float)WorldOffset;
 
         public LvlBuildMode BuildMode;
+        public LevelName DebugLevel;
 
         public MapSettings[] Settings;
         [NonSerialized]
@@ -99,7 +100,7 @@ namespace Assets.Scripts.Map
                         break;
                 list.Return();
 
-                level.Create(map, BuildMode);
+                level.Create(map, BuildMode, DebugLevel);
             }
 
             IsWorking = scenesToLoad.Count > 0;

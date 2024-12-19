@@ -14,6 +14,8 @@ namespace Assets.Scripts.Map
         Level4,
         LevelEmpty,
         LevelSLT,
+        
+        DebugLvl = 100,
     }
 
     internal static class LevelPairing

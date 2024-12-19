@@ -13,7 +13,7 @@ namespace Assets.Scripts.Map
 "                                   L       ",
 "                                 LLHHH     ",
 "                               LL          ",
-"                             LL            ",
+"                       A     LL            ",
 "                           LL              ",
 "                         LL                ",
 "                     HHHHHHHHHHHHH         ",
