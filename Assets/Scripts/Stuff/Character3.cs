@@ -347,11 +347,11 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
         if (inputController)
         {
             if (inputController.ThrowController.ThrowActive)
-                inputController.ThrowController.ShowThrowMarker(this, body.velocity);
+                inputController.ThrowController.ShowThrowMarker(this, body.linearVelocity);
             if (bodyToThrow != null)
             {
                 Vector2 force = inputController.ThrowController.ComputeThrowForce(bodyToThrow.mass);
-                bodyToThrow.velocity = (Vector3)force + this.body.velocity;
+                bodyToThrow.linearVelocity = (Vector3)force + this.body.linearVelocity;
                 body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
                 bodyToThrow = null;
             }

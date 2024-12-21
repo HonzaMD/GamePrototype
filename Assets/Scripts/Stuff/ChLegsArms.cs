@@ -92,7 +92,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		TryRemoveArm(2);
 		TryRemoveArm(3);
 
-		if (!desiredCrouch && Vector3.Dot(body.velocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
+		if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
 		{
 			TryPlaceLeg(index);
 		}
@@ -162,9 +162,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 				else if (legArmStatus[OtherIndex(index)] == Catch)
 				{
 					float otherX = Legs[OtherIndex(index)].position.x;
-					if (lpos.x <= otherX && otherX < center.x && body.velocity.x >= 0)
+					if (lpos.x <= otherX && otherX < center.x && body.linearVelocity.x >= 0)
 						RemoveLegArm(index);
-					if (lpos.x >= otherX && otherX > center.x && body.velocity.x <= 0)
+					if (lpos.x >= otherX && otherX > center.x && body.linearVelocity.x <= 0)
 						RemoveLegArm(index);
 				}
 			}
@@ -338,13 +338,13 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		{
 			float otherX = Legs[OtherIndex(index)].position.x;
 			var centerX = LegSphere.transform.position.x;
-			if (otherX > centerX && body.velocity.x > 0)
+			if (otherX > centerX && body.linearVelocity.x > 0)
 				return;
-			if (otherX < centerX && body.velocity.x < 0)
+			if (otherX < centerX && body.linearVelocity.x < 0)
 				return;
 		}
 
-		Vector3 direction = Vector3.down * Settings.maxSpeed + body.velocity;
+		Vector3 direction = Vector3.down * Settings.maxSpeed + body.linearVelocity;
 		if (RayCastLeg(index, direction, LegSphere.radius))
 			return;
 
@@ -354,7 +354,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 		if (desiredJump && legArmStatus[OtherIndex(index)] != Catch)
 		{
-			direction = new Vector3(Mathf.Sign(body.velocity.x) * -0.5f, -1f);
+			direction = new Vector3(Mathf.Sign(body.linearVelocity.x) * -0.5f, -1f);
 			if (RayCastLeg(index, direction, radius))
 				return;
 		}
@@ -736,7 +736,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         Vector2 groundVelocity = GetGroundVelocity();
         if (ArmCatched)
         {
-            var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.velocity.XY(), Settings.maxAcceleration);
+            var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), Settings.maxAcceleration);
             body.AddForce(force, ForceMode.VelocityChange);
             SendOppositeForceToLegArms(force * 0.8f);
             legUpDir = Vector3.up;
@@ -746,7 +746,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             Quaternion legRot = GetLegRotation();
             var xAxis = legRot * Vector3.right;
             legUpDir = legRot * Vector3.up;
-            var xVel = Vector3.Dot(xAxis, body.velocity);
+            var xVel = Vector3.Dot(xAxis, body.linearVelocity);
             var xGVel = Vector3.Dot(xAxis, groundVelocity);
             var force = Mathf.Clamp(xGVel + desiredVelocity.x - xVel, -Settings.maxAcceleration, Settings.maxAcceleration);
             var forceVec = xAxis * force;
@@ -761,7 +761,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         {
             if (LegOnGround)
             {
-                var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.velocity.y;
+                var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.linearVelocity.y;
                 body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
                 SendOppositeForceToLegs(new Vector3(0, jumpForce, 0), true);
                 desiredJump = false;
@@ -807,9 +807,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     protected virtual void AdjustXOrientation()
     {
-        if (body.velocity.x > Settings.maxSpeed * 0.1f)
+        if (body.linearVelocity.x > Settings.maxSpeed * 0.1f)
             lastXOrientation = 1;
-        else if (body.velocity.x < -Settings.maxSpeed * 0.1f)
+        else if (body.linearVelocity.x < -Settings.maxSpeed * 0.1f)
             lastXOrientation = -1;
     }
 
@@ -839,9 +839,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 				destPos += holdTarget;
                 GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
                 destPos += decollision;
-                destPos += this.body.velocity.XY() * Time.fixedDeltaTime;
+                destPos += this.body.linearVelocity.XY() * Time.fixedDeltaTime;
 
-				var center = ArmSphere.transform.position.XY() + this.body.velocity.XY() * Time.fixedDeltaTime;
+				var center = ArmSphere.transform.position.XY() + this.body.linearVelocity.XY() * Time.fixedDeltaTime;
 				var speed = Mathf.Clamp((center - armPos).magnitude / ArmSphere.radius, 0.5f, 1.3f);
 
                 var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
@@ -925,7 +925,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private Vector3 GetDrag()
 	{
-		return body.velocity * -body.velocity.magnitude * Settings.DragCoef;
+		return body.linearVelocity * -body.linearVelocity.magnitude * Settings.DragCoef;
 	}
 
 	private float GetLegForce(int index)
@@ -935,7 +935,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			var legDir = LegSphere.transform.position.XY() - Legs[index].position.XY();
 			float force = (LegSphere.radius - legDir.magnitude) / LegSphere.radius;
 			force *= Settings.LegForce;
-			force += Vector3.Dot(legUpDir, body.velocity) * -Settings.LegForceDampening;
+			force += Vector3.Dot(legUpDir, body.linearVelocity) * -Settings.LegForceDampening;
 			return force;
 		}
 		return 0;
@@ -962,7 +962,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private Vector2 GetArmsCatchForce(Vector2 groundVelocity)
 	{
-		var velocity = body.velocity.XY();
+		var velocity = body.linearVelocity.XY();
 		var localVelocity = velocity - groundVelocity;
 		var dot = 1 - Mathf.Clamp(Vector2.Dot(localVelocity, desiredVelocity), 0, 1);
 		Vector2 forceToReduce = dot * localVelocity;
@@ -1035,7 +1035,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	{
 		if (isImpact == null)
 		{
-            var relVelocity = body.velocity.XY() - legsConnectedLabels[index].Velocity.XY();
+            var relVelocity = body.linearVelocity.XY() - legsConnectedLabels[index].Velocity.XY();
             isImpact = relVelocity.sqrMagnitude > PhysicsConsts.ImpactVelocitySqr;
         }
         legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass, isImpact.Value ? VelocityFlags.IsImpact : VelocityFlags.None);

@@ -124,7 +124,7 @@ namespace Assets.Scripts.Core
                         var throwMass = body.Rigidbody.mass;
                         mBody.mass = throwMass;
                         Vector2 force = ComputeThrowForce(throwMass);
-                        mBody.velocity = (Vector3)force + characterVelocity;
+                        mBody.linearVelocity = (Vector3)force + characterVelocity;
                     }
                 }
             }

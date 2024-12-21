@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -38,13 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 4436.8306, g: 2918.1663, b: 2222.094, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -67,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -97,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000006, guid: 67b429c316cf6da448061ea6e3eb3bc8,
+  m_LightingDataAsset: {fileID: 112000006, guid: fee049396e8730a4ab97152ed1230d14,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
@@ -282,8 +278,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -447,8 +443,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -612,8 +608,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -777,8 +773,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -942,8 +938,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -1655,8 +1651,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -1820,8 +1816,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -1861,6 +1857,7 @@ MonoBehaviour:
   m_StaticLightingSkyUniqueID: 0
   m_StaticLightingCloudsUniqueID: 0
   m_StaticLightingVolumetricClouds: 0
+  bounces: 1
 --- !u!4 &185344372
 Transform:
   m_ObjectHideFlags: 1
@@ -2096,8 +2093,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2261,8 +2258,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2426,8 +2423,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2591,8 +2588,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2756,8 +2753,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 502.71973
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 502.71973
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2921,8 +2918,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3086,8 +3083,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1.0000001
-  m_MeshMetrics[1]: 233.94243
+  'm_MeshMetrics[0]': 1.0000001
+  'm_MeshMetrics[1]': 233.94243
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3251,8 +3248,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3416,8 +3413,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3581,8 +3578,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 457.74368
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 457.74368
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3746,8 +3743,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -3810,6 +3807,7 @@ MonoBehaviour:
     realtimeMode: 1
     timeSlicing: 1
     lighting:
+      importance: 1
       multiplier: 1
       weight: 1
       lightLayer: 1
@@ -3876,6 +3874,7 @@ MonoBehaviour:
         sssQualityMode: 0
         sssQualityLevel: 0
         sssCustomSampleBudget: 20
+        sssCustomDownsampleSteps: 0
         msaaMode: 1
         materialQuality: 0
       renderingPathCustomFrameSettingsOverrideMask:
@@ -4059,38 +4058,38 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
-  m_HasValidSHForNormalization: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: -0
-    sh[ 2]: 0
-    sh[ 3]: -0
-    sh[ 4]: 0
-    sh[ 5]: -0
-    sh[ 6]: 0
-    sh[ 7]: -0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: -0
-    sh[11]: 0
-    sh[12]: -0
-    sh[13]: 0
-    sh[14]: -0
-    sh[15]: 0
-    sh[16]: -0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: -0
-    sh[20]: 0
-    sh[21]: -0
-    sh[22]: 0
-    sh[23]: -0
-    sh[24]: 0
-    sh[25]: -0
-    sh[26]: 0
+    'sh[ 0]': 66.795044
+    'sh[ 1]': 50.577934
+    'sh[ 2]': 12.686193
+    'sh[ 3]': 3.9383283
+    'sh[ 4]': 1.395653
+    'sh[ 5]': 1.5476638
+    'sh[ 6]': -2.2260854
+    'sh[ 7]': -0.19713305
+    'sh[ 8]': -2.6548083
+    'sh[ 9]': 52.140476
+    'sh[10]': 39.830517
+    'sh[11]': 8.785607
+    'sh[12]': 2.6451693
+    'sh[13]': 0.90248334
+    'sh[14]': 1.0421721
+    'sh[15]': -1.8590355
+    'sh[16]': -0.096318305
+    'sh[17]': -1.9773155
+    'sh[18]': 8.577209
+    'sh[19]': 7.1490192
+    'sh[20]': 0.50178367
+    'sh[21]': 0.68389314
+    'sh[22]': 0.15112302
+    'sh[23]': -0.040244408
+    'sh[24]': -0.36855686
+    'sh[25]': -0.015872989
+    'sh[26]': -0.40514502
   m_SHValidForCapturePosition: {x: 108, y: 22.53052, z: 0}
-  m_SHValidForSourcePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 3
+  m_SHValidForSourcePosition: {x: 108, y: 22.53052, z: 0}
+  m_HDProbeVersion: 9
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -4185,7 +4184,7 @@ MonoBehaviour:
     orthographicSize: 5
     renderingPath: 0
     shadowDistance: 100
-  m_ReflectionProbeVersion: 9
+  m_ReflectionProbeVersion: 10
   m_ObsoleteInfluenceShape: 0
   m_ObsoleteInfluenceSphereRadius: 3
   m_ObsoleteBlendDistancePositive: {x: 1, y: 1, z: 1}
@@ -4275,7 +4274,7 @@ MonoBehaviour:
     e10: 0
     e11: 1
     e12: 0
-    e13: -36
+    e13: -23.597483
     e20: 0
     e21: 0
     e22: 1
@@ -4284,9 +4283,9 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 1075765566
+  cachedHashCode: -1621872020
   fillEmptySpaces: 0
-  version: 1
+  version: 2
   globalVolume: 0
 --- !u!4 &660806981
 Transform:
@@ -4460,8 +4459,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 244.8465
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 244.8465
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -4625,8 +4624,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -4790,8 +4789,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -4955,8 +4954,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5120,8 +5119,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5285,8 +5284,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1.0000001
-  m_MeshMetrics[1]: 233.94254
+  'm_MeshMetrics[0]': 1.0000001
+  'm_MeshMetrics[1]': 233.94254
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5450,8 +5449,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 244.84666
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 244.84666
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5615,8 +5614,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5780,8 +5779,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -5945,8 +5944,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6110,8 +6109,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6275,8 +6274,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6440,8 +6439,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6605,8 +6604,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6770,8 +6769,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6935,8 +6934,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7100,8 +7099,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7309,8 +7308,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7474,8 +7473,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7639,8 +7638,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7804,8 +7803,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -7969,8 +7968,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8242,8 +8241,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8407,8 +8406,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 298.2701
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 298.2701
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8572,8 +8571,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 457.74356
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 457.74356
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8737,8 +8736,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8902,8 +8901,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9067,8 +9066,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 502.7196
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 502.7196
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9232,8 +9231,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 302.07855
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 302.07855
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9397,8 +9396,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9562,8 +9561,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9727,8 +9726,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -9892,8 +9891,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10057,8 +10056,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 302.07852
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 302.07852
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10222,8 +10221,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10387,8 +10386,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10552,8 +10551,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10748,8 +10747,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -10913,8 +10912,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 236.22166
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 236.22166
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -11078,8 +11077,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 236.22148
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 236.22148
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -11243,8 +11242,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -11408,8 +11407,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 298.27008
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 298.27008
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -11573,8 +11572,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -11610,17 +11609,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  asset: {fileID: 11400000, guid: 0b948daeec6f48841bfb2244d3ed6021, type: 2}
-  cellSharedDataAsset: {fileID: 4900000, guid: 595027c923b5d874a9d0901ef26bc07b, type: 3}
-  cellSupportDataAsset: {fileID: 4900000, guid: 3a2300522d3b24c4b8d0cbc5f6603952,
-    type: 3}
-  serializedScenarios:
-  - scenario: Default
-    data:
-      sceneHash: 1606948143
-      cellDataAsset: {fileID: 4900000, guid: 226b2ed4abbf867499a5d009851198c3, type: 3}
-      cellOptionalDataAsset: {fileID: 4900000, guid: da26b4243a2b2fc4baa0047ca5e358b8,
-        type: 3}
+  serializedBakingSet: {fileID: 11400000, guid: 45d21c1ff1052df4dbe7e176b12012b5,
+    type: 2}
+  sceneGUID: e7be53d46618fbd40afed5ec87133182
+  obsoleteAsset: {fileID: 0}
+  obsoleteCellSharedDataAsset: {fileID: 0}
+  obsoleteCellSupportDataAsset: {fileID: 0}
+  obsoleteSerializedScenarios: []
 --- !u!4 &2077289069
 Transform:
   m_ObjectHideFlags: 1
@@ -11793,8 +11788,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62102
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62102
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -12511,8 +12506,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -12676,8 +12671,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 202.62111
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 202.62111
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2

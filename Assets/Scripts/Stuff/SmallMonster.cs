@@ -30,7 +30,7 @@ class SmallMonster : ChLegsArms, IActiveObject
 			turnTimeout -= Time.deltaTime * 4;
 			desiredVelocity.x = Settings.maxSpeed * desiredDirection;
 		}
-		else if (body.velocity.x * desiredDirection <= 0.001 || !WantMove())
+		else if (body.linearVelocity.x * desiredDirection <= 0.001 || !WantMove())
 		{
 			desiredVelocity.x = 0;
 			turnTimeout = 1;

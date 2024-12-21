@@ -147,7 +147,7 @@ public abstract class Label : MonoBehaviour
         {
             var rb = Rigidbody;
             if (rb)
-                return rb.velocity;
+                return rb.linearVelocity;
             return Vector3.zero;
         }
     }

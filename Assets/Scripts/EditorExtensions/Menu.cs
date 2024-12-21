@@ -19,6 +19,20 @@ public class Menu
         }
     }
 
+    [MenuItem("MyGame/ClearLevel")]
+    static void InstantiateClearLevel()
+    {
+        var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
+        var levels = GameObject.FindObjectsOfType<Level>();
+        //        DeleteAllChildren(parent);
+
+        foreach (var level in levels)
+        {
+            DeleteAllChildren(level.transform);
+
+        }
+    }
+
     [MenuItem("MyGame/Kill Selected")]
     static void KillSelected()
     {
@@ -33,10 +47,16 @@ public class Menu
 
     private static void DeleteAllChildren(Transform parent)
     {
-        while (parent.childCount > 0)
+        var tempArray = new GameObject[parent.transform.childCount];
+
+        for (int i = 0; i < tempArray.Length; i++)
         {
-            var child = parent.GetChild(parent.childCount - 1);
-            GameObject.Destroy(child);
+            tempArray[i] = parent.transform.GetChild(i).gameObject;
+        }
+
+        foreach (var child in tempArray)
+        {
+            GameObject.DestroyImmediate(child);
         }
     }
 
