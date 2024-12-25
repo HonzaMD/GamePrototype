@@ -41,7 +41,6 @@ MonoBehaviour:
   - 4c964e0ddc1406b4a8e6140c8ca2fecd
   - 3be15b27069b78a4aacc8f88aa5839b1
   - b2e27f7fcb1546f4fba217f1bea7b92e
-  - 21e3662c446b3df4fa0e77ec90558391
   obsoleteScenesToNotBake: []
   m_LightingScenarios:
   - Default
@@ -2559,10 +2558,10 @@ MonoBehaviour:
   minRendererVolumeSize: 0.1
   skyOcclusion: 0
   skyOcclusionBakingSamples: 2048
-  skyOcclusionBakingBounces: 2
+  skyOcclusionBakingBounces: 4
   skyOcclusionAverageAlbedo: 0.6
   skyOcclusionBackFaceCulling: 0
-  skyOcclusionShadingDirection: 0
+  skyOcclusionShadingDirection: 1
   useRenderingLayers: 0
   renderingLayerMasks: []
   m_SceneBakeData:
@@ -2576,7 +2575,6 @@ MonoBehaviour:
     - 4c964e0ddc1406b4a8e6140c8ca2fecd
     - 3be15b27069b78a4aacc8f88aa5839b1
     - b2e27f7fcb1546f4fba217f1bea7b92e
-    - 21e3662c446b3df4fa0e77ec90558391
     m_Values:
     - hasProbeVolume: 1
       bakeScene: 1
@@ -2623,8 +2621,3 @@ MonoBehaviour:
       bounds:
         m_Center: {x: 182.5, y: 182.5, z: 0}
         m_Extent: {x: 60.75, y: 60.75, z: 40.5}
-    - hasProbeVolume: 0
-      bakeScene: 1
-      bounds:
-        m_Center: {x: 0, y: 0, z: 0}
-        m_Extent: {x: 0, y: 0, z: 0}

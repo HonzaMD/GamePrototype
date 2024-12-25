@@ -432,7 +432,7 @@ MonoBehaviour:
     m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 0
-    m_Value: 64
+    m_Value: 32
   rayMiss:
     m_OverrideState: 0
     m_Value: 3
@@ -587,13 +587,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bd486065ce11414fa40e631affc4900, type: 3}
   m_Name: ProbeVolumesOptions
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   normalBias:
     m_OverrideState: 0
-    m_Value: 0.33
+    m_Value: 0.05
   viewBias:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 0.1
   scaleBiasWithMinProbeDistance:
     m_OverrideState: 0
     m_Value: 0
@@ -605,7 +605,7 @@ MonoBehaviour:
     m_Value: 1
   leakReductionMode:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 2
   minValidDotProductValue:
     m_OverrideState: 0
     m_Value: 0.1

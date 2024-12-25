@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Bases;
 using Assets.Scripts.Map;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ public class Level : MonoBehaviour
     [SerializeField]
     private LevelLabel[] PlaceablesRoots = default;
     public LevelName LevelName;
+    public Transform CloseSide;
     public int posx;
     public int posy;
 
@@ -38,6 +40,26 @@ public class Level : MonoBehaviour
         foreach (var pair in levelSource.Placeables(Game.Instance.PrefabsStore, buildMode, new Vector2Int(posx, posy)))
         {
             pair.Item1.Instantiate(Map, PlaceablesRoots[0].transform, pair.Item2);
+        }
+
+        MakeCloseSideInvisible();
+    }
+
+    private void MakeCloseSideInvisible()
+    {
+        if (CloseSide)
+        {
+            var renderers = ListPool<MeshRenderer>.Rent();
+            CloseSide.GetComponentsInChildren<MeshRenderer>(renderers);
+
+            foreach (var renderer in renderers)
+            {
+                var obj2 = GameObject.Instantiate(renderer, renderer.transform.parent);
+                obj2.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+                obj2.gameObject.layer = 0;
+            }
+
+            renderers.Return();
         }
     }
 

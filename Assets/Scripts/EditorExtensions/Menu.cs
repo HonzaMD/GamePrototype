@@ -10,7 +10,7 @@ public class Menu
     static void InstantiatePrefab()
     {
         var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
-        var levels = GameObject.FindObjectsOfType<Level>();
+        var levels = GameObject.FindObjectsByType<Level>(FindObjectsSortMode.None);
 //        DeleteAllChildren(parent);
 
         foreach (var level in levels)
@@ -23,7 +23,7 @@ public class Menu
     static void InstantiateClearLevel()
     {
         var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
-        var levels = GameObject.FindObjectsOfType<Level>();
+        var levels = GameObject.FindObjectsByType<Level>(FindObjectsSortMode.None);
         //        DeleteAllChildren(parent);
 
         foreach (var level in levels)

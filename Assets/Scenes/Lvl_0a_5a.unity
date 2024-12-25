@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000010, guid: fee049396e8730a4ab97152ed1230d14,
+  m_LightingDataAsset: {fileID: 112000010, guid: 279781d23f9e96344a1f81e63db8dba1,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
@@ -5614,7 +5614,7 @@ MonoBehaviour:
     e10: 0
     e11: 1
     e12: 0
-    e13: -95.59748
+    e13: -108
     e20: 0
     e21: 0
     e22: 1
@@ -5623,7 +5623,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 1969178400
+  cachedHashCode: 466330782
   fillEmptySpaces: 0
   version: 2
   globalVolume: 0
@@ -9909,35 +9909,35 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
-  m_HasValidSHForNormalization: 1
+  m_HasValidSHForNormalization: 0
   m_SHForNormalization:
-    'sh[ 0]': 177.02373
-    'sh[ 1]': -76.71953
-    'sh[ 2]': 17.515343
-    'sh[ 3]': -5.2839384
-    'sh[ 4]': -18.29637
-    'sh[ 5]': 3.9171808
-    'sh[ 6]': -27.52743
-    'sh[ 7]': -0.95936435
-    'sh[ 8]': -35.15157
-    'sh[ 9]': 136.78578
-    'sh[10]': -60.747646
-    'sh[11]': 12.268575
-    'sh[12]': -3.9828842
-    'sh[13]': -13.274583
-    'sh[14]': 3.0047858
-    'sh[15]': -21.451033
-    'sh[16]': -0.41513658
-    'sh[17]': -27.865831
-    'sh[18]': 29.210068
-    'sh[19]': -21.242493
-    'sh[20]': 0.802853
-    'sh[21]': 0.8479154
-    'sh[22]': -4.0357966
-    'sh[23]': -0.24932916
-    'sh[24]': -4.820193
-    'sh[25]': 0.05729802
-    'sh[26]': -6.4776635
+    'sh[ 0]': 0
+    'sh[ 1]': 0
+    'sh[ 2]': 0
+    'sh[ 3]': 0
+    'sh[ 4]': 0
+    'sh[ 5]': 0
+    'sh[ 6]': 0
+    'sh[ 7]': 0
+    'sh[ 8]': 0
+    'sh[ 9]': 0
+    'sh[10]': 0
+    'sh[11]': 0
+    'sh[12]': 0
+    'sh[13]': 0
+    'sh[14]': 0
+    'sh[15]': 0
+    'sh[16]': 0
+    'sh[17]': 0
+    'sh[18]': 0
+    'sh[19]': 0
+    'sh[20]': 0
+    'sh[21]': 0
+    'sh[22]': 0
+    'sh[23]': 0
+    'sh[24]': 0
+    'sh[25]': 0
+    'sh[26]': 0
   m_SHValidForCapturePosition: {x: 108, y: 94.53052, z: 0}
   m_SHValidForSourcePosition: {x: 108, y: 94.53052, z: 0}
   m_HDProbeVersion: 9
@@ -14446,6 +14446,7 @@ MonoBehaviour:
   - {fileID: 1464652318}
   - {fileID: 1335390812}
   LevelName: 5
+  CloseSide: {fileID: 1599850353}
   posx: 144
   posy: 144
 --- !u!114 &1436353337
@@ -17047,6 +17048,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6fc9aebf05cded244b2acafb8f4b020f, type: 3}
+--- !u!4 &1599850353 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 553826685670905773, guid: 6fc9aebf05cded244b2acafb8f4b020f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1599850352}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1605908346
 Mesh:
   m_ObjectHideFlags: 0
