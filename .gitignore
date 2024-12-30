@@ -29,3 +29,4 @@
 /Assets/Scenes/*/ProbeVolumeData*
 /Build.*
 /Assets/RenderingSettings/*.bytes*
+/Assets/Scenes/*/*.bytes*
