@@ -15,6 +15,9 @@ namespace Assets.Scripts.Map
         protected abstract string[] Data { get; }
         private Vector2Int levelOffset;
 
+        public int SizeX => Data[0].Length;
+        public int SizeY => Data.Length;
+
         public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, LvlBuildMode buildMode, Vector2Int levelOffset)
         {
             this.levelOffset = levelOffset;

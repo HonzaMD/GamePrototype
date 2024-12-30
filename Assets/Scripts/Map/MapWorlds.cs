@@ -32,6 +32,8 @@ namespace Assets.Scripts.Map
 
         private readonly Queue<(int Pos, int Map)> candidatesQ = new();
 
+        private readonly ScenesMap sceneMap = new();
+
         private void Awake()
         {
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
@@ -101,6 +103,8 @@ namespace Assets.Scripts.Map
                 list.Return();
 
                 level.Create(map, BuildMode, DebugLevel);
+
+                sceneMap.Add(scene, level.posx, level.posy);
             }
 
             IsWorking = scenesToLoad.Count > 0;
@@ -116,6 +120,13 @@ namespace Assets.Scripts.Map
         }
 
         public void EnqueueCellStateTest(int cellPos, int mapId) => candidatesQ.Enqueue((cellPos, mapId));
+
+        public Scene FindScene(Vector2 worldPos)
+        {
+            worldPos.Scale(Map.CellSize2dInv);
+            var intPos = Vector2Int.FloorToInt(worldPos);
+            return sceneMap.Find(intPos.x, intPos.y);
+        }
     }
 
     public enum LvlBuildMode

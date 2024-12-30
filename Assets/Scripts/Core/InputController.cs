@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityTemplateProjects;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+using Assets.Scripts.Utils;
 
 namespace Assets.Scripts.Core
 {
@@ -17,6 +20,7 @@ namespace Assets.Scripts.Core
         public ThrowController ThrowController;
 
         private Vector3 mousePosInWord;
+        private Scene lastActiveScene;
 
         public void Init()
         {
@@ -34,6 +38,20 @@ namespace Assets.Scripts.Core
             mousePos.z = Camera.Camera.nearClipPlane;
 
             mousePosInWord = Camera.Camera.ScreenToWorldPoint(mousePos);
+
+            SetupBakingSet();
+        }
+
+        private void SetupBakingSet()
+        {
+            var probeRefVolume = ProbeReferenceVolume.instance;
+            var scene = Game.Instance.MapWorlds.FindScene(Character.ArmSphere.transform.position.XY());
+            if (scene != default && scene != lastActiveScene)
+            {
+                lastActiveScene = scene;
+                probeRefVolume.SetActiveScene(scene);
+                Debug.Log("Setting Scene " + scene.name);
+            }
         }
 
         public Vector3 GetMousePosOnZPlane(float z)
