@@ -41,6 +41,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
 
     private readonly Stopwatch sw = new();
+    private int lastGCCount;
 
     public int CollisionLayaerMask { get; private set; }
     public double[] UpdateTimes = new double[8];
@@ -114,6 +115,18 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         InputController.Camera.GameUpdate();
         sw.Stop();
         UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
+
+        LogGC();
+    }
+
+    private void LogGC()
+    {
+        int gcCount = GC.CollectionCount(0);
+        if (lastGCCount != gcCount)
+        {
+            UnityEngine.Debug.Log("## GC ##");
+            lastGCCount = gcCount;
+        }
     }
 
     private void DoSpecificStates()
