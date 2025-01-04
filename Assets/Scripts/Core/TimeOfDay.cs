@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace Assets.Scripts.Core
@@ -29,6 +30,7 @@ namespace Assets.Scripts.Core
 
         public Transform Moon;
         public Transform Moon2;
+        public Volume VolumeWithSky;
 
         private struct Data
         {
@@ -37,6 +39,8 @@ namespace Assets.Scripts.Core
             public HDAdditionalLightData hdLight;
         }
 
+        private int skyRotationId;
+        private Material skyMaterial;
         private Data[] data;
 
 
@@ -47,6 +51,8 @@ namespace Assets.Scripts.Core
 
         private void SetSunPosition()
         {
+            InitData();
+
             var sunRot = Quaternion.Euler(0, SunPos, 0);
             var moonRot = Quaternion.Euler(0, MoonPos, 0);
             var moon2Rot = Quaternion.Euler(0, Moon2Pos, 0);
@@ -59,12 +65,21 @@ namespace Assets.Scripts.Core
             if (Moon2)
                 Moon2.localRotation = spaceRot * moon2Rot;
 
+            SetSkyRotation(spaceRot);
             SetupShadows();
+        }
+
+        private void SetSkyRotation(Quaternion spaceRot)
+        {
+            if (skyMaterial)
+            {
+                Matrix4x4 m = Matrix4x4.Rotate(spaceRot);
+                skyMaterial.SetMatrix(skyRotationId, m);
+            }
         }
 
         private void SetupShadows()
         {
-            InitData();
             bool shadowEnabled = false;
             for (int i = 0; i < data.Length; i++)
             {
@@ -93,6 +108,14 @@ namespace Assets.Scripts.Core
         {
             if (data == null)
             {
+                skyRotationId = Shader.PropertyToID("_SkyRotation");
+                if (VolumeWithSky)
+                {
+                    var profile = VolumeWithSky.profile;
+                    if (profile.TryGet<PhysicallyBasedSky>(out var sky))
+                        skyMaterial = sky.material.value;
+                }
+
                 data = new Data[3];
                 data[0].light = GetComponent<Light>();
                 data[0].hdLight = GetComponent<HDAdditionalLightData>();
