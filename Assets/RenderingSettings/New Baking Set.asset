@@ -43,7 +43,13 @@ MonoBehaviour:
   - b2e27f7fcb1546f4fba217f1bea7b92e
   obsoleteScenesToNotBake: []
   m_LightingScenarios:
-  - Default
+  - Sc0
+  - Sc1
+  - Sc2
+  - Sc3
+  - Sc4
+  - Sc5
+  - Sc6
   cellDescs:
     m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
     m_Values:
@@ -1550,7 +1556,13 @@ MonoBehaviour:
     m_Asset: {fileID: 0}
   scenarios:
     m_Keys:
-    - Default
+    - Sc0
+    - Sc1
+    - Sc2
+    - Sc3
+    - Sc4
+    - Sc5
+    - Sc6
     m_Values:
     - sceneHash: 1487282217
       cellDataAsset:
@@ -1940,6 +1952,3468 @@ MonoBehaviour:
       cellProbeOcclusionDataAsset:
         m_AssetGUID: b2e5bf1793d2cb045a6c447c1dfda5d4
         m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\b2e5bf1793d2cb045a6c447c1dfda5d4.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: b13f0a91ffa92934eb495c8a83fb2ca8
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\b13f0a91ffa92934eb495c8a83fb2ca8.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: 39b51df74e68efe4f8bd4af9fcd2417e
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\39b51df74e68efe4f8bd4af9fcd2417e.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: 3bc4fc61d5a852247b2581a16e2a2ad0
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\3bc4fc61d5a852247b2581a16e2a2ad0.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: 045da2e0f271cd642b679ee70fd49ef1
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\045da2e0f271cd642b679ee70fd49ef1.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: f14dbde7bac37fc41acb567848b72e43
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\f14dbde7bac37fc41acb567848b72e43.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: 37ca57b15d2c98347894db12ddf40a25
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\37ca57b15d2c98347894db12ddf40a25.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: d5f30dad5dd81bd43bc402a882de6010
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\d5f30dad5dd81bd43bc402a882de6010.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: 9f8359ffe29583d44b3a71088b3c2767
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\9f8359ffe29583d44b3a71088b3c2767.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: ce5241169e7e30e4abe98e39bc6ba311
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\ce5241169e7e30e4abe98e39bc6ba311.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: 7aa9e04c8d4e4c94cbafa32a0a5f0c9e
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\7aa9e04c8d4e4c94cbafa32a0a5f0c9e.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: 89a9444afdf346e46b1bf3b22d60de32
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\89a9444afdf346e46b1bf3b22d60de32.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: a54859352af89cd4db6b0e37aab7770b
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\a54859352af89cd4db6b0e37aab7770b.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: c74f79459f7cc314b993156bc39f2649
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\c74f79459f7cc314b993156bc39f2649.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: fc5831d1bc7269f4ba5e5a3968d03a1e
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\fc5831d1bc7269f4ba5e5a3968d03a1e.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: b2b69ec229401154e8e0a4062a503f4b
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\b2b69ec229401154e8e0a4062a503f4b.bytes
+        m_ElementSize: 0
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 6
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 5
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 11
+          - offset: 0
+            elementCount: 7
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 8
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 9
+          - offset: 0
+            elementCount: 10
+          - offset: 0
+            elementCount: 2
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 3
+          - offset: 0
+            elementCount: 4
+          - offset: 0
+            elementCount: 1
+          - offset: 0
+            elementCount: 2
+        m_Asset: {fileID: 0}
+    - sceneHash: 1487282217
+      cellDataAsset:
+        m_AssetGUID: 8774bd3115aba2a45a7c00b6be17fd16
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\8774bd3115aba2a45a7c00b6be17fd16.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellOptionalDataAsset:
+        m_AssetGUID: a580d68bf220aef49b59dc4dfcee4fa3
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\a580d68bf220aef49b59dc4dfcee4fa3.bytes
+        m_ElementSize: 131072
+        m_StreamableCellDescs:
+          m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
+          m_Values:
+          - offset: 0
+            elementCount: 1
+          - offset: 131072
+            elementCount: 1
+          - offset: 262144
+            elementCount: 1
+          - offset: 393216
+            elementCount: 1
+          - offset: 524288
+            elementCount: 1
+          - offset: 655360
+            elementCount: 1
+          - offset: 786432
+            elementCount: 10
+          - offset: 2097152
+            elementCount: 11
+          - offset: 3538944
+            elementCount: 4
+          - offset: 4063232
+            elementCount: 5
+          - offset: 4718592
+            elementCount: 10
+          - offset: 6029312
+            elementCount: 11
+          - offset: 7471104
+            elementCount: 4
+          - offset: 7995392
+            elementCount: 6
+          - offset: 8781824
+            elementCount: 1
+          - offset: 8912896
+            elementCount: 1
+          - offset: 9043968
+            elementCount: 10
+          - offset: 10354688
+            elementCount: 11
+          - offset: 11796480
+            elementCount: 4
+          - offset: 12320768
+            elementCount: 7
+          - offset: 13238272
+            elementCount: 1
+          - offset: 13369344
+            elementCount: 1
+          - offset: 13500416
+            elementCount: 10
+          - offset: 14811136
+            elementCount: 11
+          - offset: 16252928
+            elementCount: 4
+          - offset: 16777216
+            elementCount: 5
+          - offset: 17432576
+            elementCount: 1
+          - offset: 17563648
+            elementCount: 1
+          - offset: 17694720
+            elementCount: 10
+          - offset: 19005440
+            elementCount: 11
+          - offset: 20447232
+            elementCount: 5
+          - offset: 21102592
+            elementCount: 7
+          - offset: 22020096
+            elementCount: 4
+          - offset: 22544384
+            elementCount: 4
+          - offset: 23068672
+            elementCount: 1
+          - offset: 23199744
+            elementCount: 2
+          - offset: 23461888
+            elementCount: 1
+          - offset: 23592960
+            elementCount: 1
+          - offset: 23724032
+            elementCount: 1
+          - offset: 23855104
+            elementCount: 1
+          - offset: 23986176
+            elementCount: 10
+          - offset: 25296896
+            elementCount: 11
+          - offset: 26738688
+            elementCount: 6
+          - offset: 27525120
+            elementCount: 8
+          - offset: 28573696
+            elementCount: 10
+          - offset: 29884416
+            elementCount: 11
+          - offset: 31326208
+            elementCount: 6
+          - offset: 32112640
+            elementCount: 7
+          - offset: 33030144
+            elementCount: 10
+          - offset: 34340864
+            elementCount: 11
+          - offset: 35782656
+            elementCount: 6
+          - offset: 36569088
+            elementCount: 9
+          - offset: 37748736
+            elementCount: 10
+          - offset: 39059456
+            elementCount: 11
+          - offset: 40501248
+            elementCount: 5
+          - offset: 41156608
+            elementCount: 7
+          - offset: 42074112
+            elementCount: 10
+          - offset: 43384832
+            elementCount: 11
+          - offset: 44826624
+            elementCount: 7
+          - offset: 45744128
+            elementCount: 9
+          - offset: 46923776
+            elementCount: 4
+          - offset: 47448064
+            elementCount: 4
+          - offset: 47972352
+            elementCount: 2
+          - offset: 48234496
+            elementCount: 2
+          - offset: 48496640
+            elementCount: 1
+          - offset: 48627712
+            elementCount: 1
+          - offset: 48758784
+            elementCount: 1
+          - offset: 48889856
+            elementCount: 1
+          - offset: 49020928
+            elementCount: 8
+          - offset: 50069504
+            elementCount: 10
+          - offset: 51380224
+            elementCount: 2
+          - offset: 51642368
+            elementCount: 3
+          - offset: 52035584
+            elementCount: 9
+          - offset: 53215232
+            elementCount: 10
+          - offset: 54525952
+            elementCount: 2
+          - offset: 54788096
+            elementCount: 3
+          - offset: 55181312
+            elementCount: 9
+          - offset: 56360960
+            elementCount: 10
+          - offset: 57671680
+            elementCount: 2
+          - offset: 57933824
+            elementCount: 3
+          - offset: 58327040
+            elementCount: 8
+          - offset: 59375616
+            elementCount: 9
+          - offset: 60555264
+            elementCount: 2
+          - offset: 60817408
+            elementCount: 3
+          - offset: 61210624
+            elementCount: 9
+          - offset: 62390272
+            elementCount: 10
+          - offset: 63700992
+            elementCount: 2
+          - offset: 63963136
+            elementCount: 3
+          - offset: 64356352
+            elementCount: 3
+          - offset: 64749568
+            elementCount: 4
+          - offset: 65273856
+            elementCount: 1
+          - offset: 65404928
+            elementCount: 2
+        m_Asset: {fileID: 0}
+      cellProbeOcclusionDataAsset:
+        m_AssetGUID: 5ae32c15babb976499fdbb173d7abcce
+        m_StreamableAssetPath: APVStreamingAssets\45d21c1ff1052df4dbe7e176b12012b5\5ae32c15babb976499fdbb173d7abcce.bytes
         m_ElementSize: 0
         m_StreamableCellDescs:
           m_Keys: 080000004800000010000000500000000100000041000000090000004900000011000000510000000a0000004a000000120000005200000003000000430000000b0000004b000000130000005300000004000000440000000c0000004c000000140000005400000005000000450000000d0000004d00000015000000550000000e0000004e000000160000005600000018000000580000002000000060000000190000005900000021000000610000001a0000005a00000022000000620000001b0000005b00000023000000630000001c0000005c00000024000000640000001d0000005d00000025000000650000001e0000005e000000260000006600000028000000680000003000000070000000290000006900000031000000710000002a0000006a00000032000000720000002b0000006b00000033000000730000002c0000006c00000034000000740000002d0000006d00000035000000750000002e0000006e0000003600000076000000
@@ -2546,9 +6020,9 @@ MonoBehaviour:
   supportLayerMaskChunkSize: 0
   supportOffsetsChunkSize: 0
   supportDataChunkSize: 163840
-  lightingScenario: Default
+  lightingScenario: Sc2
   version: 1
-  freezePlacement: 0
+  freezePlacement: 1
   probeOffset: {x: 0.25, y: 0.25, z: 0}
   simplificationLevels: 3
   minDistanceBetweenProbes: 0.5

@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000012, guid: 7a64f249b0258284a956624175034742,
+  m_LightingDataAsset: {fileID: 112000016, guid: 279781d23f9e96344a1f81e63db8dba1,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
@@ -1290,7 +1290,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 5.8851e-40, y: 2.524355e-29, z: 0, w: 2.3451332e+29}
+  m_BoundingSphereOverride: {x: 5.92625e-40, y: 2.524355e-29, z: 0, w: 3.941505e+12}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1307,7 +1307,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1464633178}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.20955008, y: 0.8723533, z: -0.43306294, w: -0.08686217}
+  m_LocalRotation: {x: 0.018741276, y: 0.8045881, z: -0.2706691, w: 0.5282282}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1330,11 +1330,20 @@ MonoBehaviour:
   MoonPos: 170
   Moon2Pos: 124
   AxisTilt: 23
-  Time: 198
+  Time: 120
   WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
   Moon: {fileID: 1505782376}
   Moon2: {fileID: 1520554145}
   VolumeWithSky: {fileID: 653260036}
+  BakeTimes:
+  - 53
+  - 78
+  - 120
+  - 190
+  - 260
+  - 279
+  - 307
+  SelectedBakeTime: 2
 --- !u!1 &1470925541
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,7 +1380,7 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 292982615}
+  MapWorlds: {fileID: 1973045247}
   InventoryRoot: {fileID: 224758079}
   UpdateTimes:
   - 0
@@ -1634,7 +1643,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5405
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 5.8851e-40, y: 2.524355e-29, z: 0, w: 2.3451332e+29}
+  m_BoundingSphereOverride: {x: 6.03364e-40, y: 2.524355e-29, z: 0, w: 1.5985219e-32}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1651,7 +1660,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505782373}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.40429723, y: 0.1925277, z: -0.26076517, w: 0.8552651}
+  m_LocalRotation: {x: -0.2663676, y: -0.4262364, z: -0.051587813, w: 0.8629656}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1874,7 +1883,8 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9350
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 5.8851e-40, y: 2.524355e-29, z: 0, w: 2.3451332e+29}
+  m_BoundingSphereOverride: {x: 4.5452035e+30, y: 2.7081723e+23, z: 7.4936693e+31,
+    w: 9.102061e-12}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1891,7 +1901,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520554142}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.47404668, y: -0.156956, z: -0.082064085, w: 0.8625023}
+  m_LocalRotation: {x: -0.26534963, y: -0.72954017, z: 0.056591284, w: 0.62782025}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

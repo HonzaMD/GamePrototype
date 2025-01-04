@@ -32,6 +32,9 @@ namespace Assets.Scripts.Core
         public Transform Moon2;
         public Volume VolumeWithSky;
 
+        public float[] BakeTimes;
+        public int SelectedBakeTime;
+
         private struct Data
         {
             public bool? on;
@@ -46,6 +49,10 @@ namespace Assets.Scripts.Core
 
         private void OnValidate()
         {
+            if (BakeTimes != null && SelectedBakeTime < BakeTimes.Length && SelectedBakeTime >= 0)
+            {
+                Time = BakeTimes[SelectedBakeTime];
+            }
             SetSunPosition();
         }
 
@@ -111,7 +118,7 @@ namespace Assets.Scripts.Core
                 skyRotationId = Shader.PropertyToID("_SkyRotation");
                 if (VolumeWithSky)
                 {
-                    var profile = VolumeWithSky.profile;
+                    var profile = VolumeWithSky.sharedProfile;
                     if (profile.TryGet<PhysicallyBasedSky>(out var sky))
                         skyMaterial = sky.material.value;
                 }
