@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.TextCore.Text;
 
 namespace Assets.Scripts.Core
 {
@@ -45,6 +46,7 @@ namespace Assets.Scripts.Core
         private int skyRotationId;
         private Material skyMaterial;
         private Data[] data;
+        private float scenarioBlendFactor;
 
 
         private void OnValidate()
@@ -54,6 +56,51 @@ namespace Assets.Scripts.Core
                 Time = BakeTimes[SelectedBakeTime];
             }
             SetSunPosition();
+        }
+
+        public void SetNextScenario()
+        {
+            if (scenarioBlendFactor > 0f)
+                OnValidate();
+            
+            SelectedBakeTime++;
+            if (SelectedBakeTime >= BakeTimes.Length)
+                SelectedBakeTime = 0;
+
+            if (BakeTimes[SelectedBakeTime] < 200)
+                OnValidate();
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
+            //Debug.Log("numberOfCellsBlendedPerFrame: " + probeRefVolume.numberOfCellsBlendedPerFrame);
+            //probeRefVolume.numberOfCellsBlendedPerFrame = 10;
+            //probeRefVolume.SetNumberOfCellsLoadedPerFrame(10);
+            //probeRefVolume.loadMaxCellsPerFrame = true;
+            //probeRefVolume.turnoverRate = 0.01f;
+            //probeRefVolume.lightingScenario = "Sc" + SelectedBakeTime;
+            scenarioBlendFactor = 0.2f;
+            probeRefVolume.BlendLightingScenario("Sc" + SelectedBakeTime, scenarioBlendFactor);
+            Debug.Log(probeRefVolume.lightingScenario);
+            Debug.Log(probeRefVolume.otherScenario);
+        }
+
+        public void SetNextScenario2()
+        {
+            if (scenarioBlendFactor > 0f)
+            {
+                scenarioBlendFactor += 0.2f;
+                var probeRefVolume = ProbeReferenceVolume.instance;
+                probeRefVolume.BlendLightingScenario("Sc" + SelectedBakeTime, scenarioBlendFactor);
+                Debug.Log(probeRefVolume.lightingScenario);
+                Debug.Log(probeRefVolume.otherScenario);
+                if (scenarioBlendFactor > 1f)
+                {
+                    scenarioBlendFactor = 0;
+                    probeRefVolume.lightingScenario = "Sc" + SelectedBakeTime;
+
+                    if (BakeTimes[SelectedBakeTime] >= 200)
+                        OnValidate();
+                }
+            }
         }
 
         private void SetSunPosition()

@@ -31,6 +31,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public bool IsPaused { get; private set; }
     public GameState State { get; private set; }
 
+    public TimeOfDay TimeOfDay;
+
     private readonly List<Trigger> triggers = new();
     private readonly HashSet<IActiveObject> activeObjects = new();
     private readonly Dictionary<Placeable, (int Tag, Map Map)> movingObjects = new();
@@ -87,6 +89,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         if (!IsPaused)
         {
+            if (Input.GetKeyDown(KeyCode.KeypadPlus))
+                TimeOfDay.SetNextScenario();
+            else
+                TimeOfDay.SetNextScenario2();
+
             InputController.GameUpdate();
             swStart = sw.Elapsed;
             UpdateTriggers();

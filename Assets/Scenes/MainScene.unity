@@ -1382,6 +1382,7 @@ MonoBehaviour:
   OccludersRoot: {fileID: 739283312}
   MapWorlds: {fileID: 1973045247}
   InventoryRoot: {fileID: 224758079}
+  TimeOfDay: {fileID: 1464633182}
   UpdateTimes:
   - 0
   - 0

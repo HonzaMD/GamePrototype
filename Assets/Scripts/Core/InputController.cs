@@ -39,20 +39,20 @@ namespace Assets.Scripts.Core
 
             mousePosInWord = Camera.Camera.ScreenToWorldPoint(mousePos);
 
-            SetupBakingSet();
+            //SetupBakingSet();
         }
 
-        private void SetupBakingSet()
-        {
-            var probeRefVolume = ProbeReferenceVolume.instance;
-            var scene = Game.Instance.MapWorlds.FindScene(Character.ArmSphere.transform.position.XY());
-            if (scene != default && scene != lastActiveScene)
-            {
-                lastActiveScene = scene;
-                probeRefVolume.SetActiveScene(scene);
-                Debug.Log("Setting Scene " + scene.name);
-            }
-        }
+        //private void SetupBakingSet()
+        //{
+        //    var probeRefVolume = ProbeReferenceVolume.instance;
+        //    var scene = Game.Instance.MapWorlds.FindScene(Character.ArmSphere.transform.position.XY());
+        //    if (scene != default && scene != lastActiveScene)
+        //    {
+        //        lastActiveScene = scene;
+        //        probeRefVolume.SetActiveScene(scene);
+        //        Debug.Log("Setting Scene " + scene.name);
+        //    }
+        //}
 
         public Vector3 GetMousePosOnZPlane(float z)
         {
