@@ -29,6 +29,7 @@ namespace Assets.Scripts.Core
 
         public Quaternion WorldPos;
 
+        public Transform Sun;
         public Transform Moon;
         public Transform Moon2;
         public Volume VolumeWithSky;
@@ -113,7 +114,8 @@ namespace Assets.Scripts.Core
             var axisRot = Quaternion.Euler(0, 0, AxisTilt);
             var TimeRot = Quaternion.Euler(0, Time - SunPos, 0);
             var spaceRot = WorldPos * TimeRot * axisRot;
-            transform.localRotation =  spaceRot * sunRot;
+            if (Sun)
+                Sun.localRotation =  spaceRot * sunRot;
             if (Moon)
                 Moon.localRotation = spaceRot * moonRot;
             if (Moon2)

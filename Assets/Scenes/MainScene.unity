@@ -1332,6 +1332,7 @@ MonoBehaviour:
   AxisTilt: 23
   Time: 120
   WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
+  Sun: {fileID: 1464633181}
   Moon: {fileID: 1505782376}
   Moon2: {fileID: 1520554145}
   VolumeWithSky: {fileID: 653260036}
