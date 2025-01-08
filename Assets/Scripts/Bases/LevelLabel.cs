@@ -11,5 +11,7 @@ namespace Assets.Scripts.Bases
     {
         [NonSerialized]
         internal Map.Map Map;
+        [NonSerialized]
+        internal bool wasCloned;
     }
 }

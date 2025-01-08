@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.Map
 {
@@ -19,6 +20,8 @@ namespace Assets.Scripts.Map
 
         public LvlBuildMode BuildMode;
         public LevelName DebugLevel;
+        public int Seed;
+        private Random.State buildingRandom;
 
         public MapSettings[] Settings;
         [NonSerialized]
@@ -26,7 +29,7 @@ namespace Assets.Scripts.Map
 
         public Map SelectedMap { get; set; }
 
-        private readonly Dictionary<string, Map> scenesToLoad = new();
+        private readonly Dictionary<string, (Map map, int seed)> scenesToLoad = new();
         [NonSerialized]
         public bool IsWorking;
 
@@ -49,6 +52,7 @@ namespace Assets.Scripts.Map
         public void CreateMaps(Ksids ksids)
         {
             CellList.CheckEmpty();
+            Random.InitState(Seed);
 
             for (int f = 0; f < WorldsCount; f++)
             {
@@ -60,13 +64,15 @@ namespace Assets.Scripts.Map
                     SelectedMap ??= Maps[f];
 
                     foreach (var scene in Settings[f].Scenes)
-                        scenesToLoad.Add(scene, Maps[f]);
+                        scenesToLoad.Add(scene, (Maps[f], Random.Range(int.MinValue, int.MaxValue)));
                 }
                 else
                 {
                     Maps[f] = new(f * WorldOffset * 2, 0, 144, 144, ksids, f, this);
                 }
             }
+
+            buildingRandom = Random.state;
 
             IsWorking = scenesToLoad.Count > 0;
             StartSceneLoad();
@@ -90,21 +96,21 @@ namespace Assets.Scripts.Map
 
         private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scenesToLoad.TryGetValue(scene.name, out var map))
+            if (scenesToLoad.TryGetValue(scene.name, out var pair))
             {
                 scenesToLoad.Remove(scene.name);
-                Level level = null;
+                WorldBuilder worldBuilder = null;
 
                 var list = ListPool<GameObject>.Rent();
                 scene.GetRootGameObjects(list);
                 foreach (var obj in list)
-                    if (obj.TryGetComponent<Level>(out level))
+                    if (obj.TryGetComponent(out worldBuilder))
                         break;
                 list.Return();
 
-                level.Create(map, BuildMode, DebugLevel);
+                worldBuilder.Build(pair.map, this, Settings[pair.map.Id], pair.seed);
 
-                sceneMap.Add(scene, level.posx, level.posy);
+                //sceneMap.Add(scene, level.posx, level.posy);
             }
 
             IsWorking = scenesToLoad.Count > 0;
@@ -132,8 +138,9 @@ namespace Assets.Scripts.Map
     public enum LvlBuildMode
     {
         All,
-        Statics,
-        Dynamics,
+        StaticsA,
+        StaticsB,
+        StaticsAB,
     }
 
 }

@@ -8,6 +8,7 @@ namespace Assets.Scripts.Map
 {
     public enum LevelName
     {
+        None,
         Level1, 
         Level2, 
         Level3, 
@@ -22,6 +23,7 @@ namespace Assets.Scripts.Map
     {
         private static readonly LevelBase[] levels = new LevelBase[]
         {
+            null,
             new Level1(),
             new Level2(),
             new Level3(),

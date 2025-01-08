@@ -14,6 +14,8 @@ namespace Assets.Scripts.Map
         public int sizex;
         public int sizey;
 
+        public string ActivationWords;
+
         public string[] Scenes;
 
         public MapSettings(int posx, int posy, int sizex, int sizey)

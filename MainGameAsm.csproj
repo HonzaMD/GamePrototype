@@ -91,6 +91,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
+    <Compile Include="Assets\Scripts\Map\WorldBuilder.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\KeysToInventory.cs" />

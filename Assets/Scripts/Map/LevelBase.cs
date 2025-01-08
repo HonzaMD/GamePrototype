@@ -60,9 +60,7 @@ namespace Assets.Scripts.Map
 
         private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y, LvlBuildMode buildMode)
         {
-            if (buildMode == LvlBuildMode.Statics && ch != 'H')
-                return null;
-            if (buildMode == LvlBuildMode.Dynamics && ch == 'H')
+            if (buildMode != LvlBuildMode.All && ch != 'H')
                 return null;
 
             switch (ch)
