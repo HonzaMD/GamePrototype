@@ -14,13 +14,15 @@ namespace Assets.Scripts.Map
     {
         protected abstract string[] Data { get; }
         private Vector2Int levelOffset;
+        private Vector2 levelRootPos;
 
         public int SizeX => Data[0].Length;
         public int SizeY => Data.Length;
 
-        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, LvlBuildMode buildMode, Vector2Int levelOffset)
+        public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, LvlBuildMode buildMode, Transform levelRoot, Vector2Int levelOffset)
         {
             this.levelOffset = levelOffset;
+            levelRootPos = levelRoot.position.XY();
             Assert.IsTrue(Data.GroupBy(s => s.Length).Count() == 1);
 
             var delayed = new List<(ILevelPlaceabe, Vector3)>();
@@ -55,7 +57,7 @@ namespace Assets.Scripts.Map
         {
             var pos = new Vector2(x + levelOffset.x, y + levelOffset.y);
             pos.Scale(Map.CellSize2d);
-            return pos;
+            return pos + levelRootPos;
         }
 
         private ILevelPlaceabe PlaceableFromChar(char ch, PrefabsStore prefabsStore, int x, int y, LvlBuildMode buildMode)

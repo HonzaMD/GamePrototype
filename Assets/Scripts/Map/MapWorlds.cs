@@ -108,6 +108,7 @@ namespace Assets.Scripts.Map
                         break;
                 list.Return();
 
+                SceneManager.SetActiveScene(scene);
                 worldBuilder.Build(pair.map, this, Settings[pair.map.Id], pair.seed);
 
                 //sceneMap.Add(scene, level.posx, level.posy);

@@ -101,7 +101,7 @@ public class Placeable : Label, ILevelPlaceabe
     {
         if (PosOffset.x < 0 || PosOffset.y < 0)
             pos += new Vector3(0.25f, 0.25f, 0);
-        transform.localPosition = pos;
+        transform.position = pos;
     }
 
     public override void Init(Map map) => PlaceToMap(map);
@@ -188,7 +188,7 @@ public class Placeable : Label, ILevelPlaceabe
         else
         {
             Transform transform = KillableLabel().transform;
-            var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.localPosition, null);
+            var rbLabel = Game.Instance.PrefabsStore.RbBase.Create(transform.parent, transform.position, null);
             var rb = rbLabel.Rigidbody;
             rb.mass = GetMass();
             transform.SetParent(rbLabel.transform, true);

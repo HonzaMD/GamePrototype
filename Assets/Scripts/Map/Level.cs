@@ -18,10 +18,10 @@ public class Level : MonoBehaviour
     public int localCellsY;
     public bool LightVariantA, LightVariantB;
 
-    [NonSerialized]
-    public int CellsX;
-    [NonSerialized]
-    public int CellsY;
+    //[NonSerialized]
+    //public int CellsX;
+    //[NonSerialized]
+    //public int CellsY;
 
 
 
@@ -50,6 +50,7 @@ public class Level : MonoBehaviour
         {
             root = Instantiate(root);
             root.wasCloned = true;
+            root.Map = Map;
         }
         else
         {
@@ -77,7 +78,7 @@ public class Level : MonoBehaviour
 
         if (levelSource != null)
         {
-            foreach (var pair in levelSource.Placeables(Game.Instance.PrefabsStore, buildMode, new Vector2Int(CellsX, CellsY)))
+            foreach (var pair in levelSource.Placeables(Game.Instance.PrefabsStore, buildMode, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
             {
                 pair.Item1.Instantiate(Map, PlaceablesRoots[0].transform, pair.Item2);
             }
@@ -96,11 +97,11 @@ public class Level : MonoBehaviour
         if (FarSide)
             FarSide.transform.position += delta;
 
-        var delta2 = delta.XY() + Vector2.right * WorldNum * MapWorlds.WorldOffset;
-        delta2.Scale(Map.CellSize2dInv);
-        var intDelta = Vector2Int.FloorToInt(delta2);
-        CellsX = localCellsX + intDelta.x;
-        CellsY = localCellsY + intDelta.y;
+        //var delta2 = delta.XY() + Vector2.right * WorldNum * MapWorlds.WorldOffset;
+        //delta2.Scale(Map.CellSize2dInv);
+        //var intDelta = Vector2Int.FloorToInt(delta2);
+        //CellsX = localCellsX + intDelta.x;
+        //CellsY = localCellsY + intDelta.y;
     }
 
     private void MakeCloseSideInvisible()
@@ -125,7 +126,7 @@ public class Level : MonoBehaviour
 #if UNITY_EDITOR
     internal void InstantiateInEditor(PrefabsStore prefabStore)
     {
-        foreach (var pair in LevelPairing.Get(LevelName).Placeables(prefabStore, LvlBuildMode.StaticsAB, new Vector2Int(CellsX, CellsY)))
+        foreach (var pair in LevelPairing.Get(LevelName).Placeables(prefabStore, LvlBuildMode.StaticsAB, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
         {
             var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
             obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
@@ -135,6 +136,9 @@ public class Level : MonoBehaviour
 
     internal bool MatchAVs(string activationWorlds)
     {
+        if (string.IsNullOrEmpty(ActivationWord) || string.IsNullOrEmpty(activationWorlds))
+            return false;
+
         int start = 0;
         for (; ; )
         {

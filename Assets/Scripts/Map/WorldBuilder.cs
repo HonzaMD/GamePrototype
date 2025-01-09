@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Utils;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.Map
 {
+    [RequireComponent(typeof(LevelLabel))]
     public class WorldBuilder : MonoBehaviour
     {
         private Map map;

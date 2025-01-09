@@ -350,11 +350,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildMode: 0
   DebugLevel: 0
+  Seed: 0
   Settings:
   - posx: 0
     posy: 0
     sizex: 144
     sizey: 144
+    ActivationWords: 
     Scenes:
     - Lvl_0a_1a
 --- !u!4 &292982616
@@ -456,21 +458,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildMode: 0
   DebugLevel: 0
+  Seed: 0
   Settings:
   - posx: 0
     posy: 0
     sizex: 432
     sizey: 432
+    ActivationWords: 
     Scenes:
-    - Lvl_0a_1b
-    - Lvl_0a_2a
-    - Lvl_0a_3a
-    - Lvl_0a_4b
-    - Lvl_0a_5a
-    - Lvl_0a_6b
-    - Lvl_0a_7b
-    - Lvl_0a_8a
-    - Lvl_0a_9b
+    - Lvl_0a
 --- !u!4 &336308063
 Transform:
   m_ObjectHideFlags: 0
@@ -1381,7 +1377,7 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 1973045247}
+  MapWorlds: {fileID: 336308062}
   InventoryRoot: {fileID: 224758079}
   TimeOfDay: {fileID: 1464633182}
   UpdateTimes:
@@ -2464,11 +2460,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildMode: 0
   DebugLevel: 0
+  Seed: 0
   Settings:
   - posx: 0
     posy: 0
     sizex: 432
     sizey: 432
+    ActivationWords: 
     Scenes:
     - Lvl_0a_1a
     - Lvl_0a_2a
@@ -2525,11 +2523,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildMode: 0
   DebugLevel: 0
+  Seed: 0
   Settings:
   - posx: 0
     posy: 0
     sizex: 432
     sizey: 432
+    ActivationWords: 
     Scenes:
     - Lvl_0a_1b
     - Lvl_0a_2b
@@ -2585,12 +2585,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BuildMode: 0
-  DebugLevel: 0
+  DebugLevel: 1
+  Seed: 0
   Settings:
   - posx: 0
     posy: 0
     sizex: 300
     sizey: 144
+    ActivationWords: 
     Scenes:
     - DebugScene
 --- !u!4 &2075615588

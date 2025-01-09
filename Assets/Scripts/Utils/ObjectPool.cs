@@ -43,7 +43,7 @@ namespace Assets.Scripts.Utils
             return stack.Count > 0 && stack.Peek().Age + 2 < counter;
         }
 
-        public T Get<T>(T prototype, Transform parent, Vector3 localPosition)
+        public T Get<T>(T prototype, Transform parent, Vector3 position)
             where T : TLabel
         {
             var stack = GetStack(prototype);
@@ -52,13 +52,13 @@ namespace Assets.Scripts.Utils
             {
                 ret = (T)stack.Dequeue().Obj;
                 ret.transform.parent = parent;
-                ret.transform.localPosition = localPosition;
+                ret.transform.position = position;
                 ret.gameObject.SetActive(true);
             }
             else
             {
                 ret = Instantiate(prototype, parent);
-                ret.transform.localPosition = localPosition;
+                ret.transform.position = position;
             }
             return ret;
         }
