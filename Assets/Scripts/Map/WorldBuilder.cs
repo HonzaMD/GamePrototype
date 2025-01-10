@@ -14,20 +14,31 @@ namespace Assets.Scripts.Map
     public class WorldBuilder : MonoBehaviour
     {
         private Map map;
-        private MapWorlds mapWorlds;
+        private LvlBuildMode buildMode;
+        private LevelName debugLevel;
         private MapSettings mapSettings;
-        private List<Level> levels = new();
+        private readonly List<Level> levels = new();
         private string activationWorlds;
 
-        internal void Build(Map map, MapWorlds mapWorlds, MapSettings mapSettings, int seed)
+        public void Build(Map map, MapWorlds mapWorlds, MapSettings mapSettings, int seed)
         {
             this.map = map;
-            this.mapWorlds = mapWorlds;
             this.mapSettings = mapSettings;
-            InitActivationWords();
+            buildMode = mapWorlds.BuildMode;
+            debugLevel = mapWorlds.DebugLevel;
+
             Random.InitState(seed);
+            InitActivationWords();
             DoSequence(transform);
-            CreateLevels();
+            CreateLevels(Game.Instance.PrefabsStore);
+        }
+
+        public void BuildInEditor(LvlBuildMode buildMode, PrefabsStore prefabStore)
+        {
+            this.buildMode = buildMode;
+            Random.InitState(0);
+            DoSequence(transform);
+            CreateLevels(prefabStore);
         }
 
         private void InitActivationWords()
@@ -44,7 +55,7 @@ namespace Assets.Scripts.Map
                 {
                     PrepareLevel(level);
                 }
-                else if (mapWorlds.BuildMode == LvlBuildMode.All)
+                else if (buildMode == LvlBuildMode.All)
                 {
                     var lvls = ListPool<Level>.Rent();
                     child.GetComponentsInLevel1Children(lvls);
@@ -82,18 +93,19 @@ namespace Assets.Scripts.Map
 
         private void PrepareLevel(Level level)
         {
-            if (level.MatchBuildMode(mapWorlds.BuildMode))
+            if (level.MatchBuildMode(buildMode))
             {
-                level.PrepareRoots(map, Random.Range(int.MinValue, int.MaxValue));
+                if (Application.isPlaying)
+                    level.PrepareRoots(map, Random.Range(int.MinValue, int.MaxValue));
                 levels.Add(level);
                 DoSequence(level.transform);
             }
         }
 
-        private void CreateLevels()
+        private void CreateLevels(PrefabsStore prefabStore)
         {
             foreach (Level level in levels)
-                level.Create(mapWorlds.BuildMode, mapWorlds.DebugLevel, transform.position);
+                level.Create(buildMode, debugLevel, transform.position, prefabStore);
         }
     }
 }

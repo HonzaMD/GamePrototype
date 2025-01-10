@@ -2,8 +2,6 @@
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Level : MonoBehaviour
@@ -60,7 +58,7 @@ public class Level : MonoBehaviour
         }
     }
 
-    public void Create(LvlBuildMode buildMode, LevelName debugLevel, Vector3 worldBuilderPos)
+    public void Create(LvlBuildMode buildMode, LevelName debugLevel, Vector3 worldBuilderPos, PrefabsStore prefabStore)
     {
         MoveToWorldPos(worldBuilderPos);
 
@@ -68,6 +66,19 @@ public class Level : MonoBehaviour
             LevelName = debugLevel;
         levelSource = LevelPairing.Get(LevelName);
 
+        if (Application.isPlaying)
+        {
+            CreateInPlay(buildMode);
+        }
+        else
+        {
+            CreateInEditor(buildMode, prefabStore);
+        }
+    }
+
+
+    private void CreateInPlay(LvlBuildMode buildMode)
+    {
         foreach (var root in PlaceablesRoots)
         {
             foreach (var p in root.GetComponentsInChildren<Placeable>())
@@ -87,21 +98,58 @@ public class Level : MonoBehaviour
         MakeCloseSideInvisible();
     }
 
+
+    private void CreateInEditor(LvlBuildMode buildMode, PrefabsStore prefabStore)
+    {
+#if UNITY_EDITOR
+        if (levelSource != null)
+        {
+            if (!PlaceablesRoots[0].wasCloned)
+                CloneRoot(ref PlaceablesRoots[0]);
+            foreach (var pair in levelSource.Placeables(prefabStore, buildMode, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
+            {
+                var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
+                obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
+            }
+        }
+#endif
+    }
+
     private void MoveToWorldPos(Vector3 worldBuilderPos)
     {
         Vector3 delta = transform.position - worldBuilderPos;
-        foreach (var root in PlaceablesRoots)
-            root.transform.position += delta;
-        if (CloseSide)
-            CloseSide.transform.position += delta;
-        if (FarSide)
-            FarSide.transform.position += delta;
+        if (delta != Vector3.zero)
+        {
+            if (!Application.isPlaying)
+                CloneRoots();
 
-        //var delta2 = delta.XY() + Vector2.right * WorldNum * MapWorlds.WorldOffset;
-        //delta2.Scale(Map.CellSize2dInv);
-        //var intDelta = Vector2Int.FloorToInt(delta2);
-        //CellsX = localCellsX + intDelta.x;
-        //CellsY = localCellsY + intDelta.y;
+            foreach (var root in PlaceablesRoots)
+                root.transform.position += delta;
+            if (CloseSide)
+                CloseSide.transform.position += delta;
+            if (FarSide)
+                FarSide.transform.position += delta;
+        }
+    }
+
+    private void CloneRoots()
+    {
+        for (int i = 0; i < PlaceablesRoots.Length; i++)
+        {
+            CloneRoot(ref PlaceablesRoots[i]);
+        }
+        if (CloseSide)
+            CloneRoot(ref CloseSide);
+        if (FarSide)
+            CloneRoot(ref FarSide);
+    }
+
+
+    private void CloneRoot(ref LevelLabel root)
+    {
+        root = Instantiate(root);
+        root.wasCloned = true;
+        root.gameObject.SetActive(true);
     }
 
     private void MakeCloseSideInvisible()
@@ -122,17 +170,6 @@ public class Level : MonoBehaviour
         }
     }
 
-
-#if UNITY_EDITOR
-    internal void InstantiateInEditor(PrefabsStore prefabStore)
-    {
-        foreach (var pair in LevelPairing.Get(LevelName).Placeables(prefabStore, LvlBuildMode.StaticsAB, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
-        {
-            var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
-            obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
-        }
-    }
-#endif
 
     internal bool MatchAVs(string activationWorlds)
     {

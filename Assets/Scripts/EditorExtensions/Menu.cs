@@ -3,33 +3,43 @@ using UnityEngine;
 using UnityEditor;
 using Assets.Scripts.Map;
 using System;
+using UnityEngine.SceneManagement;
+using Assets.Scripts.Bases;
 
 public class Menu
 {
-    [MenuItem("MyGame/BuildLevel")]
-    static void InstantiatePrefab()
+    [MenuItem("MyGame/BuildLevelA")]
+    static void BuildLevelA() => BuildLevel(LvlBuildMode.StaticsA);
+
+    [MenuItem("MyGame/BuildLevelB")]
+    static void BuildLevelB() => BuildLevel(LvlBuildMode.StaticsB);
+
+    [MenuItem("MyGame/BuildLevelAB")]
+    static void BuildLevelAB() => BuildLevel(LvlBuildMode.StaticsAB);
+
+    private static void BuildLevel(LvlBuildMode mode)
     {
         var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
-        var levels = GameObject.FindObjectsByType<Level>(FindObjectsSortMode.None);
-//        DeleteAllChildren(parent);
+        var builders = GameObject.FindObjectsByType<WorldBuilder>(FindObjectsSortMode.None);
 
-        foreach (var level in levels)
+        foreach (var builder in builders)
         {
-            level.InstantiateInEditor(prefabStore);
+            SceneManager.SetActiveScene(builder.gameObject.scene);
+            var builder2 = GameObject.Instantiate(builder);
+            builder2.GetComponent<LevelLabel>().wasCloned = true;
+            builder2.BuildInEditor(mode, prefabStore);
         }
     }
 
     [MenuItem("MyGame/ClearLevel")]
     static void InstantiateClearLevel()
     {
-        var prefabStore = AssetDatabase.LoadAssetAtPath<PrefabsStore>(@"Assets\Settings\Prefabs Store.asset");
-        var levels = GameObject.FindObjectsByType<Level>(FindObjectsSortMode.None);
-        //        DeleteAllChildren(parent);
+        var roots = GameObject.FindObjectsByType<LevelLabel>(FindObjectsSortMode.None);
 
-        foreach (var level in levels)
+        foreach (var root in roots)
         {
-            DeleteAllChildren(level.transform);
-
+            if (root.wasCloned)
+                GameObject.DestroyImmediate(root);
         }
     }
 
