@@ -29,6 +29,9 @@ namespace Assets.Scripts.Core
 
         public Quaternion WorldPos;
 
+        [Range(0f, 360)]
+        public float WorldOrientation;
+
         public Transform Sun;
         public Transform Moon;
         public Transform Moon2;
@@ -36,6 +39,8 @@ namespace Assets.Scripts.Core
 
         public float[] BakeTimes;
         public int SelectedBakeTime;
+        public bool IsBLighting;
+        private string scenario;
 
         private struct Data
         {
@@ -59,17 +64,24 @@ namespace Assets.Scripts.Core
             SetSunPosition();
         }
 
+        public void ChangeLightVariant()
+        {
+            IsBLighting = !IsBLighting;
+            SetNextScenarioInit();
+        }
+
         public void SetNextScenario()
         {
-            if (scenarioBlendFactor > 0f)
-                OnValidate();
-            
             SelectedBakeTime++;
             if (SelectedBakeTime >= BakeTimes.Length)
                 SelectedBakeTime = 0;
+            SetNextScenarioInit();
+        }
 
-            if (BakeTimes[SelectedBakeTime] < 200)
-                OnValidate();
+        public void SetNextScenarioInit()
+        {
+            scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
+            OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             //Debug.Log("numberOfCellsBlendedPerFrame: " + probeRefVolume.numberOfCellsBlendedPerFrame);
@@ -79,9 +91,8 @@ namespace Assets.Scripts.Core
             //probeRefVolume.turnoverRate = 0.01f;
             //probeRefVolume.lightingScenario = "Sc" + SelectedBakeTime;
             scenarioBlendFactor = 0.2f;
-            probeRefVolume.BlendLightingScenario("Sc" + SelectedBakeTime, scenarioBlendFactor);
-            Debug.Log(probeRefVolume.lightingScenario);
-            Debug.Log(probeRefVolume.otherScenario);
+            probeRefVolume.BlendLightingScenario(scenario, scenarioBlendFactor);
+            Debug.Log($"{probeRefVolume.lightingScenario} => {probeRefVolume.otherScenario}");
         }
 
         public void SetNextScenario2()
@@ -90,16 +101,11 @@ namespace Assets.Scripts.Core
             {
                 scenarioBlendFactor += 0.2f;
                 var probeRefVolume = ProbeReferenceVolume.instance;
-                probeRefVolume.BlendLightingScenario("Sc" + SelectedBakeTime, scenarioBlendFactor);
-                Debug.Log(probeRefVolume.lightingScenario);
-                Debug.Log(probeRefVolume.otherScenario);
+                probeRefVolume.BlendLightingScenario(scenario, scenarioBlendFactor);
                 if (scenarioBlendFactor > 1f)
                 {
                     scenarioBlendFactor = 0;
-                    probeRefVolume.lightingScenario = "Sc" + SelectedBakeTime;
-
-                    if (BakeTimes[SelectedBakeTime] >= 200)
-                        OnValidate();
+                    probeRefVolume.lightingScenario = scenario;
                 }
             }
         }
@@ -113,7 +119,8 @@ namespace Assets.Scripts.Core
             var moon2Rot = Quaternion.Euler(0, Moon2Pos, 0);
             var axisRot = Quaternion.Euler(0, 0, AxisTilt);
             var TimeRot = Quaternion.Euler(0, Time - SunPos, 0);
-            var spaceRot = WorldPos * TimeRot * axisRot;
+            var worldRot = Quaternion.Euler(0, WorldOrientation, 0);
+            var spaceRot = worldRot * WorldPos * TimeRot * axisRot;
             if (Sun)
                 Sun.localRotation =  spaceRot * sunRot;
             if (Moon)

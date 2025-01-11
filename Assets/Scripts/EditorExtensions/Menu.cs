@@ -39,7 +39,7 @@ public class Menu
         foreach (var root in roots)
         {
             if (root.wasCloned)
-                GameObject.DestroyImmediate(root);
+                GameObject.DestroyImmediate(root.gameObject);
         }
     }
 

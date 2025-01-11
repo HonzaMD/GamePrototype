@@ -16,12 +16,6 @@ public class Level : MonoBehaviour
     public int localCellsY;
     public bool LightVariantA, LightVariantB;
 
-    //[NonSerialized]
-    //public int CellsX;
-    //[NonSerialized]
-    //public int CellsY;
-
-
 
     internal Map Map { get; private set; }
     private LevelBase levelSource;
@@ -105,7 +99,7 @@ public class Level : MonoBehaviour
         if (levelSource != null)
         {
             if (!PlaceablesRoots[0].wasCloned)
-                CloneRoot(ref PlaceablesRoots[0]);
+                CloneRoot(ref PlaceablesRoots[0], false);
             foreach (var pair in levelSource.Placeables(prefabStore, buildMode, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
             {
                 var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
@@ -121,7 +115,7 @@ public class Level : MonoBehaviour
         if (delta != Vector3.zero)
         {
             if (!Application.isPlaying)
-                CloneRoots();
+                CloneRoots(false);
 
             foreach (var root in PlaceablesRoots)
                 root.transform.position += delta;
@@ -129,27 +123,34 @@ public class Level : MonoBehaviour
                 CloseSide.transform.position += delta;
             if (FarSide)
                 FarSide.transform.position += delta;
+        } 
+        else if (!Application.isPlaying)
+        {
+            CloneRoots(true);
         }
     }
 
-    private void CloneRoots()
+    private void CloneRoots(bool onlyIfInactive)
     {
         for (int i = 0; i < PlaceablesRoots.Length; i++)
         {
-            CloneRoot(ref PlaceablesRoots[i]);
+            CloneRoot(ref PlaceablesRoots[i], onlyIfInactive);
         }
         if (CloseSide)
-            CloneRoot(ref CloseSide);
+            CloneRoot(ref CloseSide, onlyIfInactive);
         if (FarSide)
-            CloneRoot(ref FarSide);
+            CloneRoot(ref FarSide, onlyIfInactive);
     }
 
 
-    private void CloneRoot(ref LevelLabel root)
+    private void CloneRoot(ref LevelLabel root, bool onlyIfInactive)
     {
-        root = Instantiate(root);
-        root.wasCloned = true;
-        root.gameObject.SetActive(true);
+        if (!onlyIfInactive || !root.gameObject.activeInHierarchy)
+        {
+            root = Instantiate(root);
+            root.wasCloned = true;
+            root.gameObject.SetActive(true);
+        }
     }
 
     private void MakeCloseSideInvisible()

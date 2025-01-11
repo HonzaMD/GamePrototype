@@ -39,6 +39,7 @@ namespace Assets.Scripts.Map
             Random.InitState(0);
             DoSequence(transform);
             CreateLevels(prefabStore);
+            levels.Clear();
         }
 
         private void InitActivationWords()
