@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Bases;
 using Assets.Scripts.Map;
+using Assets.Scripts.Stuff;
 using Assets.Scripts.Utils;
 using System;
 using UnityEngine;
@@ -73,6 +74,8 @@ public class Level : MonoBehaviour
 
     private void CreateInPlay(LvlBuildMode buildMode)
     {
+        MapSpecialObjects();
+
         foreach (var root in PlaceablesRoots)
         {
             foreach (var p in root.GetComponentsInChildren<Placeable>())
@@ -92,6 +95,36 @@ public class Level : MonoBehaviour
         MakeCloseSideInvisible();
     }
 
+    private void MapSpecialObjects()
+    {
+        for (int i = 0; i < PlaceablesRoots.Length; i++)
+        {
+            MapSpecialObjects(PlaceablesRoots[i]);
+        }
+        if (CloseSide)
+            MapSpecialObjects(CloseSide);
+        if (FarSide)
+            MapSpecialObjects(FarSide);
+    }
+
+    private void MapSpecialObjects(LevelLabel parent)
+    {
+        var regions = ListPool<LightVariantRegion>.Rent();
+        parent.GetComponentsInChildren(regions);
+        foreach (var region in regions) 
+        {
+            var v1 = region.transform.position.XY();
+            var v2 = v1 + new Vector2(region.sizeX, region.sizeY);
+            Map.LightVariantMap.Add(v1.x, v1.y, v2.x, v2.y);
+        }
+        regions.Return();
+
+        var rps = ListPool<ReflectionProbe>.Rent();
+        parent.GetComponentsInChildren(rps);
+        foreach (var rp in rps)
+            Map.ReflectionProbes.Add(rp);
+        rps.Return();
+    }
 
     private void CreateInEditor(LvlBuildMode buildMode, PrefabsStore prefabStore)
     {

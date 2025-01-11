@@ -97,6 +97,7 @@
     <Compile Include="Assets\Scripts\Core\Inventory\KeysToInventory.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Core\InputController.cs" />
+    <Compile Include="Assets\Scripts\Stuff\LightVariantRegion.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
@@ -123,9 +124,9 @@
     <Compile Include="Assets\Scripts\Map\CellSecondary.cs" />
     <Compile Include="Assets\Scripts\Core\Game.cs" />
     <Compile Include="Assets\Scripts\Map\MapBase.cs" />
-    <Compile Include="Assets\Scripts\Map\ScenesMap.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
+    <Compile Include="Assets\Scripts\Map\RegionMap.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DCGroup.cs" />
     <Compile Include="Assets\Scripts\Stuff\Occluder.cs" />

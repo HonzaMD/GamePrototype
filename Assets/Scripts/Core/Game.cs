@@ -91,8 +91,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         {
             if (Input.GetKeyDown(KeyCode.KeypadPlus))
                 TimeOfDay.SetNextScenario();
-            else if (Input.GetKeyDown(KeyCode.KeypadMinus))
-                TimeOfDay.ChangeLightVariant();
             else                
                 TimeOfDay.SetNextScenario2();
 

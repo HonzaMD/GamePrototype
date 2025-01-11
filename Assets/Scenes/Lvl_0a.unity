@@ -44981,6 +44981,52 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 843115391}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &843147853
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 843147854}
+  - component: {fileID: 843147855}
+  m_Layer: 0
+  m_Name: LightRegion
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &843147854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 843147853}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -36, y: -36, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2118383454}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &843147855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 843147853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5b77a2f92f952047af5b0f52cb89879, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sizeX: 72
+  sizeY: 72
 --- !u!1001 &845537429
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111091,7 +111137,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 4742997146472373690, guid: 20760a9705a4f574188f3e2988ac2bda,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 843147854}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6543712964617142166, guid: 20760a9705a4f574188f3e2988ac2bda,
         type: 3}
@@ -111116,6 +111166,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cc2c9a9b6e07634fbbc78ab368c74ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &2118383454 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4742997146472373690, guid: 20760a9705a4f574188f3e2988ac2bda,
+    type: 3}
+  m_PrefabInstance: {fileID: 2118383451}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2122427147
 PrefabInstance:
   m_ObjectHideFlags: 0

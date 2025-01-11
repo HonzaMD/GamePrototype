@@ -3901,7 +3901,7 @@ MonoBehaviour:
   supportLayerMaskChunkSize: 0
   supportOffsetsChunkSize: 0
   supportDataChunkSize: 163840
-  lightingScenario: ScA2
+  lightingScenario: ScA1
   version: 1
   freezePlacement: 1
   probeOffset: {x: 0.25, y: 0.25, z: 1}

@@ -24,6 +24,10 @@ namespace Assets.Scripts.Map
 
         private MapSecondary[] mapsSec;
 
+        public RegionMap LightVariantMap { get; } = new();
+        public List<ReflectionProbe> ReflectionProbes { get; } = new ();
+
+
         public Map(MapSettings settings, Ksids ksids, int id, MapWorlds mapWorlds)
             : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids, id, mapWorlds)
         {

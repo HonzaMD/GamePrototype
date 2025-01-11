@@ -64,10 +64,13 @@ namespace Assets.Scripts.Core
             SetSunPosition();
         }
 
-        public void ChangeLightVariant()
+        public void ChangeLightVariant(bool insideB)
         {
-            IsBLighting = !IsBLighting;
-            SetNextScenarioInit();
+            if (IsBLighting != insideB)
+            {
+                IsBLighting = insideB;
+                SetNextScenarioInit();
+            }
         }
 
         public void SetNextScenario()
