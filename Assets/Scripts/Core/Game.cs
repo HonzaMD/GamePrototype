@@ -146,6 +146,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
         else if (State == GameState.CreatingLevels && !MapWorlds.IsWorking)
         {
+            MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
             State = GameState.Ready;
             UnPauseGame();
         }

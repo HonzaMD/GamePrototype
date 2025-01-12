@@ -26,6 +26,7 @@ namespace Assets.Scripts.Map
 
         public RegionMap LightVariantMap { get; } = new();
         public List<ReflectionProbe> ReflectionProbes { get; } = new ();
+        public WorldBuilder WorldBuilder { get; set; }
 
 
         public Map(MapSettings settings, Ksids ksids, int id, MapWorlds mapWorlds)

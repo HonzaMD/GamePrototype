@@ -16,6 +16,7 @@ public class Level : MonoBehaviour
     public int localCellsX;
     public int localCellsY;
     public bool LightVariantA, LightVariantB;
+    public int BuildProbability = 10;
 
 
     internal Map Map { get; private set; }
@@ -23,21 +24,45 @@ public class Level : MonoBehaviour
     private int WorldNum => Map.Id;
     private int seed;
 
+    private delegate void RootWorker<T>(ref LevelLabel root, T prm);
+    private readonly RootWorker<bool> prepareRootA;
+    private readonly RootWorker<bool> mapSpecialObjectsA;
+    private readonly RootWorker<Vector3> translatePosA;
+    private readonly RootWorker<bool> cloneRootA;
+
+    public Level()
+    {
+        prepareRootA = PrepareRoot;
+        mapSpecialObjectsA = MapSpecialObjects;
+        translatePosA = (ref LevelLabel root, Vector3 delta) => root.transform.position += delta;
+        cloneRootA = CloneRoot;
+    }
+
     public void PrepareRoots(Map map, int seed)
     {
         Map = map;
         this.seed = seed;
-        for (int i = 0; i < PlaceablesRoots.Length; i++)
-        {
-            PrepareRoot(ref PlaceablesRoots[i]);
-        }
-        if (CloseSide)
-            PrepareRoot(ref CloseSide);
-        if (FarSide)
-            PrepareRoot(ref FarSide);
+        IterateRoots(prepareRootA, false);
     }
 
-    private void PrepareRoot(ref LevelLabel root)
+    private void IterateRoots<T>(RootWorker<T> action, T prm)
+    {
+        if (PlaceablesRoots != null)
+        {
+            for (int i = 0; i < PlaceablesRoots.Length; i++)
+            {
+                action(ref PlaceablesRoots[i], prm);
+            }
+        }
+        if (CloseSide)
+            action(ref CloseSide, prm);
+        if (FarSide)
+            action(ref FarSide, prm);
+    }
+
+
+
+    private void PrepareRoot(ref LevelLabel root, bool prm)
     {
         if (root.Map != null)
         {
@@ -74,13 +99,16 @@ public class Level : MonoBehaviour
 
     private void CreateInPlay(LvlBuildMode buildMode)
     {
-        MapSpecialObjects();
+        IterateRoots(mapSpecialObjectsA, false);
 
-        foreach (var root in PlaceablesRoots)
+        if (PlaceablesRoots != null)
         {
-            foreach (var p in root.GetComponentsInChildren<Placeable>())
+            foreach (var root in PlaceablesRoots)
             {
-                p.PlaceToMap(Map);
+                foreach (var p in root.GetComponentsInChildren<Placeable>())
+                {
+                    p.PlaceToMap(Map);
+                }
             }
         }
 
@@ -95,19 +123,8 @@ public class Level : MonoBehaviour
         MakeCloseSideInvisible();
     }
 
-    private void MapSpecialObjects()
-    {
-        for (int i = 0; i < PlaceablesRoots.Length; i++)
-        {
-            MapSpecialObjects(PlaceablesRoots[i]);
-        }
-        if (CloseSide)
-            MapSpecialObjects(CloseSide);
-        if (FarSide)
-            MapSpecialObjects(FarSide);
-    }
 
-    private void MapSpecialObjects(LevelLabel parent)
+    private void MapSpecialObjects(ref LevelLabel parent, bool prm)
     {
         var regions = ListPool<LightVariantRegion>.Rent();
         parent.GetComponentsInChildren(regions);
@@ -148,33 +165,17 @@ public class Level : MonoBehaviour
         if (delta != Vector3.zero)
         {
             if (!Application.isPlaying)
-                CloneRoots(false);
+                IterateRoots(cloneRootA, false);
 
-            foreach (var root in PlaceablesRoots)
-                root.transform.position += delta;
-            if (CloseSide)
-                CloseSide.transform.position += delta;
-            if (FarSide)
-                FarSide.transform.position += delta;
+            IterateRoots(translatePosA, delta);
         } 
         else if (!Application.isPlaying)
         {
-            CloneRoots(true);
+            IterateRoots(cloneRootA, true);
         }
     }
 
-    private void CloneRoots(bool onlyIfInactive)
-    {
-        for (int i = 0; i < PlaceablesRoots.Length; i++)
-        {
-            CloneRoot(ref PlaceablesRoots[i], onlyIfInactive);
-        }
-        if (CloseSide)
-            CloneRoot(ref CloseSide, onlyIfInactive);
-        if (FarSide)
-            CloneRoot(ref FarSide, onlyIfInactive);
-    }
-
+    
 
     private void CloneRoot(ref LevelLabel root, bool onlyIfInactive)
     {
@@ -213,15 +214,37 @@ public class Level : MonoBehaviour
         int start = 0;
         for (; ; )
         {
-            if (start + ActivationWord.Length > activationWorlds.Length)
+            int i = ActivationWord.IndexOf(',', start);
+            if (i > 0)
+            {
+                if (MatchAvs1(activationWorlds, ActivationWord.AsSpan(start, i-start)))
+                    return true;
+                start = i + 1;
+            }
+            else
+            {
+                return MatchAvs1(activationWorlds, ActivationWord.AsSpan(start));
+            }
+        }
+    }
+
+    private bool MatchAvs1(string activationWorlds, ReadOnlySpan<char> myWord)
+    {
+        if (myWord.Length == 0)
+            return false;
+
+        int start = 0;
+        for (; ; )
+        {
+            if (start + myWord.Length > activationWorlds.Length)
                 return false;
-            int i = activationWorlds.IndexOf(ActivationWord, start, StringComparison.Ordinal);
+            int i = activationWorlds.AsSpan(start).IndexOf(myWord, StringComparison.Ordinal);
             if (i == -1)
                 return false;
-            int i2 = i + ActivationWord.Length;
+            int i2 = i + myWord.Length;
             if ((i == 0 || activationWorlds[i - 1] == ',') && (i2 == activationWorlds.Length || activationWorlds[i2] == ','))
                 return true;
-            start = i2+1;
+            start = i2 + 1;
         }
     }
 

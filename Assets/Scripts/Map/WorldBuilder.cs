@@ -26,6 +26,7 @@ namespace Assets.Scripts.Map
             this.mapSettings = mapSettings;
             buildMode = mapWorlds.BuildMode;
             debugLevel = mapWorlds.DebugLevel;
+            map.WorldBuilder = this;
 
             Random.InitState(seed);
             InitActivationWords();
@@ -89,7 +90,17 @@ namespace Assets.Scripts.Map
         {
             if (lvls.Count == 0)
                 return null;
-            return lvls[Random.Range(0, lvls.Count)];
+            int range = lvls.Sum(l => l.BuildProbability);
+            int rnd = Random.Range(0, range);
+
+            foreach (var level in lvls)
+            {
+                if (rnd < level.BuildProbability)
+                    return level;
+                rnd -= level.BuildProbability;
+            }
+
+            return null;
         }
 
         private void PrepareLevel(Level level)

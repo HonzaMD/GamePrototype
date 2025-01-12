@@ -4878,7 +4878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -4889,6 +4889,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &111258861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10278,7 +10279,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -10289,6 +10290,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &187910307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12307,7 +12309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -12318,6 +12320,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &222353391
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12584,7 +12587,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -12595,6 +12598,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &227428588
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17235,7 +17239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -17246,6 +17250,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!43 &319003282
 Mesh:
   m_ObjectHideFlags: 0
@@ -18656,6 +18661,7 @@ GameObject:
   - component: {fileID: 354709160}
   - component: {fileID: 354709159}
   - component: {fileID: 354709158}
+  - component: {fileID: 354709161}
   m_Layer: 0
   m_Name: Builder
   m_TagString: Untagged
@@ -18712,6 +18718,36 @@ Transform:
   - {fileID: 1836717872}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &354709161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354709157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d31437dc3014e84792381771d1a6194, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SunPos: 336
+  MoonPos: 163
+  Moon2Pos: 113
+  AxisTilt: 23
+  Time: 0
+  WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
+  WorldOrientation: 64
+  Sun: {fileID: 0}
+  Moon: {fileID: 0}
+  Moon2: {fileID: 0}
+  VolumeWithSky: {fileID: 0}
+  BakeTimes:
+  - 78
+  - 220
+  - 282
+  - 0
+  SelectedBakeTime: 3
+  IsBLighting: 0
 --- !u!1001 &355251127
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18904,7 +18940,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -18915,6 +18951,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &358164930
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28000,7 +28037,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -28012,6 +28049,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &539581121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41272,7 +41310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -41283,6 +41321,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &779947420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41549,7 +41588,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -41560,6 +41599,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &786808891
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45976,7 +46016,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -45987,6 +46027,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &857896919
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55575,7 +55616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -55586,6 +55627,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &1038940796
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -59660,7 +59702,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -59671,6 +59713,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &1137934884
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -70454,7 +70497,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -70465,6 +70508,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &1367758048
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71932,7 +71976,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -71943,6 +71987,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &1394670660
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91431,6 +91476,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &1765386686
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -92141,7 +92187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -92152,6 +92198,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &1782517497
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -92731,7 +92778,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -92742,6 +92789,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &1789597981
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96125,7 +96173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightA
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 1335390812}
@@ -96136,6 +96184,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 1
   LightVariantB: 0
+  BuildProbability: 10
 --- !u!1001 &1858420326
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -105993,7 +106042,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18746d5fc4659d14886055b6f1232292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActivationWord: 
+  ActivationWord: LightB
   LevelName: 6
   PlaceablesRoots:
   - {fileID: 263931155}
@@ -106004,6 +106053,7 @@ MonoBehaviour:
   localCellsY: 0
   LightVariantA: 0
   LightVariantB: 1
+  BuildProbability: 10
 --- !u!1001 &2037990022
 PrefabInstance:
   m_ObjectHideFlags: 0

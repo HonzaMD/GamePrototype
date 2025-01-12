@@ -458,7 +458,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildMode: 0
   DebugLevel: 0
-  Seed: 0
+  Seed: 42
   Settings:
   - posx: 0
     posy: 0
@@ -1080,7 +1080,6 @@ GameObject:
   - component: {fileID: 1464633181}
   - component: {fileID: 1464633180}
   - component: {fileID: 1464633179}
-  - component: {fileID: 1464633182}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -1303,43 +1302,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1464633178}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.12891111, y: 0.55548877, z: 0.2823664, w: 0.7714165}
+  m_LocalRotation: {x: -0.024359662, y: 0.5527412, z: -0.5096098, w: -0.65892464}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1866069383}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1464633182
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1464633178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d31437dc3014e84792381771d1a6194, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SunPos: 336
-  MoonPos: 163
-  Moon2Pos: 113
-  AxisTilt: 23
-  Time: 0
-  WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
-  WorldOrientation: 64
-  Sun: {fileID: 1464633181}
-  Moon: {fileID: 1505782376}
-  Moon2: {fileID: 1520554145}
-  VolumeWithSky: {fileID: 653260036}
-  BakeTimes:
-  - 78
-  - 220
-  - 282
-  - 0
-  SelectedBakeTime: 3
-  IsBLighting: 0
 --- !u!1 &1470925541
 GameObject:
   m_ObjectHideFlags: 0
@@ -1378,7 +1347,7 @@ MonoBehaviour:
   OccludersRoot: {fileID: 739283312}
   MapWorlds: {fileID: 336308062}
   InventoryRoot: {fileID: 224758079}
-  TimeOfDay: {fileID: 1464633182}
+  TimeOfDay: {fileID: 1866069384}
   UpdateTimes:
   - 0
   - 0
@@ -1463,7 +1432,7 @@ MonoBehaviour:
   m_Intensity: 100000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
-  m_LightDimmer: 1
+  m_LightDimmer: 0
   m_VolumetricDimmer: 1
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
@@ -1601,7 +1570,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1657,7 +1626,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505782373}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.27396992, y: -0.736066, z: 0.14590868, w: 0.6015464}
+  m_LocalRotation: {x: -0.51014644, y: 0.69143957, z: -0.0067966348, w: 0.511484}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1897,7 +1866,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520554142}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.30996475, y: -0.92132676, z: 0.016453508, w: 0.23411134}
+  m_LocalRotation: {x: -0.46522203, y: 0.41049466, z: 0.2094373, w: 0.7557769}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2279,6 +2248,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1866069383}
+  - component: {fileID: 1866069384}
   m_Layer: 0
   m_Name: SunMoon
   m_TagString: Untagged
@@ -2304,6 +2274,35 @@ Transform:
   - {fileID: 1520554145}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1866069384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1866069382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d31437dc3014e84792381771d1a6194, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SunPos: 336
+  MoonPos: 163
+  Moon2Pos: 113
+  AxisTilt: 23
+  Time: 220
+  WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
+  WorldOrientation: 64
+  Sun: {fileID: 1464633181}
+  Moon: {fileID: 1505782376}
+  Moon2: {fileID: 1520554145}
+  VolumeWithSky: {fileID: 653260036}
+  BakeTimes:
+  - 78
+  - 220
+  - 282
+  - 0
+  SelectedBakeTime: 1
 --- !u!1001 &1872268151
 PrefabInstance:
   m_ObjectHideFlags: 0

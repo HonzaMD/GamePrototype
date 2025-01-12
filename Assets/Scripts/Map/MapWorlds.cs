@@ -108,8 +108,6 @@ namespace Assets.Scripts.Map
 
                 SceneManager.SetActiveScene(scene);
                 worldBuilder.Build(pair.map, this, Settings[pair.map.Id], pair.seed);
-
-                //sceneMap.Add(scene, level.posx, level.posy);
             }
 
             IsWorking = scenesToLoad.Count > 0;
@@ -125,6 +123,14 @@ namespace Assets.Scripts.Map
         }
 
         public void EnqueueCellStateTest(int cellPos, int mapId) => candidatesQ.Enqueue((cellPos, mapId));
+
+        internal void SwitchWorld(int id)
+        {
+            SelectedMap = Maps[id];
+            Game.Instance.TimeOfDay.CopySettingsFrom(SelectedMap.WorldBuilder.GetComponent<TimeOfDay>());
+            var isBLights = Game.Instance.InputController.IsBLightVariant();
+            Game.Instance.TimeOfDay.ResetAPVs(isBLights, SelectedMap.WorldBuilder);
+        }
     }
 
     public enum LvlBuildMode

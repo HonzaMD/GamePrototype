@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Map;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,7 +40,7 @@ namespace Assets.Scripts.Core
 
         public float[] BakeTimes;
         public int SelectedBakeTime;
-        public bool IsBLighting;
+        private bool IsBLighting;
         private string scenario;
 
         private struct Data
@@ -87,12 +88,6 @@ namespace Assets.Scripts.Core
             OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
-            //Debug.Log("numberOfCellsBlendedPerFrame: " + probeRefVolume.numberOfCellsBlendedPerFrame);
-            //probeRefVolume.numberOfCellsBlendedPerFrame = 10;
-            //probeRefVolume.SetNumberOfCellsLoadedPerFrame(10);
-            //probeRefVolume.loadMaxCellsPerFrame = true;
-            //probeRefVolume.turnoverRate = 0.01f;
-            //probeRefVolume.lightingScenario = "Sc" + SelectedBakeTime;
             scenarioBlendFactor = 0.2f;
             probeRefVolume.BlendLightingScenario(scenario, scenarioBlendFactor);
             Debug.Log($"{probeRefVolume.lightingScenario} => {probeRefVolume.otherScenario}");
@@ -108,6 +103,7 @@ namespace Assets.Scripts.Core
                 if (scenarioBlendFactor > 1f)
                 {
                     scenarioBlendFactor = 0;
+                    probeRefVolume.BlendLightingScenario(scenario, 1f);
                     probeRefVolume.lightingScenario = scenario;
                 }
             }
@@ -183,8 +179,11 @@ namespace Assets.Scripts.Core
                 }
 
                 data = new Data[3];
-                data[0].light = GetComponent<Light>();
-                data[0].hdLight = GetComponent<HDAdditionalLightData>();
+                if (Sun)
+                {
+                    data[0].light = Sun.GetComponent<Light>();
+                    data[0].hdLight = Sun.GetComponent<HDAdditionalLightData>();
+                }
                 
                 if (Moon)
                 {
@@ -198,6 +197,32 @@ namespace Assets.Scripts.Core
                     data[2].hdLight = Moon2.GetComponent<HDAdditionalLightData>();
                 }
             }
+        }
+
+        internal void CopySettingsFrom(TimeOfDay timeOfDay)
+        {
+            SunPos = timeOfDay.SunPos;
+            MoonPos = timeOfDay.MoonPos;
+            Moon2Pos = timeOfDay.Moon2Pos;
+            AxisTilt = timeOfDay.AxisTilt;
+            WorldPos = timeOfDay.WorldPos;
+            WorldOrientation = timeOfDay.WorldOrientation;
+            BakeTimes = timeOfDay.BakeTimes;
+            if (SelectedBakeTime > 0)
+                SelectedBakeTime = SelectedBakeTime % BakeTimes.Length;
+        }
+
+        internal void ResetAPVs(bool isBLights, WorldBuilder worldBuilder)
+        {
+            IsBLighting = isBLights;
+            scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
+            scenarioBlendFactor = 0f;
+            OnValidate();
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
+            probeRefVolume.SetActiveScene(worldBuilder.gameObject.scene);
+            probeRefVolume.lightingScenario = scenario;
+            Debug.Log($"PV Baking set: {probeRefVolume.currentBakingSet.name} Scenario Setup: {scenario}");
         }
     }
 }
