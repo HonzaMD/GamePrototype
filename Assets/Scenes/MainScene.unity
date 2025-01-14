@@ -1108,7 +1108,7 @@ MonoBehaviour:
   m_Intensity: 100000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
-  m_LightDimmer: 0
+  m_LightDimmer: 1
   m_VolumetricDimmer: 1
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
@@ -1246,7 +1246,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1285,7 +1285,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 9.47e-43, y: NaN, z: 0, w: 4.776393e-39}
+  m_BoundingSphereOverride: {x: 2.15241e-40, y: 2.524355e-29, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1609,7 +1609,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5405
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: NaN, z: NaN, w: 2.5044436e-10}
+  m_BoundingSphereOverride: {x: 2.1544e-40, y: 2.524355e-29, z: 0, w: 4.964139e-38}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1849,7 +1849,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9350
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 6.7559765e+31, y: 0, z: 13727.118, w: 1e-45}
+  m_BoundingSphereOverride: {x: 4.4553127e-20, y: 2.75517e-39, z: 2.15384e-40, w: 3.941505e+12}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0

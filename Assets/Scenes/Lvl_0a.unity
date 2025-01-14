@@ -18747,7 +18747,6 @@ MonoBehaviour:
   - 282
   - 0
   SelectedBakeTime: 3
-  IsBLighting: 0
 --- !u!1001 &355251127
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108303,7 +108302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a83d2f7ae04ab6f4f99b0d85377be998, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedBakingSet: {fileID: 11400000, guid: 4ab0f702eb0cea44b963238d7820e88b,
+  serializedBakingSet: {fileID: 11400000, guid: 9a3314f8808712c4597a5dc62fd0b104,
     type: 2}
   sceneGUID: 4ede50e16ab033f4ab04197810f820bb
   obsoleteAsset: {fileID: 11400000, guid: 53c8f7504d2413e4398328a2e4023f1b, type: 2}

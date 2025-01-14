@@ -55,6 +55,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         Awaked,
         CreatingLevels,
         Ready,
+        SwitchWorld,
     }
 
     void Update()
@@ -147,8 +148,15 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         else if (State == GameState.CreatingLevels && !MapWorlds.IsWorking)
         {
             MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
-            State = GameState.Ready;
-            UnPauseGame();
+            State = GameState.SwitchWorld;
+        }
+        else if (State == GameState.SwitchWorld)
+        {
+            if (MapWorlds.SwitchWorldContinue())
+            {
+                State = GameState.Ready;
+                UnPauseGame();
+            }
         }
     }
 

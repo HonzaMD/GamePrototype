@@ -131,6 +131,11 @@ namespace Assets.Scripts.Map
             var isBLights = Game.Instance.InputController.IsBLightVariant();
             Game.Instance.TimeOfDay.ResetAPVs(isBLights, SelectedMap.WorldBuilder);
         }
+
+        internal bool SwitchWorldContinue()
+        {
+            return Game.Instance.TimeOfDay.ResetAPVs2();
+        }
     }
 
     public enum LvlBuildMode

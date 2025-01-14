@@ -99,11 +99,14 @@ namespace Assets.Scripts.Core
             {
                 scenarioBlendFactor += 0.2f;
                 var probeRefVolume = ProbeReferenceVolume.instance;
-                probeRefVolume.BlendLightingScenario(scenario, scenarioBlendFactor);
-                if (scenarioBlendFactor > 1f)
+                if (scenarioBlendFactor <= 1f)
                 {
+                    probeRefVolume.BlendLightingScenario(scenario, scenarioBlendFactor);
+                }
+                else 
+                { 
                     scenarioBlendFactor = 0;
-                    probeRefVolume.BlendLightingScenario(scenario, 1f);
+                    //probeRefVolume.BlendLightingScenario(scenario, 1f);
                     probeRefVolume.lightingScenario = scenario;
                 }
             }
@@ -215,14 +218,27 @@ namespace Assets.Scripts.Core
         internal void ResetAPVs(bool isBLights, WorldBuilder worldBuilder)
         {
             IsBLighting = isBLights;
-            scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
-            scenarioBlendFactor = 0f;
-            OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             probeRefVolume.SetActiveScene(worldBuilder.gameObject.scene);
-            probeRefVolume.lightingScenario = scenario;
-            Debug.Log($"PV Baking set: {probeRefVolume.currentBakingSet.name} Scenario Setup: {scenario}");
+            Debug.Log($"Init: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
+
+            //scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
+            //scenarioBlendFactor = 0f;
+            //OnValidate();
+
+            //probeRefVolume.lightingScenario = scenario;
+            //Debug.Log($"PV Baking set: {probeRefVolume.currentBakingSet.name} Scenario Setup: {scenario}");
+        }
+
+        internal bool ResetAPVs2()
+        {
+            var probeRefVolume = ProbeReferenceVolume.instance;
+            if (!probeRefVolume.DataHasBeenLoaded())
+                return false;
+            Debug.Log($"Init: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
+            SetNextScenarioInit();
+            return true;
         }
     }
 }
