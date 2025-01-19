@@ -40,7 +40,8 @@ namespace Assets.Scripts.Core
 
         public float[] BakeTimes;
         public int SelectedBakeTime;
-        private bool IsBLighting;
+        private bool isBLighting;
+        public bool IsBLighting => isBLighting;
         private string scenario;
 
         private struct Data
@@ -67,9 +68,9 @@ namespace Assets.Scripts.Core
 
         public void ChangeLightVariant(bool insideB)
         {
-            if (IsBLighting != insideB)
+            if (isBLighting != insideB)
             {
-                IsBLighting = insideB;
+                isBLighting = insideB;
                 SetNextScenarioInit();
             }
         }
@@ -84,7 +85,7 @@ namespace Assets.Scripts.Core
 
         public void SetNextScenarioInit()
         {
-            scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
+            scenario = $"Sc{(isBLighting ? 'B' : 'A')}{SelectedBakeTime}";
             OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
@@ -217,7 +218,7 @@ namespace Assets.Scripts.Core
 
         internal void ResetAPVs(bool isBLights, WorldBuilder worldBuilder)
         {
-            IsBLighting = isBLights;
+            isBLighting = isBLights;
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             probeRefVolume.SetActiveScene(worldBuilder.gameObject.scene);

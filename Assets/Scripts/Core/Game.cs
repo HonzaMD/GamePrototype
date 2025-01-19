@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using UnityTemplateProjects;
 
 public class Game : MonoBehaviour, ISerializationCallbackReceiver
@@ -41,6 +42,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
     private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
+    private int updateTicker;
 
     private readonly Stopwatch sw = new();
     private int lastGCCount;
@@ -116,6 +118,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
                 MapWorlds.ProcessCellStateTests(10);
                 UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
+            UpdateReflectionProbes();
+            updateTicker++;
         }
 
         //if (!cameraMode)
@@ -125,6 +129,22 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
 
         LogGC();
+    }
+
+    private void UpdateReflectionProbes()
+    {
+        if (updateTicker % 7 == 2) 
+        {
+            var probes = MapWorlds.SelectedMap.ReflectionProbes;
+            if (probes.Count > 0)
+            {
+                var probe = probes[(updateTicker / 7) % probes.Count].GetComponent<HDAdditionalReflectionData>();
+                var v = probe.transform.position.XY();
+                var probeLightVariant = MapWorlds.SelectedMap.LightVariantMap.Find(v.x, v.y);
+                if (probeLightVariant == TimeOfDay.IsBLighting)
+                    probe.RequestRenderNextUpdate();
+            }
+        }
     }
 
     private void LogGC()

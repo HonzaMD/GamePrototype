@@ -139,6 +139,7 @@
     <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
+    <Compile Include="Assets\Scripts\Utils\CopyCustomBufferPass.cs" />
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />

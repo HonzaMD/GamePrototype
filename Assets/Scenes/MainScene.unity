@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: a5bda8bec72604541a5264177ae3790f,
+  m_LightingDataAsset: {fileID: 112000004, guid: c15bd3c7adc0689419fd2de445f0f7cf,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: e7c7b2d6a10e518448f61317b67781d8,
     type: 2}
@@ -171,6 +171,61 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 275090723}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &165257666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 165257668}
+  - component: {fileID: 165257667}
+  m_Layer: 0
+  m_Name: MapWorlds1x2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &165257667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165257666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bef8f74746d444d961ce556773eed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BuildMode: 0
+  DebugLevel: 0
+  Seed: 42
+  Settings:
+  - posx: 0
+    posy: 0
+    sizex: 288
+    sizey: 144
+    ActivationWords: 
+    Scenes:
+    - Lvl_b1x2
+--- !u!4 &165257668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165257666}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &222245415
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,61 +374,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 849bdd144b0e69e489323b0d3fc2f197, type: 3}
---- !u!1 &292982614
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 292982616}
-  - component: {fileID: 292982615}
-  m_Layer: 0
-  m_Name: MapWorldsSLT
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &292982615
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 292982614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57bef8f74746d444d961ce556773eed1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BuildMode: 0
-  DebugLevel: 0
-  Seed: 0
-  Settings:
-  - posx: 0
-    posy: 0
-    sizex: 144
-    sizey: 144
-    ActivationWords: 
-    Scenes:
-    - Lvl_0a_1a
---- !u!4 &292982616
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 292982614}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &301410160
 GameObject:
   m_ObjectHideFlags: 0
@@ -1285,7 +1285,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.15241e-40, y: 2.524355e-29, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 2.85551e-40, y: 2.524355e-29, z: 0, w: 4.3e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1302,7 +1302,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1464633178}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.024359662, y: 0.5527412, z: -0.5096098, w: -0.65892464}
+  m_LocalRotation: {x: -0.14602423, y: 0.92910844, z: -0.05717322, w: 0.33491147}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1345,7 +1345,7 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 336308062}
+  MapWorlds: {fileID: 165257667}
   InventoryRoot: {fileID: 224758079}
   TimeOfDay: {fileID: 1866069384}
   UpdateTimes:
@@ -1609,7 +1609,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5405
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.1544e-40, y: 2.524355e-29, z: 0, w: 4.964139e-38}
+  m_BoundingSphereOverride: {x: 2.7846457e-20, y: 5.51118e-40, z: 1.69577e-40, w: 3878.9375}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1626,7 +1626,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505782373}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.51014644, y: 0.69143957, z: -0.0067966348, w: 0.511484}
+  m_LocalRotation: {x: -0.06598113, y: -0.27756622, z: 0.14226153, w: 0.9478213}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1849,7 +1849,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9350
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 4.4553127e-20, y: 2.75517e-39, z: 2.15384e-40, w: 3.941505e+12}
+  m_BoundingSphereOverride: {x: 6.2097996e+22, y: 7.7140256e+31, z: 538860700, w: 3.9415303e+12}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1866,7 +1866,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520554142}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.46522203, y: 0.41049466, z: 0.2094373, w: 0.7557769}
+  m_LocalRotation: {x: 0.0003231027, y: -0.65212697, z: 0.15681757, w: 0.74171335}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2290,7 +2290,7 @@ MonoBehaviour:
   MoonPos: 163
   Moon2Pos: 113
   AxisTilt: 23
-  Time: 220
+  Time: 78
   WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
   WorldOrientation: 64
   Sun: {fileID: 1464633181}
@@ -2302,7 +2302,7 @@ MonoBehaviour:
   - 220
   - 282
   - 0
-  SelectedBakeTime: 1
+  SelectedBakeTime: 0
 --- !u!1001 &1872268151
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2425,132 +2425,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1470925543}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1973045246
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1973045248}
-  - component: {fileID: 1973045247}
-  m_Layer: 0
-  m_Name: MapWorlds3x3
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1973045247
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1973045246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57bef8f74746d444d961ce556773eed1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BuildMode: 0
-  DebugLevel: 0
-  Seed: 0
-  Settings:
-  - posx: 0
-    posy: 0
-    sizex: 432
-    sizey: 432
-    ActivationWords: 
-    Scenes:
-    - Lvl_0a_1a
-    - Lvl_0a_2a
-    - Lvl_0a_3a
-    - Lvl_0a_4a
-    - Lvl_0a_5a
-    - Lvl_0a_6a
-    - Lvl_0a_7a
-    - Lvl_0a_8a
-    - Lvl_0a_9a
---- !u!4 &1973045248
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1973045246}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2074010711
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2074010713}
-  - component: {fileID: 2074010712}
-  m_Layer: 0
-  m_Name: MapWorlds3x3b
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2074010712
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2074010711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57bef8f74746d444d961ce556773eed1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  BuildMode: 0
-  DebugLevel: 0
-  Seed: 0
-  Settings:
-  - posx: 0
-    posy: 0
-    sizex: 432
-    sizey: 432
-    ActivationWords: 
-    Scenes:
-    - Lvl_0a_1b
-    - Lvl_0a_2b
-    - Lvl_0a_3b
-    - Lvl_0a_4b
-    - Lvl_0a_5b
-    - Lvl_0a_6b
-    - Lvl_0a_7b
-    - Lvl_0a_8b
-    - Lvl_0a_9b
---- !u!4 &2074010713
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2074010711}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2075615586
 GameObject:
@@ -2763,10 +2637,8 @@ SceneRoots:
   - {fileID: 1470925543}
   - {fileID: 739283313}
   - {fileID: 224758079}
-  - {fileID: 1973045248}
-  - {fileID: 2074010713}
   - {fileID: 336308063}
-  - {fileID: 292982616}
+  - {fileID: 165257668}
   - {fileID: 2075615588}
   - {fileID: 1396929420100785624}
   - {fileID: 251501171302598481}
