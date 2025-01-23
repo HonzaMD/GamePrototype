@@ -108,6 +108,7 @@ namespace Assets.Scripts.Map
 
                 SceneManager.SetActiveScene(scene);
                 worldBuilder.Build(pair.map, this, Settings[pair.map.Id], pair.seed);
+                worldBuilder.SetupBakedReflections(Game.Instance.TimeOfDay.NumScenarios, pair.map.LightVariantMap);
             }
 
             IsWorking = scenesToLoad.Count > 0;

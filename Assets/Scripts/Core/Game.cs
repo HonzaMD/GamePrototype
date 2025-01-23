@@ -118,7 +118,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
                 MapWorlds.ProcessCellStateTests(10);
                 UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
-            UpdateReflectionProbes();
+            //UpdateReflectionProbes();
             updateTicker++;
         }
 

@@ -13,12 +13,15 @@ namespace Assets.Scripts.Map
     [RequireComponent(typeof(LevelLabel))]
     public class WorldBuilder : MonoBehaviour
     {
+        public Transform BakedReflections;
+
         private Map map;
         private LvlBuildMode buildMode;
         private LevelName debugLevel;
         private MapSettings mapSettings;
         private readonly List<Level> levels = new();
         private string activationWorlds;
+        private Transform[] bakedReflectionScenarios;
 
         public void Build(Map map, MapWorlds mapWorlds, MapSettings mapSettings, int seed)
         {
@@ -118,6 +121,44 @@ namespace Assets.Scripts.Map
         {
             foreach (Level level in levels)
                 level.Create(buildMode, debugLevel, transform.position, prefabStore);
+        }
+
+        public void SetupBakedReflections(int numScenarios, RegionMap lightVariantMap)
+        {
+            bakedReflectionScenarios = new Transform[numScenarios];
+            for (int i = 0; i < numScenarios; i++)
+            {
+                Transform rootA = BakedReflections.Find($"ScA{i}");
+                Transform rootB = BakedReflections.Find($"ScB{i}");
+                bakedReflectionScenarios[i] = rootA;
+
+                var list = ListPool<Transform>.Rent();
+
+                MarkProbesToMove(lightVariantMap, rootA, list);
+                MarkProbesToMove(lightVariantMap, rootB, list);
+
+                foreach (Transform tr in list)
+                {
+                    tr.SetParent(tr.parent == rootA ? rootB : rootA, true);
+                }
+
+                list.Return();
+            }
+        }
+
+        private static void MarkProbesToMove(RegionMap lightVariantMap, Transform root, List<Transform> list)
+        {
+            for (int j = 0; j < root.childCount; j++)
+                if (lightVariantMap.Find(root.GetChild(j)))
+                    list.Add(root.GetChild(j));
+        }
+
+        public void SetLightScenario(int scenario)
+        {
+            for (int i = 0; i < bakedReflectionScenarios.Length; i++)
+            {
+                bakedReflectionScenarios[i].gameObject.SetActive(i == scenario);
+            }
         }
     }
 }

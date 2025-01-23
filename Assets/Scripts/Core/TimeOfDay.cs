@@ -56,6 +56,7 @@ namespace Assets.Scripts.Core
         private Data[] data;
         private float scenarioBlendFactor;
 
+        public int NumScenarios => BakeTimes.Length;
 
         private void OnValidate()
         {
@@ -86,6 +87,7 @@ namespace Assets.Scripts.Core
         public void SetNextScenarioInit()
         {
             scenario = $"Sc{(isBLighting ? 'B' : 'A')}{SelectedBakeTime}";
+            Game.Instance.MapWorlds.SelectedMap.WorldBuilder.SetLightScenario(SelectedBakeTime);
             OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;

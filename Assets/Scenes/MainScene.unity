@@ -1108,7 +1108,7 @@ MonoBehaviour:
   m_Intensity: 100000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
-  m_LightDimmer: 1
+  m_LightDimmer: 0
   m_VolumetricDimmer: 1
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
@@ -1246,7 +1246,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1285,7 +1285,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.85551e-40, y: 2.524355e-29, z: 0, w: 4.3e-44}
+  m_BoundingSphereOverride: {x: 3.5425e-41, y: 2.524355e-29, z: 0, w: 2.6216924e+20}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1302,7 +1302,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1464633178}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.14602423, y: 0.92910844, z: -0.05717322, w: 0.33491147}
+  m_LocalRotation: {x: -0.12891111, y: 0.55548877, z: 0.2823664, w: 0.7714165}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1432,7 +1432,7 @@ MonoBehaviour:
   m_Intensity: 100000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
-  m_LightDimmer: 0
+  m_LightDimmer: 1
   m_VolumetricDimmer: 1
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
@@ -1570,7 +1570,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1609,7 +1609,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5405
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.7846457e-20, y: 5.51118e-40, z: 1.69577e-40, w: 3878.9375}
+  m_BoundingSphereOverride: {x: 2.734428e-20, y: 3.673525e-39, z: 1.66918e-40, w: -1.9728219e+29}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1626,7 +1626,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505782373}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.06598113, y: -0.27756622, z: 0.14226153, w: 0.9478213}
+  m_LocalRotation: {x: 0.27396992, y: -0.736066, z: 0.14590868, w: 0.6015464}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1849,7 +1849,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9350
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 6.2097996e+22, y: 7.7140256e+31, z: 538860700, w: 3.9415303e+12}
+  m_BoundingSphereOverride: {x: 1.04642e-40, y: 2.524355e-29, z: 0, w: 3878.9658}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -1866,7 +1866,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520554142}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0003231027, y: -0.65212697, z: 0.15681757, w: 0.74171335}
+  m_LocalRotation: {x: 0.30996475, y: -0.92132676, z: 0.016453508, w: 0.23411134}
   m_LocalPosition: {x: 32.416, y: 33.734, z: 4.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2290,7 +2290,7 @@ MonoBehaviour:
   MoonPos: 163
   Moon2Pos: 113
   AxisTilt: 23
-  Time: 78
+  Time: 0
   WorldPos: {x: -0.34202024, y: 0, z: 0, w: 0.93969256}
   WorldOrientation: 64
   Sun: {fileID: 1464633181}
@@ -2302,7 +2302,7 @@ MonoBehaviour:
   - 220
   - 282
   - 0
-  SelectedBakeTime: 0
+  SelectedBakeTime: 3
 --- !u!1001 &1872268151
 PrefabInstance:
   m_ObjectHideFlags: 0

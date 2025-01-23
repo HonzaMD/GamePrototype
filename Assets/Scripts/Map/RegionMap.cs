@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Map
@@ -106,6 +108,12 @@ namespace Assets.Scripts.Map
             }
 
             return false;
+        }
+
+        internal bool Find(Transform transform)
+        {
+            var v = transform.position.XY();
+            return Find(v.x, v.y);
         }
     }
 }
