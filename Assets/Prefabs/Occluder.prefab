@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5753878309075422079}
   - component: {fileID: 7444178201144274180}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Debug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -50,6 +50,9 @@ LineRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
@@ -150,7 +153,7 @@ GameObject:
   - component: {fileID: 2592550636198213354}
   - component: {fileID: 1950017360285694002}
   - component: {fileID: 6204026288366265542}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Occluder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -198,6 +201,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:

@@ -95,6 +95,7 @@
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\KeysToInventory.cs" />
+    <Compile Include="Assets\Scripts\Utils\ExposureMaskPass.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Core\InputController.cs" />
     <Compile Include="Assets\Scripts\Stuff\LightVariantRegion.cs" />
@@ -139,7 +140,6 @@
     <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
-    <Compile Include="Assets\Scripts\Utils\CopyCustomBufferPass.cs" />
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\IInventoryAccessor.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
