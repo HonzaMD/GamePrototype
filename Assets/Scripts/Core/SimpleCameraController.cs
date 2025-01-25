@@ -188,7 +188,6 @@ namespace UnityTemplateProjects
 
         internal void PairWithCharacter(Character3 character)
         {
-            character.Camera = this;
             SetTransform(character.transform.position);
             GetComponent<HDAdditionalCameraData>().volumeAnchorOverride = character.transform;
         }

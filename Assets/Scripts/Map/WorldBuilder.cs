@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.Map
@@ -14,6 +16,7 @@ namespace Assets.Scripts.Map
     public class WorldBuilder : MonoBehaviour
     {
         public Transform BakedReflections;
+        public Volume LevelVolume; 
 
         private Map map;
         private LvlBuildMode buildMode;
@@ -33,9 +36,11 @@ namespace Assets.Scripts.Map
 
             Random.InitState(seed);
             InitActivationWords();
+            MoveGlobalRoots();
             DoSequence(transform);
             CreateLevels(Game.Instance.PrefabsStore);
         }
+
 
         public void BuildInEditor(LvlBuildMode buildMode, PrefabsStore prefabStore)
         {
@@ -51,6 +56,23 @@ namespace Assets.Scripts.Map
             activationWorlds = mapSettings.ActivationWords;
         }
 
+
+        private void MoveGlobalRoots()
+        {
+            var offset = Vector3.right * map.Id * MapWorlds.WorldOffset;
+            if (BakedReflections)
+                BakedReflections.position += offset;
+            if (LevelVolume)
+            {
+                LevelVolume.transform.position += offset;
+                var profile = LevelVolume.profile;
+                //Debug.Log(string.Join(", ", profile.components.Select(c => c.GetType().Name)));
+                if (profile.TryGet<ProbeVolumesOptions>(out var pvo))
+                    pvo.worldOffset.Override(offset);
+            }
+        }
+        
+        
         private void DoSequence(Transform transform)
         {
             for (int i = 0; i < transform.childCount; i++)
@@ -62,7 +84,7 @@ namespace Assets.Scripts.Map
                 }
                 else if (buildMode == LvlBuildMode.All)
                 {
-                    var lvls = ListPool<Level>.Rent();
+                    var lvls = Utils.ListPool<Level>.Rent();
                     child.GetComponentsInLevel1Children(lvls);
                     level = TryFindLevelByAVs(lvls);
                     if (!level)
@@ -125,6 +147,9 @@ namespace Assets.Scripts.Map
 
         public void SetupBakedReflections(int numScenarios, RegionMap lightVariantMap)
         {
+            if (!BakedReflections)
+                return;
+
             bakedReflectionScenarios = new Transform[numScenarios];
             for (int i = 0; i < numScenarios; i++)
             {
@@ -132,7 +157,7 @@ namespace Assets.Scripts.Map
                 Transform rootB = BakedReflections.Find($"ScB{i}");
                 bakedReflectionScenarios[i] = rootA;
 
-                var list = ListPool<Transform>.Rent();
+                var list = Utils.ListPool<Transform>.Rent();
 
                 MarkProbesToMove(lightVariantMap, rootA, list);
                 MarkProbesToMove(lightVariantMap, rootB, list);
@@ -155,9 +180,12 @@ namespace Assets.Scripts.Map
 
         public void SetLightScenario(int scenario)
         {
-            for (int i = 0; i < bakedReflectionScenarios.Length; i++)
+            if (bakedReflectionScenarios != null)
             {
-                bakedReflectionScenarios[i].gameObject.SetActive(i == scenario);
+                for (int i = 0; i < bakedReflectionScenarios.Length; i++)
+                {
+                    bakedReflectionScenarios[i].gameObject.SetActive(i == scenario);
+                }
             }
         }
     }

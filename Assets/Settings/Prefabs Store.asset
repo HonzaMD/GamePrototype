@@ -39,3 +39,5 @@ MonoBehaviour:
     type: 3}
   Inventory: {fileID: 6430849818010777987, guid: 886fbe00133dc344f8002d717b5c1ada,
     type: 3}
+  Character: {fileID: 251501171028202328, guid: fc41439e18e66c840b15336e8d1a6d00,
+    type: 3}

@@ -14,9 +14,6 @@ using UnityTemplateProjects;
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
 public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
 {
-    [HideInInspector]
-    public SimpleCameraController Camera { get; set; }
-
     private Vector3 oldPos;
     private float lastJumpTime;
 
@@ -313,7 +310,7 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
         var delta = transform.position - oldPos;
         delta.z = 0;
         oldPos = transform.position;
-        Camera.SetTransform(delta);
+        inputController.Camera.SetTransform(delta);
         inputController.GameUpdate();
     }
 
