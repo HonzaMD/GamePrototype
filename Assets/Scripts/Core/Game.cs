@@ -92,6 +92,12 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         if (!IsPaused)
         {
+            if (Input.GetKeyDown(KeyCode.Tab))
+                InputController.SetNextCharacter();
+        }
+
+        if (!IsPaused)
+        {
             if (Input.GetKeyDown(KeyCode.KeypadPlus))
                 TimeOfDay.SetNextScenario();
             else                
@@ -107,7 +113,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             Timer.GameUpdate();
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-            if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3)
+            if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3 && InputController.Character)
             {
                 visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
                 visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
@@ -167,6 +173,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
         else if (State == GameState.CreatingLevels && !MapWorlds.IsWorking)
         {
+            InputController.SetCharacterInSelectedMap();
             MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
             State = GameState.SwitchWorld;
         }
@@ -177,6 +184,16 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
                 State = GameState.Ready;
                 UnPauseGame();
             }
+        }
+    }
+
+    public void TrySwitchWorlds(int id)
+    {
+        if (id != MapWorlds.SelectedMap.Id)
+        {
+            MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
+            State = GameState.SwitchWorld;
+            PauseGame();
         }
     }
 
@@ -265,7 +282,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             Ksids = new KsidDependencies();
         if (StaticPhysics == null)
             StaticPhysics = new SpInterface();
-        InputController.Init();
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts.Utils;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -6,6 +7,8 @@ namespace UnityTemplateProjects
 {
     public class SimpleCameraController : MonoBehaviour
     {
+        public Vector2 Offset;
+
         class CameraState
         {
             public float yaw;
@@ -64,9 +67,9 @@ namespace UnityTemplateProjects
 
         public Camera Camera { get; private set; }
 
-        internal void SetTransform(Vector3 delta)
+        internal void SetAbsolutePosition(Vector2 position)
         {
-            transform.position += delta;
+            transform.position = (position + Offset).AddZ(transform.position.z);
             //m_TargetCameraState.Translate(delta);
         }
 
@@ -188,7 +191,7 @@ namespace UnityTemplateProjects
 
         internal void PairWithCharacter(Character3 character)
         {
-            SetTransform(character.transform.position);
+            SetAbsolutePosition(character.transform.position);
             GetComponent<HDAdditionalCameraData>().volumeAnchorOverride = character.transform;
         }
     }

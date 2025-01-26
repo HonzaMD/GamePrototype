@@ -292,7 +292,7 @@ public class Placeable : Label, ILevelPlaceabe
             return false;
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
         var center = Center.AddZ(newZ);
-        return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask));
+        return (!Physics.CheckBox(center, halfSize.AddZ(0.2f), Quaternion.identity, Game.Instance.CollisionLayaerMask, QueryTriggerInteraction.Ignore));
     }
 
     private static Collider[] collidersBuff = new Collider[4];
@@ -302,7 +302,7 @@ public class Placeable : Label, ILevelPlaceabe
             return false;
         var halfSize = Vector2.Max(Size * 0.5f - new Vector2(0.05f, 0.05f), new Vector2(0.02f, 0.02f));
         var center = Center.AddZ(newZ);
-        int count = Physics.OverlapBoxNonAlloc(center, halfSize.AddZ(0.2f), collidersBuff, Quaternion.identity, Game.Instance.CollisionLayaerMask);
+        int count = Physics.OverlapBoxNonAlloc(center, halfSize.AddZ(0.2f), collidersBuff, Quaternion.identity, Game.Instance.CollisionLayaerMask, QueryTriggerInteraction.Ignore);
         if (count == 0)
             return true;
         if (count == collidersBuff.Length)

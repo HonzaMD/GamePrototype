@@ -362,7 +362,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private bool RayCastLeg(int index, Vector3 direction, float radius)
 	{
-		if (Physics.Raycast(LegSphere.transform.position, direction, out var hitInfo, radius, Settings.legStandLayerMask))
+		if (Physics.Raycast(LegSphere.transform.position, direction, out var hitInfo, radius, Settings.legStandLayerMask, QueryTriggerInteraction.Ignore))
 		{
 			if (hitInfo.normal.y >= Settings.minGroundDotProduct && ConnectLabel(index, ref hitInfo))
 			{
@@ -439,7 +439,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			var pos = p.GetClosestPoint(center3d);
 			if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center3d) >= 0)
 			{
-				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask))
+				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
 				{
 					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
 					{
@@ -578,7 +578,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			
 			if ((center3d - pos).magnitude <= radius)
 			{
-				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask))
+				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
 				{
 					if ((hitInfo.point - pos).sqrMagnitude < 0.001)
 					{
@@ -712,7 +712,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private bool RayCastArm(int index, Vector3 candidate, float radius)
 	{
-		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask))
+		if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
 		{
 			if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
 			{
@@ -912,7 +912,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
 	private Quaternion GetLegRotation()
 	{
-		if (Physics.Raycast(LegSphere.transform.position, -legUpDir, out var hitInfo, LegSphere.radius * 1.3f, Settings.legStandLayerMask))
+		if (Physics.Raycast(LegSphere.transform.position, -legUpDir, out var hitInfo, LegSphere.radius * 1.3f, Settings.legStandLayerMask, QueryTriggerInteraction.Ignore))
 		{
 			if (hitInfo.normal.y >= Settings.minGroundDotProduct)
 			{
@@ -1076,5 +1076,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     public virtual bool IsInventoryActive => false;
 	public virtual void InventoryReturn() => throw new NotSupportedException();
     public virtual void InventoryDrop() => throw new NotSupportedException();
+
+	public Map ActiveMap => map;
 }
 

@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
+public class Character3 : ChLegsArms, IActiveObject
 {
     private Vector3 oldPos;
     private float lastJumpTime;
@@ -50,6 +50,7 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
     {
         base.AfterMapPlaced(map);
         CreateInventory();
+        Game.Instance.InputController.AddCharacter(this);
     }
 
     private void CreateInventory()
@@ -307,10 +308,6 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
 
     private void UpdatePosition()
     {
-        var delta = transform.position - oldPos;
-        delta.z = 0;
-        oldPos = transform.position;
-        inputController.Camera.SetTransform(delta);
         inputController.GameUpdate();
     }
 
@@ -369,16 +366,6 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
         inventory.DropObjActive();
     }
 
-    void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
-    {
-        var placeable = GetComponent<Placeable>();
-        if (!placeable.IsMapPlaced)
-        {
-            transform.parent = parent;
-            placeable.LevelPlaceAfterInstanciate(map, pos);
-        }
-    }
-
     internal void ThrowObj(Label obj)
     {
         this.bodyToThrow = obj.Rigidbody;
@@ -416,16 +403,23 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
     private const float mouseXDeadZone = 0.6f;
     protected override void AdjustXOrientation()
     {
-        var mouseX = inputController.GetMousePosOnZPlane(transform.position.z).x;
-        if (lastXOrientation < 0 && mouseX > transform.position.x + mouseXDeadZone)
+        if (inputController)
         {
-            lastXOrientation = 1;
-            FlipHoldTarget();
+            var mouseX = inputController.GetMousePosOnZPlane(transform.position.z).x;
+            if (lastXOrientation < 0 && mouseX > transform.position.x + mouseXDeadZone)
+            {
+                lastXOrientation = 1;
+                FlipHoldTarget();
+            }
+            else if (lastXOrientation > 0 && mouseX < transform.position.x - mouseXDeadZone)
+            {
+                lastXOrientation = -1;
+                FlipHoldTarget();
+            }
         }
-        else if (lastXOrientation > 0 && mouseX < transform.position.x - mouseXDeadZone)
+        else
         {
-            lastXOrientation = -1;
-            FlipHoldTarget();
+            base.AdjustXOrientation();
         }
     }
 
@@ -443,7 +437,14 @@ public class Character3 : ChLegsArms, IActiveObject, ILevelPlaceabe
         this.inputController = inputController;
     }
 
-    bool ILevelPlaceabe.SecondPhase => false;
+    internal void DeactivateInput()
+    {
+        if (inputController != null)
+        {
+            ResetControl();
+            inputController = null;
+        }
+    }
 
     public override void Cleanup()
     {

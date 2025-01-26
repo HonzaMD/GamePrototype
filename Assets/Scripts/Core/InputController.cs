@@ -19,12 +19,57 @@ namespace Assets.Scripts.Core
         public SimpleCameraController Camera;
         public ThrowController ThrowController;
 
+        private int characterPos;
+        private readonly List<Character3> characters = new();
+
         private Vector3 mousePosInWord;
 
-        public void Init()
+        public void SetupCharacter()
         {
-            Camera.PairWithCharacter(Character);
-            Character.ActivateInput(this);
+            if (characterPos >= characters.Count)
+                characterPos = 0;
+            var old = Character;
+
+            if (characters.Count == 0)
+            {
+                Character = null;
+            }
+            else
+            {
+                Character = characters[characterPos];
+            }
+
+            if (old != Character)
+            {
+                if (old)
+                    old.DeactivateInput();
+                if (Character)
+                {
+                    Camera.PairWithCharacter(Character);
+                    Character.ActivateInput(this);
+                    Game.Instance.TrySwitchWorlds(Character.ActiveMap.Id);
+                }
+            }
+        }
+
+        public void AddCharacter(Character3 character) => characters.Add(character);
+
+        public void SetNextCharacter()
+        {
+            characterPos++;
+            SetupCharacter();
+        }
+
+        internal void SetCharacterInSelectedMap()
+        {
+            for (characterPos = 0; characterPos < characters.Count; characterPos++)
+            {
+                if (characters[characterPos].ActiveMap == Game.Instance.MapWorlds.SelectedMap)
+                {
+                    SetupCharacter();
+                    break;
+                }
+            }
         }
 
         public void GameFixedUpdate()
@@ -33,6 +78,9 @@ namespace Assets.Scripts.Core
 
         public void GameUpdate()
         {
+            if (Character)
+                Camera.SetAbsolutePosition(Character.transform.position);
+
             var mousePos = Input.mousePosition;
             mousePos.z = Camera.Camera.nearClipPlane;
 
@@ -44,7 +92,7 @@ namespace Assets.Scripts.Core
 
         public bool IsBLightVariant()
         {
-            var v = Character.ArmSphere.transform.position.XY();
+            var v = Character ? Character.ArmSphere.transform.position.XY() : Camera.transform.position.XY();
             return Game.Instance.MapWorlds.SelectedMap.LightVariantMap.Find(v.x, v.y);
         }
 

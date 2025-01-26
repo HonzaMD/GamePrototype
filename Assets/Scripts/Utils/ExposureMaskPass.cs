@@ -7,7 +7,7 @@ public class ExposureMaskPass : CustomPass
     public Material Material;
     public LayerMask outlineLayer;
 
-    protected override bool executeInSceneView => true;
+//    protected override bool executeInSceneView => true;
     protected override void Execute(CustomPassContext ctx)
     {
         CoreUtils.SetRenderTarget(ctx.cmd, OutputRenderTexture, ClearFlag.None);

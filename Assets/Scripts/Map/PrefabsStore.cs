@@ -22,5 +22,5 @@ public class PrefabsStore : ScriptableObject
     public GameObject DebugVisibility;
     public Occluder Occluder;
     public Inventory Inventory;
-    public Character3 Character;
+    public Placeable Character;
 }

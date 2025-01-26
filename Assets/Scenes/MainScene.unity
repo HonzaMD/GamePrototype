@@ -526,18 +526,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1470925543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &531436553 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 251501171028202328, guid: fc41439e18e66c840b15336e8d1a6d00,
-    type: 3}
-  m_PrefabInstance: {fileID: 251501171302598481}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d20bb9179725c84b959767ce6d26e82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &653260035
 GameObject:
   m_ObjectHideFlags: 0
@@ -923,7 +911,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c80f3b674fbdfc44287e5d5014336fd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Character: {fileID: 531436553}
+  Character: {fileID: 0}
   Camera: {fileID: 1687258583}
   ThrowController: {fileID: 301410161}
 --- !u!4 &1099895536
@@ -1990,6 +1978,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be76e5f14cfee674cb30b491fb72b09b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Offset: {x: 0, y: 1.75}
   boost: 3.5
   positionLerpTime: 0.2
   mouseSensitivityCurve:
@@ -2663,6 +2652,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Character3
+      objectReference: {fileID: 0}
+    - target: {fileID: 251501171028202327, guid: fc41439e18e66c840b15336e8d1a6d00,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
