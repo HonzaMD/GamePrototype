@@ -26,6 +26,8 @@ namespace Assets.Scripts.Map
         private string activationWorlds;
         private Transform[] bakedReflectionScenarios;
 
+        public int Id => map.Id;
+
         public void Build(Map map, MapWorlds mapWorlds, MapSettings mapSettings, int seed)
         {
             this.map = map;

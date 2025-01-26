@@ -191,7 +191,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     {
         if (id != MapWorlds.SelectedMap.Id)
         {
-            MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
+            MapWorlds.SwitchWorld(id);
             State = GameState.SwitchWorld;
             PauseGame();
         }

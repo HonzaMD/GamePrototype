@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.SceneManagement;
 using UnityEngine.TextCore.Text;
 
 namespace Assets.Scripts.Core
@@ -207,6 +208,8 @@ namespace Assets.Scripts.Core
 
         internal void CopySettingsFrom(TimeOfDay timeOfDay)
         {
+            if (!timeOfDay)
+                return;
             SunPos = timeOfDay.SunPos;
             MoonPos = timeOfDay.MoonPos;
             Moon2Pos = timeOfDay.Moon2Pos;
@@ -222,9 +225,10 @@ namespace Assets.Scripts.Core
         {
             isBLighting = isBLights;
 
+            SceneManager.SetActiveScene(worldBuilder.gameObject.scene);
             var probeRefVolume = ProbeReferenceVolume.instance;
             probeRefVolume.SetActiveScene(worldBuilder.gameObject.scene);
-            Debug.Log($"Init: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
+            Debug.Log($"Init: World: {worldBuilder.Id} sc: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
 
             //scenario = $"Sc{(IsBLighting ? 'B' : 'A')}{SelectedBakeTime}";
             //scenarioBlendFactor = 0f;
@@ -237,9 +241,9 @@ namespace Assets.Scripts.Core
         internal bool ResetAPVs2()
         {
             var probeRefVolume = ProbeReferenceVolume.instance;
-            if (!probeRefVolume.DataHasBeenLoaded())
+            if (probeRefVolume.currentBakingSet != null && !probeRefVolume.DataHasBeenLoaded())
                 return false;
-            Debug.Log($"Init: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
+            Debug.Log($"Init2: {probeRefVolume.lightingScenario}, loaded: {probeRefVolume.DataHasBeenLoaded()}");
             SetNextScenarioInit();
             return true;
         }

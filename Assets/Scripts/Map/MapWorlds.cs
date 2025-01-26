@@ -59,10 +59,14 @@ namespace Assets.Scripts.Map
                 if (Settings.Length > f && Settings[f] != null)
                 {
                     Maps[f] = new(Settings[f], ksids, f, this);
-                    SelectedMap ??= Maps[f];
 
-                    foreach (var scene in Settings[f].Scenes)
-                        scenesToLoad.Add(scene, (Maps[f], Random.Range(int.MinValue, int.MaxValue)));
+                    if (Settings[f].Scenes?.Length > 0)
+                    {
+                        SelectedMap ??= Maps[f];
+
+                        foreach (var scene in Settings[f].Scenes)
+                            scenesToLoad.Add(scene, (Maps[f], Random.Range(int.MinValue, int.MaxValue)));
+                    }
                 }
                 else
                 {
@@ -127,6 +131,7 @@ namespace Assets.Scripts.Map
 
         internal void SwitchWorld(int id)
         {
+            Debug.Log("WORLD SWITCH " + id);
             SelectedMap = Maps[id];
             Game.Instance.TimeOfDay.CopySettingsFrom(SelectedMap.WorldBuilder.GetComponent<TimeOfDay>());
             var isBLights = Game.Instance.InputController.IsBLightVariant();
