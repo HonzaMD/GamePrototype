@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
+    <ui:VisualElement style="flex-grow: 1; justify-content: space-between;">
+        <ui:VisualElement name="Top">
+            <ui:Label text="Label" class="PrvniLabel" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Bottom" style="flex-direction: row; align-items: flex-end;">
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
+                <ui:Label text="Label" class="PrvniLabel" />
+            </ui:VisualElement>
+            <ui:VisualElement style="margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; background-color: rgba(195, 195, 195, 0.39); width: 25%; max-height: 57px; overflow: hidden;">
+                <ui:Label text="Label&#10;bvnvvbnv&#10;vbvnbnv  fffgf  fgmnfg fm hfmnf &#10;vnvvbnv&#10;vb b nvb v vn vb nv vv v nvv nvv vnvvn v v nv" style="-unity-text-align: lower-left; padding-bottom: 1px; color: rgb(0, 0, 0);" />
+            </ui:VisualElement>
+            <ui:VisualElement style="align-items: center; margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; background-color: rgba(107, 212, 110, 0.39);">
+                <ui:Label text="FPS:" class="FpsLabel" />
+                <ui:Label text="60" name="FpsLabel" class="FpsLabel" style="font-size: 26px; min-width: 54px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

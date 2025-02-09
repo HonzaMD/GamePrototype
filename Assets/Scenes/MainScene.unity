@@ -1057,6 +1057,77 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1405430144}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1427786095
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1427786097}
+  - component: {fileID: 1427786096}
+  - component: {fileID: 1427786098}
+  m_Layer: 5
+  m_Name: UIDocument
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1427786096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427786095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: d45395076775117448318ad842ba3e44, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: f618e9fafa08b574c9d2dab886bb6728,
+    type: 3}
+  m_SortingOrder: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+--- !u!4 &1427786097
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427786095}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1427786098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427786095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fc475a185f5cd84196b2effc0b5e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  value: 300
+  str: 300
+  value2: 3000
+  str2: 3.0k
+  value3: 73000
+  str3: 73k
 --- !u!1 &1448266026
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,7 +1475,7 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 1924541876}
+  MapWorlds: {fileID: 165257667}
   InventoryRoot: {fileID: 224758079}
   TimeOfDay: {fileID: 1866069384}
   UpdateTimes:
@@ -2830,3 +2901,4 @@ SceneRoots:
   - {fileID: 251501171302598481}
   - {fileID: 1118955279}
   - {fileID: 1448266028}
+  - {fileID: 1427786097}

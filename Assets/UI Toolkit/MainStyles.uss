@@ -1,0 +1,21 @@
+.PrvniLabel {
+    font-size: 30px;
+    -unity-text-align: upper-left;
+    color: rgb(43, 79, 118);
+    -unity-font-style: normal;
+    background-color: rgba(99, 75, 24, 0.32);
+}
+
+.FpsLabel {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    color: rgb(20, 84, 16);
+    -unity-font-style: bold;
+    -unity-text-align: upper-center;
+}
