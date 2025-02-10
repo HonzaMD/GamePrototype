@@ -8,8 +8,10 @@
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
                 <ui:Label text="Label" class="PrvniLabel" />
             </ui:VisualElement>
-            <ui:VisualElement style="margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; background-color: rgba(195, 195, 195, 0.39); width: 25%; max-height: 57px; overflow: hidden;">
-                <ui:Label text="Label&#10;bvnvvbnv&#10;vbvnbnv  fffgf  fgmnfg fm hfmnf &#10;vnvvbnv&#10;vb b nvb v vn vb nv vv v nvv nvv vnvvn v v nv" style="-unity-text-align: lower-left; padding-bottom: 1px; color: rgb(0, 0, 0);" />
+            <ui:VisualElement name="Console" style="margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; background-color: rgba(204, 204, 204, 0.39); width: 25%; max-height: 57px; overflow: hidden;">
+                <ui:Label enable-rich-text="false" emoji-fallback-support="false" text="adwwdd" class="ConsoleText" />
+                <ui:Label enable-rich-text="false" class="ConsoleText" />
+                <ui:Label enable-rich-text="false" class="ConsoleText" />
             </ui:VisualElement>
             <ui:VisualElement style="align-items: center; margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; background-color: rgba(107, 212, 110, 0.39);">
                 <ui:Label text="FPS:" class="FpsLabel" />
