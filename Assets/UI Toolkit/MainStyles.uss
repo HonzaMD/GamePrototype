@@ -33,3 +33,40 @@
     margin-left: 0;
     -unity-font-style: bold;
 }
+
+.InventoryCellFrame {
+    margin-top: 2px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    margin-left: 2px;
+    background-color: rgb(162, 180, 188);
+    width: 100px;
+    height: 100px;
+}
+
+.InventoryImage {
+    background-image: url("project://database/Assets/Materials/Textures/InventoryItems.png?fileID=923265423&guid=a9320db951d9eef44baa5ac6e33a861e&type=3#InventoryItems_0");
+    margin-top: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    flex-grow: 1;
+}
+
+.InventoryReqNum {
+    position: absolute;
+    -unity-font-style: bold;
+    color: rgb(119, 217, 128);
+    font-size: 16px;
+    top: 0;
+    left: 4px;
+}
+
+.InventoryNum {
+    position: absolute;
+    bottom: 0;
+    right: 2px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    font-size: 16px;
+}

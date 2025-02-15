@@ -1,13 +1,18 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Template name="InventoryColumn" src="project://database/Assets/InventoryColumn.uxml?fileID=9197481963319205126&amp;guid=2bbba553414a9484aa948c929c65201b&amp;type=3#InventoryColumn" />
     <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between;">
-        <ui:VisualElement name="Top">
-            <ui:Label text="Label" class="PrvniLabel" />
+        <ui:VisualElement name="Top" style="align-items: flex-start;">
+            <ui:VisualElement style="flex-direction: row; margin-top: 50px; margin-right: 0; margin-left: 10px;">
+                <ui:VisualElement style="flex-grow: 1; min-width: 80px;" />
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+                    <ui:Instance template="InventoryColumn" />
+                    <ui:Instance template="InventoryColumn" />
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Bottom" style="flex-direction: row; align-items: flex-end;">
-            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
-                <ui:Label text="Label" class="PrvniLabel" />
-            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;" />
             <ui:VisualElement name="Console" style="margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; background-color: rgba(204, 204, 204, 0.39); width: 25%; max-height: 57px; overflow: hidden;">
                 <ui:Label enable-rich-text="false" emoji-fallback-support="false" text="adwwdd" class="ConsoleText" />
                 <ui:Label enable-rich-text="false" class="ConsoleText" />

@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
+    <ui:VisualElement name="InventoryColumn">
+        <ui:VisualElement class="InventoryCellFrame">
+            <ui:VisualElement class="InventoryImage" />
+            <ui:Label text="8898" class="InventoryReqNum" />
+            <ui:Label text="8898" class="InventoryNum" />
+        </ui:VisualElement>
+        <ui:VisualElement class="InventoryCellFrame">
+            <ui:VisualElement class="InventoryImage" />
+            <ui:Label text="8898" class="InventoryReqNum" />
+            <ui:Label text="8898" class="InventoryNum" />
+        </ui:VisualElement>
+        <ui:VisualElement class="InventoryCellFrame">
+            <ui:VisualElement class="InventoryImage" />
+            <ui:Label text="8898" class="InventoryReqNum" />
+            <ui:Label text="8898" class="InventoryNum" />
+        </ui:VisualElement>
+        <ui:VisualElement class="InventoryCellFrame">
+            <ui:VisualElement class="InventoryImage" />
+            <ui:Label text="8898" class="InventoryReqNum" />
+            <ui:Label text="8898" class="InventoryNum" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
