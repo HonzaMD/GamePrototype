@@ -1,14 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:Template name="InventoryColumn" src="project://database/Assets/InventoryColumn.uxml?fileID=9197481963319205126&amp;guid=2bbba553414a9484aa948c929c65201b&amp;type=3#InventoryColumn" />
     <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between;">
         <ui:VisualElement name="Top" style="align-items: flex-start;">
             <ui:VisualElement style="flex-direction: row; margin-top: 50px; margin-right: 0; margin-left: 10px;">
                 <ui:VisualElement style="flex-grow: 1; min-width: 80px;" />
-                <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
-                    <ui:Instance template="InventoryColumn" />
-                    <ui:Instance template="InventoryColumn" />
-                </ui:VisualElement>
+                <ui:VisualElement name="Inventory" style="flex-grow: 1; flex-direction: row; overflow: hidden;" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Bottom" style="flex-direction: row; align-items: flex-end;">

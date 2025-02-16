@@ -77,6 +77,7 @@ public class Placeable : Label, ILevelPlaceabe
     public override Label Prototype => Settings.Prototype;
     public override Placeable PlaceableC => this;
     public override bool CanBeKilled => !Settings.Unseparable;
+    public override PlaceableSettings GetSettings() => Settings;
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
     protected virtual void AfterMapPlaced(Map map) { }
 

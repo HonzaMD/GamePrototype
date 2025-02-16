@@ -22,6 +22,7 @@ MonoBehaviour:
   AutoAtachRB: 0
   IsTrigger: 0
   SecondaryMapIndex: 1
+  Icon: {fileID: 1934467857, guid: a9320db951d9eef44baa5ac6e33a861e, type: 3}
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000

@@ -19,6 +19,7 @@ public abstract class Label : MonoBehaviour
     public abstract Label Prototype { get; }
     public abstract void Init(Map map);
     public virtual float GetMass() => 0;
+    public virtual PlaceableSettings GetSettings() => null;
 
     public virtual Rigidbody Rigidbody
     {

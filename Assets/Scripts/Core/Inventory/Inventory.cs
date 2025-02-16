@@ -16,6 +16,7 @@ namespace Assets.Scripts.Core.Inventory
         {
             public Label Prototype;
             public Label Obj;
+            public Label Key => Prototype ?? Obj;
             public int Count;
             public float Mass;
             public int DesiredCount;
@@ -41,6 +42,9 @@ namespace Assets.Scripts.Core.Inventory
         private int activeSlot;
         private bool isAlive;
 
+        private InventoryVisualizer visualizer;
+        private int visualizerRow;
+
         public float Mass => mass;
         public Label ActiveObj => activeObj;
         public Connectable ActiveObjHandle;
@@ -59,7 +63,7 @@ namespace Assets.Scripts.Core.Inventory
         private Transform Disconnect()
         {
             if (ActiveObj)
-                DropObjActive();
+                RemoveObjActive();
             return transform;
         }
 
@@ -75,7 +79,7 @@ namespace Assets.Scripts.Core.Inventory
 
         public void Clear()
         {
-            DropObjActive();
+            RemoveObjActive();
             ClearSlots(quickAccess.AsSpan());
             quickAccess.AsSpan().Clear();
             ClearSlots(slots.AsSpan());
@@ -142,6 +146,7 @@ namespace Assets.Scripts.Core.Inventory
             mass -= slot.Mass;
             slot.IsActivated = true;
             ActiveObjHandle.ConnectTo(obj, ConnectableType.OwnedByInventory);
+            HudUpdate(ref slot);
         }
 
         private void DeactivateObj(ref Slot slot)
@@ -151,6 +156,7 @@ namespace Assets.Scripts.Core.Inventory
             activeSlot = 0;
             activeObj = null;
             ActiveObjHandle.Disconnect();
+            HudUpdate(ref slot);
         }
 
 
@@ -192,6 +198,7 @@ namespace Assets.Scripts.Core.Inventory
             mass += m;
             int index = slots.Count;
             slots.Add(new Slot() { Count = 1, Mass = m, Obj = obj, Index = index });
+            HudUpdate(ref slots[^1]);
             return index;
         }
 
@@ -227,16 +234,16 @@ namespace Assets.Scripts.Core.Inventory
             {
                 if (activeObj.CanBeInInventory(this))
                 {
-                    DeactivateObj(activeObj);
+                    ReturnObj(activeObj);
                 }
                 else
                 {
-                    DropObjActive();
+                    RemoveObjActive();
                 }
             }
         }
 
-        public void DeactivateObj(Label obj)
+        private void ReturnObj(Label obj)
         {
             Debug.Assert(activeObj == obj, "Cekam ze inventoryObj == label");
             ref var slot = ref GetSlot(activeSlot);
@@ -255,19 +262,20 @@ namespace Assets.Scripts.Core.Inventory
                 obj.Kill();
         }
 
-        internal void DropObjActive()
+        internal void RemoveObjActive()
         {
             if (activeObj != null)
-                DropObj(activeSlot, 1);
+                RemoveObj(activeSlot, 1);
         }
 
         // pokud nejsou objekty aktivovani, tak budou killnuty
-        public void DropObj(int slotNum, int count)
+        public void RemoveObj(int slotNum, int count)
         {
             ref var slot = ref GetSlot(slotNum);
             count = Math.Min(slot.Count, count);
             if (count == 0) 
                 return;
+            Label oldKey = slot.Key;
             if (slotNum == activeSlot && activeObj != null)
             {
                 DeactivateObj(ref slot);
@@ -279,7 +287,7 @@ namespace Assets.Scripts.Core.Inventory
             slot.Obj = null;
             slot.Count -= count;
             mass -= slot.Mass * count;
-            TryFreeSlot(ref slot);
+            TryFreeAndNotify(ref slot, oldKey);
         }
 
 
@@ -294,19 +302,21 @@ namespace Assets.Scripts.Core.Inventory
                     return;
                 if (delta > 0 && link.AllowGet)
                 {
-                    link.Inventory.GetProto(slot.Prototype, ref delta);
+                    link.Inventory.RemoveProto(slot.Prototype, ref delta);
                     slot.Count = desiredCount - delta;
+                    HudUpdate(ref slot);
                 }
                 if (delta < 0 && link.AllowStore)
                 {
                     link.Inventory.StoreProto2(slot.Prototype, -delta);
                     slot.Count = desiredCount;
+                    HudUpdate(ref slot);
                     return;
                 }
             }
         }
 
-        private void GetProto(Label prototype, ref int requestedCount)
+        private void RemoveProto(Label prototype, ref int requestedCount)
         {
             ref var slot = ref FindSlot(prototype);
             if (slot.Prototype == null)
@@ -314,16 +324,31 @@ namespace Assets.Scripts.Core.Inventory
             int count = Math.Min(slot.CountInside, requestedCount);
             if (count == 0)
                 return;
+            Label oldKey = slot.Key;
             slot.Count -= count;
             mass -= slot.Mass * count;
             requestedCount -= count;
-            TryFreeSlot(ref slot);
+            TryFreeAndNotify(ref slot, oldKey);
         }
 
-        private void TryFreeSlot(ref Slot slot)
+        private void TryFreeAndNotify(ref Slot slot, Label oldKey)
+        {
+            if (TryFreeSlot(ref slot))
+            {
+                if (oldKey != null && visualizer != null)
+                    visualizer.HideItem(oldKey, visualizerRow);
+
+            }
+            else
+            {
+                HudUpdate(ref slot);
+            }
+        }
+
+        private bool TryFreeSlot(ref Slot slot)
         {
             if (slot.DesiredCount > 0 || slot.Count > 0)
-                return;
+                return false;
             if (slot.IsActivated)
                 throw new InvalidOperationException("Divnost, necekal jsem ze bude aktivovanej");
             if (slot.Index < 0)
@@ -333,7 +358,9 @@ namespace Assets.Scripts.Core.Inventory
                     slot.Obj = null;
                     slot.Prototype = null;
                     slot.Mass = 0;
+                    return true;
                 }
+                return false;
             }
             else
             {
@@ -342,6 +369,7 @@ namespace Assets.Scripts.Core.Inventory
                 int index = slot.Index;
                 slots.RemoveAt(index);
                 FixIndex(ref slot, index);
+                return true;
             }
         }
 
@@ -384,6 +412,7 @@ namespace Assets.Scripts.Core.Inventory
             }
             slot.Count += count;
             mass += slot.Mass * count;
+            HudUpdate(ref slot);
             return slot.Index;
         }
 
@@ -426,5 +455,29 @@ namespace Assets.Scripts.Core.Inventory
         }
 
         internal bool HasObj(int slot) => GetSlot(slot).Count > 0;
+
+        internal void ShowInHud(InventoryVisualizer inventoryVisualizer, int row)
+        {
+            visualizer = inventoryVisualizer;
+            visualizerRow = row;
+
+            HudUpdate(quickAccess.AsSpan());
+            HudUpdate(slots.AsSpan());
+        }
+
+        private void HudUpdate(Span<Slot> slots)
+        {
+            foreach (ref var slot in slots)
+            {
+                if (slot.Key != null)
+                    visualizer.UpdateItem(slot.Key, slot.CountInside, slot.DesiredCount, visualizerRow);
+            }
+        }
+
+        private void HudUpdate(ref Slot slot)
+        {
+            if (visualizer != null && slot.Key != null)
+                visualizer.UpdateItem(slot.Key, slot.CountInside, slot.DesiredCount, visualizerRow);
+        }
     }
 }

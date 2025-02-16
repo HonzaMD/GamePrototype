@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
     <Compile Include="Assets\Scripts\Bases\IPhysicsEvents.cs" />
+    <Compile Include="Assets\Scripts\Core\Inventory\InventoryVisualizer.cs" />
     <Compile Include="Assets\Scripts\Utils\ActivityTag.cs" />
     <Compile Include="Assets\Scripts\Utils\NumberToString.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />

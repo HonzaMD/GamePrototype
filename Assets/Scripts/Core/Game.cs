@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts;
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Visibility;
@@ -29,6 +30,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public LevelLabel OccludersRoot;
     public MapWorlds MapWorlds;
     public Transform InventoryRoot;
+    public Hud Hud;
     public bool IsPaused { get; private set; }
     public GameState State { get; private set; }
 
@@ -175,6 +177,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         {
             InputController.SetCharacterInSelectedMap();
             MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
+            Hud.SetupInventory(InputController.Characters);
             State = GameState.SwitchWorld;
         }
         else if (State == GameState.SwitchWorld)

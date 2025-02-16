@@ -24,6 +24,8 @@ namespace Assets.Scripts.Core
 
         private Vector3 mousePosInWord;
 
+        public List<Character3> Characters => characters;
+
         public void SetupCharacter()
         {
             if (characterPos >= characters.Count)

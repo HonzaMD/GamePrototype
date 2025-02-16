@@ -19,6 +19,7 @@ namespace Assets.Scripts.Bases
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override bool IsAlive => isAlive;
         public override float GetMass() => Settings.Mass;
+        public override PlaceableSettings GetSettings() => Settings;
 
         public override void Cleanup()
         {

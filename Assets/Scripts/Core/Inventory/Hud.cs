@@ -7,18 +7,24 @@ using UnityEngine.UIElements;
 
 namespace Assets.Scripts.Core.Inventory
 {
-    internal class Hud : MonoBehaviour
+    public class Hud : MonoBehaviour
     {
+        public VisualTreeAsset ColumnTree;
+
         private UnityEngine.UIElements.Label fpsLabel;
         private VisualElement console;
+        private VisualElement inventory;
         private float fpsTimeStamp;
         private int framesCount;
+        private InventoryVisualizer inventoryVisualizer;
 
         private void OnEnable()
         {
             var doc = GetComponent<UIDocument>();
             fpsLabel = doc.rootVisualElement.Q<UnityEngine.UIElements.Label>("FpsLabel");
             console = doc.rootVisualElement.Q<VisualElement>("Console");
+            inventory = doc.rootVisualElement.Q<VisualElement>("Inventory");
+            inventoryVisualizer = new InventoryVisualizer(inventory, ColumnTree);
 
             Application.logMessageReceived += Application_logMessageReceived;
         }
@@ -40,6 +46,11 @@ namespace Assets.Scripts.Core.Inventory
                 framesCount = 0;
                 fpsTimeStamp = 0;
             }
+        }
+
+        internal void SetupInventory(List<Character3> characters)
+        {
+            inventoryVisualizer.Setup(characters);
         }
     }
 }

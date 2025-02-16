@@ -356,6 +356,8 @@ public class Character3 : ChLegsArms, IActiveObject
 
     public override bool IsInventoryActive => inventory.ActiveObj != null;
 
+    public Inventory Inventory => inventory;
+
     public override void InventoryReturn()
     {
         inventory.ReturnActiveObj();
@@ -363,7 +365,7 @@ public class Character3 : ChLegsArms, IActiveObject
 
     public override void InventoryDrop()
     {
-        inventory.DropObjActive();
+        inventory.RemoveObjActive();
     }
 
     internal void ThrowObj(Label obj)

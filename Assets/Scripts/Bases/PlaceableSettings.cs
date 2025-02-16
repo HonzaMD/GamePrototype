@@ -44,6 +44,8 @@ namespace Assets.Scripts.Bases
         public bool IsTrigger;
         [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]
         public SecondaryMap SecondaryMapIndex;
+        [Tooltip("Pro zobrazeni v inventari")]
+        public Sprite Icon;
 
         [Tooltip("Limity pro staticke spoje mezi objekty: Tah")]
         public float SpStretchLimit = 1000f;

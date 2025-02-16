@@ -1122,12 +1122,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fc475a185f5cd84196b2effc0b5e7d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  value: 300
-  str: 300
-  value2: 3000
-  str2: 3.0k
-  value3: 73000
-  str3: 73k
+  ColumnTree: {fileID: 9197481963319205126, guid: 2bbba553414a9484aa948c929c65201b,
+    type: 3}
 --- !u!1 &1448266026
 GameObject:
   m_ObjectHideFlags: 0
@@ -1477,6 +1473,7 @@ MonoBehaviour:
   OccludersRoot: {fileID: 739283312}
   MapWorlds: {fileID: 165257667}
   InventoryRoot: {fileID: 224758079}
+  Hud: {fileID: 1427786098}
   TimeOfDay: {fileID: 1866069384}
   UpdateTimes:
   - 0
