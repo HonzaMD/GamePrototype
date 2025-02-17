@@ -44,6 +44,7 @@ namespace Assets.Scripts.Core.Inventory
 
         private InventoryVisualizer visualizer;
         private int visualizerRow;
+        private Hud quickSlotsHud;
 
         public float Mass => mass;
         public Label ActiveObj => activeObj;
@@ -190,6 +191,8 @@ namespace Assets.Scripts.Core.Inventory
             FixIndex(ref sO, oldSlot);
             TryFreeSlot(ref sN);
             TryFreeSlot(ref sO);
+            QuickSlotsUpdate(ref sN);
+            QuickSlotsUpdate(ref sO);
         }
 
         private int StoreObj(Label obj)
@@ -337,7 +340,7 @@ namespace Assets.Scripts.Core.Inventory
             {
                 if (oldKey != null && visualizer != null)
                     visualizer.HideItem(oldKey, visualizerRow);
-
+                QuickSlotsUpdate(ref slot);
             }
             else
             {
@@ -478,6 +481,27 @@ namespace Assets.Scripts.Core.Inventory
         {
             if (visualizer != null && slot.Key != null)
                 visualizer.UpdateItem(slot.Key, slot.CountInside, slot.DesiredCount, visualizerRow);
+            QuickSlotsUpdate(ref slot);
+        }
+
+        private void QuickSlotsUpdate(ref Slot slot)
+        {
+            if (quickSlotsHud != null && slot.Index < 0)
+                quickSlotsHud.UpdateQuickSlot(slot.Index, slot.Key, slot.CountInside);
+        }
+
+        internal void ShowInQuickSlots()
+        {
+            quickSlotsHud = Game.Instance.Hud;
+            foreach (ref var slot in quickAccess.AsSpan())
+            {
+                quickSlotsHud.UpdateQuickSlot(slot.Index, slot.Key, slot.CountInside);
+            }
+        }
+
+        internal void DisconnectQuickSlots()
+        {
+            quickSlotsHud = null;
         }
     }
 }

@@ -437,6 +437,7 @@ public class Character3 : ChLegsArms, IActiveObject
     internal void ActivateInput(InputController inputController)
     {
         this.inputController = inputController;
+        inventory.ShowInQuickSlots();
     }
 
     internal void DeactivateInput()
@@ -445,6 +446,7 @@ public class Character3 : ChLegsArms, IActiveObject
         {
             ResetControl();
             inputController = null;
+            inventory.DisconnectQuickSlots();
         }
     }
 

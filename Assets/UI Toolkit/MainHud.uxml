@@ -8,7 +8,60 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Bottom" style="flex-direction: row; align-items: flex-end;">
-            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;" />
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center; padding-top: 2px; padding-right: 2px; padding-bottom: 2px; padding-left: 2px;">
+                <ui:VisualElement name="QuickSlots" style="flex-direction: row;">
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="QuickSlotFrame">
+                        <ui:VisualElement class="QuickSlotImage" />
+                        <ui:Label text="0" class="InventoryNum" />
+                        <ui:Label text="0" class="QuickSlotKey" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="Console" style="margin-top: 6px; margin-right: 6px; margin-bottom: 6px; margin-left: 6px; padding-top: 6px; padding-right: 6px; padding-bottom: 6px; padding-left: 6px; background-color: rgba(204, 204, 204, 0.39); width: 25%; max-height: 57px; overflow: hidden;">
                 <ui:Label enable-rich-text="false" emoji-fallback-support="false" text="adwwdd" class="ConsoleText" />
                 <ui:Label enable-rich-text="false" class="ConsoleText" />
