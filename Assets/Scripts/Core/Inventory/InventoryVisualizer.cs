@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Graphs;
+using UnityEngine;
 using UnityEngine.UIElements;
 using UiLabel = UnityEngine.UIElements.Label;
 
@@ -11,11 +12,15 @@ namespace Assets.Scripts.Core.Inventory
     {
         private readonly SpanList<Slot> slots = new();
         private readonly Dictionary<Label, int> keyToSlot = new();
+        private readonly Dictionary<VisualElement, int> columnToSlot = new();
         private readonly Stack<VisualElement> columnPool = new();
 
         private readonly VisualElement inventory;
         private readonly VisualTreeAsset columnAsset;
         private int rowCount;
+        private int selectedColumn = -1;
+
+        public Label SelectedKey => selectedColumn != -1 ? slots[selectedColumn].Key : null;
 
         private struct Slot
         {
@@ -40,6 +45,9 @@ namespace Assets.Scripts.Core.Inventory
         {
             this.inventory = inventory;
             this.columnAsset = columnAsset;
+
+            inventory.RegisterCallback<MouseEnterEvent>(OnMouseEnter, TrickleDown.TrickleDown);
+            inventory.RegisterCallback<MouseLeaveEvent>(OnMouseLeave, TrickleDown.TrickleDown);
         }
 
 
@@ -85,6 +93,7 @@ namespace Assets.Scripts.Core.Inventory
                     cell.Q(className: "InventoryImage").style.backgroundImage = new StyleBackground(key.GetSettings().Icon);
                     cell.Q("cell").style.visibility = Visibility.Hidden;
                 }
+                columnToSlot.Add(col, slots.Count);
                 slots.Add(new Slot(key, col));
                 inventory.Add(col);
                 return ref slots[^1];
@@ -103,6 +112,21 @@ namespace Assets.Scripts.Core.Inventory
             //{
             //    inventory.Add(slot.Column);
             //}
+        }
+
+        private void OnMouseEnter(MouseEnterEvent evt)
+        {
+            var target = evt.target as VisualElement;
+            if (target.name == "InventoryColumn")
+                selectedColumn = columnToSlot[target.parent];
+        }
+
+
+        private void OnMouseLeave(MouseLeaveEvent evt)
+        {
+            var target = evt.target as VisualElement;
+            if (target.name == "InventoryColumn")
+                selectedColumn = -1;
         }
     }
 }

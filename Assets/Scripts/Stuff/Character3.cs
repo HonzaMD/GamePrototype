@@ -83,7 +83,16 @@ public class Character3 : ChLegsArms, IActiveObject
 
         var slot = KeysToInventory.TestKeys();
         if (slot != 0)
-            InventoryAccess(slot);
+        {
+            if (Game.Instance.Hud.SelectedInventoryKey != null)
+            {
+                inventory.SetQuickSlot(slot, Game.Instance.Hud.SelectedInventoryKey);
+            }
+            else
+            {
+                InventoryAccess(slot);
+            }
+        }
 
         controlTimeout += Time.deltaTime;
         if (cState == ControlState.Pickup && controlTimeout > 2f)
@@ -92,7 +101,8 @@ public class Character3 : ChLegsArms, IActiveObject
         {
             if (!IsInventoryActive)
             {
-                InventoryAccess(inventory.LastSlot);
+                if (inventory.TryGetSlot(inventory.LastKey, out var lastSlot))
+                    InventoryAccess(lastSlot);
                 if (!IsInventoryActive)
                 {
                     ResetControl();

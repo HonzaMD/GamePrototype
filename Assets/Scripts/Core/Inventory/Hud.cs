@@ -21,6 +21,8 @@ namespace Assets.Scripts.Core.Inventory
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
 
+        public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
+
         private void OnEnable()
         {
             var doc = GetComponent<UIDocument>();

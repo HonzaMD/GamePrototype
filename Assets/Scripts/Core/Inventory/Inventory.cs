@@ -35,7 +35,7 @@ namespace Assets.Scripts.Core.Inventory
         private readonly Slot[] quickAccess = new Slot[10];
         private readonly SpanList<Slot> slots = new();
         private readonly List<Link> links = new();
-        private readonly Dictionary<Label, int> protoToSlot = new();
+        private readonly Dictionary<Label, int> keyToSlot = new();
         private float mass;
         private Slot dummySlot;
         private Label activeObj;
@@ -49,7 +49,7 @@ namespace Assets.Scripts.Core.Inventory
         public float Mass => mass;
         public Label ActiveObj => activeObj;
         public Connectable ActiveObjHandle;
-        public int LastSlot { get; private set; }
+        public Label LastKey { get; private set; }
 
         public override Placeable PlaceableC => throw new NotSupportedException();
         public override Label Prototype => Game.Instance.PrefabsStore.Inventory;
@@ -87,7 +87,7 @@ namespace Assets.Scripts.Core.Inventory
             slots.Clear();
 
             links.Clear();
-            protoToSlot.Clear();
+            keyToSlot.Clear();
             mass = 0f;
             activeObj = null;
             activeSlot = 0;
@@ -142,8 +142,8 @@ namespace Assets.Scripts.Core.Inventory
         {
             activeSlot = slotNum;
             activeObj = obj;
-            LastSlot = slotNum;
             ref var slot = ref GetSlot(slotNum);
+            LastKey = slot.Key;
             mass -= slot.Mass;
             slot.IsActivated = true;
             ActiveObjHandle.ConnectTo(obj, ConnectableType.OwnedByInventory);
@@ -177,13 +177,30 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        public void SetQuickSlot(int newSlot, Label prototype)
+        public void SetQuickSlot(int newSlot, Label key)
         {
-            SetQuickSlot(newSlot, StoreProto2(prototype, 0));
+            if (key == null || newSlot >= 0)
+                return;
+
+            if (key.Prototype == key)
+            {
+                SetQuickSlot(newSlot, StoreProto2(key, 0));
+            }
+            else
+            {
+                ref var slot = ref FindSlot(key);
+                if (slot.Key == key)
+                    SetQuickSlot(newSlot, slot.Index);
+            }
         }
 
         private void SetQuickSlot(int newSlot, int oldSlot)
         {
+            if (newSlot == oldSlot)
+            {
+                newSlot = AddSlot().Index; // zrusi quick slot
+            }
+
             ref var sN = ref GetSlot(newSlot);
             ref var sO = ref GetSlot(oldSlot);
             (sN, sO) = (sO, sN);
@@ -201,6 +218,7 @@ namespace Assets.Scripts.Core.Inventory
             mass += m;
             int index = slots.Count;
             slots.Add(new Slot() { Count = 1, Mass = m, Obj = obj, Index = index });
+            keyToSlot.Add(obj, index);
             HudUpdate(ref slots[^1]);
             return index;
         }
@@ -358,6 +376,7 @@ namespace Assets.Scripts.Core.Inventory
             {
                 if (slot.Obj != null)
                 {
+                    keyToSlot.Remove(slot.Obj);
                     slot.Obj = null;
                     slot.Prototype = null;
                     slot.Mass = 0;
@@ -367,8 +386,8 @@ namespace Assets.Scripts.Core.Inventory
             }
             else
             {
-                if (slot.Prototype != null)
-                    protoToSlot.Remove(slot.Prototype);
+                if (slot.Key != null)
+                    keyToSlot.Remove(slot.Key);
                 int index = slot.Index;
                 slots.RemoveAt(index);
                 FixIndex(ref slot, index);
@@ -379,9 +398,9 @@ namespace Assets.Scripts.Core.Inventory
         private void FixIndex(ref Slot slot, int index)
         {
             slot.Index = index;
-            if (slot.Prototype != null && protoToSlot.ContainsKey(slot.Prototype))
+            if (slot.Key != null && keyToSlot.ContainsKey(slot.Key))
             {
-                protoToSlot[slot.Prototype] = index;
+                keyToSlot[slot.Key] = index;
             }
             if (slot.IsActivated)
             {
@@ -411,7 +430,7 @@ namespace Assets.Scripts.Core.Inventory
                 slot = ref AddSlot();
                 slot.Prototype = prototype;
                 slot.Mass = prototype.GetMass();
-                protoToSlot.Add(prototype, slot.Index);
+                keyToSlot.Add(prototype, slot.Index);
             }
             slot.Count += count;
             mass += slot.Mass * count;
@@ -431,9 +450,9 @@ namespace Assets.Scripts.Core.Inventory
             return slot.Count < slot.DesiredCount;
         }
 
-        private ref Slot FindSlot(Label prototype)
+        private ref Slot FindSlot(Label key)
         {
-            if (protoToSlot.TryGetValue(prototype, out var slot))
+            if (keyToSlot.TryGetValue(key, out var slot))
             {
                 return ref GetSlot(slot);
             }
@@ -441,6 +460,16 @@ namespace Assets.Scripts.Core.Inventory
             {
                 return ref dummySlot;
             }
+        }
+
+        public bool TryGetSlot(Label key, out int slot)
+        {
+            if (key == null)
+            {
+                slot = 0;
+                return false;
+            }
+            return keyToSlot.TryGetValue(key, out slot);
         }
 
         private ref Slot GetSlot(int slot)
