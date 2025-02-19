@@ -16,12 +16,16 @@ namespace Assets.Scripts.Core.Inventory
         private VisualElement console;
         private VisualElement inventory;
         private VisualElement quickSlots;
+        private VisualElement inventoryWindow;
         private float fpsTimeStamp;
         private int framesCount;
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
+        private bool guiInFocus;
+        private bool inventoryVisible;
 
         public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
+        public bool GuiInFocus => guiInFocus;
 
         private void OnEnable()
         {
@@ -30,10 +34,14 @@ namespace Assets.Scripts.Core.Inventory
             console = doc.rootVisualElement.Q<VisualElement>("Console");
             inventory = doc.rootVisualElement.Q<VisualElement>("Inventory");
             quickSlots = doc.rootVisualElement.Q<VisualElement>("QuickSlots");
+            inventoryWindow = doc.rootVisualElement.Q<VisualElement>("InventoryWindow");
+            
             InitQuickSlots(quickSlots);
             inventoryVisualizer = new InventoryVisualizer(inventory, ColumnTree);
 
             Application.logMessageReceived += Application_logMessageReceived;
+            inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);
+            inventoryWindow.RegisterCallback<MouseLeaveEvent>(GuiOnMouseLeave);
         }
 
         private void InitQuickSlots(VisualElement quickSlots)
@@ -63,6 +71,12 @@ namespace Assets.Scripts.Core.Inventory
                 framesCount = 0;
                 fpsTimeStamp = 0;
             }
+
+            if (Input.GetKeyDown(KeyCode.I))
+            {
+                inventoryVisible = !inventoryVisible;
+                inventoryWindow.style.display = inventoryVisible ? DisplayStyle.Flex : DisplayStyle.None;
+            }                   
         }
 
         internal void SetupInventory(List<Character3> characters)
@@ -90,6 +104,17 @@ namespace Assets.Scripts.Core.Inventory
                 cell.style.display = DisplayStyle.None;
             }
             quickSlotKeys[index] = key;
+        }
+
+        private void GuiOnMouseEnter(MouseEnterEvent evt)
+        {
+            guiInFocus = true;
+        }
+
+
+        private void GuiOnMouseLeave(MouseLeaveEvent evt)
+        {
+            guiInFocus = false;
         }
     }
 }

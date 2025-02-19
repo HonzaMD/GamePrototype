@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between;">
         <ui:VisualElement name="Top" style="align-items: flex-start;">
-            <ui:VisualElement style="flex-direction: row; margin-top: 50px; margin-right: 0; margin-left: 10px;">
+            <ui:VisualElement name="InventoryWindow" style="flex-direction: row; margin-top: 50px; margin-right: 0; margin-left: 10px; display: none;">
                 <ui:VisualElement style="flex-grow: 1; min-width: 80px;" />
                 <ui:VisualElement name="Inventory" style="flex-grow: 1; flex-direction: row; overflow: hidden;" />
             </ui:VisualElement>

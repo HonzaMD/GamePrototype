@@ -14,7 +14,6 @@ using UnityTemplateProjects;
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
 public class Character3 : ChLegsArms, IActiveObject
 {
-    private Vector3 oldPos;
     private float lastJumpTime;
 
     private float zMoveTimeout;
@@ -42,7 +41,6 @@ public class Character3 : ChLegsArms, IActiveObject
 
     void Awake()
     {
-        oldPos = transform.position;
         AwakeB();
     }
 
@@ -155,7 +153,8 @@ public class Character3 : ChLegsArms, IActiveObject
             //}
         }
 
-        bool mouseDown = Input.GetMouseButtonDown(0);
+        bool guiInFocus = Game.Instance.Hud.GuiInFocus;
+        bool mouseDown = !guiInFocus && Input.GetMouseButtonDown(0);
         bool mouseUp = Input.GetMouseButtonUp(0);
 
         if (mouseDown && (cState is ControlState.PickupPrepare or ControlState.EmptyHands || (cState is ControlState.ItemUse && Input.GetKey(KeyCode.E))))
