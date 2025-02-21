@@ -74,6 +74,7 @@ namespace Assets.Scripts.Core.Inventory
 
             if (Input.GetKeyDown(KeyCode.I))
             {
+                inventoryVisualizer.CancelManipulators();
                 inventoryVisible = !inventoryVisible;
                 inventoryWindow.style.display = inventoryVisible ? DisplayStyle.Flex : DisplayStyle.None;
             }                   

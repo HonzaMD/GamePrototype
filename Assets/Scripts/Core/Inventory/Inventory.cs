@@ -12,29 +12,23 @@ namespace Assets.Scripts.Core.Inventory
 {
     public class Inventory : Label
     {
-        private struct Slot
+        public struct Slot
         {
             public Label Prototype;
             public Label Obj;
-            public Label Key => Prototype ?? Obj;
+            public readonly Label Key => Prototype ?? Obj;
             public int Count;
             public float Mass;
             public int DesiredCount;
             public bool IsActivated;
             public int Index;
-            public int CountInside => IsActivated ? Count - 1 : Count;
+            public readonly int CountInside => IsActivated ? Count - 1 : Count;
         }
 
-        private struct Link
-        {
-            public Inventory Inventory;
-            public bool AllowGet;
-            public bool AllowStore;
-        }
-
+        public InventoryType Type { get; set; }
         private readonly Slot[] quickAccess = new Slot[10];
         private readonly SpanList<Slot> slots = new();
-        private readonly List<Link> links = new();
+        private readonly List<Inventory> links = new();
         private readonly Dictionary<Label, int> keyToSlot = new();
         private float mass;
         private Slot dummySlot;
@@ -76,7 +70,11 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        public override void Init(Map.Map map) => isAlive = true;
+        public override void Init(Map.Map map)
+        {
+            isAlive = true;
+            links.Add(this);
+        }
 
         public void Clear()
         {
@@ -163,16 +161,26 @@ namespace Assets.Scripts.Core.Inventory
 
         public void StoreProto(Label prototype, int count = 1)
         {
-            if (IsDesired(prototype)) 
-            { 
-                StoreProto2(prototype, count);
-            }
-            else if (FindOtherInventoryStore(out Inventory inv))
+            foreach (var inv in links) 
             {
-                inv.StoreProto(prototype, count);
+                if (count == 0)
+                    return;
+                int storeHere = inv.DesiredCount(prototype, ref count);
+                if (storeHere > 0)
+                    inv.StoreProto2(prototype, storeHere);
             }
-            else
+
+            if (count > 0)
             {
+                foreach (var inv in links)
+                {
+                    if (inv.Type == InventoryType.Base)
+                    {
+                        inv.StoreProto2(prototype, count);
+                        return;
+                    }
+                }
+                
                 StoreProto2(prototype, count);
             }
         }
@@ -230,8 +238,8 @@ namespace Assets.Scripts.Core.Inventory
             if (activeObj != null)
                 throw new InvalidOperationException("Nemuzu aktivovat, kdyz je neco jineho aktivni");
             ref var slot = ref GetSlot(slotNum);
-            if (slot.Count == 0)
-                BalanceSlot(ref slot, Math.Max(slot.DesiredCount, 1));
+            if (slot.Count == 0 && slot.Key != null)
+                TryRefill(ref slot, Math.Max(slot.DesiredCount, 1), links);
             if (slot.Count == 0)
                 return null;
             Label newActiveObj;
@@ -311,45 +319,52 @@ namespace Assets.Scripts.Core.Inventory
             TryFreeAndNotify(ref slot, oldKey);
         }
 
-
-        private void BalanceSlot(ref Slot slot, int desiredCount)
+        public void Balance(Label key)
         {
-            if (slot.Prototype == null || slot.Obj != null)
-                return;
-            int delta = desiredCount - slot.Count;
-            foreach (var link in links)
+            foreach (var inv in links)
             {
-                if (delta == 0)
-                    return;
-                if (delta > 0 && link.AllowGet)
-                {
-                    link.Inventory.RemoveProto(slot.Prototype, ref delta);
-                    slot.Count = desiredCount - delta;
-                    HudUpdate(ref slot);
-                }
-                if (delta < 0 && link.AllowStore)
-                {
-                    link.Inventory.StoreProto2(slot.Prototype, -delta);
-                    slot.Count = desiredCount;
-                    HudUpdate(ref slot);
-                    return;
-                }
+                inv.TryRefill(key, links);
             }
         }
 
-        private void RemoveProto(Label prototype, ref int requestedCount)
+        private void TryRefill(Label key, List<Inventory> links)
         {
-            ref var slot = ref FindSlot(prototype);
-            if (slot.Prototype == null)
-                return;
-            int count = Math.Min(slot.CountInside, requestedCount);
-            if (count == 0)
-                return;
+            ref var slot = ref FindSlot(key);
+            if (slot.Key == key)
+                TryRefill(ref slot, slot.DesiredCount, links);
+        }
+
+        private void TryRefill(ref Slot slot, int desiredCount, List<Inventory> links)
+        {
+            int toFill = desiredCount - slot.Count;
+            int removed = 0;
+            foreach (var link in links)
+            {
+                if (toFill <= 0)
+                    break;
+                if (link != this)
+                    removed += link.RemoveUnneeded(slot.Key, ref toFill);
+            }
+            slot.Count += removed;
+            mass += slot.Mass * removed;
+            if (removed > 0)
+                HudUpdate(ref slot);
+        }
+
+        private int RemoveUnneeded(Label key, ref int requestedCount)
+        {
+            ref var slot = ref FindSlot(key);
+            if (slot.Key == null)
+                return 0;
+            int count = Math.Min(slot.CountInside - slot.DesiredCount, requestedCount);
+            if (count <= 0)
+                return 0;
             Label oldKey = slot.Key;
             slot.Count -= count;
             mass -= slot.Mass * count;
             requestedCount -= count;
             TryFreeAndNotify(ref slot, oldKey);
+            return count;
         }
 
         private void TryFreeAndNotify(ref Slot slot, Label oldKey)
@@ -408,19 +423,6 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        private bool FindOtherInventoryStore(out Inventory inv)
-        {
-            foreach (var link in links)
-            {
-                if (link.AllowStore)
-                {
-                    inv = link.Inventory;
-                    return true;
-                }
-            }
-            inv = null;
-            return false;
-        }
 
         private int StoreProto2(Label prototype, int count = 1)
         {
@@ -444,15 +446,17 @@ namespace Assets.Scripts.Core.Inventory
             return ref slots[^1];
         }
 
-        private bool IsDesired(Label prototype)
+        private int DesiredCount(Label prototype, ref int toStore)
         {
             ref var slot = ref FindSlot(prototype);
-            return slot.Count < slot.DesiredCount;
+            int storeHere = Math.Min(Math.Max(0, slot.DesiredCount - slot.Count), toStore);
+            toStore -= storeHere;
+            return storeHere;
         }
 
-        private ref Slot FindSlot(Label key)
+        public ref Slot FindSlot(Label key)
         {
-            if (keyToSlot.TryGetValue(key, out var slot))
+            if (key != null && keyToSlot.TryGetValue(key, out var slot))
             {
                 return ref GetSlot(slot);
             }
@@ -532,5 +536,18 @@ namespace Assets.Scripts.Core.Inventory
         {
             quickSlotsHud = null;
         }
+
+        internal void AddLink(Inventory inventory)
+        {
+            links.Add(inventory);
+        }
+    }
+
+    public enum InventoryType
+    {
+        Unknown,
+        Character,
+        Base,
+        Chest,
     }
 }

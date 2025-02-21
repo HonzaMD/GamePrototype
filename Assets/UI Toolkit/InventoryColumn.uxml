@@ -6,28 +6,28 @@
                 <ui:VisualElement class="InventoryImage" />
                 <ui:Label text="8898" class="InventoryNum" />
             </ui:VisualElement>
-            <ui:Label text="0" class="InventoryReqNum" />
+            <ui:Label text="0" name="RequestNum" class="InventoryReqNum" />
         </ui:VisualElement>
         <ui:VisualElement class="InventoryCellFrame">
             <ui:VisualElement name="cell" style="flex-grow: 1;">
                 <ui:VisualElement class="InventoryImage" />
                 <ui:Label text="8898" class="InventoryNum" />
             </ui:VisualElement>
-            <ui:Label text="0" class="InventoryReqNum" />
+            <ui:Label text="0" name="RequestNum" class="InventoryReqNum" />
         </ui:VisualElement>
         <ui:VisualElement class="InventoryCellFrame">
             <ui:VisualElement name="cell" style="flex-grow: 1;">
                 <ui:VisualElement class="InventoryImage" />
                 <ui:Label text="8898" class="InventoryNum" />
             </ui:VisualElement>
-            <ui:Label text="0" class="InventoryReqNum" />
+            <ui:Label text="0" name="RequestNum" class="InventoryReqNum" />
         </ui:VisualElement>
         <ui:VisualElement class="InventoryCellFrame">
             <ui:VisualElement name="cell" style="flex-grow: 1;">
                 <ui:VisualElement class="InventoryImage" />
                 <ui:Label text="8898" class="InventoryNum" />
             </ui:VisualElement>
-            <ui:Label text="0" class="InventoryReqNum" />
+            <ui:Label text="0" name="RequestNum" class="InventoryReqNum" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -102,3 +102,7 @@
     align-self: center;
     top: -9px;
 }
+
+.InventoryReqNum:hover {
+    scale: 1.4 1.4;
+}

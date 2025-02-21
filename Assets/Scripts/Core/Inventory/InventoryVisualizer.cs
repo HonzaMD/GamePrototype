@@ -11,9 +11,11 @@ namespace Assets.Scripts.Core.Inventory
     internal class InventoryVisualizer
     {
         private readonly SpanList<Slot> slots = new();
+        private readonly List<Inventory> inventories = new();
         private readonly Dictionary<Label, int> keyToSlot = new();
         private readonly Dictionary<VisualElement, int> columnToSlot = new();
         private readonly Stack<VisualElement> columnPool = new();
+        private readonly ReqNumManipulator reqNumManipulator = new();
 
         private readonly VisualElement inventory;
         private readonly VisualTreeAsset columnAsset;
@@ -28,6 +30,7 @@ namespace Assets.Scripts.Core.Inventory
             public int Pos;
             public readonly VisualElement Column;
             private int activeRows;
+            
             public void ActivateRow(int row) => activeRows |= (1 << row);
             public void DeactivateRow(int row) => activeRows &= ~(1 << row);
             public bool isRowActive(int row) => ((1 << row) & activeRows) != 0;
@@ -48,6 +51,10 @@ namespace Assets.Scripts.Core.Inventory
 
             inventory.RegisterCallback<MouseEnterEvent>(OnMouseEnter, TrickleDown.TrickleDown);
             inventory.RegisterCallback<MouseLeaveEvent>(OnMouseLeave, TrickleDown.TrickleDown);
+            inventory.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
+            inventory.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            inventory.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+
         }
 
 
@@ -105,13 +112,16 @@ namespace Assets.Scripts.Core.Inventory
             rowCount = Math.Min(characters.Count, 4);
             for (int f = 0; f < rowCount; f++)
             {
-                characters[f].Inventory.ShowInHud(this, f);
-            }
+                var inventory = characters[f].Inventory;
+                inventories.Add(inventory);
+                inventory.ShowInHud(this, f);
 
-            //foreach (ref Slot slot in slots.AsSpan())
-            //{
-            //    inventory.Add(slot.Column);
-            //}
+                for (int g = 0; g < rowCount; g++)
+                {
+                    if (g != f)
+                        inventory.AddLink(characters[g].Inventory);
+                }
+            }
         }
 
         private void OnMouseEnter(MouseEnterEvent evt)
@@ -127,6 +137,102 @@ namespace Assets.Scripts.Core.Inventory
             var target = evt.target as VisualElement;
             if (target.name == "InventoryColumn")
                 selectedColumn = -1;
+        }
+
+        private void OnMouseDown(MouseDownEvent evt)
+        {
+            var target = evt.target as VisualElement;
+            if (target.name == "RequestNum" && selectedColumn != -1)
+            {
+                reqNumManipulator.Start(evt, target, this);
+            }
+        }
+
+        private void OnMouseUp(MouseUpEvent evt)
+        {
+            reqNumManipulator.Done(evt, inventories.Count > 0 ? inventories[0] : null);
+        }
+
+        private void OnMouseMove(MouseMoveEvent evt)
+        {
+            reqNumManipulator.Continue(evt);
+        }
+
+
+        public void CancelManipulators()
+        {
+            reqNumManipulator.Cancel();
+        }
+
+        private class ReqNumManipulator
+        {
+            private bool enabled;
+            private Vector2 mouseStartPos;
+            private Inventory inventory;
+            private Label key;
+            private int startNum;
+            private UiLabel target;
+            private VisualElement captured;
+
+
+            public void Start(MouseDownEvent evt, VisualElement target, InventoryVisualizer visualizer)
+            {
+                int row = target.parent.parent.hierarchy.IndexOf(target.parent);
+                inventory = visualizer.inventories[row];
+                key = visualizer.SelectedKey;
+                ref var slot = ref inventory.FindSlot(key);
+                Debug.Log($"ReqNum {visualizer.selectedColumn} {row} desired: {slot.DesiredCount}");
+                enabled = true;
+                mouseStartPos = evt.mousePosition;
+                startNum = slot.DesiredCount;
+                evt.currentTarget.CaptureMouse();
+                this.target = target as UiLabel;
+                captured = evt.currentTarget as VisualElement;
+            }
+
+            public void Continue(MouseMoveEvent evt)
+            {
+                if (enabled/* && evt.target.HasMouseCapture() && evt.target == target*/)
+                {
+                    int newNum = ComputeNewNum(evt);
+                    target.text = NumberToString.Convert(newNum);
+                }
+            }
+
+            internal void Done(MouseUpEvent evt, Inventory mainInventory)
+            {
+                if (enabled/* && evt.target.HasMouseCapture() && evt.target == target*/)
+                {
+                    int newNum = ComputeNewNum(evt);
+                    target.text = NumberToString.Convert(newNum);
+                    ref var slot = ref inventory.FindSlot(key);
+                    slot.DesiredCount = newNum;
+                    evt.currentTarget.ReleaseMouse();
+                    mainInventory?.Balance(key);
+                }
+
+                enabled = false;
+
+            }
+
+            private int ComputeNewNum(IMouseEvent evt)
+            {
+                Vector2 delta = evt.mousePosition - mouseStartPos;
+                float d2 = MathF.Abs(delta.x) >= MathF.Abs(delta.y) ? delta.x : -delta.y;
+                float num = Mathf.Pow(1.02f, d2) * (startNum + 10) - 10;
+                return (int)Mathf.Clamp(num, 0f, 10000f);
+            }
+
+            public void Cancel()
+            {
+                if (enabled)
+                {
+                    ref var slot = ref inventory.FindSlot(key);
+                    target.text = NumberToString.Convert(slot.DesiredCount);
+                    captured.ReleaseMouse();
+                    enabled = false;
+                }
+            }
         }
     }
 }
