@@ -106,3 +106,67 @@
 .InventoryReqNum:hover {
     scale: 1.4 1.4;
 }
+
+.InventoryButton {
+    margin-top: 1px;
+    margin-right: 1px;
+    margin-bottom: 1px;
+    margin-left: 1px;
+    padding-top: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    font-size: 15px;
+    background-color: rgb(123, 180, 176);
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+}
+
+.InventoryButton:hover {
+    background-color: rgb(123, 168, 165);
+}
+
+.InventoryButtonSelected {
+    background-color: rgb(123, 224, 217);
+}
+
+.InventoryButtonSelected:hover {
+    background-color: rgb(114, 207, 200);
+}
+
+.InvLeftButtonPanel {
+    width: 125px;
+}
+
+.InventoryButtonFrame {
+    margin-top: 2px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    margin-left: 2px;
+    height: 100px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.InventoryName {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    padding-top: 3px;
+    padding-right: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
+    width: 80px;
+    height: 50px;
+}
+
+.InventoryName > .unity-button__image {
+    width: 26px;
+}
+
+.BulkDragButton {
+    width: 30px;
+}

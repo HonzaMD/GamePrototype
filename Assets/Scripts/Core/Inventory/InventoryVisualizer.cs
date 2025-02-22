@@ -19,6 +19,8 @@ namespace Assets.Scripts.Core.Inventory
 
         private readonly VisualElement inventory;
         private readonly VisualTreeAsset columnAsset;
+        private readonly VisualElement invNamesPanel;
+        private readonly Button allNamesButton;
         private int rowCount;
         private int selectedColumn = -1;
 
@@ -44,10 +46,12 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        public InventoryVisualizer(VisualElement inventory, VisualTreeAsset columnAsset)
+        public InventoryVisualizer(VisualElement inventory, VisualElement inventoryWindow, VisualTreeAsset columnAsset)
         {
             this.inventory = inventory;
             this.columnAsset = columnAsset;
+            invNamesPanel = inventoryWindow.Q("InvNamesPanel");
+            allNamesButton = inventoryWindow.Q<Button>("allNamesButton");
 
             inventory.RegisterCallback<MouseEnterEvent>(OnMouseEnter, TrickleDown.TrickleDown);
             inventory.RegisterCallback<MouseLeaveEvent>(OnMouseLeave, TrickleDown.TrickleDown);
@@ -121,6 +125,12 @@ namespace Assets.Scripts.Core.Inventory
                     if (g != f)
                         inventory.AddLink(characters[g].Inventory);
                 }
+            }
+
+            for (int f = 0; f < invNamesPanel.childCount; f++)
+            {
+                var cell = invNamesPanel.ElementAt(f);
+                cell.style.display = f < rowCount ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 

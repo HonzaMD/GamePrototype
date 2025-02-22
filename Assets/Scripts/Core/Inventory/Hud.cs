@@ -37,7 +37,7 @@ namespace Assets.Scripts.Core.Inventory
             inventoryWindow = doc.rootVisualElement.Q<VisualElement>("InventoryWindow");
             
             InitQuickSlots(quickSlots);
-            inventoryVisualizer = new InventoryVisualizer(inventory, ColumnTree);
+            inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree);
 
             Application.logMessageReceived += Application_logMessageReceived;
             inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);
