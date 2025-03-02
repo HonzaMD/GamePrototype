@@ -35,6 +35,7 @@ namespace Assets.Scripts.Core.Inventory
             inventory = doc.rootVisualElement.Q<VisualElement>("Inventory");
             quickSlots = doc.rootVisualElement.Q<VisualElement>("QuickSlots");
             inventoryWindow = doc.rootVisualElement.Q<VisualElement>("InventoryWindow");
+            DisableFocus(doc.rootVisualElement);
             
             InitQuickSlots(quickSlots);
             inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree);
@@ -42,6 +43,14 @@ namespace Assets.Scripts.Core.Inventory
             Application.logMessageReceived += Application_logMessageReceived;
             inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);
             inventoryWindow.RegisterCallback<MouseLeaveEvent>(GuiOnMouseLeave);
+        }
+
+        private void DisableFocus(VisualElement rootVisualElement)
+        {
+            foreach(var button in rootVisualElement.Query<Button>().Build())
+            {
+                button.focusable = false;
+            }
         }
 
         private void InitQuickSlots(VisualElement quickSlots)

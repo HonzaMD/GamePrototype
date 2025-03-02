@@ -46,6 +46,8 @@ namespace Assets.Scripts.Bases
         public SecondaryMap SecondaryMapIndex;
         [Tooltip("Pro zobrazeni v inventari")]
         public Sprite Icon;
+        [Tooltip("Poradi v inventari")]
+        public int IconOrder;
 
         [Tooltip("Limity pro staticke spoje mezi objekty: Tah")]
         public float SpStretchLimit = 1000f;

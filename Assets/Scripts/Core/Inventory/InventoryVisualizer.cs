@@ -1,63 +1,145 @@
 ﻿using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.Rendering.DebugUI.Table;
 using UiLabel = UnityEngine.UIElements.Label;
 
 namespace Assets.Scripts.Core.Inventory
 {
     internal class InventoryVisualizer
     {
+        private const string InventoryButtonSelected = "InventoryButtonSelected";
+
         private readonly SpanList<Slot> slots = new();
         private readonly List<Inventory> inventories = new();
         private readonly Dictionary<Label, int> keyToSlot = new();
         private readonly Dictionary<VisualElement, int> columnToSlot = new();
-        private readonly Stack<VisualElement> columnPool = new();
         private readonly ReqNumManipulator reqNumManipulator = new();
+        private readonly InvNameFilter invNameFilter;
 
-        private readonly VisualElement inventory;
+        private readonly VisualElement inventoryPanel;
         private readonly VisualTreeAsset columnAsset;
         private readonly VisualElement invNamesPanel;
-        private readonly Button allNamesButton;
         private int rowCount;
-        private int selectedColumn = -1;
+        private int selectedSlot = -1;
 
-        public Label SelectedKey => selectedColumn != -1 ? slots[selectedColumn].Key : null;
+        public Label SelectedKey => selectedSlot != -1 ? slots[selectedSlot].Key : null;
 
         private struct Slot
         {
             public readonly Label Key;
-            public int Pos;
             public readonly VisualElement Column;
-            private int activeRows;
+            public readonly int IconOrder;
+            public int activeRows;
+            public bool Visible;
             
             public void ActivateRow(int row) => activeRows |= (1 << row);
             public void DeactivateRow(int row) => activeRows &= ~(1 << row);
-            public bool isRowActive(int row) => ((1 << row) & activeRows) != 0;
+            public bool IsRowActive(int row) => ((1 << row) & activeRows) != 0;
 
-            public Slot(Label key, VisualElement column)
+            public Slot(Label key, VisualElement column, int iconOrder)
             {
                 Key = key;
                 Column = column;
-                Pos = -1;
+                IconOrder = iconOrder;
+                Visible = true;
                 activeRows = 0;
             }
         }
 
-        public InventoryVisualizer(VisualElement inventory, VisualElement inventoryWindow, VisualTreeAsset columnAsset)
+        private class InvNameFilter
         {
-            this.inventory = inventory;
+            private bool AllVisible = true;
+            private int activeRows;
+            private readonly InventoryVisualizer visualizer;
+            private readonly Button allNamesButton;
+            private readonly Button[] nameButtons;
+
+            public InvNameFilter(InventoryVisualizer visualizer, Button allNamesButton, VisualElement invNamesPanel)
+            {
+                this.visualizer = visualizer;
+                this.allNamesButton = allNamesButton;
+                nameButtons = invNamesPanel.Children().Select(ch => ch.Q<Button>("nameButton")).ToArray();
+                for (int i = 0; i < nameButtons.Length; i++)
+                {
+                    int row = i;
+                    nameButtons[i].clicked += () => ToggleRow(row);
+                }
+                allNamesButton.clicked += AllNamesButton_clicked;
+            }
+
+            private void AllNamesButton_clicked()
+            {
+                if (!AllVisible)
+                {
+                    AllVisible = true;
+                    allNamesButton.AddToClassList(InventoryButtonSelected);
+
+                    for (int row = 0; row < nameButtons.Length; row++)
+                    {
+                        if (IsRowActive(row))
+                        {
+                            nameButtons[row].RemoveFromClassList(InventoryButtonSelected);
+                        }
+                    }
+
+                    activeRows = 0;
+
+                    visualizer.ChangeFilters();
+                }
+            }
+
+            private void ToggleRow(int row)
+            {
+                bool wasActive = IsRowActive(row);
+                if (AllVisible)
+                {
+                    AllVisible = false;
+                    allNamesButton.RemoveFromClassList(InventoryButtonSelected);
+                }
+
+                nameButtons[row].EnableInClassList(InventoryButtonSelected, !wasActive);
+                if (wasActive) 
+                    DeactivateRow(row);
+                else
+                    ActivateRow(row);
+
+                if (activeRows == 0)
+                {
+                    AllVisible = true;
+                    allNamesButton.AddToClassList(InventoryButtonSelected);
+                }
+
+                visualizer.ChangeFilters();
+            }
+
+            private void ActivateRow(int row) => activeRows |= (1 << row);
+            private void DeactivateRow(int row) => activeRows &= ~(1 << row);
+            private bool IsRowActive(int row) => ((1 << row) & activeRows) != 0;
+
+            public bool Test(ref Slot slot)
+            {
+                return (AllVisible && slot.activeRows != 0) || (activeRows & slot.activeRows) != 0;
+            }
+        }
+
+        public InventoryVisualizer(VisualElement inventoryPanel, VisualElement inventoryWindow, VisualTreeAsset columnAsset)
+        {
+            this.inventoryPanel = inventoryPanel;
             this.columnAsset = columnAsset;
             invNamesPanel = inventoryWindow.Q("InvNamesPanel");
-            allNamesButton = inventoryWindow.Q<Button>("allNamesButton");
+            var allNamesButton = inventoryWindow.Q<Button>("allNamesButton");
+            invNameFilter = new(this, allNamesButton, invNamesPanel);
 
-            inventory.RegisterCallback<MouseEnterEvent>(OnMouseEnter, TrickleDown.TrickleDown);
-            inventory.RegisterCallback<MouseLeaveEvent>(OnMouseLeave, TrickleDown.TrickleDown);
-            inventory.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
-            inventory.RegisterCallback<MouseDownEvent>(OnMouseDown);
-            inventory.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+            inventoryPanel.RegisterCallback<MouseEnterEvent>(OnMouseEnter, TrickleDown.TrickleDown);
+            inventoryPanel.RegisterCallback<MouseLeaveEvent>(OnMouseLeave, TrickleDown.TrickleDown);
+            inventoryPanel.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
+            inventoryPanel.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            inventoryPanel.RegisterCallback<MouseMoveEvent>(OnMouseMove);
 
         }
 
@@ -65,19 +147,43 @@ namespace Assets.Scripts.Core.Inventory
         public void UpdateItem(Label key, int count, int desiredCount, int row)
         {
             ref Slot slot = ref GetSlot(key);
-            bool active = slot.isRowActive(row);
+            bool active = slot.IsRowActive(row);
             slot.ActivateRow(row);
-            var cell = slot.Column.ElementAt(0).ElementAt(row);         
+            var cell = slot.Column.ElementAt(0).ElementAt(row);
             cell.Q<UiLabel>(className: "InventoryReqNum").text = NumberToString.Convert(desiredCount);
             cell.Q<UiLabel>(className: "InventoryNum").text = NumberToString.Convert(count);
             if (!active)
                 cell.Q("cell").style.visibility = Visibility.Visible;
+            TryShowColumn(ref slot);
+        }
+
+        private void TryShowColumn(ref Slot slot)
+        {
+            if (!slot.Visible && invNameFilter.Test(ref slot))
+            {
+                slot.Visible = true;
+                slot.Column.style.display = DisplayStyle.Flex;
+            }
+        }
+
+        public void ChangeFilters()
+        {
+            for (int i = 0; i < slots.Count; i++)
+            {
+                ref var slot = ref slots[i];
+                bool newVisible = invNameFilter.Test(ref slot);
+                if (slot.Visible != newVisible)
+                {
+                    slot.Visible = newVisible;
+                    slot.Column.style.display = newVisible ? DisplayStyle.Flex : DisplayStyle.None;
+                }
+            }
         }
 
         public void HideItem(Label key, int row)
         {
             ref Slot slot = ref GetSlot(key);
-            bool active = slot.isRowActive(row);
+            bool active = slot.IsRowActive(row);
             if (active)
             {
                 slot.DeactivateRow(row);
@@ -95,7 +201,7 @@ namespace Assets.Scripts.Core.Inventory
             else
             {
                 keyToSlot.Add(key, slots.Count);
-                VisualElement col = columnPool.Count > 0 ? columnPool.Pop() : columnAsset.Instantiate();
+                VisualElement col = columnAsset.Instantiate();
                 VisualElement col2 = col.ElementAt(0);
                 for (int f = 0; f < col2.childCount; f++)
                 {
@@ -105,9 +211,34 @@ namespace Assets.Scripts.Core.Inventory
                     cell.Q("cell").style.visibility = Visibility.Hidden;
                 }
                 columnToSlot.Add(col, slots.Count);
-                slots.Add(new Slot(key, col));
-                inventory.Add(col);
+                int iconOrder = key.GetSettings().IconOrder;
+                slots.Add(new Slot(key, col, iconOrder));
+                InsertToPanel(col, iconOrder);
                 return ref slots[^1];
+            }
+        }
+
+        private void InsertToPanel(VisualElement col, int iconOrder)
+        {
+            if (iconOrder == 0)
+            {
+                inventoryPanel.Add(col);
+            }
+            else
+            {
+                for (int index = 0; ; index++)
+                {
+                    if (index > inventoryPanel.childCount)
+                    {
+                        inventoryPanel.Add(col);
+                        return;
+                    }
+                    else if (slots[columnToSlot[inventoryPanel.ElementAt(index)]].IconOrder > iconOrder)
+                    {
+                        inventoryPanel.Insert(index, col);
+                        return;
+                    }
+                }
             }
         }
 
@@ -138,7 +269,7 @@ namespace Assets.Scripts.Core.Inventory
         {
             var target = evt.target as VisualElement;
             if (target.name == "InventoryColumn")
-                selectedColumn = columnToSlot[target.parent];
+                selectedSlot = columnToSlot[target.parent];
         }
 
 
@@ -146,13 +277,13 @@ namespace Assets.Scripts.Core.Inventory
         {
             var target = evt.target as VisualElement;
             if (target.name == "InventoryColumn")
-                selectedColumn = -1;
+                selectedSlot = -1;
         }
 
         private void OnMouseDown(MouseDownEvent evt)
         {
             var target = evt.target as VisualElement;
-            if (target.name == "RequestNum" && selectedColumn != -1)
+            if (target.name == "RequestNum" && selectedSlot != -1)
             {
                 reqNumManipulator.Start(evt, target, this);
             }
@@ -191,7 +322,7 @@ namespace Assets.Scripts.Core.Inventory
                 inventory = visualizer.inventories[row];
                 key = visualizer.SelectedKey;
                 ref var slot = ref inventory.FindSlot(key);
-                Debug.Log($"ReqNum {visualizer.selectedColumn} {row} desired: {slot.DesiredCount}");
+                Debug.Log($"ReqNum {visualizer.selectedSlot} {row} desired: {slot.DesiredCount}");
                 enabled = true;
                 mouseStartPos = evt.mousePosition;
                 startNum = slot.DesiredCount;

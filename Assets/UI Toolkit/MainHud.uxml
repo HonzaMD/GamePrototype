@@ -11,7 +11,7 @@
                     </ui:VisualElement>
                     <ui:Button text="All" class="InventoryButton InventoryButtonSelected" />
                     <ui:Button text="Cat1" class="InventoryButton" />
-                    <ui:Button text="Cat2" name="Button" class="InventoryButton" />
+                    <ui:Button text="Cat2" class="InventoryButton" />
                 </ui:VisualElement>
                 <ui:VisualElement style="flex-direction: row;">
                     <ui:VisualElement name="InvNamesPanel" class="InvLeftButtonPanel">
