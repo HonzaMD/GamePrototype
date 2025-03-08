@@ -35,10 +35,11 @@ namespace Assets.Scripts.Core.Inventory
             inventory = doc.rootVisualElement.Q<VisualElement>("Inventory");
             quickSlots = doc.rootVisualElement.Q<VisualElement>("QuickSlots");
             inventoryWindow = doc.rootVisualElement.Q<VisualElement>("InventoryWindow");
+            var itemDragElement = doc.rootVisualElement.Q<VisualElement>("itemDragElement");
             DisableFocus(doc.rootVisualElement);
             
             InitQuickSlots(quickSlots);
-            inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree);
+            inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree, itemDragElement);
 
             Application.logMessageReceived += Application_logMessageReceived;
             inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);

@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.Rendering.DebugUI.MessageBox;
 using static UnityEngine.Rendering.DebugUI.Table;
 using UiLabel = UnityEngine.UIElements.Label;
 
@@ -19,11 +21,14 @@ namespace Assets.Scripts.Core.Inventory
         private readonly Dictionary<Label, int> keyToSlot = new();
         private readonly Dictionary<VisualElement, int> columnToSlot = new();
         private readonly ReqNumManipulator reqNumManipulator = new();
+        private readonly ItemDragDropManipulator itemDragDropManipulator = new();
         private readonly InvNameFilter invNameFilter;
 
         private readonly VisualElement inventoryPanel;
         private readonly VisualTreeAsset columnAsset;
         private readonly VisualElement invNamesPanel;
+        private readonly VisualElement itemDragElement;
+        private readonly UiLabel itemDragNum;
         private int rowCount;
         private int selectedSlot = -1;
 
@@ -127,10 +132,12 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        public InventoryVisualizer(VisualElement inventoryPanel, VisualElement inventoryWindow, VisualTreeAsset columnAsset)
+        public InventoryVisualizer(VisualElement inventoryPanel, VisualElement inventoryWindow, VisualTreeAsset columnAsset, VisualElement itemDragElement)
         {
             this.inventoryPanel = inventoryPanel;
             this.columnAsset = columnAsset;
+            this.itemDragElement = itemDragElement;
+            itemDragNum = itemDragElement.Q<UiLabel>("itemDragNum");
             invNamesPanel = inventoryWindow.Q("InvNamesPanel");
             var allNamesButton = inventoryWindow.Q<Button>("allNamesButton");
             invNameFilter = new(this, allNamesButton, invNamesPanel);
@@ -287,22 +294,29 @@ namespace Assets.Scripts.Core.Inventory
             {
                 reqNumManipulator.Start(evt, target, this);
             }
+            else if (target.parent?.name == "cell" && selectedSlot != -1)
+            {
+                itemDragDropManipulator.Start(evt, target.parent, this);
+            }
         }
 
         private void OnMouseUp(MouseUpEvent evt)
         {
             reqNumManipulator.Done(evt, inventories.Count > 0 ? inventories[0] : null);
+            itemDragDropManipulator.Done(evt);
         }
 
         private void OnMouseMove(MouseMoveEvent evt)
         {
             reqNumManipulator.Continue(evt);
+            itemDragDropManipulator.Continue(evt);
         }
 
 
         public void CancelManipulators()
         {
             reqNumManipulator.Cancel();
+            itemDragDropManipulator.Cancel();
         }
 
         private class ReqNumManipulator
@@ -373,6 +387,99 @@ namespace Assets.Scripts.Core.Inventory
                     captured.ReleaseMouse();
                     enabled = false;
                 }
+            }
+        }
+
+        private class ItemDragDropManipulator
+        {
+            private bool enabled;
+            private Inventory inventory;
+            private Label key;
+            private VisualElement captured;
+            private InventoryVisualizer visualizer;
+
+
+            public void Start(MouseDownEvent evt, VisualElement target, InventoryVisualizer visualizer)
+            {
+                int row = target.parent.parent.hierarchy.IndexOf(target.parent);
+                this.visualizer = visualizer;
+                inventory = visualizer.inventories[row];
+                key = visualizer.SelectedKey;
+                ref var slot = ref inventory.FindSlot(key);
+                if (slot.CountInside > 0)
+                {
+                    enabled = true;
+                    evt.currentTarget.CaptureMouse();
+                    captured = evt.currentTarget as VisualElement;
+                    visualizer.itemDragElement.style.backgroundImage = new StyleBackground(key.GetSettings().Icon);
+                    Continue(evt.mousePosition);
+                }
+            }
+
+            public void Continue(MouseMoveEvent evt)
+            {
+                if (enabled)
+                {
+                    Continue(evt.mousePosition);
+                }
+            }
+
+            private void Continue(Vector2 mousePosition)
+            {
+                visualizer.itemDragElement.transform.position = mousePosition;
+                int moveCount = GetInventoryUnderMouse(mousePosition)?.CanPaste(inventory, key) ?? 0;
+                Color color = moveCount > 0 ? new Color(0.2f, 0.7f, 0.2f) : new Color(0.6f, 0.2f, 0.2f);
+                visualizer.itemDragElement.style.borderBottomColor = color;
+                visualizer.itemDragElement.style.borderLeftColor = color;
+                visualizer.itemDragElement.style.borderRightColor = color;
+                visualizer.itemDragElement.style.borderTopColor = color;
+                visualizer.itemDragNum.text = NumberToString.Convert(moveCount);
+            }
+
+            internal void Done(MouseUpEvent evt)
+            {
+                if (enabled)
+                {
+                    var inventory2 = GetInventoryUnderMouse(evt.mousePosition);
+                    if (inventory2 != null)
+                    {
+                        inventory2.TryPaste(inventory, key);
+                    }
+                    Cleanup();
+                }
+            }
+
+            Inventory GetInventoryUnderMouse(Vector2 mousePosition)
+            {
+                var pickedEl = visualizer.inventoryPanel.panel.Pick(mousePosition);
+                if (pickedEl?.parent?.name == "cell")
+                {
+                    var cellEl = pickedEl.parent;
+                    int row2 = cellEl.parent.parent.hierarchy.IndexOf(cellEl.parent);
+                    return visualizer.inventories[row2];
+                }
+                else if (pickedEl?.name == "cellFrame")
+                {
+                    var cellFr = pickedEl;
+                    int row2 = cellFr.parent.hierarchy.IndexOf(cellFr);
+                    return visualizer.inventories[row2];
+                }
+                return null;
+            }
+
+            public void Cancel()
+            {
+                if (enabled)
+                {
+                    Cleanup();
+                }
+            }
+
+            private void Cleanup()
+            {
+                captured.ReleaseMouse();
+                enabled = false;
+                visualizer.itemDragElement.transform.position = Vector3.left * 500;
             }
         }
     }

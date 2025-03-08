@@ -5,8 +5,8 @@
             <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 50px; margin-right: 0; margin-left: 10px; display: flex; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
                 <ui:VisualElement style="flex-direction: row;">
                     <ui:VisualElement class="InvLeftButtonPanel">
-                        <ui:VisualElement style="flex-direction: row; margin-top: 2px; margin-right: 2px; margin-bottom: 2px; margin-left: 2px;">
-                            <ui:Button text="All" name="allNamesButton" class="InventoryButton InventoryButtonSelected InventoryName" style="height: 23px;" />
+                        <ui:VisualElement style="flex-direction: row; margin-top: 0; margin-right: 2px; margin-bottom: 0; margin-left: 2px;">
+                            <ui:Button text="All" name="allNamesButton" class="InventoryButton InventoryButtonSelected InventoryName" style="height: 30px;" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:Button text="All" class="InventoryButton InventoryButtonSelected" />
@@ -116,6 +116,9 @@
                 <ui:Label text="FPS:" class="FpsLabel" />
                 <ui:Label text="60" name="FpsLabel" class="FpsLabel" style="font-size: 26px; min-width: 54px;" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="itemDragElement" picking-mode="Ignore" style="position: absolute; width: 90px; height: 90px; translate: -195px 0; border-top-width: 5px; border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px;">
+            <ui:Label text="0" name="itemDragNum" class="InventoryNum" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

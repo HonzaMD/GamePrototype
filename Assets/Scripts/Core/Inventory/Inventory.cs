@@ -345,10 +345,7 @@ namespace Assets.Scripts.Core.Inventory
                 if (link != this)
                     removed += link.RemoveUnneeded(slot.Key, ref toFill);
             }
-            slot.Count += removed;
-            mass += slot.Mass * removed;
-            if (removed > 0)
-                HudUpdate(ref slot);
+            MoveItems(ref slot, removed);
         }
 
         private int RemoveUnneeded(Label key, ref int requestedCount)
@@ -359,12 +356,19 @@ namespace Assets.Scripts.Core.Inventory
             int count = Math.Min(slot.CountInside - slot.DesiredCount, requestedCount);
             if (count <= 0)
                 return 0;
-            Label oldKey = slot.Key;
-            slot.Count -= count;
-            mass -= slot.Mass * count;
+            MoveItems(ref slot, -count);
             requestedCount -= count;
-            TryFreeAndNotify(ref slot, oldKey);
             return count;
+        }
+
+        private void MoveItems(ref Slot slot, int count)
+        {
+            if (count == 0) 
+                return;
+            Label oldKey = slot.Key;
+            slot.Count += count;
+            mass += slot.Mass * count;
+            TryFreeAndNotify(ref slot, oldKey);
         }
 
         private void TryFreeAndNotify(ref Slot slot, Label oldKey)
@@ -434,9 +438,7 @@ namespace Assets.Scripts.Core.Inventory
                 slot.Mass = prototype.GetMass();
                 keyToSlot.Add(prototype, slot.Index);
             }
-            slot.Count += count;
-            mass += slot.Mass * count;
-            HudUpdate(ref slot);
+            MoveItems(ref slot, count);
             return slot.Index;
         }
 
@@ -540,6 +542,48 @@ namespace Assets.Scripts.Core.Inventory
         internal void AddLink(Inventory inventory)
         {
             links.Add(inventory);
+        }
+
+        internal void TryPaste(Inventory srcInventory, Label key)
+        {
+            int moveCount = CanPaste(srcInventory, key);
+            if (moveCount == 0)
+                return;
+
+            ref var srcSlot = ref srcInventory.FindSlot(key);
+            ref var destSlot = ref FindSlot(key);
+            if (destSlot.Key != key)
+            {
+                destSlot = ref GetSlot(StoreProto2(key, 0)); // TODO poresit OBJ
+            }
+            srcInventory.MoveItems(ref srcSlot, -moveCount);
+            MoveItems(ref destSlot, moveCount);
+        }
+
+        internal int CanPaste(Inventory srcInventory, Label key)
+        {
+            if (srcInventory == null || srcInventory == this)
+                return 0;
+
+            ref var srcSlot = ref srcInventory.FindSlot(key);
+            if (srcSlot.CountInside <= 0)
+                return 0;
+            int freeCount = Mathf.Max(0, srcSlot.CountInside - srcSlot.DesiredCount);
+
+            ref var destSlot = ref FindSlot(key);
+            if (destSlot.Key != key)
+            {
+                return freeCount;
+            }
+
+            if (destSlot.DesiredCount > destSlot.Count)
+            {
+                return Mathf.Min(srcSlot.CountInside, destSlot.DesiredCount - destSlot.Count);
+            }
+            else
+            {
+                return freeCount;
+            }
         }
     }
 
