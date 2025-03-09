@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Utils;
+﻿using Assets.Scripts.Core.Inventory;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,12 @@ namespace Assets.Scripts.Bases
 
     public interface IHasAfterMapPlaced
     {
-        void AfterMapPlaced(Map.Map map);
+        void AfterMapPlaced(Map.Map map, Placeable placeableSibling);
+    }
+
+    public interface IHasInventory
+    {
+        Inventory Inventory { get;}
     }
 
     public class PlaceableSibling : Placeable
@@ -35,7 +41,7 @@ namespace Assets.Scripts.Bases
             var components = ListPool<IHasAfterMapPlaced>.Rent();
             GetComponents(components);
             foreach (var c in components)
-                c.AfterMapPlaced(map);
+                c.AfterMapPlaced(map, this);
             components.Return();
         }
     }

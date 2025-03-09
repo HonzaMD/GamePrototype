@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
-public class Character3 : ChLegsArms, IActiveObject
+public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 {
     private float lastJumpTime;
 
@@ -44,9 +44,9 @@ public class Character3 : ChLegsArms, IActiveObject
         AwakeB();
     }
 
-    public override void AfterMapPlaced(Map map)
+    public override void AfterMapPlaced(Map map, Placeable placeableSibling)
     {
-        base.AfterMapPlaced(map);
+        base.AfterMapPlaced(map, placeableSibling);
         CreateInventory();
         Game.Instance.InputController.AddCharacter(this);
     }
@@ -54,6 +54,7 @@ public class Character3 : ChLegsArms, IActiveObject
     private void CreateInventory()
     {
         inventory = Game.Instance.PrefabsStore.Inventory.Create(Game.Instance.InventoryRoot, Vector3.zero, null);
+        inventory.SetupIdentity(CharacterNames.GiveMeName(), InventoryType.Character, placeable.Settings.Icon);
         inventory.StoreProto(Game.Instance.PrefabsStore.Gravel, 5);
         inventory.SetQuickSlot(-9, Game.Instance.PrefabsStore.Gravel);
         inventory.StoreProto(Game.Instance.PrefabsStore.StickyBomb, 30);

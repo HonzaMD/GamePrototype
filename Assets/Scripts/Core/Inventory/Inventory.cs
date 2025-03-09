@@ -25,7 +25,10 @@ namespace Assets.Scripts.Core.Inventory
             public readonly int CountInside => IsActivated ? Count - 1 : Count;
         }
 
-        public InventoryType Type { get; set; }
+        public InventoryType Type { get; private set; }
+        public string Name { get; private set; }
+        public Sprite Icon { get; private set; }
+
         private readonly Slot[] quickAccess = new Slot[10];
         private readonly SpanList<Slot> slots = new();
         private readonly List<Inventory> links = new();
@@ -74,6 +77,13 @@ namespace Assets.Scripts.Core.Inventory
         {
             isAlive = true;
             links.Add(this);
+        }
+
+        public void SetupIdentity(string name, InventoryType type, Sprite icon)
+        {
+            Name = name;
+            Type = type;
+            Icon = icon;
         }
 
         public void Clear()

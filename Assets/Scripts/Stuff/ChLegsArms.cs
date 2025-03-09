@@ -1066,7 +1066,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		map = null;
 	}
 
-    public virtual void AfterMapPlaced(Map map)
+    public virtual void AfterMapPlaced(Map map, Placeable placeableSibling)
     {
         this.map = map;
     }

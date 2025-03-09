@@ -92,6 +92,7 @@
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
+    <Compile Include="Assets\Scripts\Utils\CharacterNames.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Map\WorldBuilder.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
+    <Compile Include="Assets\Scripts\Utils\FpsCounter.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\ShadowWorker.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
@@ -152,6 +154,7 @@
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
+    <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\VCore.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceWorker.cs" />

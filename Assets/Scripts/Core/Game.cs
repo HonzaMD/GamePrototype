@@ -39,6 +39,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private readonly List<Trigger> triggers = new();
     private readonly HashSet<IActiveObject> activeObjects = new();
     private readonly Dictionary<Placeable, (int Tag, Map Map)> movingObjects = new();
+    private readonly FpsCounter fpsCounter = new();
+    private readonly GameUpdates1Sec gameUpdates1Sec;
     private readonly VCore visibility = new();
     private int movingObjectInsterPtr;
     private int movingObjectWorkPtr;
@@ -60,6 +62,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         CreatingLevels,
         Ready,
         SwitchWorld,
+    }
+
+    public Game()
+    {
+        gameUpdates1Sec = new GameUpdates1Sec(fpsCounter);
     }
 
     void Update()
@@ -115,6 +122,9 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             Timer.GameUpdate();
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            fpsCounter.GameUpdate();
+            gameUpdates1Sec.GameUpdate();
+            UpdateTimes[7] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3 && InputController.Character)
             {
                 visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
@@ -268,6 +278,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     public void ActivateObject(IActiveObject o) => activeObjects.Add(o);
     public void DeactivateObject(IActiveObject o) => activeObjects.Remove(o);
+    public void ActivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Activate(o);
+    public void DeactivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Deactivate(o);
 
     internal void AddMovingObject(Placeable p, Map map)
     {

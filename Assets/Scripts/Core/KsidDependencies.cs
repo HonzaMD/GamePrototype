@@ -42,6 +42,8 @@ namespace Assets.Scripts.Core
                 (Ksid.Ladder, Ksid.SpMoving),
                 (Ksid.SpNode, Ksid.SpNodeOrSandCombiner),
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
+
+                (Ksid.Character, Ksid.HasInventory),
             })
         {
         }

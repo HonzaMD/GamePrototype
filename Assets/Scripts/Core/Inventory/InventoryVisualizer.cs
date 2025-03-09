@@ -268,6 +268,12 @@ namespace Assets.Scripts.Core.Inventory
             {
                 var cell = invNamesPanel.ElementAt(f);
                 cell.style.display = f < rowCount ? DisplayStyle.Flex : DisplayStyle.None;
+                if (f < rowCount)
+                {
+                    var nameButton = cell.Q<Button>("nameButton");
+                    nameButton.text = inventories[f].Name;
+                    nameButton.iconImage = Background.FromSprite(inventories[f].Icon);
+                }
             }
         }
 

@@ -10,3 +10,8 @@ public interface IActiveObject
     void GameFixedUpdate();
 }
 
+
+public interface IActiveObject1Sec
+{
+    void GameUpdate1Sec();
+}
