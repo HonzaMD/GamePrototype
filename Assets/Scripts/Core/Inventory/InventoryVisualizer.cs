@@ -2,12 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static UnityEngine.GraphicsBuffer;
-using static UnityEngine.Rendering.DebugUI.MessageBox;
-using static UnityEngine.Rendering.DebugUI.Table;
 using UiLabel = UnityEngine.UIElements.Label;
 
 namespace Assets.Scripts.Core.Inventory
@@ -22,12 +18,14 @@ namespace Assets.Scripts.Core.Inventory
         private readonly Dictionary<VisualElement, int> columnToSlot = new();
         private readonly ReqNumManipulator reqNumManipulator = new();
         private readonly ItemDragDropManipulator itemDragDropManipulator = new();
+        private readonly ScrollManipulator scrollManipulator = new ScrollManipulator();
         private readonly InvNameFilter invNameFilter;
 
         private readonly VisualElement inventoryPanel;
         private readonly VisualTreeAsset columnAsset;
         private readonly VisualElement invNamesPanel;
         private readonly VisualElement itemDragElement;
+        private readonly ScrollView scrollView;
         private readonly UiLabel itemDragNum;
         private int rowCount;
         private int selectedSlot = -1;
@@ -132,11 +130,12 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        public InventoryVisualizer(VisualElement inventoryPanel, VisualElement inventoryWindow, VisualTreeAsset columnAsset, VisualElement itemDragElement)
+        public InventoryVisualizer(VisualElement inventoryPanel, VisualElement inventoryWindow, VisualTreeAsset columnAsset, VisualElement itemDragElement, ScrollView scrollView)
         {
             this.inventoryPanel = inventoryPanel;
             this.columnAsset = columnAsset;
             this.itemDragElement = itemDragElement;
+            this.scrollView = scrollView;
             itemDragNum = itemDragElement.Q<UiLabel>("itemDragNum");
             invNamesPanel = inventoryWindow.Q("InvNamesPanel");
             var allNamesButton = inventoryWindow.Q<Button>("allNamesButton");
@@ -289,27 +288,40 @@ namespace Assets.Scripts.Core.Inventory
 
         private void OnMouseDown(MouseDownEvent evt)
         {
+            if (evt.button != 0)
+                return;
+
             var target = evt.target as VisualElement;
             if (target.name == "RequestNum" && selectedSlot != -1)
             {
                 reqNumManipulator.Start(evt, target, this);
             }
-            else if (target.parent?.name == "cell" && selectedSlot != -1)
+            else
             {
-                itemDragDropManipulator.Start(evt, target.parent, this);
+                if (target.parent?.name == "cell" && selectedSlot != -1)
+                {
+                    itemDragDropManipulator.Start(evt, target.parent, this);
+                }
+
+                scrollManipulator.Start(evt, !itemDragDropManipulator.Enabled, this);
             }
         }
 
         private void OnMouseUp(MouseUpEvent evt)
         {
+            if (evt.button != 0)
+                return;
+
             reqNumManipulator.Done(evt, inventories.Count > 0 ? inventories[0] : null);
             itemDragDropManipulator.Done(evt);
+            scrollManipulator.Cancel();
         }
 
         private void OnMouseMove(MouseMoveEvent evt)
         {
             reqNumManipulator.Continue(evt);
             itemDragDropManipulator.Continue(evt);
+            scrollManipulator.Continue(evt);
         }
 
 
@@ -317,6 +329,7 @@ namespace Assets.Scripts.Core.Inventory
         {
             reqNumManipulator.Cancel();
             itemDragDropManipulator.Cancel();
+            scrollManipulator.Cancel();
         }
 
         private class ReqNumManipulator
@@ -336,7 +349,6 @@ namespace Assets.Scripts.Core.Inventory
                 inventory = visualizer.inventories[row];
                 key = visualizer.SelectedKey;
                 ref var slot = ref inventory.FindSlot(key);
-                Debug.Log($"ReqNum {visualizer.selectedSlot} {row} desired: {slot.DesiredCount}");
                 enabled = true;
                 mouseStartPos = evt.mousePosition;
                 startNum = slot.DesiredCount;
@@ -398,6 +410,7 @@ namespace Assets.Scripts.Core.Inventory
             private VisualElement captured;
             private InventoryVisualizer visualizer;
 
+            public bool Enabled => enabled;
 
             public void Start(MouseDownEvent evt, VisualElement target, InventoryVisualizer visualizer)
             {
@@ -480,6 +493,49 @@ namespace Assets.Scripts.Core.Inventory
                 captured.ReleaseMouse();
                 enabled = false;
                 visualizer.itemDragElement.transform.position = Vector3.left * 500;
+            }
+        }
+
+        private class ScrollManipulator
+        {
+            private bool enabled;
+            private VisualElement captured;
+            private InventoryVisualizer visualizer;
+
+
+            public void Start(MouseDownEvent evt, bool capture, InventoryVisualizer visualizer)
+            {
+                this.visualizer = visualizer;
+                enabled = true;
+                if (capture)
+                {
+                    evt.currentTarget.CaptureMouse();
+                    captured = evt.currentTarget as VisualElement;
+                }
+            }
+
+            public void Continue(MouseMoveEvent evt)
+            {
+                if (enabled)
+                {
+                    var delta = evt.mouseDelta;
+                    var scroller = visualizer.scrollView.horizontalScroller;
+                    float newValue = scroller.value - delta.x;
+                    newValue = Mathf.Clamp(newValue, scroller.lowValue, scroller.highValue);
+                    scroller.value = newValue;
+                }
+            }
+
+
+
+            public void Cancel()
+            {
+                if (enabled)
+                {
+                    captured?.ReleaseMouse();
+                    captured = null;
+                    enabled = false;
+                }
             }
         }
     }

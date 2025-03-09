@@ -1,54 +1,58 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between; border-left-color: rgb(255, 255, 255); border-right-color: rgb(255, 255, 255); border-top-color: rgb(255, 255, 255); border-bottom-color: rgb(255, 255, 255);">
-        <ui:VisualElement name="Top" style="align-items: flex-start;">
-            <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 50px; margin-right: 0; margin-left: 10px; display: flex; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
-                <ui:VisualElement style="flex-direction: row;">
-                    <ui:VisualElement class="InvLeftButtonPanel">
-                        <ui:VisualElement style="flex-direction: row; margin-top: 0; margin-right: 2px; margin-bottom: 0; margin-left: 2px;">
-                            <ui:Button text="All" name="allNamesButton" class="InventoryButton InventoryButtonSelected InventoryName" style="height: 30px;" />
+        <ui:VisualElement name="Top">
+            <ui:VisualElement style="flex-direction: row;">
+                <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 50px; margin-right: 10px; margin-left: 10px; display: flex; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:VisualElement class="InvLeftButtonPanel" style="flex-shrink: 0;">
+                            <ui:VisualElement style="flex-direction: row; margin-top: 0; margin-right: 2px; margin-bottom: 0; margin-left: 2px;">
+                                <ui:Button text="All" name="allNamesButton" class="InventoryButton InventoryButtonSelected InventoryName" style="height: 30px;" />
+                            </ui:VisualElement>
                         </ui:VisualElement>
+                        <ui:Button text="All" class="InventoryButton InventoryButtonSelected" />
+                        <ui:Button text="Cat1" class="InventoryButton" />
+                        <ui:Button text="Cat2" class="InventoryButton" />
                     </ui:VisualElement>
-                    <ui:Button text="All" class="InventoryButton InventoryButtonSelected" />
-                    <ui:Button text="Cat1" class="InventoryButton" />
-                    <ui:Button text="Cat2" class="InventoryButton" />
-                </ui:VisualElement>
-                <ui:VisualElement style="flex-direction: row;">
-                    <ui:VisualElement name="InvNamesPanel" class="InvLeftButtonPanel">
-                        <ui:VisualElement class="InventoryButtonFrame">
-                            <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
-                            <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
-                                <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:VisualElement name="InvNamesPanel" class="InvLeftButtonPanel" style="flex-shrink: 0;">
+                            <ui:VisualElement class="InventoryButtonFrame">
+                                <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
+                                <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
+                                    <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="InventoryButtonFrame">
+                                <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
+                                <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
+                                    <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="InventoryButtonFrame">
+                                <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
+                                <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
+                                    <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:VisualElement class="InventoryButtonFrame">
+                                <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
+                                <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
+                                    <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
+                                    <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
-                        <ui:VisualElement class="InventoryButtonFrame">
-                            <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
-                            <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
-                                <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="InventoryButtonFrame">
-                            <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
-                            <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
-                                <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement class="InventoryButtonFrame">
-                            <ui:Button text="Petr" icon-image="project://database/Assets/Materials/Textures/InventoryItems.png?fileID=1934467857&amp;guid=a9320db951d9eef44baa5ac6e33a861e&amp;type=3#InventoryItems_4" name="nameButton" class="InventoryButton InventoryName" />
-                            <ui:VisualElement style="justify-content: space-between; flex-grow: 1; align-items: flex-end;">
-                                <ui:Button text="Fill" name="fillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="OF" name="overFillFrag" class="InventoryButton BulkDragButton" />
-                                <ui:Button text="All" name="allDrag" class="InventoryButton BulkDragButton" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
+                        <ui:ScrollView mode="Horizontal">
+                            <ui:VisualElement name="Inventory" style="flex-direction: row; overflow: hidden;" />
+                        </ui:ScrollView>
                     </ui:VisualElement>
-                    <ui:VisualElement name="Inventory" style="flex-direction: row; overflow: hidden;" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
