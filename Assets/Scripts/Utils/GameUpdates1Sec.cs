@@ -22,7 +22,7 @@ namespace Assets.Scripts.Utils
         public void Deactivate(IActiveObject1Sec activeObject) => activeObjects.Remove(activeObject);
 
 
-        public void GameFixedUpdate()
+        public void GameUpdate()
         {
             if (workPos == workList.Count)
             {
@@ -36,11 +36,12 @@ namespace Assets.Scripts.Utils
 
             for (int f = 0; f < workCountPerF && workPos < workList.Count; f++, workPos++)
             {
-                workList[workPos].GameUpdate1Sec();
+                if (activeObjects.Contains(workList[workPos]))
+                    workList[workPos].GameUpdate1Sec();
             }
         }
 
-        public void GameUpdate()
+        public void GameFixedUpdate()
         {
         }
     }

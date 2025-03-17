@@ -81,6 +81,7 @@
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
+    <Compile Include="Assets\Scripts\Stuff\InventorySearcher.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DCManager.cs" />
     <Compile Include="Assets\Scripts\Bases\StaticBehaviour.cs" />

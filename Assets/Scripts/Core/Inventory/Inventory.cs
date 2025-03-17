@@ -53,6 +53,8 @@ namespace Assets.Scripts.Core.Inventory
         public override Ksid KsidGet => Ksid.Unknown;
         public override bool IsAlive => isAlive;
 
+        public List<Inventory> Links => links;
+
         private void Awake()
         {
             ActiveObjHandle.Init(Disconnect);
@@ -171,7 +173,7 @@ namespace Assets.Scripts.Core.Inventory
 
         public void StoreProto(Label prototype, int count = 1)
         {
-            foreach (var inv in links) 
+            foreach (var inv in links)
             {
                 if (count == 0)
                     return;
@@ -190,7 +192,7 @@ namespace Assets.Scripts.Core.Inventory
                         return;
                     }
                 }
-                
+
                 StoreProto2(prototype, count);
             }
         }
@@ -312,13 +314,13 @@ namespace Assets.Scripts.Core.Inventory
         {
             ref var slot = ref GetSlot(slotNum);
             count = Math.Min(slot.Count, count);
-            if (count == 0) 
+            if (count == 0)
                 return;
             Label oldKey = slot.Key;
             if (slotNum == activeSlot && activeObj != null)
             {
                 DeactivateObj(ref slot);
-            } 
+            }
             else if (slot.Obj != null)
             {
                 slot.Obj.Kill();
@@ -373,7 +375,7 @@ namespace Assets.Scripts.Core.Inventory
 
         private void MoveItems(ref Slot slot, int count)
         {
-            if (count == 0) 
+            if (count == 0)
                 return;
             Label oldKey = slot.Key;
             slot.Count += count;
@@ -454,7 +456,7 @@ namespace Assets.Scripts.Core.Inventory
 
         private ref Slot AddSlot()
         {
-            slots.Add(new() { Index = slots.Count});
+            slots.Add(new() { Index = slots.Count });
             return ref slots[^1];
         }
 
@@ -513,6 +515,8 @@ namespace Assets.Scripts.Core.Inventory
             HudUpdate(slots.AsSpan());
         }
 
+        internal void StopShowInHud() => visualizer = null;
+
         private void HudUpdate(Span<Slot> slots)
         {
             foreach (ref var slot in slots)
@@ -549,10 +553,6 @@ namespace Assets.Scripts.Core.Inventory
             quickSlotsHud = null;
         }
 
-        internal void AddLink(Inventory inventory)
-        {
-            links.Add(inventory);
-        }
 
         internal void TryPaste(Inventory srcInventory, Label key)
         {
@@ -594,6 +594,71 @@ namespace Assets.Scripts.Core.Inventory
             {
                 return freeCount;
             }
+        }
+
+        internal void TryUpdateLinks(Inventory[] linkArrNew, Inventory[] linkArrOld)
+        {
+            ExpandLinks(linkArrOld);
+            if (LinksChanged(linkArrNew, linkArrOld))
+            {
+                CompactLinks(linkArrNew);
+                if (visualizer != null && visualizerRow == 0)
+                    visualizer.LinksChanged();
+                if (links.Count > 1)
+                    BalanceAll();
+            }
+        }
+
+        private void BalanceAll()
+        {
+            BalanceAll(quickAccess.AsSpan());
+            BalanceAll(slots.AsSpan());
+        }
+
+        private void BalanceAll(Span<Slot> slots)
+        {
+            foreach (ref var slot in slots)
+            {              
+                if (slot.Key != null)
+                    Balance(slot.Key);
+            }
+        }
+
+        private void CompactLinks(Inventory[] linkArrNew)
+        {
+            links.Clear();
+            links.Add(this);
+            foreach (var link in linkArrNew)
+            {
+                if (link != null)
+                    links.Add(link);
+            }
+        }
+
+        private void ExpandLinks(Inventory[] linkArrOld)
+        {
+            int p = 0;
+            for (int i = 1; i < links.Count; i++, p++)
+            {
+                if (i == 1 && links[i].Type != InventoryType.Base)
+                    p++;
+
+                linkArrOld[p] = links[i];
+            }
+        }
+
+        private bool LinksChanged(Inventory[] linkArrNew, Inventory[] linkArrOld)
+        {
+            if ((linkArrNew[1] != null && linkArrNew[1] == linkArrOld[2]) || (linkArrNew[2] != null && linkArrNew[2] == linkArrOld[1]))
+                (linkArrNew[1], linkArrNew[2]) = (linkArrNew[2], linkArrNew[1]);
+
+            for (int i = 0; i < linkArrNew.Length; i++)
+            {
+                if (linkArrNew[i] != linkArrOld[i])
+                    return true;
+            }
+
+            return false;
         }
     }
 

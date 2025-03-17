@@ -187,7 +187,6 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         {
             InputController.SetCharacterInSelectedMap();
             MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
-            Hud.SetupInventory(InputController.Characters);
             State = GameState.SwitchWorld;
         }
         else if (State == GameState.SwitchWorld)

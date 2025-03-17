@@ -448,6 +448,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     {
         this.inputController = inputController;
         inventory.ShowInQuickSlots();
+        Game.Instance.Hud.SetupInventory(inventory);
     }
 
     internal void DeactivateInput()

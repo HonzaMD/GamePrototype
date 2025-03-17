@@ -13,7 +13,8 @@ namespace Assets.Scripts.Core.Inventory
         private const string InventoryButtonSelected = "InventoryButtonSelected";
 
         private readonly SpanList<Slot> slots = new();
-        private readonly List<Inventory> inventories = new();
+        private Inventory primaryInventory;
+        private readonly Inventory[] inventories = new Inventory[4];
         private readonly Dictionary<Label, int> keyToSlot = new();
         private readonly Dictionary<VisualElement, int> columnToSlot = new();
         private readonly ReqNumManipulator reqNumManipulator = new();
@@ -27,8 +28,10 @@ namespace Assets.Scripts.Core.Inventory
         private readonly VisualElement itemDragElement;
         private readonly ScrollView scrollView;
         private readonly UiLabel itemDragNum;
-        private int rowCount;
+        private int rowCount, prevRowCount;
         private int selectedSlot = -1;
+        private bool dirty;
+        public bool Visible { get; set; }
 
         public Label SelectedKey => selectedSlot != -1 ? slots[selectedSlot].Key : null;
 
@@ -120,6 +123,12 @@ namespace Assets.Scripts.Core.Inventory
                 visualizer.ChangeFilters();
             }
 
+            public void ClearRow(int row)
+            {
+                if (IsRowActive(row))
+                    ToggleRow(row);
+            }
+
             private void ActivateRow(int row) => activeRows |= (1 << row);
             private void DeactivateRow(int row) => activeRows &= ~(1 << row);
             private bool IsRowActive(int row) => ((1 << row) & activeRows) != 0;
@@ -174,14 +183,21 @@ namespace Assets.Scripts.Core.Inventory
 
         public void ChangeFilters()
         {
-            for (int i = 0; i < slots.Count; i++)
+            if (!Visible)
             {
-                ref var slot = ref slots[i];
-                bool newVisible = invNameFilter.Test(ref slot);
-                if (slot.Visible != newVisible)
+                dirty = true;
+            }
+            else
+            {
+                for (int i = 0; i < slots.Count; i++)
                 {
-                    slot.Visible = newVisible;
-                    slot.Column.style.display = newVisible ? DisplayStyle.Flex : DisplayStyle.None;
+                    ref var slot = ref slots[i];
+                    bool newVisible = invNameFilter.Test(ref slot);
+                    if (slot.Visible != newVisible)
+                    {
+                        slot.Visible = newVisible;
+                        slot.Column.style.display = newVisible ? DisplayStyle.Flex : DisplayStyle.None;
+                    }
                 }
             }
         }
@@ -189,6 +205,11 @@ namespace Assets.Scripts.Core.Inventory
         public void HideItem(Label key, int row)
         {
             ref Slot slot = ref GetSlot(key);
+            HideItem(row, ref slot);
+        }
+
+        private static void HideItem(int row, ref Slot slot)
+        {
             bool active = slot.IsRowActive(row);
             if (active)
             {
@@ -248,31 +269,82 @@ namespace Assets.Scripts.Core.Inventory
             }
         }
 
-        internal void Setup(List<Character3> characters)
+        internal void Setup(Inventory inventory)
         {
-            rowCount = Math.Min(characters.Count, 4);
-            for (int f = 0; f < rowCount; f++)
-            {
-                var inventory = characters[f].Inventory;
-                inventories.Add(inventory);
-                inventory.ShowInHud(this, f);
+            primaryInventory = inventory;
+            rowCount = inventory.Links.Count;
+            dirty = !Visible;
 
-                for (int g = 0; g < rowCount; g++)
+            for (int f = 0; f < inventories.Length; f++)
+            {
+                if (f >= rowCount || inventories[f] != inventory.Links[f])
                 {
-                    if (g != f)
-                        inventory.AddLink(characters[g].Inventory);
+                    ClearRow(f);
+                    inventories[f] = null;
                 }
             }
 
-            for (int f = 0; f < invNamesPanel.childCount; f++)
+
+            if (Visible)
             {
-                var cell = invNamesPanel.ElementAt(f);
-                cell.style.display = f < rowCount ? DisplayStyle.Flex : DisplayStyle.None;
-                if (f < rowCount)
+                for (int f = 0; f < rowCount; f++)
                 {
-                    var nameButton = cell.Q<Button>("nameButton");
-                    nameButton.text = inventories[f].Name;
-                    nameButton.iconImage = Background.FromSprite(inventories[f].Icon);
+                    if (inventories[f] != inventory.Links[f])
+                    {
+                        inventories[f] = inventory.Links[f];
+                        inventories[f].ShowInHud(this, f);
+                    }
+                }
+
+                for (int f = 0; f < invNamesPanel.childCount; f++)
+                {
+                    var cell = invNamesPanel.ElementAt(f);
+                    cell.style.display = f < rowCount ? DisplayStyle.Flex : DisplayStyle.None;
+                    if (f < rowCount)
+                    {
+                        var nameButton = cell.Q<Button>("nameButton");
+                        nameButton.text = inventories[f].Name;
+                        nameButton.iconImage = Background.FromSprite(inventories[f].Icon);
+                    }
+                }
+
+                ChangeFilters();
+                ChangeVisibleRows();
+            }
+        }
+
+        private void ChangeVisibleRows()
+        {
+            if (prevRowCount != rowCount)
+            {
+                for (int index = 0; index < inventoryPanel.childCount; index++)
+                {
+                    var col = inventoryPanel.ElementAt(index);
+                    var col2 = col.ElementAt(0);
+                    for (int f = 0; f < col2.childCount; f++)
+                    {
+                        var cell = col2.ElementAt(f);
+                        cell.style.display = f < rowCount ? DisplayStyle.Flex : DisplayStyle.None;
+                    }
+                }
+
+                prevRowCount = rowCount;
+            }
+        }
+
+        private void ClearRow(int f)
+        {
+            if (inventories[f] != null)
+            {
+                invNameFilter.ClearRow(f);
+                reqNumManipulator.ConcelIf(inventories[f]);
+                itemDragDropManipulator.ConcelIf(inventories[f]);
+                inventories[f].StopShowInHud();
+                inventories[f] = null;
+
+                foreach (ref var slot in slots.AsSpan())
+                {
+                    HideItem(f, ref slot);
                 }
             }
         }
@@ -318,7 +390,7 @@ namespace Assets.Scripts.Core.Inventory
             if (evt.button != 0)
                 return;
 
-            reqNumManipulator.Done(evt, inventories.Count > 0 ? inventories[0] : null);
+            reqNumManipulator.Done(evt, primaryInventory);
             itemDragDropManipulator.Done(evt);
             scrollManipulator.Cancel();
         }
@@ -336,6 +408,17 @@ namespace Assets.Scripts.Core.Inventory
             reqNumManipulator.Cancel();
             itemDragDropManipulator.Cancel();
             scrollManipulator.Cancel();
+        }
+
+        internal void LinksChanged()
+        {
+            Setup(primaryInventory);
+        }
+
+        internal void SetupIfDirty()
+        {
+            if (dirty)
+                Setup(primaryInventory);
         }
 
         private class ReqNumManipulator
@@ -405,6 +488,12 @@ namespace Assets.Scripts.Core.Inventory
                     captured.ReleaseMouse();
                     enabled = false;
                 }
+            }
+
+            internal void ConcelIf(Inventory inventory)
+            {
+                if (enabled && this.inventory == inventory)
+                    Cancel();
             }
         }
 
@@ -489,9 +578,13 @@ namespace Assets.Scripts.Core.Inventory
             public void Cancel()
             {
                 if (enabled)
-                {
                     Cleanup();
-                }
+            }
+
+            internal void ConcelIf(Inventory inventory)
+            {
+                if (enabled && this.inventory == inventory)
+                    Cancel();
             }
 
             private void Cleanup()

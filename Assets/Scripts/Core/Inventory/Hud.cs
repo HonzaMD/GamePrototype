@@ -22,7 +22,6 @@ namespace Assets.Scripts.Core.Inventory
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
         private bool guiInFocus;
-        private bool inventoryVisible;
 
         public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
         public bool GuiInFocus => guiInFocus;
@@ -40,6 +39,7 @@ namespace Assets.Scripts.Core.Inventory
             DisableFocus(doc.rootVisualElement);
             
             InitQuickSlots(quickSlots);
+            inventoryWindow.style.display = DisplayStyle.None;
             inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree, itemDragElement, scrollView);
 
             Application.logMessageReceived += Application_logMessageReceived;
@@ -86,14 +86,16 @@ namespace Assets.Scripts.Core.Inventory
             if (Input.GetKeyDown(KeyCode.I))
             {
                 inventoryVisualizer.CancelManipulators();
-                inventoryVisible = !inventoryVisible;
-                inventoryWindow.style.display = inventoryVisible ? DisplayStyle.Flex : DisplayStyle.None;
+                inventoryVisualizer.Visible = !inventoryVisualizer.Visible;
+                inventoryWindow.style.display = inventoryVisualizer.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+                if (inventoryVisualizer.Visible)
+                    inventoryVisualizer.SetupIfDirty();
             }                   
         }
 
-        internal void SetupInventory(List<Character3> characters)
+        internal void SetupInventory(Inventory inventory)
         {
-            inventoryVisualizer.Setup(characters);
+            inventoryVisualizer.Setup(inventory);
         }
 
         public void UpdateQuickSlot(int index, Label key, int count) 
