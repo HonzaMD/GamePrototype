@@ -14,15 +14,15 @@ namespace Assets.Scripts.Core.Inventory
     {
         public struct Slot
         {
-            public Label Prototype;
-            public Label Obj;
-            public readonly Label Key => Prototype ?? Obj;
+            public Label Key;
             public int Count;
             public float Mass;
             public int DesiredCount;
             public bool IsActivated;
+            public bool IsLiveObj;
             public int Index;
             public readonly int CountInside => IsActivated ? Count - 1 : Count;
+            public Label LiveObj => CountInside > 0 && IsLiveObj ? Key : null;
         }
 
         public InventoryType Type { get; private set; }
@@ -108,7 +108,7 @@ namespace Assets.Scripts.Core.Inventory
         {
             for (int f = 0; f < slots.Length; f++)
             {
-                var obj = slots[f].Obj;
+                var obj = slots[f].LiveObj;
                 if (obj != null && obj != activeObj)
                 {
                     obj.Kill();
@@ -121,13 +121,13 @@ namespace Assets.Scripts.Core.Inventory
             if (obj.KsidGet.IsChildOf(Ksid.InventoryAsObj))
             {
                 obj.InventoryPush(this);
-                StoreObj(obj);
+                StoreProto(obj, 1, true);
             }
             else
             {
-                var prototype = obj.Prototype;
+                var key = obj.Prototype;
                 obj.Kill();
-                StoreProto(prototype);
+                StoreProto(key, 1, false);
             }
         }
 
@@ -137,12 +137,12 @@ namespace Assets.Scripts.Core.Inventory
                 throw new InvalidOperationException("Nemuzu aktivovat, kdyz je neco jineho aktivni");
             if (obj.KsidGet.IsChildOf(Ksid.InventoryAsObj))
             {
-                activeSlot = StoreObj(obj);
+                activeSlot = StoreProto2(obj, 1);
             }
             else
             {
                 var prototype = obj.Prototype;
-                activeSlot = StoreProto2(prototype);
+                activeSlot = StoreProto2(prototype, 1);
             }
 
             ActivateObj(obj, activeSlot);
@@ -171,29 +171,32 @@ namespace Assets.Scripts.Core.Inventory
         }
 
 
-        public void StoreProto(Label prototype, int count = 1)
+        public void StoreProto(Label key, int count = 1, bool isLiveObj = false)
         {
             foreach (var inv in links)
             {
                 if (count == 0)
                     return;
-                int storeHere = inv.DesiredCount(prototype, ref count);
+                int storeHere = inv.DesiredCount(key, ref count);
                 if (storeHere > 0)
-                    inv.StoreProto2(prototype, storeHere);
+                    inv.StoreProto2(key, storeHere);
             }
 
             if (count > 0)
             {
-                foreach (var inv in links)
+                if (!isLiveObj)
                 {
-                    if (inv.Type == InventoryType.Base)
+                    foreach (var inv in links)
                     {
-                        inv.StoreProto2(prototype, count);
-                        return;
+                        if (inv.Type == InventoryType.Base)
+                        {
+                            inv.StoreProto2(key, count);
+                            return;
+                        }
                     }
                 }
 
-                StoreProto2(prototype, count);
+                StoreProto2(key, count);
             }
         }
 
@@ -202,16 +205,7 @@ namespace Assets.Scripts.Core.Inventory
             if (key == null || newSlot >= 0)
                 return;
 
-            if (key.Prototype == key)
-            {
-                SetQuickSlot(newSlot, StoreProto2(key, 0));
-            }
-            else
-            {
-                ref var slot = ref FindSlot(key);
-                if (slot.Key == key)
-                    SetQuickSlot(newSlot, slot.Index);
-            }
+            SetQuickSlot(newSlot, FindOrCreateSlot(key).Index);
         }
 
         private void SetQuickSlot(int newSlot, int oldSlot)
@@ -232,16 +226,6 @@ namespace Assets.Scripts.Core.Inventory
             QuickSlotsUpdate(ref sO);
         }
 
-        private int StoreObj(Label obj)
-        {
-            float m = obj.GetMass();
-            mass += m;
-            int index = slots.Count;
-            slots.Add(new Slot() { Count = 1, Mass = m, Obj = obj, Index = index });
-            keyToSlot.Add(obj, index);
-            HudUpdate(ref slots[^1]);
-            return index;
-        }
 
         public Label ActivateObj(int slotNum, Transform parent, Vector3 pos, Map.Map map)
         {
@@ -255,14 +239,14 @@ namespace Assets.Scripts.Core.Inventory
             if (slot.Count == 0)
                 return null;
             Label newActiveObj;
-            if (slot.Obj == null)
+            if (!slot.IsLiveObj)
             {
-                newActiveObj = slot.Prototype.Create(parent, pos, map);
+                newActiveObj = slot.Key.Create(parent, pos, map);
             }
             else
             {
-                slot.Obj.InventoryPop(parent, pos, map);
-                newActiveObj = slot.Obj;
+                slot.Key.InventoryPop(parent, pos, map);
+                newActiveObj = slot.Key;
             }
 
             ActivateObj(newActiveObj, slotNum);
@@ -289,7 +273,7 @@ namespace Assets.Scripts.Core.Inventory
             Debug.Assert(activeObj == obj, "Cekam ze inventoryObj == label");
             ref var slot = ref GetSlot(activeSlot);
             bool killIt = false;
-            if (slot.Obj == null)
+            if (!slot.IsLiveObj)
             {
                 killIt = true;
             }
@@ -321,11 +305,10 @@ namespace Assets.Scripts.Core.Inventory
             {
                 DeactivateObj(ref slot);
             }
-            else if (slot.Obj != null)
+            else if (slot.IsLiveObj)
             {
-                slot.Obj.Kill();
+                slot.Key.Kill();
             }
-            slot.Obj = null;
             slot.Count -= count;
             mass -= slot.Mass * count;
             TryFreeAndNotify(ref slot, oldKey);
@@ -405,14 +388,6 @@ namespace Assets.Scripts.Core.Inventory
                 throw new InvalidOperationException("Divnost, necekal jsem ze bude aktivovanej");
             if (slot.Index < 0)
             {
-                if (slot.Obj != null)
-                {
-                    keyToSlot.Remove(slot.Obj);
-                    slot.Obj = null;
-                    slot.Prototype = null;
-                    slot.Mass = 0;
-                    return true;
-                }
                 return false;
             }
             else
@@ -440,15 +415,12 @@ namespace Assets.Scripts.Core.Inventory
         }
 
 
-        private int StoreProto2(Label prototype, int count = 1)
+        private int StoreProto2(Label key, int count)
         {
-            ref var slot = ref FindSlot(prototype);
-            if (slot.Prototype == null)
+            ref var slot = ref FindOrCreateSlot(key);
+            if (slot.IsLiveObj)
             {
-                slot = ref AddSlot();
-                slot.Prototype = prototype;
-                slot.Mass = prototype.GetMass();
-                keyToSlot.Add(prototype, slot.Index);
+                slot.Mass = key.GetMass();
             }
             MoveItems(ref slot, count);
             return slot.Index;
@@ -460,9 +432,9 @@ namespace Assets.Scripts.Core.Inventory
             return ref slots[^1];
         }
 
-        private int DesiredCount(Label prototype, ref int toStore)
+        private int DesiredCount(Label key, ref int toStore)
         {
-            ref var slot = ref FindSlot(prototype);
+            ref var slot = ref FindSlot(key);
             int storeHere = Math.Min(Math.Max(0, slot.DesiredCount - slot.Count), toStore);
             toStore -= storeHere;
             return storeHere;
@@ -478,6 +450,19 @@ namespace Assets.Scripts.Core.Inventory
             {
                 return ref dummySlot;
             }
+        }
+
+        public ref Slot FindOrCreateSlot(Label key)
+        {
+            if (keyToSlot.TryGetValue(key, out var index))
+                return ref GetSlot(index);
+
+            ref var slot = ref AddSlot();
+            slot.Key = key;
+            slot.Mass = key.GetMass();
+            slot.IsLiveObj = key.KsidGet.IsChildOf(Ksid.InventoryAsObj);
+            keyToSlot.Add(key, slot.Index);
+            return ref slot;
         }
 
         public bool TryGetSlot(Label key, out int slot)
@@ -561,11 +546,7 @@ namespace Assets.Scripts.Core.Inventory
                 return;
 
             ref var srcSlot = ref srcInventory.FindSlot(key);
-            ref var destSlot = ref FindSlot(key);
-            if (destSlot.Key != key)
-            {
-                destSlot = ref GetSlot(StoreProto2(key, 0)); // TODO poresit OBJ
-            }
+            ref var destSlot = ref FindOrCreateSlot(key);
             srcInventory.MoveItems(ref srcSlot, -moveCount);
             MoveItems(ref destSlot, moveCount);
         }

@@ -37,6 +37,7 @@ namespace Assets.Scripts.Core
         InventoryItem,
         InventoryAsObj,
         HasInventory,
+        Chest,
     }
 
     public static class KsidX

@@ -461,7 +461,7 @@ namespace Assets.Scripts.Core.Inventory
                 {
                     int newNum = ComputeNewNum(evt);
                     target.text = NumberToString.Convert(newNum);
-                    ref var slot = ref inventory.FindSlot(key);
+                    ref var slot = ref inventory.FindOrCreateSlot(key);
                     slot.DesiredCount = newNum;
                     evt.currentTarget.ReleaseMouse();
                     mainInventory?.Balance(key);

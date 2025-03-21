@@ -52,11 +52,12 @@ namespace Assets.Scripts.Stuff
                 if (candidate != placeableSibling)
                 {
                     var dist = (candidate.Center - center).sqrMagnitude;
+                    var candidate2 = candidate;
                     if (dist <= maximumSqrDistance)
                     {
-                        if (!TryImprove(candidate, ref @base, ref linkArrNew[0], true, center, dist))
-                            if (!TryImprove(candidate, ref p1, ref linkArrNew[1], false, center, dist))
-                                TryImprove(candidate, ref p2, ref linkArrNew[2], false, center, dist);
+                        TryImprove(ref candidate2, ref @base, ref linkArrNew[0], true, center, ref dist);
+                        TryImprove(ref candidate2, ref p1, ref linkArrNew[1], false, center, ref dist);
+                        TryImprove(ref candidate2, ref p2, ref linkArrNew[2], false, center, ref dist);
                     }
                 }
             }
@@ -66,20 +67,22 @@ namespace Assets.Scripts.Stuff
             linkArrOld.AsSpan().Clear();
         }
 
-        private bool TryImprove(Placeable candidate, ref Placeable outP, ref Inventory outI, bool isBase, Vector2 center, float dist)
+        private void TryImprove(ref Placeable candidate, ref Placeable outP, ref Inventory outI, bool isBase, Vector2 center, ref float dist)
         {
-            if (outP == null || (outP.Center - center).sqrMagnitude > dist)
+            if (candidate != null)
             {
-                var inv2 = candidate.GetComponent<IHasInventory>().Inventory;
-                if (inv2 && isBase == (inv2.Type == InventoryType.Base))
+                if (outP == null || (outP.Center - center).sqrMagnitude > dist)
                 {
-                    outP = candidate;
-                    outI = inv2;
-                    return true;
+                    var inv2 = candidate.GetComponent<IHasInventory>().Inventory;
+                    if (inv2 && isBase == (inv2.Type == InventoryType.Base))
+                    {
+                        (outP, candidate) = (candidate, outP);
+                        outI = inv2;
+                        if (candidate != null)
+                            dist = (candidate.Center - center).sqrMagnitude;
+                    }
                 }
             }
-
-            return false;
         }
 
         void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling)

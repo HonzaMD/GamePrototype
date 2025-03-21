@@ -41,3 +41,4 @@ MonoBehaviour:
     type: 3}
   Character: {fileID: 251501171028202331, guid: fc41439e18e66c840b15336e8d1a6d00,
     type: 3}
+  Chest: {fileID: 7291555106859174996, guid: 52d91c86fd27b354ca43be80da9b60b5, type: 3}

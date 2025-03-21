@@ -23,4 +23,5 @@ public class PrefabsStore : ScriptableObject
     public Occluder Occluder;
     public Inventory Inventory;
     public Placeable Character;
+    public Placeable Chest;
 }

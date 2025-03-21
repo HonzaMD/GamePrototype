@@ -44,6 +44,10 @@ namespace Assets.Scripts.Core
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
 
                 (Ksid.Character, Ksid.HasInventory),
+                (Ksid.Chest, Ksid.InventoryItem),
+                (Ksid.Chest, Ksid.InventoryAsObj),
+                (Ksid.Chest, Ksid.HasInventory),               
+                (Ksid.Chest, Ksid.AffectedByExplosion),
             })
         {
         }
