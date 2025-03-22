@@ -107,7 +107,7 @@ public class Level : MonoBehaviour
             {
                 foreach (var p in root.GetComponentsInChildren<Placeable>())
                 {
-                    p.PlaceToMap(Map, false);
+                    p.Init(Map);
                 }
             }
         }
