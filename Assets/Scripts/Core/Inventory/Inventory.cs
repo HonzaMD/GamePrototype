@@ -222,7 +222,7 @@ namespace Assets.Scripts.Core.Inventory
             FixIndex(ref sO, oldSlot);
             TryFreeSlot(ref sN);
             TryFreeSlot(ref sO);
-            QuickSlotsUpdate(ref sN);
+            HudUpdate(ref sN);
             QuickSlotsUpdate(ref sO);
         }
 
@@ -300,7 +300,6 @@ namespace Assets.Scripts.Core.Inventory
             count = Math.Min(slot.Count, count);
             if (count == 0)
                 return;
-            Label oldKey = slot.Key;
             if (slotNum == activeSlot && activeObj != null)
             {
                 DeactivateObj(ref slot);
@@ -311,7 +310,7 @@ namespace Assets.Scripts.Core.Inventory
             }
             slot.Count -= count;
             mass -= slot.Mass * count;
-            TryFreeAndNotify(ref slot, oldKey);
+            TryFreeAndNotify(ref slot);
         }
 
         public void Balance(Label key)
@@ -360,18 +359,15 @@ namespace Assets.Scripts.Core.Inventory
         {
             if (count == 0)
                 return;
-            Label oldKey = slot.Key;
             slot.Count += count;
             mass += slot.Mass * count;
-            TryFreeAndNotify(ref slot, oldKey);
+            TryFreeAndNotify(ref slot);
         }
 
-        private void TryFreeAndNotify(ref Slot slot, Label oldKey)
+        private void TryFreeAndNotify(ref Slot slot)
         {
             if (TryFreeSlot(ref slot))
             {
-                if (oldKey != null && visualizer != null)
-                    visualizer.HideItem(oldKey, visualizerRow);
                 QuickSlotsUpdate(ref slot);
             }
             else
@@ -392,11 +388,15 @@ namespace Assets.Scripts.Core.Inventory
             }
             else
             {
-                if (slot.Key != null)
-                    keyToSlot.Remove(slot.Key);
+                var oldKey = slot.Key;
+                if (oldKey != null)
+                    keyToSlot.Remove(oldKey);
                 int index = slot.Index;
                 slots.RemoveAt(index);
                 FixIndex(ref slot, index);
+
+                if (oldKey != null && visualizer != null)
+                    visualizer.HideItem(oldKey, visualizerRow);
                 return true;
             }
         }
@@ -592,18 +592,14 @@ namespace Assets.Scripts.Core.Inventory
 
         private void BalanceAll()
         {
-            BalanceAll(quickAccess.AsSpan());
-            BalanceAll(slots.AsSpan());
+            var keysList = ListPool<Label>.Rent();
+            foreach (var key in keyToSlot.Keys) 
+                keysList.Add(key);
+            foreach (var key in keysList)
+                Balance(key);
+            keysList.Return();
         }
 
-        private void BalanceAll(Span<Slot> slots)
-        {
-            foreach (ref var slot in slots)
-            {              
-                if (slot.Key != null)
-                    Balance(slot.Key);
-            }
-        }
 
         private void CompactLinks(Inventory[] linkArrNew)
         {
