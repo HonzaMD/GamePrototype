@@ -1059,14 +1059,14 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         return -1;
     }
 
-    public virtual void Cleanup()
+    public virtual void Cleanup(bool goesToInventory)
 	{
-		RemoveAllLegsArms();
-		body.Cleanup();
+        Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
+        RemoveAllLegsArms();
 		map = null;
 	}
 
-    public virtual void AfterMapPlaced(Map map, Placeable placeableSibling)
+    public virtual void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
     {
         this.map = map;
     }

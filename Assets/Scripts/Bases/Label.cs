@@ -35,7 +35,7 @@ public abstract class Label : MonoBehaviour
     public abstract Ksid KsidGet { get; }
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
 
-    public virtual void Cleanup() 
+    public virtual void Cleanup(bool goesToInventory) 
     {
         var connectables = ListPool<IConnectable>.Rent();
         ParentForConnections.GetComponentsInLevel1Children(connectables);
@@ -222,7 +222,7 @@ public abstract class Label : MonoBehaviour
     { 
         if (CanBeKilled)
         {
-            if (!IsAlive)
+            if (!IsAlive && !IsInInventory)
                 throw new InvalidOperationException("Zabijis neco, co nezije!");
 
             if (TryGetParentLabel(out var pl))
@@ -242,9 +242,24 @@ public abstract class Label : MonoBehaviour
         }
     }
 
+    protected void RecursiveCleanupToInventory()
+    {
+        Cleanup(true);
+
+        if (IsGroup)
+        {
+            var labels = ListPool<Label>.Rent();
+            GetComponentsInChildren(labels);
+            foreach (var p in labels)
+                if (p != this)
+                    p.Cleanup(true);
+            labels.Return();
+        }
+    }
+
     private void RecursiveCleanup(List<Label> labelsToKill)
     {
-        Cleanup();
+        Cleanup(false);
         labelsToKill.Add(this);
         if (!IsGroup)
             return;
@@ -259,7 +274,7 @@ public abstract class Label : MonoBehaviour
     {
         if (t.TryGetComponent(out Label l))
         {
-            l.Cleanup();
+            l.Cleanup(false);
             if (l.CanBeKilled)
             {
                 l.transform.SetParent(levelGroup, true);

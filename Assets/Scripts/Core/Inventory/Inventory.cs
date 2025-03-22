@@ -272,19 +272,17 @@ namespace Assets.Scripts.Core.Inventory
         {
             Debug.Assert(activeObj == obj, "Cekam ze inventoryObj == label");
             ref var slot = ref GetSlot(activeSlot);
-            bool killIt = false;
+            if (slot.IsLiveObj)
+                slot.Mass = obj.GetMass();
+            DeactivateObj(ref slot);
             if (!slot.IsLiveObj)
             {
-                killIt = true;
+                obj.Kill();
             }
             else
-            {
-                slot.Mass = obj.GetMass();
+            {               
                 obj.InventoryPush(this);
             }
-            DeactivateObj(ref slot);
-            if (killIt)
-                obj.Kill();
         }
 
         internal void RemoveObjActive()
@@ -483,10 +481,10 @@ namespace Assets.Scripts.Core.Inventory
                 return ref slots[slot];
         }
 
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             Clear();
-            base.Cleanup();
+            base.Cleanup(goesToInventory);
         }
 
         internal bool HasObj(int slot) => GetSlot(slot).Count > 0;

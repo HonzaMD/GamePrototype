@@ -45,7 +45,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         if (!isFullCell)
             AdjustSize();
 
-        PlaceToMap(map);
+        PlaceToMap(map, false);
 
         foreach (var p in children)
         {
@@ -171,14 +171,14 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         Kill();
     }
 
-    public override void Cleanup()
+    public override void Cleanup(bool goesToInventory)
     {
         if (Collapsing)
             collapsingToken++;
 
         MassTransferer.Disconnect();
 
-        base.Cleanup();
+        base.Cleanup(goesToInventory);
 
         CleanupSize();
     }

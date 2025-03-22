@@ -79,7 +79,7 @@ public class Placeable : Label, ILevelPlaceabe
     public override bool CanBeKilled => !Settings.Unseparable;
     public override PlaceableSettings GetSettings() => Settings;
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
-    protected virtual void AfterMapPlaced(Map map) { }
+    protected virtual void AfterMapPlaced(Map map, bool goesFromInventory) { }
 
     public bool IsTrigger => Settings.IsTrigger;
     public int SpNodeIndex => spNodeIndex;
@@ -95,7 +95,7 @@ public class Placeable : Label, ILevelPlaceabe
     public void LevelPlaceAfterInstanciate(Map map, Vector3 pos)
     {
         SetPlacedPosition(pos);
-        PlaceToMap(map);
+        PlaceToMap(map, false);
     }
 
     public void SetPlacedPosition(Vector3 pos)
@@ -105,9 +105,9 @@ public class Placeable : Label, ILevelPlaceabe
         transform.position = pos;
     }
 
-    public override void Init(Map map) => PlaceToMap(map);
+    public override void Init(Map map) => PlaceToMap(map, false);
 
-    public void PlaceToMap(Map map)
+    public void PlaceToMap(Map map, bool goesFromInventory)
     {
         AutoAttachRB();
         map.Add(this);
@@ -126,11 +126,11 @@ public class Placeable : Label, ILevelPlaceabe
             GetComponentsInChildren(placeables);
             foreach (var p in placeables)
                 if (p != this)
-                    p.PlaceToMap(map);
+                    p.PlaceToMap(map, goesFromInventory);
             placeables.Return();
         }
 
-        AfterMapPlaced(map);
+        AfterMapPlaced(map, goesFromInventory);
     }
 
     private void AutoAttachRB()
@@ -139,7 +139,7 @@ public class Placeable : Label, ILevelPlaceabe
             AttachRigidBody(true, false);
     }
 
-    public override void Cleanup()
+    public override void Cleanup(bool goesToInventory)
     {
         GetMap().Remove(this);
         if (TryGetComponent<IActiveObject>(out var ao))
@@ -152,7 +152,7 @@ public class Placeable : Label, ILevelPlaceabe
             Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
             spNodeIndex = 0;
         }
-        base.Cleanup();
+        base.Cleanup(goesToInventory);
     }
 
     public void KinematicMove(Map map)

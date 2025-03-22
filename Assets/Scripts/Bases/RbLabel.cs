@@ -28,9 +28,10 @@ namespace Assets.Scripts.Bases
             child.transform.SetParent(LevelGroup, true);
             Kill();
         }
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             // schvalne vynechavam clenup connectables, protoze je nemam
+            Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
             Game.Instance.GlobalTimerHandler.ObjectDied(this);
             Rigidbody.Cleanup();
             isAlive = false;

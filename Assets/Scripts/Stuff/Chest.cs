@@ -21,7 +21,7 @@ namespace Assets.Scripts.Stuff
 
         public Inventory Inventory => inventory;
 
-        void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling)
+        void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)
         {
             if (inventory == null)
             {
@@ -49,10 +49,13 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        void IHasCleanup.Cleanup()
+        void IHasCleanup.Cleanup(bool goesToInventory)
         {
-            inventory.Kill();
-            inventory = null;
+            if (!goesToInventory)
+            {
+                inventory.Kill();
+                inventory = null;
+            }
         }
     }
 }

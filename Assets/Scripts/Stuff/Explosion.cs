@@ -71,10 +71,10 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             activityTag.Reset();
-            base.Cleanup();
+            base.Cleanup(goesToInventory);
         }
     }
 }

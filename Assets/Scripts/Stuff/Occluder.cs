@@ -42,11 +42,11 @@ namespace Assets.Scripts.Stuff
         }
 
 
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             isAlive = false;
             dc = null;
-            base.Cleanup();
+            base.Cleanup(goesToInventory);
         }
     }
 }

@@ -79,10 +79,10 @@ namespace Assets.Scripts.Stuff
             //HDMaterial.ValidateMaterial(material);
         }
 
-        public void Cleanup()
+        public void Cleanup(bool goesToInventory)
         {
+            Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
             Deactivate();
-            GetComponent<Rigidbody>().Cleanup();
         }
 
         //private void Start()

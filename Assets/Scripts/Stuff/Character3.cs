@@ -44,9 +44,9 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         AwakeB();
     }
 
-    public override void AfterMapPlaced(Map map, Placeable placeableSibling)
+    public override void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
     {
-        base.AfterMapPlaced(map, placeableSibling);
+        base.AfterMapPlaced(map, placeableSibling, goesFromInventory);
         CreateInventory();
         Game.Instance.InputController.AddCharacter(this);
     }
@@ -461,9 +461,9 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         }
     }
 
-    public override void Cleanup()
+    public override void Cleanup(bool goesToInventory)
     {
-        base.Cleanup();
+        base.Cleanup(goesToInventory);
         inventory.Kill();
         inventory = null;
     }

@@ -21,10 +21,10 @@ namespace Assets.Scripts.Bases
         public override float GetMass() => Settings.Mass;
         public override PlaceableSettings GetSettings() => Settings;
 
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             isAlive = false;
-            base.Cleanup();
+            base.Cleanup(goesToInventory);
         }
 
         public override void Init(Map.Map map) => isAlive = true;

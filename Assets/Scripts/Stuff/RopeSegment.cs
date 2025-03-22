@@ -44,7 +44,7 @@ public class RopeSegment : Placeable
     }
 
 
-    public override void Cleanup()
+    public override void Cleanup(bool goesToInventory)
     {
         GetComponent<Rigidbody>().Cleanup();
     }

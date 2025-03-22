@@ -255,7 +255,7 @@ namespace Assets.Scripts.Core.Inventory
             {
                 for (int index = 0; ; index++)
                 {
-                    if (index > inventoryPanel.childCount)
+                    if (index >= inventoryPanel.childCount)
                     {
                         inventoryPanel.Add(col);
                         return;

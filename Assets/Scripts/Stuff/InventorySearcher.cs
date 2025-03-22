@@ -85,14 +85,14 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling)
+        void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)
         {
             this.map = map;
             this.placeableSibling = placeableSibling;
             Game.Instance.ActivateObject(this);
         }
 
-        public void Cleanup()
+        public void Cleanup(bool goesToInventory)
         {
             Game.Instance.DeactivateObject(this);
         }

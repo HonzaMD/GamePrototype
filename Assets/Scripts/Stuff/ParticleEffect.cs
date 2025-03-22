@@ -32,12 +32,12 @@ namespace Assets.Scripts.Stuff
             Kill();
         }
 
-        public override void Cleanup()
+        public override void Cleanup(bool goesToInventory)
         {
             if ((ActiveTag & 1) != 0)
                 ActiveTag++;
 
-            base.Cleanup();
+            base.Cleanup(goesToInventory);
         }
     }
 }
