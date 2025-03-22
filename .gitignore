@@ -31,3 +31,4 @@
 /Assets/RenderingSettings/*.bytes*
 /Assets/Scenes/*/*.bytes*
 /Assets/Scenes/*/*.exr*
+/Documentation/Game Prototype/
