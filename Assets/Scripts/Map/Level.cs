@@ -7,15 +7,23 @@ using UnityEngine;
 
 public class Level : MonoBehaviour
 {
+    [Tooltip("Carkama oddeleny seznam slov. Umoznuje zvolit level, pokud se jedno ze slov shoduje")]
     public string ActivationWord;
+    [Tooltip("Jmemo pismenkoveho levlu. Stavi se do PlaceablesRoots[0]")]
     public LevelName LevelName;
     [SerializeField]
+    [Tooltip("Rooty pro herni objekty")]
     private LevelLabel[] PlaceablesRoots = default;
+    [Tooltip("Root pro pozadi.")]
     public LevelLabel CloseSide;
+    [Tooltip("Root pro popredi")]
     public LevelLabel FarSide;
+    [Tooltip("Dodatecni ovset v bunkach pro pismenkovy level. Defaultne se umistuje na misto kam miri Root0, nebyva tedy potreba donastavovat")]
     public int localCellsX;
     public int localCellsY;
+    [Tooltip("Ma se level postavit pri specialnim staveni v editoru pro LVarA/B?")]
     public bool LightVariantA, LightVariantB;
+    [Tooltip("Pravdepodobnostni vaha pro vyber levelu")]
     public int BuildProbability = 10;
 
 
