@@ -504,6 +504,8 @@ namespace Assets.Scripts.Core.Inventory
             private Label key;
             private VisualElement captured;
             private InventoryVisualizer visualizer;
+            private bool selectItem;
+            private Vector2 mouseStartPos;
 
             public bool Enabled => enabled;
 
@@ -517,6 +519,8 @@ namespace Assets.Scripts.Core.Inventory
                 if (slot.CountInside > 0)
                 {
                     enabled = true;
+                    selectItem = true;
+                    mouseStartPos = evt.mousePosition;
                     evt.currentTarget.CaptureMouse();
                     captured = evt.currentTarget as VisualElement;
                     visualizer.itemDragElement.style.backgroundImage = new StyleBackground(key.GetSettings().Icon);
@@ -534,6 +538,8 @@ namespace Assets.Scripts.Core.Inventory
 
             private void Continue(Vector2 mousePosition)
             {
+                if ((mouseStartPos - mousePosition).sqrMagnitude > 50)
+                    selectItem = false;
                 visualizer.itemDragElement.transform.position = mousePosition;
                 int moveCount = GetInventoryUnderMouse(mousePosition)?.CanPaste(inventory, key) ?? 0;
                 Color color = moveCount > 0 ? new Color(0.2f, 0.7f, 0.2f) : new Color(0.6f, 0.2f, 0.2f);
@@ -549,9 +555,13 @@ namespace Assets.Scripts.Core.Inventory
                 if (enabled)
                 {
                     var inventory2 = GetInventoryUnderMouse(evt.mousePosition);
-                    if (inventory2 != null)
+                    if (inventory2 != null && inventory != inventory2)
                     {
                         inventory2.TryPaste(inventory, key);
+                    } 
+                    else if (selectItem && Game.Instance.InputController.Character)
+                    {
+                        Game.Instance.InputController.Character.InventoryAccess(key);
                     }
                     Cleanup();
                 }

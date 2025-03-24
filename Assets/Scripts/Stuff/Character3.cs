@@ -326,6 +326,12 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         AdjustLegsArms();
     }
 
+    public void InventoryAccess(Label key)
+    {
+        if (inventory.TryGetSlot(key, out var slot))
+            InventoryAccess(slot);
+    }
+
     private void InventoryAccess(int quickSlot)
     {
         desiredHold = false;
