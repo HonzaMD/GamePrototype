@@ -19,11 +19,14 @@ namespace Assets.Scripts.Core
                 (Ksid.Stone, Ksid.InventoryItem),
                 (Ksid.Light, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.InventoryItem),
+                (Ksid.Chest, Ksid.InventoryItem),
+                (Ksid.Knife, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
                 (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                
                 (Ksid.Stone, Ksid.SandLike),
                 (Ksid.Light, Ksid.SandLike),
+                (Ksid.Knife, Ksid.SandLike),
 
                 (Ksid.Light, Ksid.DamagedByExplosion),
                 (Ksid.Stone, Ksid.DamagedByExplosion),
@@ -34,6 +37,8 @@ namespace Assets.Scripts.Core
                 (Ksid.Character, Ksid.AffectedByExplosion),
                 (Ksid.Rope, Ksid.AffectedByExplosion),
                 (Ksid.SpMoving, Ksid.AffectedByExplosion),
+                (Ksid.Knife, Ksid.AffectedByExplosion),
+                (Ksid.Chest, Ksid.AffectedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
 
                 (Ksid.SpFixed, Ksid.SpNode),
@@ -44,10 +49,9 @@ namespace Assets.Scripts.Core
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
 
                 (Ksid.Character, Ksid.HasInventory),
-                (Ksid.Chest, Ksid.InventoryItem),
+                (Ksid.Chest, Ksid.HasInventory),
                 (Ksid.Chest, Ksid.InventoryAsObj),
-                (Ksid.Chest, Ksid.HasInventory),               
-                (Ksid.Chest, Ksid.AffectedByExplosion),
+                (Ksid.Knife, Ksid.HoldsAtHandle),
             })
         {
         }

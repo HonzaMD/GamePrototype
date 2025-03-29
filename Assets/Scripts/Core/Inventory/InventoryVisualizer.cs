@@ -215,6 +215,7 @@ namespace Assets.Scripts.Core.Inventory
             {
                 slot.DeactivateRow(row);
                 var cell = slot.Column.ElementAt(0).ElementAt(row);
+                cell.Q<UiLabel>(className: "InventoryReqNum").text = "0";
                 cell.Q("cell").style.visibility = Visibility.Hidden;
             }
         }

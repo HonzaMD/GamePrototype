@@ -211,7 +211,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			{
 				var lpos = Legs[index].position.XY();
 				var center = ArmSphere.transform.position.XY();
-				var radius = ArmSphere.radius * 1.5f;
+				var radius = ArmSphere.radius * 1.8f;
 				if ((lpos - center).sqrMagnitude > radius * radius)
 				{
 					EnableCollision(legsConnectedLabels[index]);
@@ -223,7 +223,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		{
             var lpos = Legs[index].position.XY();
             var center = ArmSphere.transform.position.XY();
-            var radius = ArmSphere.radius * 1.5f;
+            var radius = ArmSphere.radius * 1.8f;
 			var dist = (lpos - center).sqrMagnitude;
             if (dist > radius * radius)
             {
@@ -398,15 +398,24 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 		legArmStatus[index] = Catch;
 	}
 
-	private void PlaceLeg3d(int index, ref RaycastHit hitInfo, float statusType)
+	private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)
 	{
-		Legs[index].position = hitInfo.point;
-		Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+		if (holdHandle)
+		{
+            Legs[index].position = holdHandle.position;
+			Legs[index].rotation = holdHandle.rotation * handleToLegRot;
+        }
+        else
+		{
+			Legs[index].position = hitInfo.point;
+			Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+		}
 		legArmStatus[index] = statusType;
 	}
+	private static Quaternion handleToLegRot = Quaternion.FromToRotation(Vector3.up, Vector3.forward);
 
 
-	private bool SelectFreeLeg(out int index) => SelectFreeLegArm(out index, 0, 1);
+    private bool SelectFreeLeg(out int index) => SelectFreeLegArm(out index, 0, 1);
 	private bool SelectFreeArm(out int index) => SelectFreeLegArm(out index, 2, 3);
 
 	private bool SelectFreeLegArm(out int index, int i1, int i2)
@@ -443,7 +452,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 				{
 					if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
 					{
-						PlaceLeg3d(index, ref hitInfo, Catch);
+						PlaceLeg3d(index, ref hitInfo, null, Catch);
 						placeables.Clear();
 						return;
 					}
@@ -558,11 +567,17 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 	{
 		if (p.HasActiveRB || p.KsidGet.IsChildOf(Ksid.SandLike))
 		{
-			var pos = p.GetClosestPoint(center3d);
+			bool holdsAtHandle = p.KsidGet.IsChildOf(Ksid.HoldsAtHandle);
+			Transform holdHandle = null;
+            if (holdsAtHandle)
+				holdHandle = p.GetHoldHandle();
+            var pos = holdsAtHandle ? holdHandle.position : p.GetClosestPoint(center3d);
 			var zDiff = center3d.z - pos.z;
 			var radius = p == delayedEnableCollisionLabel
 				? ArmSphere.radius * 1.5f
                 : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius * 1.4f * 1.4f);
+			if (holdsAtHandle)
+				radius *= 1.2f * 1.2f;
 			
 			bool pickUpAllowed = false;
 			if (tryPickUp)
@@ -580,7 +595,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 			{
 				if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
 				{
-					if ((hitInfo.point - pos).sqrMagnitude < 0.001)
+					if (holdsAtHandle || (hitInfo.point - pos).sqrMagnitude < 0.001)
 					{
 						if (tryHold && desiredHold && ArmHolds)
 						{
@@ -596,7 +611,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                             pickupToHold = false;
                             if (!p.HasActiveRB)
 								((Placeable)p).AttachRigidBody(true, false);
-							PlaceLeg3d(index, ref hitInfo, tryHold ? Hold : PickUp);
+							PlaceLeg3d(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
 							IgnoreCollision(legsConnectedLabels[index], true);
 							if (tryHold && pickUpAllowed)
 								InventoryPickupAndActivate(p);

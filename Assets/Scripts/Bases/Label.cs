@@ -34,6 +34,7 @@ public abstract class Label : MonoBehaviour
 
     public abstract Ksid KsidGet { get; }
     public virtual Vector3 GetClosestPoint(Vector3 position) => GetComponentInChildren<Collider>().ClosestPoint(position);
+    public virtual Transform GetHoldHandle() => transform.FindChild(GOTags.HoldHandle);
 
     public virtual void Cleanup(bool goesToInventory) 
     {

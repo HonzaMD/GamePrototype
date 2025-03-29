@@ -43,6 +43,17 @@ namespace Assets.Scripts.Utils
             return false;
         }
 
+        public static Transform FindChild(this Transform transform, TagHandle tagHandle)
+        {
+            for (int f = 0; f < transform.childCount; f++)
+            {
+                Transform child = transform.GetChild(f);
+                if (child.CompareTag(tagHandle))
+                    return child;
+            }
+            return null;
+        }
+
         public static T ToRealNull<T>(this T obj)
             where T : UnityEngine.Object
         {

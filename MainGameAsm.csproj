@@ -105,6 +105,7 @@
     <Compile Include="Assets\Scripts\Core\InputController.cs" />
     <Compile Include="Assets\Scripts\Stuff\LightVariantRegion.cs" />
     <Compile Include="Assets\Scripts\Map\PrefabsStore.cs" />
+    <Compile Include="Assets\Scripts\Utils\GOTags.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
