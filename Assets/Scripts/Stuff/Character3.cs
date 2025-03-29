@@ -400,6 +400,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     }
 
     protected override Vector3 GetPickupMousePos(float z) => inputController.GetMousePosOnZPlane(z);
+    protected override bool HasMouseControler => inputController != null;
 
     protected override bool IsPickupAllowed(Label p) => p.KsidGet.IsChildOf(Ksid.InventoryItem);
 

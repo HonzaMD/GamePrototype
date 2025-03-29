@@ -23,5 +23,7 @@ namespace Assets.Scripts.Utils
         public static bool IsLessEq(this Vector2 a, Vector2 b) => a.x <= b.x && a.y <= b.y;
         public static bool IsLessEq(this Vector3 a, Vector3 b) => a.x <= b.x && a.y <= b.y && a.z <= b.z;
         public static bool IsYLessXGrEq(this Vector2 a, Vector2 b) => a.x >= b.x && a.y <= b.y;
+
+        public static float Angle180(this float angle) => angle >= 180 ? angle - 360 : angle;
     }
 }
