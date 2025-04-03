@@ -40,6 +40,7 @@ namespace Assets.Scripts.Core
         Chest,
         Knife,
         HoldsAtHandle,
+        ActivatesInHand,
     }
 
     public static class KsidX

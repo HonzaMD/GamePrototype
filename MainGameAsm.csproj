@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
     <Compile Include="Assets\Scripts\Bases\IPhysicsEvents.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="Assets\Scripts\Utils\GOTags.cs" />
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
+    <Compile Include="Assets\Scripts\Utils\HoldAnimator.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />

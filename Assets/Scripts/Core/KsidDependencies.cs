@@ -52,6 +52,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Chest, Ksid.HasInventory),
                 (Ksid.Chest, Ksid.InventoryAsObj),
                 (Ksid.Knife, Ksid.HoldsAtHandle),
+                (Ksid.Knife, Ksid.ActivatesInHand),
             })
         {
         }

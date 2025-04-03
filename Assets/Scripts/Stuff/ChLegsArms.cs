@@ -81,7 +81,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
     }
 
-    protected void AdjustLegsArms()
+    protected void AdjustLegsArms(bool allowHoldDrop)
     {
         map.Move(placeable);
 
@@ -89,8 +89,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
         TryRemoveLeg(0);
         TryRemoveLeg(1);
-        TryRemoveArm(2);
-        TryRemoveArm(3);
+        TryRemoveArm(2, allowHoldDrop);
+        TryRemoveArm(3, allowHoldDrop);
 
         if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
         {
@@ -171,7 +171,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
     }
 
-    private void TryRemoveArm(int index)
+    private void TryRemoveArm(int index, bool allowHoldDrop)
     {
         if (legArmStatus[index] == Catch)
         {
@@ -207,7 +207,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 EnableCollision(legsConnectedLabels[index]);
                 RemoveLegArm(index);
             }
-            else
+            else if (allowHoldDrop)
             {
                 var lpos = Legs[index].position.XY();
                 var center = ArmSphere.transform.position.XY();
@@ -1097,6 +1097,15 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             return legsConnectedLabels[2];
         if (legArmStatus[3] == Hold && legsConnectedLabels[3] && legsConnectedLabels[3].HasActiveRB)
             return legsConnectedLabels[3];
+        return null;
+    }
+
+    public Transform GetHoldLeg()
+    {
+        if (legArmStatus[2] == Hold && legsConnectedLabels[2])
+            return Legs[2];
+        if (legArmStatus[3] == Hold && legsConnectedLabels[3])
+            return Legs[3];
         return null;
     }
 

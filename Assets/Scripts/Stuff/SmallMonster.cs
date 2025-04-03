@@ -37,7 +37,7 @@ class SmallMonster : ChLegsArms, IActiveObject
 			desiredDirection *= -1;
 		}
 		
-		AdjustLegsArms();
+		AdjustLegsArms(true);
 	}
 
 	private bool WantMove()

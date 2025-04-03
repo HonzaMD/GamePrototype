@@ -55,5 +55,8 @@ namespace Assets.Scripts.Bases
         public float SpCompressLimit = 1000f;
         [Tooltip("Limity pro staticke spoje mezi objekty: Ohyb")]
         public float SpMomentLimit = 1000f;
+
+        [Tooltip("Pro animaci akci, jako je pouziti objektu")]
+        public AnimationCurve ActivityAnimation;
     }
 }

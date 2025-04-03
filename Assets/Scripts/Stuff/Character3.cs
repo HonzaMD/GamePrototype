@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityTemplateProjects;
 
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
@@ -26,18 +27,24 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     private Rigidbody bodyToThrow;
     private ControlState cState;
     private bool firstPress;
+    private HoldAnimator holdAnimator;
 
     private enum ControlState
     { 
-        EmptyHands,
-        PickupPrepare,
-        Pickup,
-        TryHold,
-        ItemAdjust,
-        Throw,
-        ThrowReload,
-        ItemUse,
+        EmptyHands, // default s prazdnyma rukama
+        PickupPrepare, // Behem drzeni E, pokud neprerusis mysi
+        Pickup, // po nepreruzenem PickapPrepare (po pusteni E), Druhy pickupPrepare Pickup vypne. Mys pickup vypne. Pickup konci po 2s neaktivite (nic jsi nesebral)
+        TryHold, // aktivovani mysi ze satvu EmptyHands,PickupPrepare a ItemUse, u ItemUse jen pri drzeni E. Deaktivuje se zvednutim mysi. Pohybem mysi muze prejit do ItemAdjust
+        ItemAdjust, // aktivuje se pohybem zmacknute mysi ze stavu TryHold (ten vznikne ze stavu PickupPrepare). Deaktivuje se zvednutim mysi.
+        Throw, // Aktivace pokud neco drzis stiskem R. Nebo z Throwreload, kdyz drzis novou vec. Deaktivace pustenim druheho stisku R
+        ThrowReload, // aktivace pokud pri hodu (mys pri Throw) pokud drzis R. Po 0.2s naloaduje vec z inventare a prejde do Throw
+        ItemUse, // default s plnyma rukama
+        ItemAnimation, // Aktivuje se stiskem mysi z ItemUse stavu. Trva nejakou dobu. Behem animace je azkazano spousta veci a prechodu
     }
+
+    // Prechody stavu:
+    // E, R,
+    // mouse down. Pri Throw hazi, pri empty hands nebo pickup prepare sbira
 
     void Awake()
     {
@@ -87,7 +94,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             {
                 inventory.SetQuickSlot(slot, Game.Instance.Hud.SelectedInventoryKey);
             }
-            else
+            else if (cState != ControlState.ItemAnimation)
             {
                 InventoryAccess(slot);
             }
@@ -115,13 +122,13 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
         if (resetHoldTimeout > 0)
             resetHoldTimeout += Time.deltaTime;
-        if (resetHoldTimeout > 0.6f && !(cState is ControlState.ItemAdjust or ControlState.TryHold))
+        if (resetHoldTimeout > 0.6f && !(cState is ControlState.ItemAdjust or ControlState.TryHold or ControlState.ItemAnimation))
         {
             RecatchHold();
             resetHoldTimeout = 0;
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && cState != ControlState.ItemAnimation)
         {
             if (ResetControl() != ControlState.Pickup)
                 firstPress = true;
@@ -155,7 +162,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         }
 
         bool guiInFocus = Game.Instance.Hud.GuiInFocus;
-        bool mouseDown = !guiInFocus && Input.GetMouseButtonDown(0);
+        bool mouseDown = !guiInFocus && cState != ControlState.ItemAnimation && Input.GetMouseButtonDown(0);
         bool mouseUp = Input.GetMouseButtonUp(0);
 
         if (mouseDown && (cState is ControlState.PickupPrepare or ControlState.EmptyHands || (cState is ControlState.ItemUse && Input.GetKey(KeyCode.E))))
@@ -186,7 +193,8 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             }
         }
 
-        AdjustLegsArms();
+        AnimateHand();
+        AdjustLegsArms(cState != ControlState.ItemAnimation);
 
         bool armHolds = ArmHolds;
         
@@ -205,7 +213,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
                 cState = ControlState.EmptyHands;
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R) && cState != ControlState.ItemAnimation)
         {
             firstPress = false;
             if (cState != ControlState.Throw && armHolds)
@@ -217,7 +225,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.R) && !firstPress)
+        if (Input.GetKeyUp(KeyCode.R) && !firstPress && cState != ControlState.ItemAnimation)
         {
             ResetControl();
         }
@@ -227,6 +235,13 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             throwCtrl.SetThrowActive(false, true, this);
             if (cState != ControlState.ThrowReload)
                 ResetControl();
+        }
+
+        if (mouseDown && cState == ControlState.ItemUse)
+        {
+            var ho = GetHoldObject();
+            if (ho.KsidGet.IsChildOf(Ksid.ActivatesInHand) && ho.TryGetComponent(out IHoldActivate ao))
+                ao.Activate(this);
         }
 
 
@@ -295,7 +310,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             throwCtrl.PositionLongThrowMarker(this);
         }
 
-        if (zMoveTimeout <= 0 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+        if (zMoveTimeout <= 0 && cState != ControlState.ItemAnimation && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
         {
             desiredZMove = transform.position.z < 0.25f ? Map.CellSize.z : -Map.CellSize.z;
             zMoveTimeout = 1;
@@ -304,9 +319,17 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     private ControlState ResetControl()
     {
-        var throwCtrl = inputController.ThrowController;
-        if (throwCtrl.ThrowActive)
-            throwCtrl.SetThrowActive(false, false, this);
+        if (inputController != null)
+        {
+            var throwCtrl = inputController.ThrowController;
+            if (throwCtrl.ThrowActive)
+                throwCtrl.SetThrowActive(false, false, this);
+        }
+        if (holdAnimator != null)
+        {
+            holdTarget = holdAnimator.Cancel();
+            holdAnimator = null;
+        }
         controlTimeout = 0;
         desiredPickUp = false;
         pickupToHold = false;
@@ -323,7 +346,18 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     private void UncontrolledUpdate()
     {
-        AdjustLegsArms();
+        AnimateHand();
+        AdjustLegsArms(cState != ControlState.ItemAnimation);
+    }
+
+    private void AnimateHand()
+    {
+        if (cState == ControlState.ItemAnimation)
+        {
+            holdTarget = holdAnimator.Evaluate(holdTarget);
+            if (holdAnimator.Completed)
+                ResetControl();
+        }
     }
 
     public void InventoryAccess(Label key)
@@ -444,7 +478,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     private void FlipHoldTarget()
     {
-        if (holdTarget != Vector2.zero && cState != ControlState.ItemAdjust)
+        if (holdTarget != Vector2.zero && cState != ControlState.ItemAdjust && cState != ControlState.ItemAnimation)
         {
             holdTarget.x *= -1;
             resetHoldTimeout = 0.01f;
@@ -473,5 +507,11 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         base.Cleanup(goesToInventory);
         inventory.Kill();
         inventory = null;
+    }
+
+    public void ActivateHoldAnimation(AnimationCurve animation, float returnTime, float speed)
+    {
+        cState = ControlState.ItemAnimation;
+        holdAnimator = HoldAnimator.Create(GetHoldLeg(), holdTarget, animation, returnTime, speed);
     }
 }

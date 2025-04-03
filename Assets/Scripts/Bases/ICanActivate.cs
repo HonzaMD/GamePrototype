@@ -10,4 +10,9 @@ namespace Assets.Scripts.Bases
     {
         void Activate();
     }
+
+    interface IHoldActivate
+    {
+        void Activate(Character3 character);
+    }
 }

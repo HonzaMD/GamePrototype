@@ -28,3 +28,63 @@ MonoBehaviour:
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.009284124
+      outSlope: 0.009284124
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.29516372
+      value: -0.48756438
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5
+      value: 1
+      inSlope: 17.765846
+      outSlope: 2.0245621
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.051414743
+      outWeight: 0.65493697
+    - serializedVersion: 3
+      time: 0.6120596
+      value: 1
+      inSlope: -1.3439164
+      outSlope: -1.3439164
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.40140623
+      outWeight: 0.15671134
+    - serializedVersion: 3
+      time: 0.97093844
+      value: -0.05253903
+      inSlope: 0.014374425
+      outSlope: 0.014374425
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.099915646
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1.6672361
+      outSlope: -1.6672361
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 1
+    m_RotationOrder: 4
