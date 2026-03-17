@@ -32,3 +32,4 @@
 /Assets/Scenes/*/*.bytes*
 /Assets/Scenes/*/*.exr*
 /Documentation/Game Prototype/
+/.claude/
