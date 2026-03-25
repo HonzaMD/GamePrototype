@@ -38,7 +38,15 @@ namespace Assets.Scripts.Bases
                 }
                 else
                 {
-                    label.Kill();
+                    var status = label.GetComponent<Status>();
+                    if (status != null)
+                    {
+                        status.ApplyDamage(damageType, intensity);
+                    }
+                    else
+                    {
+                        label.Kill();
+                    }
                 }
             }
         }

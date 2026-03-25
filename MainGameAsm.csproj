@@ -139,6 +139,7 @@
     <Compile Include="Assets\Scripts\Core\Inventory\Hud.cs" />
     <Compile Include="Assets\Scripts\Map\RegionMap.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
+    <Compile Include="Assets\Scripts\Bases\Status.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DCGroup.cs" />
     <Compile Include="Assets\Scripts\Stuff\Occluder.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />

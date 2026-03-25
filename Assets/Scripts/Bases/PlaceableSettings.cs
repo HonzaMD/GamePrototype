@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Assets.Scripts.Core;
 using UnityEngine;
 
 namespace Assets.Scripts.Bases
@@ -11,6 +12,18 @@ namespace Assets.Scripts.Bases
     {
         BoundingBox,
         Circle,
+    }
+
+    [Serializable]
+    public struct DamageResistance
+    {
+        [Tooltip("Typ poškození (Ksid), ke kterému se vztahuje tato rezistence")]
+        public Ksid DamageType;
+        [Tooltip("Procentuální snížení poškození (0 = žádná rezistence, 1 = úplná imunita)")]
+        [Range(0f, 1f)]
+        public float Resistance;
+        [Tooltip("Plochá hodnota odečtená od poškození po aplikaci rezistence")]
+        public float Armor;
     }
 
     public enum SecondaryMap
@@ -58,5 +71,11 @@ namespace Assets.Scripts.Bases
 
         [Tooltip("Pro animaci akci, jako je pouziti objektu")]
         public AnimationCurve ActivityAnimation;
+
+        [Header("Health")]
+        [Tooltip("Maximální zdraví objektu. 0 = objekt nemá systém zdraví")]
+        public float MaxHealth;
+        [Tooltip("Rezistence a armor pro jednotlivé typy poškození")]
+        public DamageResistance[] DamageResistances;
     }
 }
