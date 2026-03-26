@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
+[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
 class SmallMonster : ChLegsArms, IActiveObject
 {
 	private float turnTimeout = 0.5f;

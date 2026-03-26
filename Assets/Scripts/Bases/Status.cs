@@ -13,6 +13,7 @@ namespace Assets.Scripts.Bases
 
         public Sprite Icon => placeable.Settings.Icon;
         public float CurrentHealth => currentHealth;
+        public float MaxHealth => placeable.Settings.MaxHealth;
 
         void Awake()
         {

@@ -22,6 +22,16 @@ MonoBehaviour:
   AutoAtachRB: 0
   IsTrigger: 0
   SecondaryMapIndex: 1
+  Icon: {fileID: 0}
+  IconOrder: 0
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  MaxHealth: 100
+  DamageResistances: []

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Utils;
+﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,13 @@ namespace Assets.Scripts.Core.Inventory
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
         private bool guiInFocus;
+        private const string StatusEntrySelectedClass = "StatusEntrySelected";
+        private VisualElement statusRow;
+        private int statusRowCount;
+        private VisualElement[] statusHealthFills = Array.Empty<VisualElement>();
+        private VisualElement[] statusEntries = Array.Empty<VisualElement>();
+        private UiLabel[] statusHealthLabels = Array.Empty<UiLabel>();
+        private int[] statusHealthCache = Array.Empty<int>();
 
         public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
         public bool GuiInFocus => guiInFocus;
@@ -36,8 +44,9 @@ namespace Assets.Scripts.Core.Inventory
             inventoryWindow = doc.rootVisualElement.Q<VisualElement>("InventoryWindow");
             var scrollView = inventoryWindow.Q<ScrollView>();
             var itemDragElement = doc.rootVisualElement.Q<VisualElement>("itemDragElement");
+            statusRow = doc.rootVisualElement.Q<VisualElement>("StatusRow");
             DisableFocus(doc.rootVisualElement);
-            
+
             InitQuickSlots(quickSlots);
             inventoryWindow.style.display = DisplayStyle.None;
             inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree, itemDragElement, scrollView);
@@ -83,6 +92,8 @@ namespace Assets.Scripts.Core.Inventory
                 fpsTimeStamp = 0;
             }
 
+            UpdateStatusRow();
+
             if (Input.GetKeyDown(KeyCode.I))
             {
                 inventoryVisualizer.CancelManipulators();
@@ -118,6 +129,92 @@ namespace Assets.Scripts.Core.Inventory
                 cell.style.display = DisplayStyle.None;
             }
             quickSlotKeys[index] = key;
+        }
+
+        private void UpdateStatusRow()
+        {
+            var ic = Game.Instance.InputController;
+            var chars = ic.Characters;
+
+            if (statusRowCount != chars.Count)
+                RebuildStatusRow(chars, ic);
+
+            for (int i = 0; i < chars.Count; i++)
+            {
+                var status = chars[i].Status;
+
+                bool selected = chars[i] == ic.Character;
+                statusEntries[i].EnableInClassList(StatusEntrySelectedClass, selected);
+
+                int healthInt = (int)status.CurrentHealth;
+                float pct = status.MaxHealth > 0 ? status.CurrentHealth / status.MaxHealth : 0;
+                statusHealthFills[i].style.height = Length.Percent(Mathf.Clamp01(pct) * 100f);
+
+                if (statusHealthCache[i] != healthInt)
+                {
+                    // TODO, pokud predelame tooltipy na neco robustnejsiho. Predelat i zde.
+                    statusHealthCache[i] = healthInt;
+                    statusHealthLabels[i].text = NumberToString.Convert(healthInt);
+                }
+            }
+        }
+
+        private void RebuildStatusRow(List<Character3> chars, InputController ic)
+        {
+            statusRow.Clear();
+            statusRowCount = chars.Count;
+            statusEntries = new VisualElement[chars.Count];
+            statusHealthFills = new VisualElement[chars.Count];
+            statusHealthLabels = new UiLabel[chars.Count];
+            statusHealthCache = new int[chars.Count];
+            Array.Fill(statusHealthCache, -1);
+
+            for (int i = 0; i < chars.Count; i++)
+            {
+                var status = chars[i].Status;
+
+                var entry = new VisualElement();
+                entry.AddToClassList("StatusEntry");
+
+                var left = new VisualElement();
+                left.AddToClassList("StatusLeft");
+
+                var icon = new VisualElement();
+                icon.AddToClassList("StatusIcon");
+                if (status.Icon != null)
+                    icon.style.backgroundImage = new StyleBackground(status.Icon);
+                left.Add(icon);
+
+                var nameLabel = new UiLabel();
+                nameLabel.AddToClassList("StatusName");
+                nameLabel.text = status.Name ?? "";
+                left.Add(nameLabel);
+
+                entry.Add(left);
+
+                var healthBar = new VisualElement();
+                healthBar.AddToClassList("StatusHealthBar");
+
+                var healthFill = new VisualElement();
+                healthFill.AddToClassList("StatusHealthFill");
+                healthFill.style.height = Length.Percent(100f);
+                healthBar.Add(healthFill);
+
+                var healthLabel = new UiLabel();
+                healthLabel.AddToClassList("StatusHealthLabel");
+                healthLabel.pickingMode = PickingMode.Ignore;
+                healthBar.Add(healthLabel);
+
+                entry.Add(healthBar);
+
+                int index = i;
+                entry.RegisterCallback<ClickEvent>(evt => ic.SetCharacter(index));
+
+                statusRow.Add(entry);
+                statusEntries[i] = entry;
+                statusHealthFills[i] = healthFill;
+                statusHealthLabels[i] = healthLabel;
+            }
         }
 
         private void GuiOnMouseEnter(MouseEnterEvent evt)

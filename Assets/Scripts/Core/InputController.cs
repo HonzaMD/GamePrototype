@@ -62,6 +62,12 @@ namespace Assets.Scripts.Core
             SetupCharacter();
         }
 
+        public void SetCharacter(int index)
+        {
+            characterPos = index;
+            SetupCharacter();
+        }
+
         internal void SetCharacterInSelectedMap()
         {
             for (characterPos = 0; characterPos < characters.Count; characterPos++)

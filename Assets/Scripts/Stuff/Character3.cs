@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityTemplateProjects;
 
-[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody))]
+[RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
 public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 {
     private float lastJumpTime;
@@ -22,6 +22,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     private float resetHoldTimeout;
 
     private Inventory inventory;
+    public Status Status { get; private set; }
 
     private InputController inputController;
     private Rigidbody bodyToThrow;
@@ -49,6 +50,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     void Awake()
     {
         AwakeB();
+        Status = GetComponent<Status>();
     }
 
     public override void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
@@ -61,7 +63,9 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     private void CreateInventory()
     {
         inventory = Game.Instance.PrefabsStore.Inventory.Create(Game.Instance.InventoryRoot, Vector3.zero, null);
-        inventory.SetupIdentity(CharacterNames.GiveMeName(), InventoryType.Character, placeable.Settings.Icon);
+        var name = CharacterNames.GiveMeName();
+        inventory.SetupIdentity(name, InventoryType.Character, placeable.Settings.Icon);
+        Status.SetupIdentity(name);
         inventory.StoreProto(Game.Instance.PrefabsStore.Gravel, 5);
         inventory.SetQuickSlot(-9, Game.Instance.PrefabsStore.Gravel);
         inventory.StoreProto(Game.Instance.PrefabsStore.StickyBomb, 30);

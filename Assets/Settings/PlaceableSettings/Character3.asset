@@ -23,6 +23,15 @@ MonoBehaviour:
   IsTrigger: 0
   SecondaryMapIndex: 1
   Icon: {fileID: 1934467857, guid: a9320db951d9eef44baa5ac6e33a861e, type: 3}
+  IconOrder: 0
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  MaxHealth: 200
+  DamageResistances: []
