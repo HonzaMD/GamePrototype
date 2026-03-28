@@ -50,5 +50,51 @@ namespace Assets.Scripts.Bases
                 }
             }
         }
+
+
+        public static void ApplyImpactDamage(float impactSpeed, Label myLabel, Label otherLabel)
+        {
+            if (impactSpeed <= PhysicsConsts.ImpactDmgThreshold)
+                return;
+
+            float dmgSpeed = impactSpeed - PhysicsConsts.ImpactDmgThreshold;
+
+            var myRB = myLabel.Rigidbody;
+            var otherRB = otherLabel.Rigidbody;
+
+            float myMass = myRB != null && !myRB.isKinematic ? myRB.mass : -1;
+            float otherMass = otherRB != null && !otherRB.isKinematic ? otherRB.mass : -1;
+
+            float selfDmgFactor, otherDmgFactor;
+            if (myMass == -1 || otherMass == -1)
+            {
+                if (myMass != -1)
+                {
+                    selfDmgFactor = 1;
+                    otherDmgFactor = 0.2f;
+                }
+                else if (otherMass != -1)
+                {
+                    selfDmgFactor = 0.2f;
+                    otherDmgFactor = 1;
+                }
+                else
+                {
+                    selfDmgFactor = otherDmgFactor = 0.5f;
+                }
+            }
+            else
+            {
+                selfDmgFactor = Mathf.Max(0.2f, otherMass / (myMass + otherMass));
+                otherDmgFactor = Mathf.Max(0.2f, myMass / (myMass + otherMass));
+            }
+
+            float selfDmg = dmgSpeed * selfDmgFactor * PhysicsConsts.ImpactDmgScale;
+            float otherDmg = dmgSpeed * otherDmgFactor * PhysicsConsts.ImpactDmgScale;
+
+            myLabel.ApplyDamage(Ksid.DamagedByImpact, selfDmg);
+            if (otherRB == null)
+                otherLabel.ApplyDamage(Ksid.DamagedByImpact, otherDmg);
+        }
     }
 }

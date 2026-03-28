@@ -33,6 +33,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Explosive, Ksid.DamagedByExplosion),
                 (Ksid.SandCombiner, Ksid.DamagedByExplosion),
                 (Ksid.SmallMonster, Ksid.DamagedByExplosion),
+                (Ksid.Character, Ksid.DamagedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.AffectedByExplosion),
                 (Ksid.Character, Ksid.AffectedByExplosion),
                 (Ksid.Rope, Ksid.AffectedByExplosion),
@@ -53,6 +54,10 @@ namespace Assets.Scripts.Core
                 (Ksid.Chest, Ksid.InventoryAsObj),
                 (Ksid.Knife, Ksid.HoldsAtHandle),
                 (Ksid.Knife, Ksid.ActivatesInHand),
+
+                (Ksid.Character, Ksid.DamagedByImpact),
+                (Ksid.SmallMonster, Ksid.DamagedByImpact),
+                (Ksid.Light, Ksid.DamagedByImpact),
             })
         {
         }

@@ -14,6 +14,10 @@ public static class PhysicsConsts
     public const float SandCombinerTransferMinimum = 0.3f;
     public const float ImpactVelocitySqr = 0.5f * 0.5f;
     public const float TooSmallSqr = 0.1f * 0.1f;
+
+    // Impact damage: dmg = (impactSpeed - threshold) * scale * massFactor
+    public const float ImpactDmgThreshold = 7f; // m/s, priblizne pad z 2.5m
+    public const float ImpactDmgScale = 5f;
 }
 
 

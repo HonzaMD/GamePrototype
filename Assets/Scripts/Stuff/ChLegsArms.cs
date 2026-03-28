@@ -367,6 +367,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             if (hitInfo.normal.y >= Settings.minGroundDotProduct && ConnectLabel(index, ref hitInfo))
             {
                 PlaceLeg(index, ref hitInfo);
+                ApplyLimbImpactDamage(index, hitInfo.normal);
                 return true;
             }
         }
@@ -396,6 +397,17 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.legZ[index] + transform.position.z);
         Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
         legArmStatus[index] = Catch;
+    }
+
+    private void ApplyLimbImpactDamage(int index, Vector3 contactNormal)
+    {
+        var otherLabel = legsConnectedLabels[index];
+        if (otherLabel == null) return;
+
+        var relVelocity = body.linearVelocity - otherLabel.Velocity;
+        float impactSpeed = Mathf.Max(0f, -Vector3.Dot(relVelocity, contactNormal));
+
+        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel);
     }
 
     private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)
@@ -453,6 +465,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                     if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
                     {
                         PlaceLeg3d(index, ref hitInfo, null, Catch);
+                        ApplyLimbImpactDamage(index, hitInfo.normal);
                         placeables.Clear();
                         return;
                     }
@@ -612,6 +625,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                             if (!p.HasActiveRB)
                                 ((Placeable)p).AttachRigidBody(true, false);
                             PlaceLeg3d(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
+                            ApplyLimbImpactDamage(index, hitInfo.normal);
                             IgnoreCollision(legsConnectedLabels[index], true);
                             if (tryHold && pickUpAllowed)
                                 InventoryPickupAndActivate(p);
@@ -733,6 +747,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
             {
                 PlaceLeg(index, ref hitInfo);
+                ApplyLimbImpactDamage(index, hitInfo.normal);
                 return true;
             }
         }
