@@ -26,6 +26,7 @@ namespace Assets.Scripts.Core.Inventory
         private const string StatusEntrySelectedClass = "StatusEntrySelected";
         private VisualElement statusRow;
         private int statusRowCount;
+        private bool statusRowDirty;
         private VisualElement[] statusHealthFills = Array.Empty<VisualElement>();
         private VisualElement[] statusEntries = Array.Empty<VisualElement>();
         private UiLabel[] statusHealthLabels = Array.Empty<UiLabel>();
@@ -131,13 +132,18 @@ namespace Assets.Scripts.Core.Inventory
             quickSlotKeys[index] = key;
         }
 
+        public void InvalidateStatusRow() => statusRowDirty = true;
+
         private void UpdateStatusRow()
         {
             var ic = Game.Instance.InputController;
             var chars = ic.Characters;
 
-            if (statusRowCount != chars.Count)
+            if (statusRowDirty)
+            {
+                statusRowDirty = false;
                 RebuildStatusRow(chars, ic);
+            }
 
             for (int i = 0; i < chars.Count; i++)
             {

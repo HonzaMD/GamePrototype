@@ -17,7 +17,7 @@ public static class PhysicsConsts
 
     // Impact damage: dmg = (impactSpeed - threshold) * scale * massFactor
     public const float ImpactDmgThreshold = 7f; // m/s, priblizne pad z 2.5m
-    public const float ImpactDmgScale = 5f;
+    public const float ImpactDmgScale = 15f;
 }
 
 

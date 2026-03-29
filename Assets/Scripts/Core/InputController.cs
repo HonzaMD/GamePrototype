@@ -55,7 +55,31 @@ namespace Assets.Scripts.Core
             }
         }
 
-        public void AddCharacter(Character3 character) => characters.Add(character);
+        public void AddCharacter(Character3 character)
+        {
+            characters.Add(character);
+            Game.Instance.Hud.InvalidateStatusRow();
+        }
+
+        public void RemoveCharacter(Character3 character)
+        {
+            int index = characters.IndexOf(character);
+            if (index < 0)
+                return;
+
+            characters.RemoveAt(index);
+
+            if (index == characterPos)
+            {
+                Character = null;
+            }
+            else if (index < characterPos)
+            {
+                characterPos--;
+            }
+
+            Game.Instance.Hud.InvalidateStatusRow();
+        }
 
         public void SetNextCharacter()
         {
