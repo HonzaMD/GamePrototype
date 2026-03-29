@@ -52,12 +52,13 @@ namespace Assets.Scripts.Bases
         }
 
 
-        public static void ApplyImpactDamage(float impactSpeed, Label myLabel, Label otherLabel)
+        public static void ApplyImpactDamage(float impactSpeedSqr, Label myLabel, Label otherLabel, bool isSpring)
         {
-            if (impactSpeed <= PhysicsConsts.ImpactDmgThreshold)
+            var threashold = isSpring ? PhysicsConsts.ImpactDmgThresholdSpring : PhysicsConsts.ImpactDmgThreshold;
+            if (impactSpeedSqr <= threashold)
                 return;
 
-            float dmgSpeed = impactSpeed - PhysicsConsts.ImpactDmgThreshold;
+            float dmgSpeed = impactSpeedSqr - threashold;
 
             var myRB = myLabel.Rigidbody;
             var otherRB = otherLabel.Rigidbody;
@@ -88,12 +89,11 @@ namespace Assets.Scripts.Bases
                 selfDmgFactor = Mathf.Max(0.2f, otherMass / (myMass + otherMass));
                 otherDmgFactor = Mathf.Max(0.2f, myMass / (myMass + otherMass));
             }
-
             float selfDmg = dmgSpeed * selfDmgFactor * PhysicsConsts.ImpactDmgScale;
             float otherDmg = dmgSpeed * otherDmgFactor * PhysicsConsts.ImpactDmgScale;
 
             myLabel.ApplyDamage(Ksid.DamagedByImpact, selfDmg);
-            if (otherRB == null)
+            if (otherRB == null || isSpring)
                 otherLabel.ApplyDamage(Ksid.DamagedByImpact, otherDmg);
         }
     }

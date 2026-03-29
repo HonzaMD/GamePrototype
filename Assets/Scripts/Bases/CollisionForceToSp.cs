@@ -44,9 +44,9 @@ public class CollisionForceToSp : MonoBehaviour
         var normal = collision.GetContact(0).normal;
         // relativeVelocity = this - other, normal smeruje od other k this
         // priblizovaci rychlost = zaporna projekce
-        float impactSpeed = Mathf.Max(0f, -Vector3.Dot(collision.relativeVelocity, normal));
+        float impactSpeed = Mathf.Max(0f, Vector3.Dot(collision.relativeVelocity, normal));
 
-        StaticBehaviour.ApplyImpactDamage(impactSpeed, myLabel, otherLabel);
+        StaticBehaviour.ApplyImpactDamage(impactSpeed * impactSpeed, myLabel, otherLabel, false);
     }
 
 

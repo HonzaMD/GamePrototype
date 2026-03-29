@@ -16,8 +16,9 @@ public static class PhysicsConsts
     public const float TooSmallSqr = 0.1f * 0.1f;
 
     // Impact damage: dmg = (impactSpeed - threshold) * scale * massFactor
-    public const float ImpactDmgThreshold = 7f; // m/s, priblizne pad z 2.5m
-    public const float ImpactDmgScale = 15f;
+    public const float ImpactDmgThreshold = 5f * 5f; // m/s
+    public const float ImpactDmgThresholdSpring = 8.5f * 8.5f; // m/s
+    public const float ImpactDmgScale = 0.8f;
 }
 
 
