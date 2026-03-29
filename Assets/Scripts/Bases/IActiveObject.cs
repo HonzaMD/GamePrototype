@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 public interface IActiveObject
 {
+    bool PendingRemove { get; set; }
     void GameUpdate();
     void GameFixedUpdate();
 }

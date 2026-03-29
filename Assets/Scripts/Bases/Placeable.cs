@@ -48,6 +48,10 @@ public class Placeable : Label, ILevelPlaceabe
     public Ksid Ksid;
     public CellFlags CellBlocking;
     public SubCellFlags SubCellFlags;
+    [NonSerialized]
+    public byte PendingMovingObjRemove;
+    [NonSerialized]
+    public bool IsInMovingObjects;
     [HideInInspector, NonSerialized]
     public int Tag;
     public PlaceableSettings Settings;

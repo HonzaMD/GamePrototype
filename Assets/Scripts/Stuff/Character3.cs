@@ -15,6 +15,7 @@ using UnityTemplateProjects;
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
 public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 {
+    public bool PendingRemove { get; set; }
     private float lastJumpTime;
 
     private float zMoveTimeout;

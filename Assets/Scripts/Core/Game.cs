@@ -37,12 +37,12 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public TimeOfDay TimeOfDay;
 
     private readonly List<Trigger> triggers = new();
-    private readonly HashSet<IActiveObject> activeObjects = new();
-    private readonly Dictionary<Placeable, (int Tag, Map Map)> movingObjects = new();
+    private readonly List<IActiveObject> activeObjects = new();
+    private readonly List<(Placeable Obj, int Tag, Map Map)> movingObjects = new();
     private readonly FpsCounter fpsCounter = new();
     private readonly GameUpdates1Sec gameUpdates1Sec;
     private readonly VCore visibility = new();
-    private int movingObjectInsterPtr;
+    private int movingObjectInserterPtr;
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
     private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
@@ -223,26 +223,49 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private void UpdateObjects()
     {
-        foreach (var o in activeObjects)
+        int write = 0;
+        for (int i = 0; i < activeObjects.Count; i++)
         {
+            var o = activeObjects[i];
+            if (o.PendingRemove)
+            {
+                o.PendingRemove = false;
+                continue;
+            }
             o.GameUpdate();
+            activeObjects[write++] = o;
         }
+        if (write < activeObjects.Count)
+            activeObjects.RemoveRange(write, activeObjects.Count - write);
     }
 
     private void UpdateMovingObjects()
     {
-        foreach (var p in movingObjects)
+        int write = 0;
+        for (int i = 0; i < movingObjects.Count; i++)
         {
-            if (p.Value.Tag == movingObjectWorkPtr)
+            var (obj, tag, map) = movingObjects[i];
+            if (obj.PendingMovingObjRemove > 0)
             {
-                p.Value.Map.Move(p.Key);
-                MovingObjTest(p.Key, p.Value.Map);
+                obj.PendingMovingObjRemove--;
+                continue;
+            }
+
+            if (tag == movingObjectWorkPtr)
+            {
+                map.Move(obj);
+                MovingObjTest(obj, map);
             }
             else
             {
-                p.Key.UpdateMapPosIfMoved(p.Value.Map);
+                obj.UpdateMapPosIfMoved(map);
             }
+
+            movingObjects[write++] = movingObjects[i];
         }
+
+        if (write < movingObjects.Count)
+            movingObjects.RemoveRange(write, movingObjects.Count - write);
 
         movingObjectWorkPtr++;
         if (movingObjectWorkPtr >= movingObjectMaxPtr)
@@ -275,18 +298,34 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         triggers.Add(trigger);
     }
 
-    public void ActivateObject(IActiveObject o) => activeObjects.Add(o);
-    public void DeactivateObject(IActiveObject o) => activeObjects.Remove(o);
+    public void ActivateObject(IActiveObject o)
+    {
+        if (o.PendingRemove)
+            o.PendingRemove = false;
+        else
+            activeObjects.Add(o);
+    }
+    public void DeactivateObject(IActiveObject o) => o.PendingRemove = true;
     public void ActivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Activate(o);
     public void DeactivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Deactivate(o);
 
     internal void AddMovingObject(Placeable p, Map map)
     {
-        movingObjects[p] = (movingObjectInsterPtr++, map);
-        if (movingObjectInsterPtr >= movingObjectMaxPtr)
-            movingObjectInsterPtr = 0;
+        if (p.IsInMovingObjects)
+            RemoveMovingObject(p);
+        movingObjects.Add((p, movingObjectInserterPtr++, map));
+        p.IsInMovingObjects = true;
+        if (movingObjectInserterPtr >= movingObjectMaxPtr)
+            movingObjectInserterPtr = 0;
     }
-    internal void RemoveMovingObject(Placeable p) => movingObjects.Remove(p);
+    internal void RemoveMovingObject(Placeable p)
+    {
+        if (p.IsInMovingObjects)
+        {
+            p.PendingMovingObjRemove++;
+            p.IsInMovingObjects = false;
+        }
+    }
 
 
     private void Awake()
@@ -314,10 +353,20 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     void FixedUpdate()
     {
         InputController.GameFixedUpdate();
-        foreach (var o in activeObjects)
+        int write = 0;
+        for (int i = 0; i < activeObjects.Count; i++)
         {
+            var o = activeObjects[i];
+            if (o.PendingRemove)
+            {
+                o.PendingRemove = false;
+                continue;
+            }
             o.GameFixedUpdate();
+            activeObjects[write++] = o;
         }
+        if (write < activeObjects.Count)
+            activeObjects.RemoveRange(write, activeObjects.Count - write);
         StaticPhysics.Update();
         Pool.UpdateAgeAtPhysicsUpdate();
         ConnectablePool.UpdateAgeAtPhysicsUpdate();

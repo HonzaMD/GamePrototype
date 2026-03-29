@@ -9,6 +9,7 @@ namespace Assets.Scripts.Utils
 {
     internal class FpsCounter : IActiveObject
     {
+        public bool PendingRemove { get; set; }
         private readonly Queue<(int Frames, float Secs)> samples = new();
 
         private int totalFrames;

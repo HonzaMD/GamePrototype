@@ -8,6 +8,7 @@ namespace Assets.Scripts.Utils
 {
     internal class GameUpdates1Sec : IActiveObject
     {
+        public bool PendingRemove { get; set; }
         private readonly HashSet<IActiveObject1Sec> activeObjects = new();
         private readonly List<IActiveObject1Sec> workList = new();
         private int workPos;

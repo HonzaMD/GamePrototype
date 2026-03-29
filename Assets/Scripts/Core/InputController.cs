@@ -15,6 +15,7 @@ namespace Assets.Scripts.Core
 {
     public class InputController : MonoBehaviour, IActiveObject
     {
+        public bool PendingRemove { get; set; }
         public Character3 Character;
         public SimpleCameraController Camera;
         public ThrowController ThrowController;

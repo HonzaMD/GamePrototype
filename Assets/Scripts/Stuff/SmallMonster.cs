@@ -11,6 +11,7 @@ using UnityEngine;
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
 class SmallMonster : ChLegsArms, IActiveObject
 {
+	public bool PendingRemove { get; set; }
 	private float turnTimeout = 0.5f;
 	public int desiredDirection = -1;
 
