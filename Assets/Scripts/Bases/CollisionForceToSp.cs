@@ -37,7 +37,7 @@ public class CollisionForceToSp : MonoBehaviour
 
         if (!Label.TryFind(transform, out var myLabel) || !Label.TryFind(collision.collider.transform, out var otherLabel))
         {
-            Debug.LogWarning("pri kolizi nemam labely");
+            //Debug.LogWarning("pri kolizi nemam labely");
             return;
         }
 

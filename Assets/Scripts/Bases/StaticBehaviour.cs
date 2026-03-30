@@ -27,7 +27,10 @@ namespace Assets.Scripts.Bases
             }
         }
 
-        public static void ApplyDamage(this Label label, Ksid damageType, float intensity)
+        /// <summary>
+        /// Radeji volej z casovace, at se ti neprovedou kill efekty uvnitr nejakyho slozityho procesingu
+        /// </summary>
+        private static void ApplyDamage(this Label label, Ksid damageType, float intensity)
         {
             var ksids = Game.Instance.Ksids;
             if (ksids.IsParentOrEqual(label.KsidGet, damageType))
@@ -92,9 +95,9 @@ namespace Assets.Scripts.Bases
             float selfDmg = dmgSpeed * selfDmgFactor * PhysicsConsts.ImpactDmgScale;
             float otherDmg = dmgSpeed * otherDmgFactor * PhysicsConsts.ImpactDmgScale;
 
-            myLabel.ApplyDamage(Ksid.DamagedByImpact, selfDmg);
+            myLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, selfDmg);
             if (otherRB == null || isSpring)
-                otherLabel.ApplyDamage(Ksid.DamagedByImpact, otherDmg);
+                otherLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, otherDmg);
         }
     }
 }

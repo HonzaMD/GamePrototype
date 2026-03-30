@@ -510,9 +510,9 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     public override void Cleanup(bool goesToInventory)
     {
         base.Cleanup(goesToInventory);
+        Game.Instance.InputController.RemoveCharacter(this);
         inventory.Kill();
         inventory = null;
-        Game.Instance.InputController.RemoveCharacter(this);
     }
 
     public void ActivateHoldAnimation(AnimationCurve animation, float returnTime, float speed)

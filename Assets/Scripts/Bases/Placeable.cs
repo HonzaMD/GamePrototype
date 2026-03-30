@@ -145,16 +145,19 @@ public class Placeable : Label, ILevelPlaceabe
 
     public override void Cleanup(bool goesToInventory)
     {
-        GetMap().Remove(this);
-        if (TryGetComponent<IActiveObject>(out var ao))
+        if (IsMapPlaced)
         {
-            Game.Instance.DeactivateObject(ao);
-        }
-        Game.Instance.RemoveMovingObject(this);
-        if (spNodeIndex != 0)
-        {
-            Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
-            spNodeIndex = 0;
+            GetMap().Remove(this);
+            if (TryGetComponent<IActiveObject>(out var ao))
+            {
+                Game.Instance.DeactivateObject(ao);
+            }
+            Game.Instance.RemoveMovingObject(this);
+            if (spNodeIndex != 0)
+            {
+                Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
+                spNodeIndex = 0;
+            }
         }
         base.Cleanup(goesToInventory);
     }

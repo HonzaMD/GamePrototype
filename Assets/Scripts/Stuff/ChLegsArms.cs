@@ -717,6 +717,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         if (ignore && other == delayedEnableCollisionLabel)
             delayedEnableCollisionLabel = null;
 
+        if (!placeable || !other)
+            return;
+
         var colliders1 = placeable.GetCollidersBuff1();
         var colliders2 = other.GetCollidersBuff2();
 

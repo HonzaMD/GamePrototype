@@ -273,12 +273,12 @@ namespace Assets.Scripts.Core.Inventory
         internal void Setup(Inventory inventory)
         {
             primaryInventory = inventory;
-            rowCount = inventory.Links.Count;
+            rowCount = inventory?.Links.Count ?? 0;
             dirty = !Visible;
 
             for (int f = 0; f < inventories.Length; f++)
             {
-                if (f >= rowCount || inventories[f] != inventory.Links[f])
+                if (f >= rowCount || inventories[f] != inventory?.Links[f])
                 {
                     ClearRow(f);
                     inventories[f] = null;

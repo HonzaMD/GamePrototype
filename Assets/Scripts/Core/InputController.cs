@@ -71,7 +71,9 @@ namespace Assets.Scripts.Core
 
             if (index == characterPos)
             {
+                character.DeactivateInput();
                 Character = null;
+                Game.Instance.Hud.SetupInventory(null);
             }
             else if (index < characterPos)
             {
