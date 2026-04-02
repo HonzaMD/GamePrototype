@@ -42,6 +42,8 @@ namespace Assets.Scripts.Core
         HoldsAtHandle,
         ActivatesInHand,
         DamagedByImpact,
+        DealsKnifeDamage,
+        DamagedByKnife,
     }
 
     public static class KsidX

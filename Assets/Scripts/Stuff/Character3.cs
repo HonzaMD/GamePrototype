@@ -240,9 +240,8 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             throwCtrl.SetThrowActive(false, true, this);
             if (cState != ControlState.ThrowReload)
                 ResetControl();
-        }
-
-        if (mouseDown && cState == ControlState.ItemUse)
+        } 
+        else if (mouseDown && cState == ControlState.ItemUse)
         {
             var ho = GetHoldObject();
             if (ho.KsidGet.IsChildOf(Ksid.ActivatesInHand) && ho.TryGetComponent(out IHoldActivate ao))

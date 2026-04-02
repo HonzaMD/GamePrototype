@@ -1,10 +1,6 @@
 ﻿using Assets.Scripts.Core;
 using Assets.Scripts.Utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Scripts.Bases
@@ -98,6 +94,32 @@ namespace Assets.Scripts.Bases
             myLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, selfDmg);
             if (otherRB == null || isSpring)
                 otherLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, otherDmg);
+        }
+
+
+        public static void ApplyKnifeDamage(float impactSpeedSqr, Label myLabel, Label otherLabel)
+        {
+            // myLabel je nuz -> damage na otherLabel (jen pokud other nema RB, jinak to vyresi other's callback)
+            if (!otherLabel.HasRB)
+                ApplyKnifeDamageOneWay(impactSpeedSqr, otherLabel, myLabel);
+            ApplyKnifeDamageOneWay(impactSpeedSqr, myLabel, otherLabel);
+        }
+
+        public static void ApplyKnifeDamageOneWay(float impactSpeedSqr, Label targetLabel, Label knifeLabel)
+        {
+            if (knifeLabel.KsidGet.IsChildOf(Ksid.DealsKnifeDamage) && targetLabel.KsidGet.IsChildOf(Ksid.DamagedByKnife)
+                && knifeLabel.TryGetComponent(out IKnife knife) && knife.IsActive)
+            {
+                float dmg = ComputeKnifeDmg(knife, impactSpeedSqr);
+                if (dmg > 0)
+                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg);
+            }
+        }
+
+        private static float ComputeKnifeDmg(IKnife knife, float impactSpeedSqr)
+        {
+            return knife.GetDmg() * Mathf.Max(PhysicsConsts.KnifeDmgMinFactor,
+                Mathf.Sqrt(impactSpeedSqr) / PhysicsConsts.KnifeDmgRefSpeed);
         }
     }
 }

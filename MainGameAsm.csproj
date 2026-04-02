@@ -77,6 +77,7 @@
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelEmpty.cs" />
+    <Compile Include="Assets\Scripts\Bases\IKnife.cs" />
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilderWorker.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level1.cs" />

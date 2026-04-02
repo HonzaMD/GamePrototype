@@ -19,6 +19,10 @@ public static class PhysicsConsts
     public const float ImpactDmgThreshold = 5f * 5f; // m/s
     public const float ImpactDmgThresholdSpring = 8.5f * 8.5f; // m/s
     public const float ImpactDmgScale = 0.8f;
+
+    // Knife damage: dmg = baseDmg * max(minFactor, v / refSpeed)
+    public const float KnifeDmgRefSpeed = 5f; // m/s, typicka rychlost bodnutí
+    public const float KnifeDmgMinFactor = 0.3f;
 }
 
 

@@ -72,6 +72,10 @@ namespace Assets.Scripts.Bases
         [Tooltip("Pro animaci akci, jako je pouziti objektu")]
         public AnimationCurve ActivityAnimation;
 
+        [Header("Knife Damage")]
+        [Tooltip("Bazove poskozeni nozem. 0 = neni knife damage")]
+        public float KnifeDmg;
+
         [Header("Health")]
         [Tooltip("Maximální zdraví objektu. 0 = objekt nemá systém zdraví")]
         public float MaxHealth;

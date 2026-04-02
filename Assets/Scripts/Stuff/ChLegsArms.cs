@@ -368,6 +368,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             {
                 PlaceLeg(index, ref hitInfo);
                 ApplyLimbImpactDamage(index);
+                ApplyLimbKnifeDamage(index);
                 return true;
             }
         }
@@ -408,6 +409,16 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         float impactSpeed = relVelocity.sqrMagnitude;
 
         StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true);
+    }
+
+    private void ApplyLimbKnifeDamage(int index)
+    {
+        var otherLabel = legsConnectedLabels[index];
+        if (otherLabel == null) return;
+
+        var relVelocity = body.linearVelocity - otherLabel.Velocity;
+
+        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel);
     }
 
     private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)

@@ -58,6 +58,11 @@ namespace Assets.Scripts.Core
                 (Ksid.Character, Ksid.DamagedByImpact),
                 (Ksid.SmallMonster, Ksid.DamagedByImpact),
                 (Ksid.Light, Ksid.DamagedByImpact),
+
+                (Ksid.Knife, Ksid.DealsKnifeDamage),
+                (Ksid.Knife, Ksid.ActivatesByThrow),
+                (Ksid.Character, Ksid.DamagedByKnife),
+                (Ksid.SmallMonster, Ksid.DamagedByKnife),
             })
         {
         }

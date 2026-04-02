@@ -10,7 +10,7 @@ public class CollisionForceToSp : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         TransferForce(collision);
-        ApplyImpactDamage(collision);
+        ApplyDamage(collision);
     }
 
     private void OnCollisionStay(Collision collision)
@@ -30,7 +30,7 @@ public class CollisionForceToSp : MonoBehaviour
         }
     }
 
-    private void ApplyImpactDamage(Collision collision)
+    private void ApplyDamage(Collision collision)
     {
         if (collision.contactCount == 0)
             return;
@@ -41,12 +41,24 @@ public class CollisionForceToSp : MonoBehaviour
             return;
         }
 
+        ApplyImpactDamage(collision, myLabel, otherLabel);
+        ApplyKnifeDamage(collision, myLabel, otherLabel);
+    }
+
+    private void ApplyImpactDamage(Collision collision, Label myLabel, Label otherLabel)
+    {
+
         var normal = collision.GetContact(0).normal;
         // relativeVelocity = this - other, normal smeruje od other k this
         // priblizovaci rychlost = zaporna projekce
         float impactSpeed = Mathf.Max(0f, Vector3.Dot(collision.relativeVelocity, normal));
 
         StaticBehaviour.ApplyImpactDamage(impactSpeed * impactSpeed, myLabel, otherLabel, false);
+    }
+
+    private void ApplyKnifeDamage(Collision collision, Label myLabel, Label otherLabel)
+    {
+        StaticBehaviour.ApplyKnifeDamage(collision.relativeVelocity.sqrMagnitude, myLabel, otherLabel);
     }
 
 
