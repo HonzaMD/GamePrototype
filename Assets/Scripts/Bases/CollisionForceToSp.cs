@@ -48,17 +48,17 @@ public class CollisionForceToSp : MonoBehaviour
     private void ApplyImpactDamage(Collision collision, Label myLabel, Label otherLabel)
     {
 
-        var normal = collision.GetContact(0).normal;
+        var contact = collision.GetContact(0);
         // relativeVelocity = this - other, normal smeruje od other k this
         // priblizovaci rychlost = zaporna projekce
-        float impactSpeed = Mathf.Max(0f, Vector3.Dot(collision.relativeVelocity, normal));
+        float impactSpeed = Mathf.Max(0f, Vector3.Dot(collision.relativeVelocity, contact.normal));
 
-        StaticBehaviour.ApplyImpactDamage(impactSpeed * impactSpeed, myLabel, otherLabel, false);
+        StaticBehaviour.ApplyImpactDamage(impactSpeed * impactSpeed, myLabel, otherLabel, false, contact.point);
     }
 
     private void ApplyKnifeDamage(Collision collision, Label myLabel, Label otherLabel)
     {
-        StaticBehaviour.ApplyKnifeDamage(collision.relativeVelocity.sqrMagnitude, myLabel, otherLabel);
+        StaticBehaviour.ApplyKnifeDamage(collision.relativeVelocity.sqrMagnitude, myLabel, otherLabel, collision.GetContact(0).point);
     }
 
 

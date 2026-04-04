@@ -1,5 +1,6 @@
 using Assets.Scripts.Core;
 using Assets.Scripts.Core.Inventory;
+using Assets.Scripts.Utils;
 using UnityEngine;
 
 namespace Assets.Scripts.Bases
@@ -26,7 +27,7 @@ namespace Assets.Scripts.Bases
             Name = name;
         }
 
-        public void ApplyDamage(Ksid damageType, float intensity)
+        public void ApplyDamage(Ksid damageType, float intensity, Vector3 hitPosition)
         {
             var resistances = placeable.Settings.DamageResistances;
             float passthrough = 1f;
@@ -48,9 +49,19 @@ namespace Assets.Scripts.Bases
             float damage = Mathf.Max(0f, intensity * passthrough - totalArmor);
             currentHealth -= damage;
 
+            if (damage > 0f)
+            {
+                var hitEffect = placeable.Settings.HitEffect;
+                if (hitEffect != null)
+                {
+                    var pe = hitEffect.CreateWithotInit(placeable.LevelGroup, hitPosition);
+                    pe.Init(2f);
+                }
+            }
+
             if (currentHealth <= 0f)
             {
-                placeable.Kill();
+                placeable.KillWithEffect(hitPosition);
             }
         }
     }

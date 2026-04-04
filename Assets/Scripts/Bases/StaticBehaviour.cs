@@ -7,7 +7,18 @@ namespace Assets.Scripts.Bases
 {
     internal static class StaticBehaviour
     {
-        private static Action<Label, Ksid, float> applyDamageAction = ApplyDamage;
+        private static Action<Label, Ksid, float, Vector3> applyDamageAction = ApplyDamage;
+
+        public static void KillWithEffect(this Label label, Vector3 pos)
+        {
+            var settings = label.GetSettings();
+            if (settings != null && settings.DeathEffect != null)
+            {
+                var pe = settings.DeathEffect.CreateWithotInit(label.LevelGroup, pos);
+                pe.Init(5f);
+            }
+            label.Kill();
+        }
 
         public static void Explode(this Label label)
         {
@@ -15,18 +26,19 @@ namespace Assets.Scripts.Bases
             label.Kill();
         }
 
-        public static void ApplyDamageDelayed(this Label label, Ksid damageType, float intensity)
+        public static void ApplyDamageDelayed(this Label label, Ksid damageType, float intensity, Vector3 hitPosition)
         {
             if (label.KsidGet.IsChildOf(damageType))
             {
-                Game.Instance.GlobalTimerHandler.WithKsidFloatParams.Plan(0.3f, applyDamageAction, label, damageType, intensity);
+                var hitOffset = hitPosition - label.transform.position;
+                Game.Instance.GlobalTimerHandler.WithKsidFloatVectorParams.Plan(0.05f, applyDamageAction, label, damageType, intensity, hitOffset);
             }
         }
 
         /// <summary>
         /// Radeji volej z casovace, at se ti neprovedou kill efekty uvnitr nejakyho slozityho procesingu
         /// </summary>
-        private static void ApplyDamage(this Label label, Ksid damageType, float intensity)
+        private static void ApplyDamage(this Label label, Ksid damageType, float intensity, Vector3 hitOffset)
         {
             var ksids = Game.Instance.Ksids;
             if (ksids.IsParentOrEqual(label.KsidGet, damageType))
@@ -37,21 +49,21 @@ namespace Assets.Scripts.Bases
                 }
                 else
                 {
-                    var status = label.GetComponent<Status>();
-                    if (status != null)
+                    var hitPosition = label.transform.position + hitOffset;
+                    if (label.TryGetComponent<Status>(out var status))
                     {
-                        status.ApplyDamage(damageType, intensity);
+                        status.ApplyDamage(damageType, intensity, hitPosition);
                     }
                     else
                     {
-                        label.Kill();
+                        label.KillWithEffect(hitPosition);
                     }
                 }
             }
         }
 
 
-        public static void ApplyImpactDamage(float impactSpeedSqr, Label myLabel, Label otherLabel, bool isSpring)
+        public static void ApplyImpactDamage(float impactSpeedSqr, Label myLabel, Label otherLabel, bool isSpring, Vector3 hitPosition)
         {
             var threashold = isSpring ? PhysicsConsts.ImpactDmgThresholdSpring : PhysicsConsts.ImpactDmgThreshold;
             if (impactSpeedSqr <= threashold)
@@ -91,28 +103,28 @@ namespace Assets.Scripts.Bases
             float selfDmg = dmgSpeed * selfDmgFactor * PhysicsConsts.ImpactDmgScale;
             float otherDmg = dmgSpeed * otherDmgFactor * PhysicsConsts.ImpactDmgScale;
 
-            myLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, selfDmg);
+            myLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, selfDmg, hitPosition);
             if (otherRB == null || isSpring)
-                otherLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, otherDmg);
+                otherLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, otherDmg, hitPosition);
         }
 
 
-        public static void ApplyKnifeDamage(float impactSpeedSqr, Label myLabel, Label otherLabel)
+        public static void ApplyKnifeDamage(float impactSpeedSqr, Label myLabel, Label otherLabel, Vector3 hitPosition)
         {
             // myLabel je nuz -> damage na otherLabel (jen pokud other nema RB, jinak to vyresi other's callback)
             if (!otherLabel.HasRB)
-                ApplyKnifeDamageOneWay(impactSpeedSqr, otherLabel, myLabel);
-            ApplyKnifeDamageOneWay(impactSpeedSqr, myLabel, otherLabel);
+                ApplyKnifeDamageOneWay(impactSpeedSqr, otherLabel, myLabel, hitPosition);
+            ApplyKnifeDamageOneWay(impactSpeedSqr, myLabel, otherLabel, hitPosition);
         }
 
-        public static void ApplyKnifeDamageOneWay(float impactSpeedSqr, Label targetLabel, Label knifeLabel)
+        public static void ApplyKnifeDamageOneWay(float impactSpeedSqr, Label targetLabel, Label knifeLabel, Vector3 hitPosition)
         {
             if (knifeLabel.KsidGet.IsChildOf(Ksid.DealsKnifeDamage) && targetLabel.KsidGet.IsChildOf(Ksid.DamagedByKnife)
                 && knifeLabel.TryGetComponent(out IKnife knife) && knife.IsActive)
             {
                 float dmg = ComputeKnifeDmg(knife, impactSpeedSqr);
                 if (dmg > 0)
-                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg);
+                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg, hitPosition);
             }
         }
 

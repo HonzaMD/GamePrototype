@@ -54,7 +54,8 @@ namespace Assets.Scripts.Stuff
         {
             if (p.gameObject.activeInHierarchy)
             {
-                var direction = p.GetClosestPoint(transform.position) - transform.position;
+                var hitPoint = p.GetClosestPoint(transform.position);
+                var direction = hitPoint - transform.position;
                 var distanceSq = direction.sqrMagnitude;
                 const float forceIntensity = 10;
                 const float explMassConst = 10;
@@ -66,7 +67,7 @@ namespace Assets.Scripts.Stuff
                 }
                 if (distanceSq < sizeSq2)
                 {
-                    p.ApplyDamageDelayed(Ksid.DamagedByExplosion, (sizeSq2 - distanceSq) * 150);
+                    p.ApplyDamageDelayed(Ksid.DamagedByExplosion, (sizeSq2 - distanceSq) * 150, hitPoint);
                 }
             }
         }

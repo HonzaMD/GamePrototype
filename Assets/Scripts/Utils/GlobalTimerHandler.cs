@@ -15,11 +15,13 @@ namespace Assets.Scripts.Utils
         private readonly Dictionary<int, (Label liveObj, int objTag)> activeEvents = new Dictionary<int, (Label, int)>();
         private readonly Action<object, int> timerAction;
         public ParamsHandler<Ksid, float> WithKsidFloatParams { get; }
+        public ParamsHandler<Ksid, float, Vector3> WithKsidFloatVectorParams { get; }
 
         public GlobalTimerHandler()
         {
             timerAction = OnTimer;
             WithKsidFloatParams = new ParamsHandler<Ksid, float>(this);
+            WithKsidFloatVectorParams = new ParamsHandler<Ksid, float, Vector3>(this);
         }
 
         public void Plan(float delta, Action<Label> action, Label liveObj)
@@ -95,6 +97,33 @@ namespace Assets.Scripts.Utils
                 activeEvents.Remove(tag, out var evInfo);
                 if (parent.CheckTags(evInfo.liveObj, evInfo.objTag))
                     ((Action<Label, T1, T2>)obj)(evInfo.liveObj, evInfo.p1, evInfo.p2);
+            }
+        }
+
+        public class ParamsHandler<T1, T2, T3>
+        {
+            private readonly Dictionary<int, (Label liveObj, int objTag, T1 p1, T2 p2, T3 p3)> activeEvents = new Dictionary<int, (Label, int, T1, T2, T3)>();
+            private readonly Action<object, int> timerAction;
+            private readonly GlobalTimerHandler parent;
+
+            public ParamsHandler(GlobalTimerHandler parent)
+            {
+                this.parent = parent;
+                timerAction = OnTimer;
+            }
+
+            public void Plan(float delta, Action<Label, T1, T2, T3> action, Label liveObj, T1 p1, T2 p2, T3 p3)
+            {
+                int objTag = parent.StoreTags(liveObj);
+                activeEvents.Add(parent.tag, (liveObj, objTag, p1, p2, p3));
+                Game.Instance.Timer.Plan(timerAction, delta, action, parent.tag);
+            }
+
+            private void OnTimer(object obj, int tag)
+            {
+                activeEvents.Remove(tag, out var evInfo);
+                if (parent.CheckTags(evInfo.liveObj, evInfo.objTag))
+                    ((Action<Label, T1, T2, T3>)obj)(evInfo.liveObj, evInfo.p1, evInfo.p2, evInfo.p3);
             }
         }
     }

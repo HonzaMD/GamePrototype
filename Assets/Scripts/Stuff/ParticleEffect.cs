@@ -13,8 +13,10 @@ namespace Assets.Scripts.Stuff
 {
     public class ParticleEffect : Label, ISimpleTimerConsumer
     {
+        [SerializeField] private ParticleEffect prototype;
+
         public override Placeable PlaceableC => throw new NotSupportedException();
-        public override Label Prototype => Game.Instance.PrefabsStore.ParticleEffect;
+        public override Label Prototype => prototype != null ? prototype : Game.Instance.PrefabsStore.ParticleEffect;
         public override Ksid KsidGet => Ksid.ParticleEffect;
         public override bool IsAlive => (ActiveTag & 1) != 0;
 

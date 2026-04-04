@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8952882203813818923}
   - component: {fileID: -2507574495529057384}
   m_Layer: 0
-  m_Name: ParticleEffect
+  m_Name: HitEfffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -42,7 +42,7 @@ VisualEffect:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8952882203813818920}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: d90db85884effa346a2c369d23379d41, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 7194a22a70094d64c86ab6be68cb7804, type: 3}
   m_InitialEventName: OnPlay
   m_InitialEventNameOverriden: 0
   m_StartSeed: 0

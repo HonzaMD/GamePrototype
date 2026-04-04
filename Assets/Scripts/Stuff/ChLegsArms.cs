@@ -408,7 +408,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         var relVelocity = body.linearVelocity - otherLabel.Velocity;
         float impactSpeed = relVelocity.sqrMagnitude;
 
-        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true);
+        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true, Legs[index].position);
     }
 
     private void ApplyLimbKnifeDamage(int index)
@@ -418,7 +418,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
         var relVelocity = body.linearVelocity - otherLabel.Velocity;
 
-        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel);
+        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel, Legs[index].position);
     }
 
     private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)

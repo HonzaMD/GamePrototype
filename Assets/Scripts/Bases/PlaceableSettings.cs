@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Assets.Scripts.Core;
+using Assets.Scripts.Stuff;
 using UnityEngine;
 
 namespace Assets.Scripts.Bases
@@ -81,5 +82,11 @@ namespace Assets.Scripts.Bases
         public float MaxHealth;
         [Tooltip("Rezistence a armor pro jednotlivé typy poškození")]
         public DamageResistance[] DamageResistances;
+
+        [Header("VFX")]
+        [Tooltip("Particle effect prefab pri zasahu. Null = zadny efekt")]
+        public ParticleEffect HitEffect;
+        [Tooltip("Particle effect prefab pri smrti. Null = zadny efekt")]
+        public ParticleEffect DeathEffect;
     }
 }

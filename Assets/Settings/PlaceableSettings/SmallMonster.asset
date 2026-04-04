@@ -33,5 +33,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  KnifeDmg: 0
   MaxHealth: 100
   DamageResistances: []
+  HitEffect: {fileID: -2507574495529057384, guid: 36cd2a5ee834c69479f3e9de5b1d98d8,
+    type: 3}
+  DeathEffect: {fileID: -2507574495529057384, guid: 36cd2a5ee834c69479f3e9de5b1d98d8,
+    type: 3}
