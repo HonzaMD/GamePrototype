@@ -160,6 +160,7 @@
     <Compile Include="Assets\Scripts\Core\Inventory\Inventory.cs" />
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ContactDamageTrigger.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />

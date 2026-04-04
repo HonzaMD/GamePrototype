@@ -77,6 +77,8 @@ namespace Assets.Scripts.Map
                 case 's': return prefabsStore.Stone;
                 case '*': return prefabsStore.PointLight;
                 case 'A': return prefabsStore.Character;
+                case 'G': return prefabsStore.PoisonGas;
+                case 'F': return prefabsStore.HotBlock;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

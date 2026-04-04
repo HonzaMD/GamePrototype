@@ -16,3 +16,9 @@ public interface IActiveObject1Sec
 {
     void GameUpdate1Sec();
 }
+
+public interface IFixedUpdateOnce
+{
+    int ActiveTag { get; set; }
+    void DoFixedUpdate();
+}

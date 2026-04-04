@@ -38,6 +38,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private readonly List<Trigger> triggers = new();
     private readonly List<IActiveObject> activeObjects = new();
+    private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateCurrent = new();
+    private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateNext = new();
     private readonly List<(Placeable Obj, int Tag, Map Map)> movingObjects = new();
     private readonly FpsCounter fpsCounter = new();
     private readonly GameUpdates1Sec gameUpdates1Sec;
@@ -298,6 +300,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         triggers.Add(trigger);
     }
 
+    internal void ScheduleFixedUpdate(IFixedUpdateOnce o)
+    {
+        fixedUpdateNext.Add((o, o.ActiveTag));
+    }
+
     public void ActivateObject(IActiveObject o)
     {
         if (o.PendingRemove)
@@ -367,6 +374,16 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
         if (write < activeObjects.Count)
             activeObjects.RemoveRange(write, activeObjects.Count - write);
+
+        (fixedUpdateCurrent, fixedUpdateNext) = (fixedUpdateNext, fixedUpdateCurrent);
+        for (int i = 0; i < fixedUpdateCurrent.Count; i++)
+        {
+            var (obj, tag) = fixedUpdateCurrent[i];
+            if (obj.ActiveTag == tag)
+                obj.DoFixedUpdate();
+        }
+        fixedUpdateCurrent.Clear();
+
         StaticPhysics.Update();
         Pool.UpdateAgeAtPhysicsUpdate();
         ConnectablePool.UpdateAgeAtPhysicsUpdate();

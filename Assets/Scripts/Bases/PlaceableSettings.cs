@@ -77,6 +77,10 @@ namespace Assets.Scripts.Bases
         [Tooltip("Bazove poskozeni nozem. 0 = neni knife damage")]
         public float KnifeDmg;
 
+        [Header("Contact Damage")]
+        [Tooltip("Poskozeni kontaktem za fyzikalni frame. 0 = zadny kontaktni damage")]
+        public float ContactDmgPerFrame;
+
         [Header("Health")]
         [Tooltip("Maximální zdraví objektu. 0 = objekt nemá systém zdraví")]
         public float MaxHealth;

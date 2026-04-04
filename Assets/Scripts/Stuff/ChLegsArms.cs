@@ -421,6 +421,22 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel, Legs[index].position);
     }
 
+    private void ApplyLimbContactDamage(int index)
+    {
+        var otherLabel = legsConnectedLabels[index];
+        if (otherLabel == null) return;
+        StaticBehaviour.ApplyContactDamageBidirectional(placeable, otherLabel, Legs[index].position);
+    }
+
+    private void ApplyLimbsContactDamage()
+    {
+        for (int i = 0; i < legArmStatus.Length; i++)
+        {
+            if (legArmStatus[i] >= Catch)
+                ApplyLimbContactDamage(i);
+        }
+    }
+
     private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)
     {
         if (holdHandle)
@@ -848,6 +864,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
 
         ApplyHoldForce();
+        ApplyLimbsContactDamage();
     }
 
     protected virtual void AdjustXOrientation()

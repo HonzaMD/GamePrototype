@@ -43,3 +43,7 @@ MonoBehaviour:
     type: 3}
   Chest: {fileID: 7291555106859174996, guid: 52d91c86fd27b354ca43be80da9b60b5, type: 3}
   Knife: {fileID: 6305871483602145192, guid: cd7ba6a29cac90a4c81e242d39f65cf5, type: 3}
+  PoisonGas: {fileID: 5857410052149363717, guid: 336e2202b0bc1114f87a1f2ed4599591,
+    type: 3}
+  HotBlock: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
+    type: 3}

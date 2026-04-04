@@ -25,4 +25,6 @@ public class PrefabsStore : ScriptableObject
     public Placeable Character;
     public Placeable Chest;
     public Placeable Knife;
+    public Placeable PoisonGas;
+    public Placeable HotBlock;
 }

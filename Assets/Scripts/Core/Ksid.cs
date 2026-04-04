@@ -44,6 +44,10 @@ namespace Assets.Scripts.Core
         DamagedByImpact,
         DealsKnifeDamage,
         DamagedByKnife,
+        DealsContactDamage,
+        DamagedByContact,
+        PoisonGas,
+        HotBlock,
     }
 
     public static class KsidX

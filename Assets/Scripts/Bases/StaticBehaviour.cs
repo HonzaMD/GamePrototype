@@ -133,5 +133,24 @@ namespace Assets.Scripts.Bases
             return knife.GetDmg() * Mathf.Max(PhysicsConsts.KnifeDmgMinFactor,
                 Mathf.Sqrt(impactSpeedSqr) / PhysicsConsts.KnifeDmgRefSpeed);
         }
+
+        public static void ApplyContactDamage(Label dealerLabel, Label targetLabel, Vector3 hitPosition)
+        {
+            if (dealerLabel.KsidGet.IsChildOf(Ksid.DealsContactDamage)
+                && targetLabel.KsidGet.IsChildOf(Ksid.DamagedByContact))
+            {
+                var settings = dealerLabel.GetSettings();
+                if (settings != null && settings.ContactDmgPerFrame > 0)
+                {
+                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByContact, settings.ContactDmgPerFrame, hitPosition);
+                }
+            }
+        }
+
+        public static void ApplyContactDamageBidirectional(Label labelA, Label labelB, Vector3 hitPosition)
+        {
+            ApplyContactDamage(labelA, labelB, hitPosition);
+            ApplyContactDamage(labelB, labelA, hitPosition);
+        }
     }
 }

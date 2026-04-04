@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
+  m_Name: HotBlock
+  m_EditorClassIdentifier: 
+  HasSubPlaceables: 0
+  UseSimpleBBCollisions: 1
+  Mass: 0
+  Density: 1000
+  DensityMode: 0
+  Prototype: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
+    type: 3}
+  Unseparable: 0
+  AutoAtachRB: 0
+  IsTrigger: 0
+  SecondaryMapIndex: 0
+  Icon: {fileID: 0}
+  IconOrder: 0
+  SpStretchLimit: 1000
+  SpCompressLimit: 1000
+  SpMomentLimit: 1000
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  KnifeDmg: 0
+  ContactDmgPerFrame: 0
+  MaxHealth: 0
+  DamageResistances: []
+  HitEffect: {fileID: 0}
+  DeathEffect: {fileID: 0}

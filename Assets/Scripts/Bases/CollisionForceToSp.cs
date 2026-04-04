@@ -16,6 +16,7 @@ public class CollisionForceToSp : MonoBehaviour
     private void OnCollisionStay(Collision collision)
     {
         TransferForce(collision);
+        ApplyContactDamage(collision);
     }
 
     private void TransferForce(Collision collision)
@@ -61,6 +62,20 @@ public class CollisionForceToSp : MonoBehaviour
         StaticBehaviour.ApplyKnifeDamage(collision.relativeVelocity.sqrMagnitude, myLabel, otherLabel, collision.GetContact(0).point);
     }
 
+
+    private void ApplyContactDamage(Collision collision)
+    {
+        if (collision.contactCount == 0)
+            return;
+
+        if (!Label.TryFind(transform, out var myLabel) || !Label.TryFind(collision.collider.transform, out var otherLabel))
+            return;
+
+        var hitPos = collision.GetContact(0).point;
+        if (!otherLabel.HasRB)
+            StaticBehaviour.ApplyContactDamage(otherLabel, myLabel, hitPos);
+        StaticBehaviour.ApplyContactDamage(myLabel, otherLabel, hitPos);
+    }
 
     public static Vector3 RV;
 }
