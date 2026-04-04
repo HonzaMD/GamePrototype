@@ -73,6 +73,8 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         inventory.SetQuickSlot(-8, Game.Instance.PrefabsStore.StickyBomb);
         inventory.StoreProto(Game.Instance.PrefabsStore.PointLight, 3);
         inventory.SetQuickSlot(-7, Game.Instance.PrefabsStore.PointLight);
+        inventory.StoreProto(Game.Instance.PrefabsStore.Knife, 10);
+        inventory.SetQuickSlot(-6, Game.Instance.PrefabsStore.Knife);
     }
 
     public void GameUpdate()
