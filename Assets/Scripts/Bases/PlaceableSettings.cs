@@ -38,32 +38,40 @@ namespace Assets.Scripts.Bases
     [CreateAssetMenu]
     public class PlaceableSettings : ScriptableObject
     {
+        [Header("Identity")]
+        [Tooltip("Nastavte nenull, pokud se objekt ma poolovat")]
+        public Label Prototype;
+        [Tooltip("Pro zobrazeni v inventari")]
+        public Sprite Icon;
+        [Tooltip("Poradi v inventari")]
+        public int IconOrder;
+
+        [Header("Main Flags")]
         [Tooltip("IsGroup")]
         public bool HasSubPlaceables;
+        [Tooltip("Je soucast vetsiho celku? a tudiz nejde zabit, samostatne pohybovat a pod")]
+        public bool Unseparable;
+        [Tooltip("Pro objekty ktere maji byt ovladany pomoci pripojovaneho RbLabel")]
+        public bool AutoAtachRB;
+
+        [Header("Collision")]
+        [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]
+        public SecondaryMap SecondaryMapIndex;
+        [Tooltip("Trigger. Pokud se ma trigger dat i do sekundarni mapy, da se tam exklusivne")]
+        public bool IsTrigger;
+        [Tooltip("Objekt zabira natoceny obdelnik v mape (OBB misto AABB)")]
+        public bool IsOBB;
         [Tooltip("Pri kolizich s piskem: Pokud true pouzije se BoundingBox. Pokud false, pouzije se sampling z kollideru (pamalejsi)")]
         public bool UseSimpleBBCollisions;
+
+
+        [Header("Physics")]
         [Tooltip("Jak je vec tezka v kg? Pokud je mass vyplnena u RB, ma prednost. Pokud 0, vypocita se Mass z objemuu a hustoty")]
         public float Mass;
         [Tooltip("Pouziti pro vypocet hmotnosti. Default: 1000 - hustota vody")]
         public float Density = 1000f; // hustota vody
         [Tooltip("Jak se pro vypocet hmotnosti vypocita objem?")]
         public DensityMode DensityMode;
-        [Tooltip("Nastavte nenull, pokud se objekt ma poolovat")]
-        public Label Prototype;
-        [Tooltip("Je soucast vetsiho celku? a tudiz nejde zabit, samostatne pohybovat a pod")]
-        public bool Unseparable;
-        [Tooltip("Pro objekty ktere maji byt ovladany pomoci pripojovaneho RbLabel")]
-        public bool AutoAtachRB;
-        [Tooltip("Trigger. Pokud se ma tragger dat i do sekundarni mapy, da se tam exklusivne")]
-        public bool IsTrigger;
-        [Tooltip("Objekt zabira natoceny obdelnik v mape (OBB misto AABB)")]
-        public bool IsOBB;
-        [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]
-        public SecondaryMap SecondaryMapIndex;
-        [Tooltip("Pro zobrazeni v inventari")]
-        public Sprite Icon;
-        [Tooltip("Poradi v inventari")]
-        public int IconOrder;
 
         [Tooltip("Limity pro staticke spoje mezi objekty: Tah")]
         public float SpStretchLimit = 1000f;
@@ -72,14 +80,9 @@ namespace Assets.Scripts.Bases
         [Tooltip("Limity pro staticke spoje mezi objekty: Ohyb")]
         public float SpMomentLimit = 1000f;
 
-        [Tooltip("Pro animaci akci, jako je pouziti objektu")]
-        public AnimationCurve ActivityAnimation;
-
-        [Header("Knife Damage")]
+        [Header("Damage")]
         [Tooltip("Bazove poskozeni nozem. 0 = neni knife damage")]
         public float KnifeDmg;
-
-        [Header("Contact Damage")]
         [Tooltip("Poskozeni kontaktem za fyzikalni frame. 0 = zadny kontaktni damage")]
         public float ContactDmgPerFrame;
 
@@ -90,6 +93,8 @@ namespace Assets.Scripts.Bases
         public DamageResistance[] DamageResistances;
 
         [Header("VFX")]
+        [Tooltip("Pro animaci akci, jako je pouziti objektu")]
+        public AnimationCurve ActivityAnimation;
         [Tooltip("Particle effect prefab pri zasahu. Null = zadny efekt")]
         public ParticleEffect HitEffect;
         [Tooltip("Particle effect prefab pri smrti. Null = zadny efekt")]
