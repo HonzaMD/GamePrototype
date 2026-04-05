@@ -9,7 +9,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{D2665D7C-5407-8258-F0B2-65E5242B16D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -182,6 +183,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\MainGameAsm.asmdef" />
+    <None Include="Docs\conventions.md" />
+    <None Include="Docs\eventy-a-commandy.md" />
+    <None Include="Docs\levly.md" />
+    <None Include="Docs\vytvareni-hernich-objektu.md" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1173,8 +1178,7 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
