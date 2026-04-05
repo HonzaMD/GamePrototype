@@ -3,6 +3,7 @@ using Assets.Scripts.Core;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
@@ -18,6 +19,7 @@ namespace Assets.Scripts.Map
         private readonly static Vector2 buffCSizeInv = new Vector2(1f / buffCSize.x, 1f / buffCSize.y);
         private readonly static Vector2 buffCSizeHalf = CellSize2d / 8;
 
+        private readonly Dictionary<Placeable, OBBCellTest> obbCache = new();
         private int currentTag;
 
         public int Id { get; }
@@ -91,12 +93,17 @@ namespace Assets.Scripts.Map
 
             int cellPosY = posFl.y * sizex;
             #endregion
-            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+            if (p.Settings.IsOBB)
             {
-                for (int x = posFl.x; x < pos2Cl.x; x++)
-                {
-                    cells[cellPosY + x].Add(p, ksids);
-                }
+                var obbTest = new OBBCellTest(Placeable.TempObbC0, Placeable.TempObbC1, Placeable.TempObbC2, Placeable.TempObbC3, CellSize2d);
+                obbCache[p] = obbTest;
+                AddOBBCells(p, posFl, pos2Cl, cellPosY, ref obbTest);
+            }
+            else
+            {
+                for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+                    for (int x = posFl.x; x < pos2Cl.x; x++)
+                        cells[cellPosY + x].Add(p, ksids);
             }
         }
 
@@ -140,12 +147,17 @@ namespace Assets.Scripts.Map
 
             LeavingCheck(p, pos, pos2);
 
-            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+            if (p.Settings.IsOBB)
             {
-                for (int x = posFl.x; x < pos2Cl.x; x++)
-                {
-                    cells[cellPosY + x].Remove(p, ksids);
-                }
+                var obbTest = obbCache[p];
+                obbCache.Remove(p);
+                RemoveOBBCells(p, posFl, pos2Cl, cellPosY, ref obbTest);
+            }
+            else
+            {
+                for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+                    for (int x = posFl.x; x < pos2Cl.x; x++)
+                        cells[cellPosY + x].Remove(p, ksids);
             }
 
             p.PlacedPosition = Placeable.NotInMap;
@@ -167,6 +179,12 @@ namespace Assets.Scripts.Map
             var pos2Old = new Vector2(p.Size.x * CellSize2dInv.x + posOld.x, p.Size.y * CellSize2dInv.y + posOld.y);
 
             p.RefreshCoordinates();
+
+            if (p.Settings.IsOBB)
+            {
+                MoveOBB(p, placedPositionOld, posOIffsetOld, sizeOld, blockingOld);
+                return;
+            }
 
             if (blockingOld != p.CellBlocking)
             {
@@ -289,14 +307,81 @@ namespace Assets.Scripts.Map
             int cellPosY = posFlOld.y * sizex;
             #endregion
             for (int y = posFlOld.y; y < pos2ClOld.y; y++, cellPosY += sizex)
-            {
                 for (int x = posFlOld.x; x < pos2ClOld.x; x++)
-                {
                     cells[cellPosY + x].Remove(p, ksids);
-                }
-            }
 
             Add(p, true);
+        }
+
+        private void MoveOBB(Placeable p, Vector2 placedPositionOld, Vector2 posOffsetOld, Vector2 sizeOld, CellFlags blockingOld)
+        {
+            if (p.Settings.SecondaryMapIndex != SecondaryMap.None && p.IsTrigger)
+            {
+                Secondary(p.Settings.SecondaryMapIndex).MoveAreaOBB(p, placedPositionOld, sizeOld, posOffsetOld, blockingOld);
+                return;
+            }
+
+            var oldTest = obbCache[p];
+            var newTest = new OBBCellTest(Placeable.TempObbC0, Placeable.TempObbC1, Placeable.TempObbC2, Placeable.TempObbC3, CellSize2d);
+
+            if (oldTest.SameCorners(newTest) && p.PlacedPosition == placedPositionOld && blockingOld == p.CellBlocking)
+            {
+                p.PosOffset = posOffsetOld;
+                p.Size = sizeOld;
+                return;
+            }
+
+            obbCache[p] = newTest;
+
+            TrySecondaryMove(p, placedPositionOld, sizeOld);
+
+            // Full remove with old coords + old OBB test
+            var posOld = placedPositionOld - mapOffset;
+            posOld.Scale(CellSize2dInv);
+            var pos2Old = new Vector2(sizeOld.x * CellSize2dInv.x + posOld.x, sizeOld.y * CellSize2dInv.y + posOld.y);
+
+            LeavingCheck(p, posOld, pos2Old);
+
+            var posFlOld = Vector2Int.FloorToInt(posOld);
+            var pos2ClOld = Vector2Int.CeilToInt(pos2Old);
+            if (posFlOld.x == pos2ClOld.x) pos2ClOld.x += 1;
+            if (posFlOld.y == pos2ClOld.y) pos2ClOld.y += 1;
+            posFlOld = Vector2Int.Max(Vector2Int.zero, posFlOld);
+            pos2ClOld = Vector2Int.Min(mapSize, pos2ClOld);
+
+            RemoveOBBCells(p, posFlOld, pos2ClOld, posFlOld.y * sizex, ref oldTest);
+
+            // Full add with new coords + new OBB test
+            var posNew = p.PlacedPosition - mapOffset;
+            posNew.Scale(CellSize2dInv);
+            var pos2New = new Vector2(p.Size.x * CellSize2dInv.x + posNew.x, p.Size.y * CellSize2dInv.y + posNew.y);
+
+            var posFlNew = Vector2Int.FloorToInt(posNew);
+            var pos2ClNew = Vector2Int.CeilToInt(pos2New);
+            if (posFlNew.x == pos2ClNew.x) pos2ClNew.x += 1;
+            if (posFlNew.y == pos2ClNew.y) pos2ClNew.y += 1;
+            posFlNew = Vector2Int.Max(Vector2Int.zero, posFlNew);
+            pos2ClNew = Vector2Int.Min(mapSize, pos2ClNew);
+
+            AddOBBCells(p, posFlNew, pos2ClNew, posFlNew.y * sizex, ref newTest);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void AddOBBCells(Placeable p, Vector2Int posFl, Vector2Int pos2Cl, int cellPosY, ref OBBCellTest obbTest)
+        {
+            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+                for (int x = posFl.x; x < pos2Cl.x; x++)
+                    if (obbTest.Intersects(x * CellSize2d.x + mapOffset.x, y * CellSize2d.y + mapOffset.y))
+                        cells[cellPosY + x].Add(p, ksids);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void RemoveOBBCells(Placeable p, Vector2Int posFl, Vector2Int pos2Cl, int cellPosY, ref OBBCellTest obbTest)
+        {
+            for (int y = posFl.y; y < pos2Cl.y; y++, cellPosY += sizex)
+                for (int x = posFl.x; x < pos2Cl.x; x++)
+                    if (obbTest.Intersects(x * CellSize2d.x + mapOffset.x, y * CellSize2d.y + mapOffset.y))
+                        cells[cellPosY + x].Remove(p, ksids);
         }
 
         private void LeavingCheck(Placeable p, Vector2 posOld, Vector2 pos2Old)

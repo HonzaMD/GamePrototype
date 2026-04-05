@@ -62,11 +62,38 @@ public class Placeable : Label, ILevelPlaceabe
 
     internal readonly static Vector2 NotInMap = new Vector2(-12345678f, 12345678f);
 
+    // OBB corners computed in RefreshOBB, consumed by Map.Add/Move
+    // Static: safe because everything runs on main thread
+    internal static Vector2 TempObbC0, TempObbC1, TempObbC2, TempObbC3;
+
     public virtual void RefreshCoordinates()
     {
+        if (Settings.IsOBB)
+            RefreshOBB();
         PlacedPosition = Pivot + PosOffset;
         if (SubCellFlags != SubCellFlags.Free)
             CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
+    }
+
+    private void RefreshOBB()
+    {
+        var prototype = (Placeable)Settings.Prototype;
+        Vector3 offset = prototype.PosOffset;
+        Vector3 size = prototype.Size;
+
+        TempObbC0 = transform.TransformPoint(offset);
+        TempObbC1 = transform.TransformPoint(offset.PlusX(size.x));
+        TempObbC2 = transform.TransformPoint(offset + size);
+        TempObbC3 = transform.TransformPoint(offset.PlusY(size.y));
+
+        Vector2 start = TempObbC0;
+        Vector2 end = TempObbC0;
+        TryExtendBounds(ref start, ref end, TempObbC1);
+        TryExtendBounds(ref start, ref end, TempObbC2);
+        TryExtendBounds(ref start, ref end, TempObbC3);
+
+        PosOffset = start - Pivot;
+        Size = end - start;
     }
 
     public Vector2 Center => Pivot + PosOffset + Size * 0.5f;

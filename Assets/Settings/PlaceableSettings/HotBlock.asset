@@ -22,6 +22,7 @@ MonoBehaviour:
   Unseparable: 0
   AutoAtachRB: 0
   IsTrigger: 0
+  IsOBB: 0
   SecondaryMapIndex: 0
   Icon: {fileID: 0}
   IconOrder: 0
@@ -35,7 +36,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   KnifeDmg: 0
-  ContactDmgPerFrame: 0
+  ContactDmgPerFrame: 1
   MaxHealth: 0
   DamageResistances: []
   HitEffect: {fileID: 0}

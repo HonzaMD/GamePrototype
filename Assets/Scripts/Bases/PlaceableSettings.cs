@@ -56,6 +56,8 @@ namespace Assets.Scripts.Bases
         public bool AutoAtachRB;
         [Tooltip("Trigger. Pokud se ma tragger dat i do sekundarni mapy, da se tam exklusivne")]
         public bool IsTrigger;
+        [Tooltip("Objekt zabira natoceny obdelnik v mape (OBB misto AABB)")]
+        public bool IsOBB;
         [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]
         public SecondaryMap SecondaryMapIndex;
         [Tooltip("Pro zobrazeni v inventari")]

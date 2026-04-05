@@ -21,6 +21,7 @@ public class ColliderTouch
         box.center = Vector3.down;
         box.size = new Vector3(5, 2, 1);
 
+        Physics.SyncTransforms();
         var res = sc.Touches(box, 0.1f);
         Assert.IsTrue(res);
     }
@@ -39,6 +40,7 @@ public class ColliderTouch
         obj2.transform.position = Vector3.up * 2;
         obj2.SetActive(true);
 
+        Physics.SyncTransforms();
         var res = sc.Touches(box, 0.1f);
         Assert.IsFalse(res);
     }
