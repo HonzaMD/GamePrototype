@@ -194,6 +194,7 @@ namespace Assets.Scripts.Map
 
             if (oldTest.SameCorners(newTest) && p.PlacedPosition == placedPositionOld && blockingOld == p.CellBlocking)
             {
+                p.PlacedPosition = placedPositionOld;
                 p.PosOffset = posOffsetOld;
                 p.Size = sizeOld;
                 return;

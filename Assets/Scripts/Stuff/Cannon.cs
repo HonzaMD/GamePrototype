@@ -37,7 +37,7 @@ namespace Assets.Scripts.Stuff
 
         private void TestShot()
         {
-            if (ChildTrigger.ActiveObjects.Count == 0 && shotsRemaining > 0)
+            if (ChildTrigger.ActiveObjects.Count == 0 || shotsRemaining <= 0)
                 return;
 
             shotsRemaining--;
