@@ -48,6 +48,8 @@ namespace Assets.Scripts.Core
         DamagedByContact,
         PoisonGas,
         HotBlock,
+        Cannon,
+        ActivatesCannon,
     }
 
     public static class KsidX

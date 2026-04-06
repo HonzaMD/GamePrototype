@@ -68,19 +68,15 @@ public class Placeable : Label, ILevelPlaceabe
 
     public virtual void RefreshCoordinates()
     {
-        if (Settings.IsOBB)
-            RefreshOBB();
+        if (Settings.IsOBB || Settings.RecomputeBB)
+            RefreshBounds(Settings.BBPosOffset, Settings.BBSize);
         PlacedPosition = Pivot + PosOffset;
         if (SubCellFlags != SubCellFlags.Free)
             CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
     }
 
-    private void RefreshOBB()
+    protected void RefreshBounds(Vector3 offset, Vector3 size)
     {
-        var prototype = (Placeable)Settings.Prototype;
-        Vector3 offset = prototype.PosOffset;
-        Vector3 size = prototype.Size;
-
         TempObbC0 = transform.TransformPoint(offset);
         TempObbC1 = transform.TransformPoint(offset.PlusX(size.x));
         TempObbC2 = transform.TransformPoint(offset + size);
@@ -131,8 +127,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     public void SetPlacedPosition(Vector3 pos)
     {
-        if (PosOffset.x < 0 || PosOffset.y < 0)
-            pos += new Vector3(0.25f, 0.25f, 0);
+        pos -= (Vector3)PosOffset;
         transform.position = pos;
     }
 
@@ -512,25 +507,6 @@ public class Placeable : Label, ILevelPlaceabe
         return false;
     }
 
-    protected void RefreshBounds(Placeable prototype)
-    {
-        Vector3 offset = prototype.PosOffset;
-        Vector3 size = prototype.Size;
-
-        Vector2 start = transform.TransformPoint(offset);
-        Vector2 p2 = transform.TransformPoint(offset + size);
-        Vector2 p3 = transform.TransformPoint(offset.PlusX(size.x));
-        Vector2 p4 = transform.TransformPoint(offset.PlusY(size.y));
-
-        Vector2 end = start;
-
-        TryExtendBounds(ref start, ref end, p2);
-        TryExtendBounds(ref start, ref end, p3);
-        TryExtendBounds(ref start, ref end, p4);
-
-        PosOffset = start - Pivot;
-        Size = end - start;
-    }
 
     private static void TryExtendBounds(ref Vector2 start, ref Vector2 end, Vector2 v)
     {

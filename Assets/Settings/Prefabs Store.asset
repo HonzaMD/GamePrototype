@@ -47,3 +47,4 @@ MonoBehaviour:
     type: 3}
   HotBlock: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
     type: 3}
+  Cannon: {fileID: 8924714332773981585, guid: 9b63eceeac00ee64dab29bcf9e0b54f5, type: 3}

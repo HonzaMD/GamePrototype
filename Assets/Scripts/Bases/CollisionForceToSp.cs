@@ -36,11 +36,9 @@ public class CollisionForceToSp : MonoBehaviour
         if (collision.contactCount == 0)
             return;
 
-        if (!Label.TryFind(transform, out var myLabel) || !Label.TryFind(collision.collider.transform, out var otherLabel))
-        {
-            //Debug.LogWarning("pri kolizi nemam labely");
+        if (!Label.TryFind(collision.collider.transform, out var otherLabel))
             return;
-        }
+        Label myLabel = GetComponent<Label>().PlaceableC;
 
         ApplyImpactDamage(collision, myLabel, otherLabel);
         ApplyKnifeDamage(collision, myLabel, otherLabel);
@@ -68,8 +66,9 @@ public class CollisionForceToSp : MonoBehaviour
         if (collision.contactCount == 0)
             return;
 
-        if (!Label.TryFind(transform, out var myLabel) || !Label.TryFind(collision.collider.transform, out var otherLabel))
+        if (!Label.TryFind(collision.collider.transform, out var otherLabel))
             return;
+        Label myLabel = GetComponent<Label>().PlaceableC;
 
         var hitPos = collision.GetContact(0).point;
         if (!otherLabel.HasRB)

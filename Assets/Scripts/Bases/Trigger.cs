@@ -51,6 +51,8 @@ namespace Assets.Scripts
 
         public void TriggerUpdate()
         {
+            if (!registeredForUpdate)
+                return;
             registeredForUpdate = false;
 
             if (NewOrRemovedObjects.Count > 0)
@@ -75,6 +77,14 @@ namespace Assets.Scripts
                     TriggerOffEvent?.Invoke(this);
                 NewOrRemovedObjects.Clear();
             }
+        }
+
+        public override void Cleanup(bool goesToInventory)
+        {
+            base.Cleanup(goesToInventory);
+            registeredForUpdate = false;
+            ActiveObjects.Clear();
+            NewOrRemovedObjects.Clear();
         }
     }
 }

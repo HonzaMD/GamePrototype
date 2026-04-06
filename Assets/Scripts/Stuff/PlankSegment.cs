@@ -8,13 +8,6 @@ using UnityEngine;
 
 public class PlankSegment : Placeable
 {
-    public override void RefreshCoordinates()
-    {
-        RefreshBounds((Placeable)Settings.Prototype);
-        base.RefreshCoordinates();
-    }
-
-
     internal static void AddToMap(Map map, PlankSegment prototype, Transform parent, Vector3 start, Vector3 end)
     {
         if (start.y > end.y)

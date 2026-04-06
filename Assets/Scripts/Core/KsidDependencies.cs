@@ -16,6 +16,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.InventoryItem, Ksid.CharacterHolds),
                 (Ksid.Ladder, Ksid.CharacterHolds),
+                (Ksid.Cannon, Ksid.CharacterHolds),
                 (Ksid.Stone, Ksid.InventoryItem),
                 (Ksid.Light, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.InventoryItem),
@@ -23,6 +24,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Knife, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
+                (Ksid.PoisonGas, Ksid.ActivatesByThrow),
                 (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                
                 (Ksid.Stone, Ksid.SandLike),
                 (Ksid.Light, Ksid.SandLike),
@@ -34,6 +36,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SandCombiner, Ksid.DamagedByExplosion),
                 (Ksid.SmallMonster, Ksid.DamagedByExplosion),
                 (Ksid.Character, Ksid.DamagedByExplosion),
+                (Ksid.Cannon, Ksid.DamagedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.AffectedByExplosion),
                 (Ksid.Character, Ksid.AffectedByExplosion),
                 (Ksid.Rope, Ksid.AffectedByExplosion),
@@ -46,6 +49,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SpMoving, Ksid.SpNode),
                 (Ksid.StoneBlock, Ksid.SpFixed),                
                 (Ksid.Ladder, Ksid.SpMoving),
+                (Ksid.Cannon, Ksid.SpMoving),
                 (Ksid.SpNode, Ksid.SpNodeOrSandCombiner),
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
 
@@ -58,6 +62,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Character, Ksid.DamagedByImpact),
                 (Ksid.SmallMonster, Ksid.DamagedByImpact),
                 (Ksid.Light, Ksid.DamagedByImpact),
+                (Ksid.Cannon, Ksid.DamagedByImpact),
 
                 (Ksid.Knife, Ksid.DealsKnifeDamage),
                 (Ksid.Knife, Ksid.ActivatesByThrow),
@@ -70,6 +75,10 @@ namespace Assets.Scripts.Core
                 (Ksid.Chest, Ksid.DamagedByContact),
                 (Ksid.PoisonGas, Ksid.DealsContactDamage),
                 (Ksid.HotBlock, Ksid.DealsContactDamage),
+
+                (Ksid.Character, Ksid.ActivatesCannon),
+                (Ksid.SmallMonster, Ksid.ActivatesCannon),
+                (Ksid.Light, Ksid.ActivatesCannon),
             })
         {
         }

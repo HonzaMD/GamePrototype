@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 45765066376077349}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0.5, z: 0.25}
+  m_LocalPosition: {x: 0, y: 0, z: 0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -129,6 +129,8 @@ GameObject:
   - component: {fileID: 1743602230261348815}
   - component: {fileID: 5857410052149363717}
   - component: {fileID: 1887904695436754393}
+  - component: {fileID: 7196381123029756028}
+  - component: {fileID: 5852225730086097692}
   m_Layer: 0
   m_Name: PoisonGas
   m_TagString: Untagged
@@ -165,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b80c18dc4ca18f5499e2ed3408dae68a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PosOffset: {x: 0, y: 0}
+  PosOffset: {x: -0.5, y: -0.5}
   PlacedPosition: {x: -12345678, y: 12345678}
   Size: {x: 1, y: 1}
   Ksid: 38
@@ -185,6 +187,45 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ChildTrigger: {fileID: 6002342237283285060}
+--- !u!54 &7196381123029756028
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7104421467251057037}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 56
+  m_CollisionDetection: 0
+--- !u!114 &5852225730086097692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7104421467251057037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246adadf2316d724eb2fa5577c8a0cae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8719691168571255202
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,7 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 523f8dd445a46f24a88aa80fc0f7d0fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PosOffset: {x: 0, y: 0}
+  PosOffset: {x: -0.5, y: -0.5}
   PlacedPosition: {x: -12345678, y: 12345678}
   Size: {x: 1, y: 1}
   Ksid: 0

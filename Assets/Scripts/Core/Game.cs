@@ -36,7 +36,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     public TimeOfDay TimeOfDay;
 
-    private readonly List<Trigger> triggers = new();
+    private List<Trigger> triggersNext = new();
+    private List<Trigger> triggersCurrent = new();
     private readonly List<IActiveObject> activeObjects = new();
     private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateCurrent = new();
     private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateNext = new();
@@ -288,16 +289,17 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private void UpdateTriggers()
     {
-        foreach (var t in triggers)
+        (triggersCurrent, triggersNext) = (triggersNext, triggersCurrent);
+        foreach (var t in triggersCurrent)
         {
             t.TriggerUpdate();
         }
-        triggers.Clear();
+        triggersCurrent.Clear();
     }
 
     internal void RegisterTrigger(Trigger trigger)
     {
-        triggers.Add(trigger);
+        triggersNext.Add(trigger);
     }
 
     internal void ScheduleFixedUpdate(IFixedUpdateOnce o)

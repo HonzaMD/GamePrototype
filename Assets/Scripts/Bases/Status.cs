@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Assets.Scripts.Bases
 {
     [RequireComponent(typeof(PlaceableSibling))]
-    public class Status : MonoBehaviour
+    public class Status : MonoBehaviour, IHasAfterMapPlaced
     {
         private Placeable placeable;
         private float currentHealth;
@@ -19,6 +19,9 @@ namespace Assets.Scripts.Bases
         void Awake()
         {
             placeable = GetComponent<Placeable>();
+        }
+        public void AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)
+        {
             currentHealth = placeable.Settings.MaxHealth;
         }
 

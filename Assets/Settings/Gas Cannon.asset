@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f703e913dfe360c499bdf149b5d008a2, type: 3}
+  m_Name: Gas Cannon
+  m_EditorClassIdentifier: 
+  Obj: {fileID: 5857410052149363717, guid: 336e2202b0bc1114f87a1f2ed4599591, type: 3}
+  Speed: 5
+  Shots: 10000

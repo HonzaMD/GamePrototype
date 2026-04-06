@@ -115,7 +115,8 @@ public class Level : MonoBehaviour
             {
                 foreach (var p in root.GetComponentsInChildren<Placeable>())
                 {
-                    p.Init(Map);
+                    if (p.CanBeKilled)
+                        p.Init(Map);
                 }
             }
         }

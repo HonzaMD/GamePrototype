@@ -59,8 +59,14 @@ namespace Assets.Scripts.Bases
         public SecondaryMap SecondaryMapIndex;
         [Tooltip("Trigger. Pokud se ma trigger dat i do sekundarni mapy, da se tam exklusivne")]
         public bool IsTrigger;
+        [Tooltip("Objekt pri RefreshCoordinates prepocitava BoundingBox (PosOffset, Size)")]
+        public bool RecomputeBB;
         [Tooltip("Objekt zabira natoceny obdelnik v mape (OBB misto AABB)")]
         public bool IsOBB;
+        [Tooltip("Pro vypocet BB. Ofset pri neutralni pozici.")]
+        public Vector2 BBPosOffset;
+        [Tooltip("Pro vypocet BB. Size pri neutralni pozici.")]
+        public Vector2 BBSize = new(0.5f, 0.5f);
         [Tooltip("Pri kolizich s piskem: Pokud true pouzije se BoundingBox. Pokud false, pouzije se sampling z kollideru (pamalejsi)")]
         public bool UseSimpleBBCollisions;
 
