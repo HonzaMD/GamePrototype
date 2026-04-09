@@ -50,6 +50,7 @@ namespace Assets.Scripts.Core
         HotBlock,
         Cannon,
         ActivatesCannon,
+        TreeTrunk,
     }
 
     public static class KsidX

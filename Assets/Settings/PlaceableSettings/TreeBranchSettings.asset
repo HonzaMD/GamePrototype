@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
+  m_Name: TreeBranchSettings
+  m_EditorClassIdentifier: 
+  Prototype: {fileID: 2125296113061867701, guid: d2bd6b6b45fdc5b4ab2712c6451b94af,
+    type: 3}
+  Icon: {fileID: 0}
+  IconOrder: 0
+  HasSubPlaceables: 0
+  Unseparable: 1
+  AutoAtachRB: 0
+  SecondaryMapIndex: 0
+  IsTrigger: 0
+  RecomputeBB: 0
+  IsOBB: 0
+  BBPosOffset: {x: -0.125, y: -0.25}
+  BBSize: {x: 0.25, y: 0.5}
+  UseSimpleBBCollisions: 0
+  Mass: 20
+  Density: 1000
+  DensityMode: 0
+  SpStretchLimit: 800
+  SpCompressLimit: 800
+  SpMomentLimit: 500
+  KnifeDmg: 0
+  ContactDmgPerFrame: 0
+  MaxHealth: 0
+  DamageResistances: []
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  HitEffect: {fileID: 0}
+  DeathEffect: {fileID: 0}
