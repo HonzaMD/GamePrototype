@@ -79,6 +79,7 @@ namespace Assets.Scripts.Map
                 case 'A': return prefabsStore.Character;
                 case 'G': return prefabsStore.PoisonGas;
                 case 'F': return prefabsStore.HotBlock;
+                case 'T': return new SecondPhasePlacer(prefabsStore.TreeTrunk);
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }
@@ -202,6 +203,23 @@ namespace Assets.Scripts.Map
                 RopeSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z), fixEnd);
             }
             bool ILevelPlaceabe.SecondPhase => true;
+        }
+
+        private class SecondPhasePlacer : ILevelPlaceabe
+        {
+            private readonly ILevelPlaceabe placeabe;
+
+            public SecondPhasePlacer(ILevelPlaceabe placeabe)
+            {
+                this.placeabe = placeabe;
+            }
+
+            public bool SecondPhase => true;
+
+            public void Instantiate(Map map, Transform parent, Vector3 pos)
+            {
+                placeabe.Instantiate(map, parent, pos);
+            }
         }
     }
 }

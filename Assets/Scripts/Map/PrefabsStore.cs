@@ -3,6 +3,7 @@ using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Stuff;
 using UnityEngine;
 
+
 [CreateAssetMenu]
 public class PrefabsStore : ScriptableObject
 {
@@ -28,4 +29,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable PoisonGas;
     public Placeable HotBlock;
     public Placeable Cannon;
+    public TreeTrunk TreeTrunk;
 }

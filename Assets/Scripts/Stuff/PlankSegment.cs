@@ -41,6 +41,8 @@ public class PlankSegment : Placeable
 
         var connector = new SpConnectionFinder(segments, map);
         connector.TryConnect();
+
+        segments.Return();
     }
 }
 

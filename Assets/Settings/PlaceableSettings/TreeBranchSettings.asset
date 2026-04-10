@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
   m_Name: TreeBranchSettings
   m_EditorClassIdentifier: 
-  Prototype: {fileID: 2125296113061867701, guid: d2bd6b6b45fdc5b4ab2712c6451b94af,
+  Prototype: {fileID: 5613393150317878943, guid: 727ba0c573976e74a9b6b6758ce5ec12,
     type: 3}
   Icon: {fileID: 0}
   IconOrder: 0

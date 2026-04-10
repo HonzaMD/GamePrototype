@@ -48,3 +48,5 @@ MonoBehaviour:
   HotBlock: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
     type: 3}
   Cannon: {fileID: 8924714332773981585, guid: 9b63eceeac00ee64dab29bcf9e0b54f5, type: 3}
+  TreeTrunk: {fileID: 6775631822639401165, guid: fb03e9abe807a684fab92f3e3d57f675,
+    type: 3}

@@ -162,9 +162,11 @@
     <Compile Include="Assets\Scripts\Stuff\PosDebugger.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\Inventory.cs" />
+    <Compile Include="Assets\Scripts\Stuff\TreeSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Stuff\ContactDamageTrigger.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Dir8.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
@@ -180,6 +182,7 @@
     <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
+    <Compile Include="Assets\Scripts\Stuff\TreeTrunk.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
