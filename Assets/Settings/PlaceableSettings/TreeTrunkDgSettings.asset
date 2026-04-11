@@ -21,10 +21,10 @@ MonoBehaviour:
   AutoAtachRB: 0
   SecondaryMapIndex: 0
   IsTrigger: 0
-  RecomputeBB: 1
+  RecomputeBB: 0
   IsOBB: 0
-  BBPosOffset: {x: -0.125, y: -0.35355338}
-  BBSize: {x: 0.25, y: 0.70710677}
+  BBPosOffset: {x: -0.125, y: -0.2}
+  BBSize: {x: 0.25, y: 0.4}
   UseSimpleBBCollisions: 0
   Mass: 28
   Density: 1000

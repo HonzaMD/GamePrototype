@@ -30,4 +30,7 @@ public class PrefabsStore : ScriptableObject
     public Placeable HotBlock;
     public Placeable Cannon;
     public TreeTrunk TreeTrunk;
+    public TreeTrunk TreeTrunkDg;
+    public LabelWithSettings TreeBranch;
+    public LabelWithSettings TreeBranchDg;
 }

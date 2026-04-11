@@ -51,6 +51,7 @@ namespace Assets.Scripts.Core
         Cannon,
         ActivatesCannon,
         TreeTrunk,
+        TreeBranch,
     }
 
     public static class KsidX

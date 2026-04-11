@@ -50,3 +50,9 @@ MonoBehaviour:
   Cannon: {fileID: 8924714332773981585, guid: 9b63eceeac00ee64dab29bcf9e0b54f5, type: 3}
   TreeTrunk: {fileID: 6775631822639401165, guid: fb03e9abe807a684fab92f3e3d57f675,
     type: 3}
+  TreeTrunkDg: {fileID: -7812732080490268413, guid: 6e330d31aec2b784a87e24090af79d14,
+    type: 3}
+  TreeBranch: {fileID: 5613393150317878943, guid: 727ba0c573976e74a9b6b6758ce5ec12,
+    type: 3}
+  TreeBranchDg: {fileID: 4835553169761571448, guid: 644b944c8bf59154aa91cc57d180b010,
+    type: 3}

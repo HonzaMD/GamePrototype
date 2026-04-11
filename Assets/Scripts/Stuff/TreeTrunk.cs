@@ -1,6 +1,7 @@
 using Assets.Scripts.Bases;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Stuff
@@ -25,12 +26,22 @@ namespace Assets.Scripts.Stuff
         // Pocet segmentu: 1 (ja) + pocet vsech potomku
         public int SegmentCount { get; private set; }
         private bool isGrowing;
+        private bool hasBranch;
 
         // ISimpleTimerConsumer
         private int timerTag;
         int ISimpleTimerConsumer.ActiveTag { get => timerTag; set => timerTag = value; }
 
         private bool IsController => Controller == this;
+
+        private struct GrowthCandidate
+        {
+            public TreeTrunk Source;
+            public Dir8 Direction;
+            public float Weight;
+        }
+
+        private static readonly List<GrowthCandidate> candidates = new List<GrowthCandidate>();
 
         protected override void AfterMapPlaced(Map.Map map, bool goesFromInventory)
         {
@@ -56,6 +67,7 @@ namespace Assets.Scripts.Stuff
             StopGrowth();
             RemoveFromParent();
             DetachChildren();
+            ReturnBranchesToPool();
 
             Parent = null;
             FirstChild = null;
@@ -81,14 +93,13 @@ namespace Assets.Scripts.Stuff
         public void StopGrowth()
         {
             isGrowing = false;
-            timerTag++; // zneplatni naplanovany timer
+            timerTag++;
         }
 
         void ISimpleTimerConsumer.OnTimer()
         {
             if (HasActiveRB)
             {
-                // Presli jsme na RB fyziku, zastavujeme rust
                 StopGrowth();
                 return;
             }
@@ -104,31 +115,109 @@ namespace Assets.Scripts.Stuff
 
         private void TryGrow()
         {
-            // Zatim jednoduchy rust: najdi koncovy uzel a prodluz nahoru
-            var leaf = FindLeaf();
-            if (leaf == null)
-                return;
+            var map = GetMap();
+            candidates.Clear();
+            float totalWeight = 0f;
 
-            var targetPos = leaf.Pivot + Dir8.Up.ToVector();
-            var map = leaf.GetMap();
+            CollectCandidates(this, map, ref totalWeight);
 
-            if (!IsCellFree(map, targetPos, leaf.CellZ))
-                return;
+            if (candidates.Count > 0 && totalWeight > 0f)
+            {
+                // Vazeny nahodny vyber
+                float roll = Random.Range(0f, totalWeight);
+                float cumulative = 0f;
+                for (int i = 0; i < candidates.Count; i++)
+                {
+                    cumulative += candidates[i].Weight;
+                    if (roll <= cumulative)
+                    {
+                        var c = candidates[i];
+                        GrowSegment(c.Source, c.Direction, c.Source.Pivot + c.Direction.ToVector(), map);
+                        break;
+                    }
+                }
+            }
 
-            GrowSegment(leaf, Dir8.Up, targetPos, map);
+            candidates.Clear();
         }
 
-        private TreeTrunk FindLeaf()
+        private void CollectCandidates(TreeTrunk node, Map.Map map, ref float totalWeight)
         {
-            // Najdi prvni koncovy uzel (uzel bez deti)
-            return FindLeafRecursive(this);
+            int cellZ = node.CellZ;
+
+            // Odbocky - vsechny smery krome opacneho (a opacny jen pokud nema parenta)
+            for (int d = 0; d < 8; d++)
+            {
+                var dir = (Dir8)d;
+                if (node.Parent != null && dir == node.Direction.Opposite())
+                    continue;
+
+                bool direct = dir == node.Direction || dir == node.Direction.Opposite();
+                float weight = direct ? 1f : TreeSettings.BranchWeight;
+                if (!direct)
+                {
+                    if (HasNearbyBranch(node))
+                        weight *= TreeSettings.NearBranchWeight;
+                    if (node.FirstChild == null)
+                        weight *= TreeSettings.EndBranchPenalty;
+                }
+
+                if (weight <= 0)
+                    continue;
+
+                TryAddCandidate(node, dir, map, cellZ, weight, ref totalWeight);
+            }
+
+            // Rekurze do deti
+            var child = node.FirstChild;
+            while (child != null)
+            {
+                CollectCandidates(child, map, ref totalWeight);
+                child = child.NextSibling;
+            }
         }
 
-        private TreeTrunk FindLeafRecursive(TreeTrunk node)
+        private void TryAddCandidate(TreeTrunk source, Dir8 dir, Map.Map map, int cellZ, float weight, ref float totalWeight)
         {
-            if (node.FirstChild == null)
-                return node;
-            return FindLeafRecursive(node.FirstChild);
+            var targetPos = source.Pivot + dir.ToVector();
+            if (!IsCellFree(map, targetPos, cellZ))
+                return;
+
+            weight *= dir.UpWeight(TreeSettings.UpExponent);
+            weight *= GetFreeNeighborWeight(map, targetPos, cellZ);
+            weight *= GetCenterWeight(targetPos.x);
+
+            if (weight <= 0)
+                return;
+
+            candidates.Add(new GrowthCandidate
+            {
+                Source = source,
+                Direction = dir,
+                Weight = weight,
+            });
+            totalWeight += weight;
+        }
+
+        private static bool HasNearbyBranch(TreeTrunk node)
+        {
+            // Kontrola: parent, nebo nektery syn ma branch
+            if (node.Parent != null && node.Parent.hasBranch)
+                return true;
+            var child = node.FirstChild;
+            while (child != null)
+            {
+                if (child.hasBranch)
+                    return true;
+                child = child.NextSibling;
+            }
+            return false;
+        }
+
+        private float GetCenterWeight(float targetX)
+        {
+            float dist = Mathf.Abs(targetX - Pivot.x);
+            return 1f / (1f + dist * TreeSettings.CenterPreference);
         }
 
         private bool IsCellFree(Map.Map map, Vector2 targetPos, int cellZ)
@@ -137,12 +226,35 @@ namespace Assets.Scripts.Stuff
             return !blocking.HasSubFlag(SubCellFlags.Part, cellZ);
         }
 
+        private float GetFreeNeighborWeight(Map.Map map, Vector2 targetPos, int cellZ)
+        {
+            int freeCount = 0;
+            for (int d = 0; d < 8; d++)
+            {
+                var neighborPos = targetPos + ((Dir8)d).ToVector();
+                var blocking = map.GetCellBlocking(neighborPos);
+                if (!blocking.HasSubFlag(SubCellFlags.Part, cellZ))
+                    freeCount++;
+            }
+
+            var weight = freeCount / 8f;
+            return weight * weight;
+        }
+
         private void GrowSegment(TreeTrunk parentTrunk, Dir8 direction, Vector2 targetPos, Map.Map map)
         {
-            var levelGroup = LevelGroup2;
             var pos = new Vector3(targetPos.x, targetPos.y, parentTrunk.transform.position.z);
+            bool isDiagonal = direction.IsDiagonal();
 
-            var newTrunk = Game.Instance.PrefabsStore.TreeTrunk.CreateWithotInit(levelGroup.transform, pos);
+            // Vyber spravny prefab
+            var prefab = isDiagonal
+                ? Game.Instance.PrefabsStore.TreeTrunkDg
+                : Game.Instance.PrefabsStore.TreeTrunk;
+
+            var newTrunk = prefab.CreateWithotInit(LevelGroup, pos);
+
+            // Nastav rotaci
+            newTrunk.transform.rotation = direction.ToRotation();
 
             // Nastav stromovou strukturu pred Init
             newTrunk.Parent = parentTrunk;
@@ -162,6 +274,38 @@ namespace Assets.Scripts.Stuff
 
             // Propaguj segmentCount nahoru
             PropagateSegmentCountChange(parentTrunk, 1);
+
+            // Vytvor vizualni odbocku pokud meni smer
+            if (direction != parentTrunk.Direction && direction != parentTrunk.Direction.Opposite())
+            {
+                CreateBranchVisual(parentTrunk, direction, isDiagonal);
+            }
+        }
+
+        private void CreateBranchVisual(TreeTrunk onTrunk, Dir8 branchDirection, bool isDiagonal)
+        {
+            onTrunk.hasBranch = true;
+
+            var prefab = isDiagonal
+                ? Game.Instance.PrefabsStore.TreeBranchDg
+                : Game.Instance.PrefabsStore.TreeBranch;
+
+            var branch = Game.Instance.Pool.Get(prefab, onTrunk.transform);
+            branch.transform.localPosition = Vector3.zero;
+            branch.transform.rotation = branchDirection.ToRotation();
+        }
+
+        private void ReturnBranchesToPool()
+        {
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i);
+                if (child.TryGetComponent<LabelWithSettings>(out var label) && label.Ksid == Core.Ksid.TreeBranch)
+                {
+                    Game.Instance.Pool.Store(label, label.Prototype);
+                }
+            }
+            hasBranch = false;
         }
 
         private static void AddChild(TreeTrunk parent, TreeTrunk child)
@@ -186,7 +330,6 @@ namespace Assets.Scripts.Stuff
             if (Parent == null)
                 return;
 
-            // Odecti sebe a sve potomky z rodicovske vetve
             PropagateSegmentCountChange(Parent, -SegmentCount);
 
             if (Parent.FirstChild == this)

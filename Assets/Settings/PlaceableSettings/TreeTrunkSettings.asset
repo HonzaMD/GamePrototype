@@ -21,7 +21,7 @@ MonoBehaviour:
   AutoAtachRB: 0
   SecondaryMapIndex: 0
   IsTrigger: 0
-  RecomputeBB: 1
+  RecomputeBB: 0
   IsOBB: 0
   BBPosOffset: {x: -0.125, y: -0.25}
   BBSize: {x: 0.25, y: 0.5}

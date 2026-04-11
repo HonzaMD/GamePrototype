@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c56aadf56df0bd54f9eb878a8fdb134c, type: 3}
   m_Name: Tree Settings
   m_EditorClassIdentifier: 
-  GrowthInterval: 5
-  GrowthIntervalRandom: 1
-  MaxSegments: 50
+  GrowthInterval: 0.2
+  GrowthIntervalRandom: 0.1
+  MaxSegments: 30
+  BranchWeight: 0.25
+  NearBranchWeight: 0.03
+  UpPreference: 5
+  EndBranchPenalty: 0.1
   BaseMass: 20
   BaseSpStretchLimit: 800
   BaseSpCompressLimit: 800
