@@ -17,7 +17,6 @@ namespace Assets.Scripts.Bases
             RbConnection = 1,
             OwnsJoint = 2,
             SpConnection = 4,
-            DoRbjCleanup = 8,
         }
 
 
@@ -26,6 +25,7 @@ namespace Assets.Scripts.Bases
         public Placeable OtherObj;
         public RbJoint OtherConnectable;
         public State state;
+        private bool doRbjCleanup;
 
         public bool IsConnected => (state & State.SpConnection) != 0 || Joint;
 
@@ -38,7 +38,6 @@ namespace Assets.Scripts.Bases
             OtherConnectable = otherJ;
         }
 
-
         private void SetState(State value)
         {
             state = value;
@@ -47,7 +46,7 @@ namespace Assets.Scripts.Bases
             OtherConnectable.ActiveDebugLine();
         }
 
-        public void EnableRbjCleanup() => state |= State.DoRbjCleanup;
+        public void EnableRbjCleanup() => doRbjCleanup = true;
 
         public override void Disconnect() => Disconnect(true);
 
@@ -67,7 +66,7 @@ namespace Assets.Scripts.Bases
             if ((state & State.RbConnection) != 0)
                 MyObj.DetachRigidBody(false, true);
 
-            if ((state & State.DoRbjCleanup) != 0)
+            if (trueKill && doRbjCleanup)
                 MyObj.GetComponent<IHasRbJointCleanup>().RbJointCleanup(this);
 
             DeactivateDebugLine();
@@ -77,6 +76,7 @@ namespace Assets.Scripts.Bases
 
             if (trueKill)
             {
+                doRbjCleanup = false;
                 MyObj = null;
                 OtherObj = null;
                 OtherConnectable = null;
@@ -117,7 +117,7 @@ namespace Assets.Scripts.Bases
         }
 
         internal void SetupRb2(Joint j)
-        { 
+        {
             Joint = j;
             OtherConnectable.Joint = j;
         }

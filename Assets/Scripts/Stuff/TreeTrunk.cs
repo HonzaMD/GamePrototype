@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Stuff
 {
-    public class TreeTrunk : Placeable, ISimpleTimerConsumer
+    public class TreeTrunk : Placeable, ISimpleTimerConsumer, IHasRbJointCleanup
     {
         // Stromova struktura
         [HideInInspector]
@@ -91,7 +91,9 @@ namespace Assets.Scripts.Stuff
                 {
                     IsUnderground = true;
                     DisableCollider();
-                    CreateRbJoint(dirt).SetupSp();
+                    var rbj = CreateRbJoint(dirt);
+                    rbj.SetupSp();
+                    rbj.EnableRbjCleanup();
                 } 
                 else
                 {
@@ -158,10 +160,8 @@ namespace Assets.Scripts.Stuff
                 return;
             }
 
-            if (SegmentCount >= TreeSettings.MaxSegments)
-                return;
-
-            TryGrow();
+            if (SegmentCount < TreeSettings.MaxSegments)
+                TryGrow();
 
             if (isGrowing)
                 this.Plan(TreeSettings.GetGrowthDelay());
@@ -382,13 +382,17 @@ namespace Assets.Scripts.Stuff
             newTrunk.Init(map);
 
             // Propoj statickou fyzikou s parentem
-            parentTrunk.CreateRbJoint(newTrunk).SetupSp();
+            var rbj = parentTrunk.CreateRbJoint(newTrunk);
+            rbj.SetupSp();
+            rbj.OtherConnectable.EnableRbjCleanup();
 
             // Podzemni: deaktivuj collider a propoj s hlinou
             if (underground)
             {
                 newTrunk.DisableCollider();
-                newTrunk.CreateRbJoint(dirtTarget).SetupSp();
+                var dirtRbj = newTrunk.CreateRbJoint(dirtTarget);
+                dirtRbj.SetupSp();
+                dirtRbj.EnableRbjCleanup();
             }
 
             PropagateCountChange(parentTrunk, 1, balanceDelta);
@@ -560,6 +564,25 @@ namespace Assets.Scripts.Stuff
                 child = child.NextSibling;
             }
         }
+
+        // Reakce na pretrzeni vazby
+
+        void IHasRbJointCleanup.RbJointCleanup(RbJoint rbj)
+        {
+            if (rbj.OtherObj is TreeTrunk)
+            {
+                // Pretrzeni trunk-trunk: tento uzel je syn, odpojit od parenta
+                RemoveFromParent();
+                Controller = null;
+            }
+            else
+            {
+                // Pretrzeni trunk-hlina: zapnout collider
+                if (IsUnderground)
+                    EnableCollider();
+            }
+        }
+
 
         // Odpojeni ze stromove struktury
 
