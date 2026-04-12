@@ -15,10 +15,14 @@ MonoBehaviour:
   GrowthInterval: 0.2
   GrowthIntervalRandom: 0.1
   MaxSegments: 30
-  BranchWeight: 0.25
-  NearBranchWeight: 0.03
-  UpPreference: 5
+  BranchWeight: 3
+  NearBranchWeight: 0.05
   EndBranchPenalty: 0.1
+  CenterPreference: 0.8
+  UpExponent: 3
+  RootUpExponent: 3
+  UndergroundBalanceWeight: -1.3
+  BalanceWeight: 1
   BaseMass: 20
   BaseSpStretchLimit: 800
   BaseSpCompressLimit: 800

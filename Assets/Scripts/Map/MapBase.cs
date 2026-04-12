@@ -133,6 +133,15 @@ namespace Assets.Scripts.Map
             }
             return false;
         }
+        public bool ContainsType(ref T cell, Ksid ksid)
+        {
+            foreach (var p in cell)
+            {
+                if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                    return true;
+            }
+            return false;
+        }
 
         public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid)
         {

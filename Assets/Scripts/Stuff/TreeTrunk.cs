@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System.Collections.Generic;
@@ -19,14 +20,19 @@ namespace Assets.Scripts.Stuff
         public TreeTrunk Controller;
         [HideInInspector]
         public Dir8 Direction;
+        [HideInInspector]
+        public bool IsUnderground;
 
         // Konfigurace (nastaveno na prefabu nebo pri spawnu)
         public TreeSettings TreeSettings;
 
         // Pocet segmentu: 1 (ja) + pocet vsech potomku
         public int SegmentCount { get; private set; }
+        // Balance: kladne = prevaha nadzemi, zaporne = prevaha podzemi
+        public float UndergroundBalance { get; private set; }
         private bool isGrowing;
         private bool hasBranch;
+        private Collider myCollider;
 
         // ISimpleTimerConsumer
         private int timerTag;
@@ -34,11 +40,19 @@ namespace Assets.Scripts.Stuff
 
         private bool IsController => Controller == this;
 
+        private void Awake()
+        {
+            myCollider = GetComponentInChildren<Collider>();
+        }
+
+        private enum GrowTarget : byte { None, Free, Dirt }
+
         private struct GrowthCandidate
         {
             public TreeTrunk Source;
             public Dir8 Direction;
             public float Weight;
+            public Placeable DirtTarget; // null = nadzemni, jinak hlina v cilove bunce
         }
 
         private static readonly List<GrowthCandidate> candidates = new List<GrowthCandidate>();
@@ -51,12 +65,26 @@ namespace Assets.Scripts.Stuff
                 Controller = this;
                 SegmentCount = 1;
 
-                var segments = ListPool<Placeable>.Rent();
-                segments.Add(this);
-                Physics.SyncTransforms();
-                var connector = new SpConnectionFinder(segments, map);
-                connector.TryConnect();
-                segments.Return();
+                // Zjistime zda jsme v hline
+                ref var cell = ref map.GetCell(Pivot);
+                var dirt = FindDirt(ref cell);
+                if (dirt != null)
+                {
+                    IsUnderground = true;
+                    DisableCollider();
+                    CreateRbJoint(dirt).SetupSp();
+                } 
+                else
+                {
+                    var segments = ListPool<Placeable>.Rent();
+                    segments.Add(this);
+                    Physics.SyncTransforms();
+                    var connector = new SpConnectionFinder(segments, map);
+                    connector.TryConnect();
+                    segments.Return();
+                }
+
+                UndergroundBalance = IsUnderground ? TreeSettings.UndergroundBalanceWeight : 1f;
 
                 StartGrowth();
             }
@@ -68,13 +96,14 @@ namespace Assets.Scripts.Stuff
             RemoveFromParent();
             DetachChildren();
             ReturnBranchesToPool();
+            if (IsUnderground)
+                EnableCollider();
 
-            Parent = null;
-            FirstChild = null;
             NextSibling = null;
             Controller = null;
             SegmentCount = 0;
-            isGrowing = false;
+            UndergroundBalance = 0;
+            IsUnderground = false;
 
             base.Cleanup(goesToInventory);
         }
@@ -123,7 +152,6 @@ namespace Assets.Scripts.Stuff
 
             if (candidates.Count > 0 && totalWeight > 0f)
             {
-                // Vazeny nahodny vyber
                 float roll = Random.Range(0f, totalWeight);
                 float cumulative = 0f;
                 for (int i = 0; i < candidates.Count; i++)
@@ -132,7 +160,7 @@ namespace Assets.Scripts.Stuff
                     if (roll <= cumulative)
                     {
                         var c = candidates[i];
-                        GrowSegment(c.Source, c.Direction, c.Source.Pivot + c.Direction.ToVector(), map);
+                        GrowSegment(c.Source, c.Direction, c.Source.Pivot + c.Direction.ToVector(), map, c.DirtTarget);
                         break;
                     }
                 }
@@ -145,30 +173,15 @@ namespace Assets.Scripts.Stuff
         {
             int cellZ = node.CellZ;
 
-            // Odbocky - vsechny smery krome opacneho (a opacny jen pokud nema parenta)
             for (int d = 0; d < 8; d++)
             {
                 var dir = (Dir8)d;
                 if (node.Parent != null && dir == node.Direction.Opposite())
                     continue;
 
-                bool direct = dir == node.Direction || dir == node.Direction.Opposite();
-                float weight = direct ? 1f : TreeSettings.BranchWeight;
-                if (!direct)
-                {
-                    if (HasNearbyBranch(node))
-                        weight *= TreeSettings.NearBranchWeight;
-                    if (node.FirstChild == null)
-                        weight *= TreeSettings.EndBranchPenalty;
-                }
-
-                if (weight <= 0)
-                    continue;
-
-                TryAddCandidate(node, dir, map, cellZ, weight, ref totalWeight);
+                TryAddCandidate(node, dir, map, cellZ, ref totalWeight);
             }
 
-            // Rekurze do deti
             var child = node.FirstChild;
             while (child != null)
             {
@@ -177,14 +190,43 @@ namespace Assets.Scripts.Stuff
             }
         }
 
-        private void TryAddCandidate(TreeTrunk source, Dir8 dir, Map.Map map, int cellZ, float weight, ref float totalWeight)
+        private void TryAddCandidate(TreeTrunk source, Dir8 dir, Map.Map map, int cellZ, ref float totalWeight)
         {
             var targetPos = source.Pivot + dir.ToVector();
-            if (!IsCellFree(map, targetPos, cellZ))
+            var growTarget = GetGrowTarget(map, targetPos, cellZ, source.IsUnderground, out var dirtTarget);
+            if (growTarget == GrowTarget.None)
                 return;
 
-            weight *= dir.UpWeight(TreeSettings.UpExponent);
-            weight *= GetFreeNeighborWeight(map, targetPos, cellZ);
+            bool direct = dir == source.Direction || dir == source.Direction.Opposite();
+            bool targetUnderground = growTarget == GrowTarget.Dirt;
+
+            float weight = 1;
+
+            weight *= GetBalanceWeight(targetUnderground);
+            if (weight <= 0)
+                return;
+
+            if (!targetUnderground && !direct)
+            {
+                weight *= TreeSettings.BranchWeight;
+                if (HasNearbyBranch(source))
+                    weight *= TreeSettings.NearBranchWeight;
+                if (source.FirstChild == null)
+                    weight *= TreeSettings.EndBranchPenalty;
+            }
+
+            // Smerova vaha
+            if (targetUnderground)
+                weight *= dir.Opposite().UpWeight(TreeSettings.RootUpExponent);
+            else
+                weight *= dir.UpWeight(TreeSettings.UpExponent);
+
+            // Volny prostor - jen nadzemni
+            if (!targetUnderground)
+            {
+                weight *= GetFreeNeighborWeight(map, targetPos, cellZ);
+            }
+
             weight *= GetCenterWeight(targetPos.x);
 
             if (weight <= 0)
@@ -195,13 +237,60 @@ namespace Assets.Scripts.Stuff
                 Source = source,
                 Direction = dir,
                 Weight = weight,
+                DirtTarget = dirtTarget,
             });
             totalWeight += weight;
         }
 
+        private GrowTarget GetGrowTarget(Map.Map map, Vector2 targetPos, int cellZ, bool sourceUnderground, out Placeable dirtTarget)
+        {
+            dirtTarget = null;
+            ref var cell = ref map.GetCell(targetPos);
+            bool hasPart = cell.Blocking.HasSubFlag(SubCellFlags.Part, cellZ);
+
+            if (!hasPart)
+            {
+                // Volna bunka - nadzemni rust
+                return GrowTarget.Free;
+            }
+
+            // Nadzemni source nemuze prechazet do zeme (krome controlleru)
+            if (!sourceUnderground && !IsController)
+                return GrowTarget.None;
+
+            // Bunka je obsazena - zkusime najit hlinu
+
+            // Kontrola zda bunka neobsahuje neco co blokuje koreny (napr. jiny TreeTrunk)
+            if (map.ContainsType(ref cell, Ksid.BlocksTreeRoots))
+                return GrowTarget.None;
+
+            dirtTarget = FindDirt(ref cell);
+            return dirtTarget != null ? GrowTarget.Dirt : GrowTarget.None;
+        }
+
+        private static Placeable FindDirt(ref Map.Cell cell)
+        {
+            foreach (var p in cell)
+            {
+                if (p.Ksid.IsChildOfOrEq(Ksid.Dirt) && !p.HasActiveRB)
+                    return p;
+            }
+            return null;
+        }
+
+        private float GetBalanceWeight(bool targetUnderground)
+        {
+            float balance = UndergroundBalance * TreeSettings.BalanceWeight / SegmentCount;
+            // balance > 0 = prevaha nadzemi -> preferovat podzemi
+            // balance < 0 = prevaha podzemi -> preferovat nadzemi
+            if (targetUnderground)
+                balance *= -1;
+
+            return Mathf.Clamp01(1 - balance);
+        }
+
         private static bool HasNearbyBranch(TreeTrunk node)
         {
-            // Kontrola: parent, nebo nektery syn ma branch
             if (node.Parent != null && node.Parent.hasBranch)
                 return true;
             var child = node.FirstChild;
@@ -220,12 +309,6 @@ namespace Assets.Scripts.Stuff
             return 1f / (1f + dist * TreeSettings.CenterPreference);
         }
 
-        private bool IsCellFree(Map.Map map, Vector2 targetPos, int cellZ)
-        {
-            var blocking = map.GetCellBlocking(targetPos);
-            return !blocking.HasSubFlag(SubCellFlags.Part, cellZ);
-        }
-
         private float GetFreeNeighborWeight(Map.Map map, Vector2 targetPos, int cellZ)
         {
             int freeCount = 0;
@@ -241,19 +324,18 @@ namespace Assets.Scripts.Stuff
             return weight * weight;
         }
 
-        private void GrowSegment(TreeTrunk parentTrunk, Dir8 direction, Vector2 targetPos, Map.Map map)
+        private void GrowSegment(TreeTrunk parentTrunk, Dir8 direction, Vector2 targetPos, Map.Map map, Placeable dirtTarget)
         {
             var pos = new Vector3(targetPos.x, targetPos.y, parentTrunk.transform.position.z);
             bool isDiagonal = direction.IsDiagonal();
+            bool underground = dirtTarget != null;
 
-            // Vyber spravny prefab
             var prefab = isDiagonal
                 ? Game.Instance.PrefabsStore.TreeTrunkDg
                 : Game.Instance.PrefabsStore.TreeTrunk;
 
             var newTrunk = prefab.CreateWithotInit(LevelGroup, pos);
 
-            // Nastav rotaci
             newTrunk.transform.rotation = direction.ToRotation();
 
             // Nastav stromovou strukturu pred Init
@@ -261,25 +343,43 @@ namespace Assets.Scripts.Stuff
             newTrunk.Controller = Controller;
             newTrunk.Direction = direction;
             newTrunk.TreeSettings = TreeSettings;
+            newTrunk.IsUnderground = underground;
             newTrunk.SegmentCount = 1;
+            float balanceDelta = underground ? TreeSettings.UndergroundBalanceWeight : 1f;
+            newTrunk.UndergroundBalance = balanceDelta;
 
-            // Pridej jako dite parenta
             AddChild(parentTrunk, newTrunk);
 
             // Umisti na mapu
             newTrunk.Init(map);
 
-            // Propoj statickou fyzikou
+            // Propoj statickou fyzikou s parentem
             parentTrunk.CreateRbJoint(newTrunk).SetupSp();
 
-            // Propaguj segmentCount nahoru
-            PropagateSegmentCountChange(parentTrunk, 1);
+            // Podzemni: deaktivuj collider a propoj s hlinou
+            if (underground)
+            {
+                newTrunk.DisableCollider();
+                newTrunk.CreateRbJoint(dirtTarget).SetupSp();
+            }
 
-            // Vytvor vizualni odbocku pokud meni smer
+            PropagateCountChange(parentTrunk, 1, balanceDelta);
+
+            // Vizualni odbocka
             if (direction != parentTrunk.Direction && direction != parentTrunk.Direction.Opposite())
             {
                 CreateBranchVisual(parentTrunk, direction, isDiagonal);
             }
+        }
+
+        private void DisableCollider()
+        {
+            if (myCollider) myCollider.enabled = false;
+        }
+
+        private void EnableCollider()
+        {
+            if (myCollider) myCollider.enabled = true;
         }
 
         private void CreateBranchVisual(TreeTrunk onTrunk, Dir8 branchDirection, bool isDiagonal)
@@ -293,19 +393,30 @@ namespace Assets.Scripts.Stuff
             var branch = Game.Instance.Pool.Get(prefab, onTrunk.transform);
             branch.transform.localPosition = Vector3.zero;
             branch.transform.rotation = branchDirection.ToRotation();
+
+            if (onTrunk.IsUnderground)
+            {
+                var col = branch.GetComponentInChildren<Collider>();
+                if (col) col.enabled = false;
+            }
         }
 
         private void ReturnBranchesToPool()
         {
-            for (int i = transform.childCount - 1; i >= 0; i--)
+            if (hasBranch)
             {
-                var child = transform.GetChild(i);
-                if (child.TryGetComponent<LabelWithSettings>(out var label) && label.Ksid == Core.Ksid.TreeBranch)
+                for (int i = transform.childCount - 1; i >= 0; i--)
                 {
-                    Game.Instance.Pool.Store(label, label.Prototype);
+                    var child = transform.GetChild(i);
+                    if (child.TryGetComponent<LabelWithSettings>(out var label) && label.Ksid == Ksid.TreeBranch)
+                    {
+                        var col = label.GetComponentInChildren<Collider>();
+                        if (col) col.enabled = true;
+                        Game.Instance.Pool.Store(label, label.Prototype);
+                    }
                 }
+                hasBranch = false;
             }
-            hasBranch = false;
         }
 
         private static void AddChild(TreeTrunk parent, TreeTrunk child)
@@ -314,11 +425,12 @@ namespace Assets.Scripts.Stuff
             parent.FirstChild = child;
         }
 
-        private static void PropagateSegmentCountChange(TreeTrunk node, int delta)
+        private static void PropagateCountChange(TreeTrunk node, int segmentDelta, float balanceDelta)
         {
             while (node != null)
             {
-                node.SegmentCount += delta;
+                node.SegmentCount += segmentDelta;
+                node.UndergroundBalance += balanceDelta;
                 node = node.Parent;
             }
         }
@@ -330,7 +442,7 @@ namespace Assets.Scripts.Stuff
             if (Parent == null)
                 return;
 
-            PropagateSegmentCountChange(Parent, -SegmentCount);
+            PropagateCountChange(Parent, -SegmentCount, -UndergroundBalance);
 
             if (Parent.FirstChild == this)
             {
@@ -344,14 +456,17 @@ namespace Assets.Scripts.Stuff
                 if (sibling != null)
                     sibling.NextSibling = NextSibling;
             }
+            Parent = null;
         }
 
         private void DetachChildren()
         {
             var child = FirstChild;
+            FirstChild = null;
             while (child != null)
             {
                 var next = child.NextSibling;
+                child.NextSibling = null;
                 child.Parent = null;
                 child.Controller = null;
                 child = next;

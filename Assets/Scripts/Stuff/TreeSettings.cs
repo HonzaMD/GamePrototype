@@ -19,6 +19,11 @@ namespace Assets.Scripts.Stuff
         [Tooltip("Exponent pro preferenci rustu nahoru. 1 = linearni, vetsi = silnejsi preference nahoru")]
         public float UpExponent = 3f;
 
+        [Header("Koreny")]
+        public float RootUpExponent = 3f;
+        public float UndergroundBalanceWeight = -1.3f;
+        public float BalanceWeight = 1f;
+
         [Header("Fyzika")]
         public float BaseMass = 20f;
         public float BaseSpStretchLimit = 800f;

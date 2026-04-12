@@ -12,11 +12,13 @@ namespace Assets.Scripts.Core
             : base(new (Ksid child, Ksid parent)[]
             {
                 (Ksid.Rope, Ksid.Catch),
+                (Ksid.TreeTrunk, Ksid.Catch),
                 (Ksid.Rope, Ksid.CharacterHolds),
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.InventoryItem, Ksid.CharacterHolds),
                 (Ksid.Ladder, Ksid.CharacterHolds),
                 (Ksid.Cannon, Ksid.CharacterHolds),
+                (Ksid.TreeTrunk, Ksid.CharacterHolds),
                 (Ksid.Stone, Ksid.InventoryItem),
                 (Ksid.Light, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.InventoryItem),
@@ -25,6 +27,7 @@ namespace Assets.Scripts.Core
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
                 (Ksid.PoisonGas, Ksid.ActivatesByThrow),
+                (Ksid.Knife, Ksid.ActivatesByThrow),
                 (Ksid.StickyBomb, Ksid.DisconnectedByCatch),                
                 (Ksid.Stone, Ksid.SandLike),
                 (Ksid.Light, Ksid.SandLike),
@@ -47,9 +50,12 @@ namespace Assets.Scripts.Core
 
                 (Ksid.SpFixed, Ksid.SpNode),
                 (Ksid.SpMoving, Ksid.SpNode),
-                (Ksid.StoneBlock, Ksid.SpFixed),                
+                (Ksid.StoneBlock, Ksid.SpFixed),
+                (Ksid.StoneBlock, Ksid.Dirt),
                 (Ksid.Ladder, Ksid.SpMoving),
                 (Ksid.Cannon, Ksid.SpMoving),
+                (Ksid.TreeTrunk, Ksid.SpMoving),
+                (Ksid.TreeTrunk, Ksid.BlocksTreeRoots),
                 (Ksid.SpNode, Ksid.SpNodeOrSandCombiner),
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
 
@@ -65,7 +71,6 @@ namespace Assets.Scripts.Core
                 (Ksid.Cannon, Ksid.DamagedByImpact),
 
                 (Ksid.Knife, Ksid.DealsKnifeDamage),
-                (Ksid.Knife, Ksid.ActivatesByThrow),
                 (Ksid.Character, Ksid.DamagedByKnife),
                 (Ksid.SmallMonster, Ksid.DamagedByKnife),
 
