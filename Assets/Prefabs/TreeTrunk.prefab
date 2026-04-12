@@ -57,6 +57,7 @@ MonoBehaviour:
   NextSibling: {fileID: 0}
   Controller: {fileID: 0}
   Direction: 0
+  IsUnderground: 0
   TreeSettings: {fileID: 11400000, guid: 0ccdc09c0ef7ea24d91462e462f12c24, type: 2}
 --- !u!1 &5502875878221306187
 GameObject:
@@ -87,7 +88,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
+  m_LocalScale: {x: 0.05, y: 0.25, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5792678164514527244}

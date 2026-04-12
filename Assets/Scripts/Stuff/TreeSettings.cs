@@ -25,11 +25,24 @@ namespace Assets.Scripts.Stuff
         public float BalanceWeight = 1f;
 
         [Header("Fyzika")]
-        public float BaseMass = 20f;
-        public float BaseSpStretchLimit = 800f;
-        public float BaseSpCompressLimit = 800f;
-        public float BaseSpMomentLimit = 500f;
+        public float BaseMass = 1.2f;
+        public float BaseSpStretchLimit = 40f;
+        public float BaseSpCompressLimit = 40f;
+        public float BaseSpMomentLimit = 25f;
+
+        [Header("Tloustka")]
+        public int MaxThicknessLevel = 5;
+        [Tooltip("Scale XZ = ScaleConstant + level * ScalePerLevel")]
+        public float ScaleConstant = 0.03f;
+        public float ScalePerLevel = 0.07f;
 
         public float GetGrowthDelay() => GrowthInterval + Random.Range(-GrowthIntervalRandom, GrowthIntervalRandom);
+
+        public int GetThicknessLevel(int segmentCount)
+        {
+            float ratio = (float)segmentCount / MaxSegments;
+            int level = Mathf.CeilToInt(ratio * MaxThicknessLevel);
+            return Mathf.Clamp(level, 1, MaxThicknessLevel);
+        }
     }
 }

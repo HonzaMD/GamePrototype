@@ -1,5 +1,6 @@
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System.Collections.Generic;
@@ -33,6 +34,8 @@ namespace Assets.Scripts.Stuff
         private bool isGrowing;
         private bool hasBranch;
         private Collider myCollider;
+        private int thicknessLevel = 1;
+        private Transform myBranch; // child transform branche ze ktere tento segment vede
 
         // ISimpleTimerConsumer
         private int timerTag;
@@ -43,6 +46,20 @@ namespace Assets.Scripts.Stuff
         private void Awake()
         {
             myCollider = GetComponentInChildren<Collider>();
+        }
+
+        public override float GetMass()
+        {
+            return TreeSettings.BaseMass * thicknessLevel * thicknessLevel;
+        }
+
+        public override (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits
+        {
+            get
+            {
+                float m = thicknessLevel * thicknessLevel;
+                return (TreeSettings.BaseSpStretchLimit * m, TreeSettings.BaseSpCompressLimit * m, TreeSettings.BaseSpMomentLimit * m);
+            }
         }
 
         private enum GrowTarget : byte { None, Free, Dirt }
@@ -59,6 +76,8 @@ namespace Assets.Scripts.Stuff
 
         protected override void AfterMapPlaced(Map.Map map, bool goesFromInventory)
         {
+            ApplyThicknessScale(thicknessLevel);
+
             if (Parent == null && Controller == null)
             {
                 // Jsme ridici uzel
@@ -104,6 +123,12 @@ namespace Assets.Scripts.Stuff
             SegmentCount = 0;
             UndergroundBalance = 0;
             IsUnderground = false;
+            myBranch = null;
+            if (thicknessLevel > 1)
+            {
+                thicknessLevel = 1;
+                ApplyThicknessScale(1);
+            }
 
             base.Cleanup(goesToInventory);
         }
@@ -329,6 +354,7 @@ namespace Assets.Scripts.Stuff
             var pos = new Vector3(targetPos.x, targetPos.y, parentTrunk.transform.position.z);
             bool isDiagonal = direction.IsDiagonal();
             bool underground = dirtTarget != null;
+            bool direct = direction == parentTrunk.Direction || direction == parentTrunk.Direction.Opposite();
 
             var prefab = isDiagonal
                 ? Game.Instance.PrefabsStore.TreeTrunkDg
@@ -345,6 +371,8 @@ namespace Assets.Scripts.Stuff
             newTrunk.TreeSettings = TreeSettings;
             newTrunk.IsUnderground = underground;
             newTrunk.SegmentCount = 1;
+            if (direct && parentTrunk.thicknessLevel > 1)
+                newTrunk.thicknessLevel = parentTrunk.thicknessLevel - 1;
             float balanceDelta = underground ? TreeSettings.UndergroundBalanceWeight : 1f;
             newTrunk.UndergroundBalance = balanceDelta;
 
@@ -366,9 +394,9 @@ namespace Assets.Scripts.Stuff
             PropagateCountChange(parentTrunk, 1, balanceDelta);
 
             // Vizualni odbocka
-            if (direction != parentTrunk.Direction && direction != parentTrunk.Direction.Opposite())
+            if (!direct)
             {
-                CreateBranchVisual(parentTrunk, direction, isDiagonal);
+                CreateBranchVisual(newTrunk, parentTrunk, direction, isDiagonal);
             }
         }
 
@@ -382,7 +410,7 @@ namespace Assets.Scripts.Stuff
             if (myCollider) myCollider.enabled = true;
         }
 
-        private void CreateBranchVisual(TreeTrunk onTrunk, Dir8 branchDirection, bool isDiagonal)
+        private void CreateBranchVisual(TreeTrunk childTrunk, TreeTrunk onTrunk, Dir8 branchDirection, bool isDiagonal)
         {
             onTrunk.hasBranch = true;
 
@@ -393,6 +421,13 @@ namespace Assets.Scripts.Stuff
             var branch = Game.Instance.Pool.Get(prefab, onTrunk.transform);
             branch.transform.localPosition = Vector3.zero;
             branch.transform.rotation = branchDirection.ToRotation();
+
+            // Scale na child objektu branche (mesh), podle levelu syna
+            var meshTransform = branch.transform.GetChild(0);
+            ApplyThicknessScale(meshTransform, childTrunk.thicknessLevel);
+
+            // Syn si pamatuje svou branch
+            childTrunk.myBranch = meshTransform;
 
             if (onTrunk.IsUnderground)
             {
@@ -412,6 +447,7 @@ namespace Assets.Scripts.Stuff
                     {
                         var col = label.GetComponentInChildren<Collider>();
                         if (col) col.enabled = true;
+                        ApplyThicknessScale(col.transform, 1);
                         Game.Instance.Pool.Store(label, label.Prototype);
                     }
                 }
@@ -425,13 +461,103 @@ namespace Assets.Scripts.Stuff
             parent.FirstChild = child;
         }
 
-        private static void PropagateCountChange(TreeTrunk node, int segmentDelta, float balanceDelta)
+        private void PropagateCountChange(TreeTrunk node, int segmentDelta, float balanceDelta)
         {
             while (node != null)
             {
                 node.SegmentCount += segmentDelta;
                 node.UndergroundBalance += balanceDelta;
+
+                int newLevel = TreeSettings.GetThicknessLevel(node.SegmentCount);
+                if (newLevel > node.thicknessLevel)
+                {
+                    node.UpdateThickness(newLevel);
+                }
+
                 node = node.Parent;
+            }
+        }
+
+        // Tloustka
+
+        private void UpdateThickness(int newLevel)
+        {
+            float oldMass = GetMass();
+            thicknessLevel = newLevel;
+            float newMass = GetMass();
+
+            PropagateLevelDiscontinuity();
+
+            // Vizualni scale na child objektu (mesh + collider)
+            ApplyThicknessScale(newLevel);
+
+            // SP: aktualizuj hmotnost (delta sily)
+            if (SpNodeIndex != 0)
+            {
+                var sp = Game.Instance.StaticPhysics;
+                sp.ApplyForce(SpNodeIndex, Vector2.down * (newMass - oldMass));
+
+                // SP: aktualizuj limity vsech jointu tohoto uzlu
+                UpdateJointLimits(sp);
+            }
+        }
+
+        private void PropagateLevelDiscontinuity()
+        {
+            var child = FirstChild;
+            while (child != null)
+            {
+                if (child.myBranch == null && thicknessLevel > child.thicknessLevel + 1)
+                {
+                    child.UpdateThickness(thicknessLevel - 1);
+                }
+                child = child.NextSibling;
+            }
+        }
+
+        private void ApplyThicknessScale(int level)
+        {
+            ApplyThicknessScale(myCollider.transform, level);
+            if (myBranch != null)
+                ApplyThicknessScale(myBranch, level);
+        }
+
+        private void ApplyThicknessScale(Transform t, int level)
+        {
+            float scale = TreeSettings.ScaleConstant + (level - 1) * TreeSettings.ScalePerLevel;
+            var ls = t.localScale;
+            ls.x = scale;
+            ls.z = scale;
+            t.localScale = ls;
+        }
+
+        private void UpdateJointLimits(SpInterface sp)
+        {
+            var limits = SpLimits;
+
+            // Joint s parentem
+            if (Parent != null && Parent.SpNodeIndex != 0)
+            {
+                var parentLimits = Parent.SpLimits;
+                sp.UpdateJointLimits(SpNodeIndex, Parent.SpNodeIndex,
+                    Mathf.Min(limits.StretchLimit, parentLimits.StretchLimit),
+                    Mathf.Min(limits.CompressLimit, parentLimits.CompressLimit),
+                    Mathf.Min(limits.MomentLimit, parentLimits.MomentLimit));
+            }
+
+            // Jointy s detmi
+            var child = FirstChild;
+            while (child != null)
+            {
+                if (child.SpNodeIndex != 0)
+                {
+                    var childLimits = child.SpLimits;
+                    sp.UpdateJointLimits(SpNodeIndex, child.SpNodeIndex,
+                        Mathf.Min(limits.StretchLimit, childLimits.StretchLimit),
+                        Mathf.Min(limits.CompressLimit, childLimits.CompressLimit),
+                        Mathf.Min(limits.MomentLimit, childLimits.MomentLimit));
+                }
+                child = child.NextSibling;
             }
         }
 
@@ -457,6 +583,7 @@ namespace Assets.Scripts.Stuff
                     sibling.NextSibling = NextSibling;
             }
             Parent = null;
+            myBranch = null;
         }
 
         private void DetachChildren()
@@ -469,6 +596,7 @@ namespace Assets.Scripts.Stuff
                 child.NextSibling = null;
                 child.Parent = null;
                 child.Controller = null;
+                child.myBranch = null;
                 child = next;
             }
         }
