@@ -15,7 +15,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         AddNodeAndJoint,
         RemoveJoint, // i vystup, dostanes, kdyz hrana rupne
         RemoveNode, 
-        UpdateForce,  
+        UpdateForce,
+        UpdateJointLimits,
 
         FallNode,  // vystup - uzel ktery neni k nicemu prichycen a ma zacit padat
         FallEdge,  // hrany mezi padajicimi uzly

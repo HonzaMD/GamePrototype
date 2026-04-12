@@ -220,6 +220,19 @@ namespace Assets.Scripts.Core.StaticPhysics
             AddInCommand(new InputCommand() { Command = SpCommand.UpdateForce, indexA = spNodeIndex, forceA = force });
         }
 
+        internal void UpdateJointLimits(int spNodeIndex1, int spNodeIndex2, float stretchLimit, float compressLimit, float momentLimit)
+        {
+            AddInCommand(new InputCommand()
+            {
+                Command = SpCommand.UpdateJointLimits,
+                indexA = spNodeIndex1,
+                indexB = spNodeIndex2,
+                stretchLimit = stretchLimit,
+                compressLimit = compressLimit,
+                momentLimit = momentLimit,
+            });
+        }
+
         internal void ApplyTempForce(int spNodeIndex, Vector2 force, float sourceMass, VelocityFlags flags)
         {
             ApplyTempForce(spNodeIndex, force * (sourceMass * ((flags & VelocityFlags.IsImpact) != 0 ? PhysicsConsts.ImpulseToMassDumped : PhysicsConsts.ImpulseToMass)), flags);

@@ -192,11 +192,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             ref var joint = ref data.GetJoint(jointI);
 
-            if (activeEdges.TryAdd(jointI, (work.Node, otherNode)))
-            {
-                joint.tempCompress = 0;
-                joint.tempMoment = 0;
-            }
+            MarkJointActive(jointI, work.Node, otherNode, ref joint);
 
             var abf = Vector2.Dot(joint.abDir, force);
             torque += Vector2.Dot(joint.normal, force) * joint.length;
@@ -223,11 +219,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             ref var joint = ref data.GetJoint(jointI);
 
-            if (activeEdges.TryAdd(jointI, (work.Node, otherNode)))
-            {
-                joint.tempCompress = 0;
-                joint.tempMoment = 0;
-            }
+            MarkJointActive(jointI, work.Node, otherNode, ref joint);
 
             if (tempPhase)
             {
@@ -348,5 +340,14 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
         internal void FreeJoint(int index) => activeEdges.Remove(index);
+
+        internal void MarkJointActive(int jointIndex, int indexA, int indexB, ref SpJoint joint)
+        {
+            if (activeEdges.TryAdd(jointIndex, (indexA, indexB)))
+            {
+                joint.tempCompress = 0;
+                joint.tempMoment = 0;
+            }
+        }
     }
 }

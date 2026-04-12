@@ -82,6 +82,8 @@ namespace Assets.Scripts.Core.StaticPhysics
                 ref var ic = ref inputs[f];
                 if (ic.Command == SpCommand.UpdateForce)
                     toUpdate.Add(ic.indexA);
+                else if (ic.Command == SpCommand.UpdateJointLimits)
+                    UpdateJointLimits(ic);
             }
 
             forceWorker.RemoveForces();
@@ -283,6 +285,19 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             ref var node = ref data.GetNode(ic.indexA);
             node.force += ic.forceA;
+        }
+
+        private void UpdateJointLimits(in InputCommand ic)
+        {
+            ref var nodeA = ref data.GetNode(ic.indexA);
+            if (nodeA.ConnectsTo(ic.indexB, out int jointIndex))
+            {
+                ref var joint = ref data.GetJoint(jointIndex);
+                joint.stretchLimit = ic.stretchLimit;
+                joint.compressLimit = ic.compressLimit;
+                joint.momentLimit = ic.momentLimit;
+                forceWorker.MarkJointActive(jointIndex, ic.indexA, ic.indexB, ref joint);
+            }
         }
 
         public void GetBrokenEdges(SpanList<InputCommand> inCommands, SpanList<OutputCommand> outCommands) => forceWorker.GetBrokenEdges(inCommands, outCommands);
