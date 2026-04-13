@@ -11,26 +11,19 @@ namespace Assets.Scripts.Stuff
     public class TreeTrunk : Placeable, ISimpleTimerConsumer, IHasRbJointCleanup
     {
         // Stromova struktura
-        [HideInInspector]
-        public TreeTrunk Parent;
-        [HideInInspector]
-        public TreeTrunk FirstChild;
-        [HideInInspector]
-        public TreeTrunk NextSibling;
-        [HideInInspector]
-        public TreeTrunk Controller;
-        [HideInInspector]
-        public Dir8 Direction;
-        [HideInInspector]
-        public bool IsUnderground;
+        private TreeTrunk Parent;
+        private TreeTrunk FirstChild;
+        private TreeTrunk NextSibling;
+        private Dir8 Direction;
+        private bool IsUnderground;
 
         // Konfigurace (nastaveno na prefabu nebo pri spawnu)
         public TreeSettings TreeSettings;
 
         // Pocet segmentu: 1 (ja) + pocet vsech potomku
-        public int SegmentCount { get; private set; }
+        private int SegmentCount;
         // Balance: kladne = prevaha nadzemi, zaporne = prevaha podzemi
-        public float UndergroundBalance { get; private set; }
+        private float UndergroundBalance;
         private bool isGrowing;
         private bool hasBranch;
         private Collider myCollider;
@@ -41,7 +34,7 @@ namespace Assets.Scripts.Stuff
         private int timerTag;
         int ISimpleTimerConsumer.ActiveTag { get => timerTag; set => timerTag = value; }
 
-        private bool IsController => Controller == this;
+        private bool IsController => Parent == null;
 
         private void Awake()
         {
@@ -78,10 +71,9 @@ namespace Assets.Scripts.Stuff
         {
             ApplyThicknessScale(thicknessLevel);
 
-            if (Parent == null && Controller == null)
+            if (Parent == null)
             {
                 // Jsme ridici uzel
-                Controller = this;
                 SegmentCount = 1;
 
                 // Zjistime zda jsme v hline
@@ -116,12 +108,11 @@ namespace Assets.Scripts.Stuff
             StopGrowth();
             RemoveFromParent();
             DetachChildren();
-            ReturnBranchesToPool();
             if (IsUnderground)
                 EnableCollider();
+            ReturnBranchesToPool();
 
             NextSibling = null;
-            Controller = null;
             SegmentCount = 0;
             UndergroundBalance = 0;
             IsUnderground = false;
@@ -218,7 +209,7 @@ namespace Assets.Scripts.Stuff
         private void TryAddCandidate(TreeTrunk source, Dir8 dir, Map.Map map, int cellZ, ref float totalWeight)
         {
             var targetPos = source.Pivot + dir.ToVector();
-            var growTarget = GetGrowTarget(map, targetPos, cellZ, source.IsUnderground, out var dirtTarget);
+            var growTarget = GetGrowTarget(source, map, targetPos, cellZ, out var dirtTarget);
             if (growTarget == GrowTarget.None)
                 return;
 
@@ -267,7 +258,7 @@ namespace Assets.Scripts.Stuff
             totalWeight += weight;
         }
 
-        private GrowTarget GetGrowTarget(Map.Map map, Vector2 targetPos, int cellZ, bool sourceUnderground, out Placeable dirtTarget)
+        private GrowTarget GetGrowTarget(TreeTrunk source, Map.Map map, Vector2 targetPos, int cellZ, out Placeable dirtTarget)
         {
             dirtTarget = null;
             ref var cell = ref map.GetCell(targetPos);
@@ -280,7 +271,7 @@ namespace Assets.Scripts.Stuff
             }
 
             // Nadzemni source nemuze prechazet do zeme (krome controlleru)
-            if (!sourceUnderground && !IsController)
+            if (!source.IsUnderground && !source.IsController)
                 return GrowTarget.None;
 
             // Bunka je obsazena - zkusime najit hlinu
@@ -366,7 +357,6 @@ namespace Assets.Scripts.Stuff
 
             // Nastav stromovou strukturu pred Init
             newTrunk.Parent = parentTrunk;
-            newTrunk.Controller = Controller;
             newTrunk.Direction = direction;
             newTrunk.TreeSettings = TreeSettings;
             newTrunk.IsUnderground = underground;
@@ -412,6 +402,18 @@ namespace Assets.Scripts.Stuff
         private void EnableCollider()
         {
             if (myCollider) myCollider.enabled = true;
+            if (hasBranch)
+            {
+                for (int i = transform.childCount - 1; i >= 0; i--)
+                {
+                    var child = transform.GetChild(i);
+                    if (child.TryGetComponent<LabelWithSettings>(out var label) && label.Ksid == Ksid.TreeBranch)
+                    {
+                        var col = label.GetComponentInChildren<Collider>();
+                        col.enabled = true;
+                    }
+                }
+            }
         }
 
         private void CreateBranchVisual(TreeTrunk childTrunk, TreeTrunk onTrunk, Dir8 branchDirection, bool isDiagonal)
@@ -450,7 +452,7 @@ namespace Assets.Scripts.Stuff
                     if (child.TryGetComponent<LabelWithSettings>(out var label) && label.Ksid == Ksid.TreeBranch)
                     {
                         var col = label.GetComponentInChildren<Collider>();
-                        if (col) col.enabled = true;
+                        col.enabled = true;
                         ApplyThicknessScale(col.transform, 1);
                         Game.Instance.Pool.Store(label, label.Prototype);
                     }
@@ -573,7 +575,6 @@ namespace Assets.Scripts.Stuff
             {
                 // Pretrzeni trunk-trunk: tento uzel je syn, odpojit od parenta
                 RemoveFromParent();
-                Controller = null;
             }
             else
             {
@@ -618,7 +619,6 @@ namespace Assets.Scripts.Stuff
                 var next = child.NextSibling;
                 child.NextSibling = null;
                 child.Parent = null;
-                child.Controller = null;
                 child.myBranch = null;
                 child = next;
             }
