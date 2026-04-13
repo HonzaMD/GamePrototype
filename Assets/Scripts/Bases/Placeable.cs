@@ -449,6 +449,27 @@ public class Placeable : Label, ILevelPlaceabe
         return false;
     }
 
+    public bool TryFindClosestRbJoint(Vector3 hitPosition, out RbJoint closest)
+    {
+        closest = null;
+        float bestDistSqr = float.MaxValue;
+        var transform = ParentForConnections;
+        for (int f = 0; f < transform.childCount; f++)
+        {
+            if (transform.GetChild(f).TryGetComponent(out RbJoint j) && j.IsConnected)
+            {
+                Vector3 mid = (j.MyObj.Center3D + j.OtherObj.Center3D) * 0.5f;
+                float distSqr = (mid - hitPosition).sqrMagnitude;
+                if (distSqr < bestDistSqr)
+                {
+                    bestDistSqr = distSqr;
+                    closest = j;
+                }
+            }
+        }
+        return closest != null;
+    }
+
     public RbJoint CreateRbJoint(Placeable to)
     {
         if (TryFindRbJoint(to, out var j))

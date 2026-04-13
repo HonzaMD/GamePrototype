@@ -4,5 +4,6 @@ namespace Assets.Scripts.Bases
     {
         bool IsActive { get; }
         float GetDmg();
+        float GetJointCutStretchLimit();
     }
 }

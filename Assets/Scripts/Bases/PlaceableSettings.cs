@@ -89,6 +89,8 @@ namespace Assets.Scripts.Bases
         [Header("Damage")]
         [Tooltip("Bazove poskozeni nozem. 0 = neni knife damage")]
         public float KnifeDmg;
+        [Tooltip("Maximalni stretchLimit jointu, ktery nuz dokaze preriznou. 0 = nereze jointy")]
+        public float KnifeJointCutStretchLimit;
         [Tooltip("Poskozeni kontaktem za fyzikalni frame. 0 = zadny kontaktni damage")]
         public float ContactDmgPerFrame;
 

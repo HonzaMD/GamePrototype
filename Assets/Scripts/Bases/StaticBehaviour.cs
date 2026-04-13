@@ -119,12 +119,27 @@ namespace Assets.Scripts.Bases
 
         public static void ApplyKnifeDamageOneWay(float impactSpeedSqr, Label targetLabel, Label knifeLabel, Vector3 hitPosition)
         {
-            if (knifeLabel.KsidGet.IsChildOf(Ksid.DealsKnifeDamage) && targetLabel.KsidGet.IsChildOf(Ksid.DamagedByKnife)
+            if (knifeLabel.KsidGet.IsChildOf(Ksid.DealsKnifeDamage)
                 && knifeLabel.TryGetComponent(out IKnife knife) && knife.IsActive)
             {
-                float dmg = ComputeKnifeDmg(knife, impactSpeedSqr);
-                if (dmg > 0)
-                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg, hitPosition);
+                if (targetLabel.KsidGet.IsChildOf(Ksid.DamagedByKnife))
+                {
+                    float dmg = ComputeKnifeDmg(knife, impactSpeedSqr);
+                    if (dmg > 0)
+                        targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg, hitPosition);
+                }
+
+                float cutLimit = knife.GetJointCutStretchLimit();
+                if (cutLimit > 0)
+                {
+                    Placeable target = targetLabel.PlaceableC;
+                    if (target != null && target.TryFindClosestRbJoint(hitPosition, out RbJoint closest))
+                    {
+                        float stretchLimit = MathF.Min(closest.MyObj.SpLimits.StretchLimit, closest.OtherObj.SpLimits.StretchLimit);
+                        if (stretchLimit < cutLimit)
+                            closest.Disconnect();
+                    }
+                }
             }
         }
 

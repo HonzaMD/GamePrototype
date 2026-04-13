@@ -12,22 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
   m_Name: KnifeSettings
   m_EditorClassIdentifier: 
+  Prototype: {fileID: 6305871483602145192, guid: cd7ba6a29cac90a4c81e242d39f65cf5,
+    type: 3}
+  Icon: {fileID: -1116921671, guid: a9320db951d9eef44baa5ac6e33a861e, type: 3}
+  IconOrder: 22
   HasSubPlaceables: 0
+  Unseparable: 0
+  AutoAtachRB: 1
+  SecondaryMapIndex: 0
+  IsTrigger: 0
+  RecomputeBB: 0
+  IsOBB: 0
+  BBPosOffset: {x: 0, y: 0}
+  BBSize: {x: 0.5, y: 0.5}
   UseSimpleBBCollisions: 0
   Mass: 1.5
   Density: 1000
   DensityMode: 0
-  Prototype: {fileID: 6305871483602145192, guid: cd7ba6a29cac90a4c81e242d39f65cf5,
-    type: 3}
-  Unseparable: 0
-  AutoAtachRB: 1
-  IsTrigger: 0
-  SecondaryMapIndex: 0
-  Icon: {fileID: -1116921671, guid: a9320db951d9eef44baa5ac6e33a861e, type: 3}
-  IconOrder: 22
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  KnifeDmg: 30
+  KnifeJointCutStretchLimit: 1010
+  ContactDmgPerFrame: 0
+  MaxHealth: 0
+  DamageResistances: []
   ActivityAnimation:
     serializedVersion: 2
     m_Curve:
@@ -88,6 +97,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 1
     m_RotationOrder: 4
-  KnifeDmg: 30
-  MaxHealth: 0
-  DamageResistances: []
+  HitEffect: {fileID: 0}
+  DeathEffect: {fileID: 0}

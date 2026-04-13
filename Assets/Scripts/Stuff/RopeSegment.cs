@@ -75,7 +75,7 @@ public class RopeSegment : Placeable
                 if (!joint)
                     joint = CreateJoint(seg.gameObject, false);
 
-                seg.CreateRbJoint(prevNode).SetupRb(joint, false);
+                seg.CreateRbJoint(prevNode).SetupRb(joint, true);
                 joint.connectedBody = prevNode.Rigidbody;
             }
             else

@@ -8,18 +8,30 @@ namespace Assets.Scripts.Stuff
     public class Knife : MonoBehaviour, IHoldActivate, ICanActivate, ISimpleTimerConsumer, IHasCleanup, IKnife
     {
         private const float ThrowActiveDuration = 3f;
+        private static int defaultLayer = -1;
 
         private int activeTag;
+        private int savedLayer;
+        private GameObject colliderObj;
         int ISimpleTimerConsumer.ActiveTag { get => activeTag; set => activeTag = value; }
         public bool IsActive => (activeTag & 1) != 0;
 
+        private void Awake()
+        {
+            colliderObj = GetComponentInChildren<Collider>().gameObject;
+        }
+
         public float GetDmg() => GetComponent<PlaceableSibling>().Settings.KnifeDmg;
+        public float GetJointCutStretchLimit() => GetComponent<PlaceableSibling>().Settings.KnifeJointCutStretchLimit;
 
         private void Deactivate()
         {
             if (IsActive)
+            {
                 activeTag++;
+                colliderObj.layer = savedLayer;
             }
+        }
 
         public void Activate(Character3 character)
         {
@@ -36,6 +48,10 @@ namespace Assets.Scripts.Stuff
         private void SetActive(float duration)
         {
             Deactivate();
+            if (defaultLayer < 0)
+                defaultLayer = LayerMask.NameToLayer("Default");
+            savedLayer = colliderObj.layer;
+            colliderObj.layer = defaultLayer;
             this.Plan(duration);
         }
 
