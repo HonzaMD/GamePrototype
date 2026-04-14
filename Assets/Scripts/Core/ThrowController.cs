@@ -80,18 +80,12 @@ namespace Assets.Scripts.Core
                         var body = character.GetHoldObject();
                         if (body != null)
                         {
-                            ActivateByThrow(body);
+                            body.TryActivateByThrow();
                             character.ThrowObj(body);
                         }
                     }
                 }
             }
-        }
-
-        private void ActivateByThrow(Label body)
-        {
-            if (body.KsidGet.IsChildOf(Ksid.ActivatesByThrow) && body.TryGetComponent(out ICanActivate ao))
-                ao.Activate();
         }
 
         public void PositionLongThrowMarker(Character3 character)

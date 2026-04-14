@@ -246,8 +246,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         else if (mouseDown && cState == ControlState.ItemUse)
         {
             var ho = GetHoldObject();
-            if (ho.KsidGet.IsChildOf(Ksid.ActivatesInHand) && ho.TryGetComponent(out IHoldActivate ao))
-                ao.Activate(this);
+            ho.TryActivateInHand(this);
         }
 
 

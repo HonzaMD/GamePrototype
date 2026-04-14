@@ -44,14 +44,7 @@ namespace Assets.Scripts.Bases
         }
         bool ILevelPlaceabe.SecondPhase => false;
 
-        private Label SubLabel => transform.GetComponentInFirstChildren<Label>().ToRealNull();
-
-        public void OnCollisionEnter(Collision collision)
-        {
-            var dest = transform.GetComponentInFirstChildren<IPhysicsEvents>();
-            if (dest != null)
-                dest.OnCollisionEnter(collision);
-        }
+        private Label SubLabel => transform.GetComponentInFirstChild<Label>().ToRealNull();
 
         public override void Init(Map.Map map) => isAlive = true;
 

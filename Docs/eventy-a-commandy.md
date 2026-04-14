@@ -186,7 +186,16 @@ public interface ICanActivate
 }
 ```
 
-Voláno při aktivaci předmětu (např. při hodu).
+Voláno při aktivaci předmětu (např. při hodu nebo výstřelu z kanónu). Předmět musí mít `Ksid.ActivatesByThrow`. Volej přes extension metodu `label.TryActivateByThrow()`, která zkontroluje Ksid a zavolá `Activate()`.
+
+Pokud objekt má více `ICanActivate` komponent (např. bomba s jedem), přiřaď mu `Ksid.MultiActivatesByThrow` — metoda pak použije `GetComponents` a aktivuje všechny.
+
+```csharp
+// Volání (ThrowController, Cannon, ...):
+body.TryActivateByThrow();
+```
+
+Viz: `Assets/Scripts/Bases/StaticBehaviour.cs`, `Assets/Scripts/Bases/ICanActivate.cs`
 
 ---
 
@@ -199,9 +208,14 @@ public interface IHoldActivate
 }
 ```
 
-Voláno z `Character3` při použití drženého předmětu (levé tlačítko myši ve stavu `ItemUse`). Předmět musí mít `Ksid.ActivatesInHand`.
+Voláno z `Character3` při použití drženého předmětu (levé tlačítko myši ve stavu `ItemUse`). Předmět musí mít `Ksid.ActivatesInHand`. Volej přes extension metodu `label.TryActivateInHand(character)`, která zkontroluje Ksid a zavolá `Activate()`.
+
+Pokud objekt má více `IHoldActivate` komponent, přiřaď mu `Ksid.MultiActivatesInHand` — metoda pak použije `GetComponents` a aktivuje všechny.
 
 ```csharp
+// Volání (Character3):
+ho.TryActivateInHand(this);
+
 // Knife.cs — spustí animaci bodání
 public void Activate(Character3 character)
 {
@@ -210,37 +224,40 @@ public void Activate(Character3 character)
 }
 ```
 
-Viz: `Assets/Scripts/Bases/ICanActivate.cs`
+Viz: `Assets/Scripts/Bases/StaticBehaviour.cs`, `Assets/Scripts/Bases/ICanActivate.cs`
 
 ---
 
-### `IPhysicsEvents.OnCollisionEnter(Collision collision)` — fyzikální kolize
+### `IPhysicsEvents` — fyzikální kolize
 
 ```csharp
 interface IPhysicsEvents
 {
-    void OnCollisionEnter(Collision collision);
+    void OnCollisionEnter(Collision collision, Label otherLabel);
+    void OnCollisionStay(Collision collision, Label otherLabel);
 }
 ```
 
-**Implementuje:** Kdokoliv přes interface — komponenta na `PlaceableSibling`. `RbLabel` dostane Unity `OnCollisionEnter` a přepošle ho první komponentě implementující `IPhysicsEvents` na child objektech.
+**Implementuje:** Kdokoliv přes interface — typicky sibling `MonoBehaviour` komponenta.
+
+Voláno z `CollisionForceToSp`, která přijímá Unity `OnCollisionEnter`/`OnCollisionStay` a přeposílá je komponentám implementujícím `IPhysicsEvents` na stejném objektu.
+
+**Konfigurace přes `PlaceableSettings`:**
+- `RecievesOnCollisionEnter` — povolí přeposílání `OnCollisionEnter`
+- `RecievesOnCollisionStay` — povolí přeposílání `OnCollisionStay`
+- `HasMultiplePhysicsEvents` — pokud `true`, použije `GetComponents` a zavolá všechny `IPhysicsEvents` komponenty; jinak `TryGetComponent` pro jedinou
 
 Typické využití: přichycení k objektu při dopadu (StickyBomb), damage při nárazu.
 
 ```csharp
-// StickyBomb2.cs — přichytí se k objektu při kolizi
-public void OnCollisionEnter(Collision collision)
+// Implementace:
+public void OnCollisionEnter(Collision collision, Label otherLabel)
 {
-    if (IsActive && Label.TryFind(collision.collider.transform, out var label))
-    {
-        int index = FindNextConnectable();
-        if (index >= 0)
-            AttachJoint(index, label as Placeable, collision.contacts[0].point);
-    }
+    // reakce na kolizi s otherLabel
 }
 ```
 
-Viz: `Assets/Scripts/Bases/IPhysicsEvents.cs`
+Viz: `Assets/Scripts/Bases/IPhysicsEvents.cs`, `Assets/Scripts/Bases/CollisionForceToSp.cs`
 
 ---
 

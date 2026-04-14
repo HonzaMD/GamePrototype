@@ -10,13 +10,17 @@ namespace Assets.Scripts.Utils
 {
     public static class Extensions
     {
-        public static T GetComponentInFirstChildren<T>(this Transform transform)
-            where T : class 
-            => transform.childCount > 0 ? transform.GetChild(0).GetComponentInChildren<T>() : null;
-
-        public static T GetComponentInFirstChildren<T>(this MonoBehaviour obj)
+        public static T GetComponentInFirstChild<T>(this Transform transform)
             where T : class
-            => obj.transform.GetComponentInFirstChildren<T>();
+        {
+            if (transform.childCount > 0 && transform.GetChild(0).TryGetComponent<T>(out var ret))
+                return ret;
+            return null;
+        }
+
+        public static T GetComponentInFirstChild<T>(this MonoBehaviour obj)
+            where T : class
+            => obj.transform.GetComponentInFirstChild<T>();
 
         public static void GetComponentsInLevel1Children<T>(this Transform transform, List<T> output)
         {

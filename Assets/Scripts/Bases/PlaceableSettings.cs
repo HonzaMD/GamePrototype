@@ -86,6 +86,11 @@ namespace Assets.Scripts.Bases
         [Tooltip("Limity pro staticke spoje mezi objekty: Ohyb")]
         public float SpMomentLimit = 1000f;
 
+        [Header("Events")]
+        public bool RecievesOnCollisionEnter;
+        public bool RecievesOnCollisionStay;
+        public bool HasMultiplePhysicsEvents;
+
         [Header("Damage")]
         [Tooltip("Bazove poskozeni nozem. 0 = neni knife damage")]
         public float KnifeDmg;

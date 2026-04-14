@@ -42,7 +42,7 @@ The world is divided into 0.5×0.5×0.5m cells. `Map` provides spatial queries a
 
 ### Character System (`Assets/Scripts/Stuff/Character3.cs`)
 
-`Character3` is a 13-state machine controlling the player. States cover: `EmptyHands`, `PickupPrepare`, `Pickup`, `TryHold`, `ItemAdjust`, `Throw`, `ThrowReload`, `ItemUse`, `ItemAnimation`, etc. The `ICanActivate` interface on held items is called when the player uses them (e.g., `Knife` triggers its stab animation this way).
+`Character3` is a 13-state machine controlling the player. States cover: `EmptyHands`, `PickupPrepare`, `Pickup`, `TryHold`, `ItemAdjust`, `Throw`, `ThrowReload`, `ItemUse`, `ItemAnimation`, etc. The `IHoldActivate` interface on held items is called when the player uses them (e.g., `Knife` triggers its stab animation this way). `ICanActivate` is called on thrown/launched items (e.g., bomb activation on throw).
 
 ### Static Physics (`Assets/Scripts/Core/StaticPhysics/`)
 
@@ -73,7 +73,8 @@ Game.FixedUpdate()
 | Interface | Purpose |
 |-----------|---------|
 | `IActiveObject` | Opt-in to `GameUpdate`/`GameFixedUpdate` calls from `Game` |
-| `ICanActivate` | Called when player activates a held item |
+| `ICanActivate` | Called when a thrown/launched item is activated (via `TryActivateByThrow()`) |
+| `IHoldActivate` | Called when player uses a held item (via `TryActivateInHand()`) |
 | `ISimpleTimerConsumer` | Callback from the unified `Timer` system |
 
 ### Utilities

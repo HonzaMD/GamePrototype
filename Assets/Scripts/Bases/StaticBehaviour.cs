@@ -1,4 +1,6 @@
 ﻿using Assets.Scripts.Core;
+using Assets.Scripts.Map;
+using Assets.Scripts.Stuff;
 using Assets.Scripts.Utils;
 using System;
 using UnityEngine;
@@ -166,6 +168,44 @@ namespace Assets.Scripts.Bases
         {
             ApplyContactDamage(labelA, labelB, hitPosition);
             ApplyContactDamage(labelB, labelA, hitPosition);
+        }
+
+        public static void TryActivateByThrow(this Label obj)
+        {
+            if (obj.KsidGet.IsChildOf(Ksid.ActivatesByThrow))
+            {
+                if (obj.KsidGet.IsChildOf(Ksid.MultiActivatesByThrow))
+                {
+                    var components = ListPool<ICanActivate>.Rent();
+                    obj.GetComponents(components);
+                    foreach (var c in components)
+                        c.Activate();
+                    components.Return();
+                }
+                else if (obj.TryGetComponent(out ICanActivate ao))
+                {
+                    ao.Activate();
+                }
+            }
+        }
+
+        public static void TryActivateInHand(this Label obj, Character3 character)
+        {
+            if (obj.KsidGet.IsChildOf(Ksid.ActivatesInHand))
+            {
+                if (obj.KsidGet.IsChildOf(Ksid.MultiActivatesInHand))
+                {
+                    var components = ListPool<IHoldActivate>.Rent();
+                    obj.GetComponents(components);
+                    foreach (var c in components)
+                        c.Activate(character);
+                    components.Return();
+                }
+                else if (obj.TryGetComponent(out IHoldActivate ao))
+                {
+                    ao.Activate(character);
+                }
+            }
         }
     }
 }

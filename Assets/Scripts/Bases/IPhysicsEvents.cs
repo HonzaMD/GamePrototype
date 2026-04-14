@@ -9,6 +9,7 @@ namespace Assets.Scripts.Bases
 {
     interface IPhysicsEvents
     {
-        void OnCollisionEnter(Collision collision);
+        void OnCollisionEnter(Collision collision, Label otherLabel);
+        void OnCollisionStay(Collision collision, Label otherLabel);
     }
 }

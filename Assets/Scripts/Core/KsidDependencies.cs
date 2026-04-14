@@ -25,6 +25,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Chest, Ksid.InventoryItem),
                 (Ksid.Knife, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.Explosive),
+                (Ksid.MultiActivatesByThrow, Ksid.ActivatesByThrow),
                 (Ksid.StickyBomb, Ksid.ActivatesByThrow),
                 (Ksid.PoisonGas, Ksid.ActivatesByThrow),
                 (Ksid.Knife, Ksid.ActivatesByThrow),
@@ -63,6 +64,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Chest, Ksid.HasInventory),
                 (Ksid.Chest, Ksid.InventoryAsObj),
                 (Ksid.Knife, Ksid.HoldsAtHandle),
+                (Ksid.MultiActivatesInHand, Ksid.ActivatesInHand),
                 (Ksid.Knife, Ksid.ActivatesInHand),
 
                 (Ksid.Character, Ksid.DamagedByImpact),

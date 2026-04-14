@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.Core
 {
+    // POZOR, pridavej jen na konec, jinak rozbijes serializaci !!!
     public enum Ksid
     {
         Unknown,
@@ -54,6 +55,8 @@ namespace Assets.Scripts.Core
         TreeBranch,
         Dirt,
         BlocksTreeRoots,
+        MultiActivatesByThrow,
+        MultiActivatesInHand,
     }
 
     public static class KsidX

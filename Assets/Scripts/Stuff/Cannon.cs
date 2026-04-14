@@ -43,8 +43,7 @@ namespace Assets.Scripts.Stuff
             shotsRemaining--;
             var levelGroup = ChildTrigger.LevelGroup2;
             var obj = CannonSettings.Obj.Create(levelGroup.transform, ChildTrigger.transform.position, levelGroup.Map);
-            if (obj.KsidGet.IsChildOf(Ksid.ActivatesByThrow) && obj.TryGetComponent(out ICanActivate ao))
-                ao.Activate();
+            obj.TryActivateByThrow();
             var velocity = (ChildTrigger.transform.position - transform.position).normalized * CannonSettings.Speed + placeable.Velocity;
             obj.Rigidbody.linearVelocity = velocity;
 

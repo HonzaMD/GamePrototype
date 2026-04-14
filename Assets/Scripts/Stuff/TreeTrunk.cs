@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Stuff
 {
-    public class TreeTrunk : Placeable, ISimpleTimerConsumer, IHasRbJointCleanup
+    public class TreeTrunk : PlaceableSibling, ISimpleTimerConsumer, IHasRbJointCleanup
     {
         // Stromova struktura
         private TreeTrunk Parent;
@@ -101,6 +101,8 @@ namespace Assets.Scripts.Stuff
 
                 StartGrowth();
             }
+
+            base.AfterMapPlaced(map, goesFromInventory);
         }
 
         public override void Cleanup(bool goesToInventory)
