@@ -57,6 +57,7 @@ namespace Assets.Scripts.Core
         BlocksTreeRoots,
         MultiActivatesByThrow,
         MultiActivatesInHand,
+        JoinerGlue,
     }
 
     public static class KsidX

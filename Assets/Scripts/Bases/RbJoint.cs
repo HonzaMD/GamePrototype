@@ -95,15 +95,23 @@ namespace Assets.Scripts.Bases
         {
             SetupRb1(true);
             var j = MyObj.Rigidbody.gameObject.AddComponent<FixedJoint>();
+            var (breakForce, breakTorque) = UnityLimits();
+            j.breakForce = breakForce;
+            j.breakTorque = breakTorque;
+            j.connectedBody = OtherObj.Rigidbody;
+            SetupRb2(j);
+        }
+
+        public (float Breakforce, float BreakTorque) UnityLimits()
+        {
             var limits1 = MyObj.SpLimits;
             var limits2 = OtherObj.SpLimits;
-            j.breakForce = MathF.Min(
+            float breakForce = MathF.Min(
                 Math.Min(limits1.CompressLimit, limits2.CompressLimit),
                 Math.Min(limits1.StretchLimit, limits2.StretchLimit)
                 ) * PhysicsConsts.SpToRbLimitsMultiplier;
-            j.breakTorque = Math.Min(limits1.MomentLimit, limits2.MomentLimit) * PhysicsConsts.SpToRbLimitsMultiplier;
-            j.connectedBody = OtherObj.Rigidbody;
-            SetupRb2(j);
+            float breakTorque = Math.Min(limits1.MomentLimit, limits2.MomentLimit) * PhysicsConsts.SpToRbLimitsMultiplier;
+            return ( breakForce, breakTorque );
         }
 
 

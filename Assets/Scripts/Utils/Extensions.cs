@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,6 +145,60 @@ namespace Assets.Scripts.Utils
             {
                 rigidbody.linearVelocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
+            }
+        }
+
+        private static readonly Queue<(Placeable node, float sqrDist)> rbJointBfsQueue = new();
+
+        public static bool IsConnectedWithinSqrDistance(this Placeable from, Placeable target, float maxSqrDist)
+        {
+            if (from == target)
+                return true;
+
+            var map = from.GetMap();
+            int tag = map.GetNextTag();
+            var queue = rbJointBfsQueue;
+
+            try
+            {
+                from.Tag = tag;
+                queue.Enqueue((from, 0f));
+
+                while (queue.Count > 0)
+                {
+                    var (current, sqrDist) = queue.Dequeue();
+                    var parentT = current.ParentForConnections;
+
+                    for (int f = 0; f < parentT.childCount; f++)
+                    {
+                        if (!parentT.GetChild(f).TryGetComponent(out RbJoint rbj))
+                            continue;
+                        if (!rbj.IsConnected)
+                            continue;
+
+                        var neighbor = rbj.OtherObj;
+                        if (!neighbor || neighbor.Tag == tag)
+                            continue;
+
+                        if (neighbor == target)
+                            return true;
+
+                        float edgeSqrDist = (current.Center3D - neighbor.Center3D).sqrMagnitude;
+                        float totalSqrDist = sqrDist + edgeSqrDist;
+
+                        if (totalSqrDist > maxSqrDist)
+                            continue;
+
+                        neighbor.Tag = tag;
+                        queue.Enqueue((neighbor, totalSqrDist));
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                queue.Clear();
             }
         }
 

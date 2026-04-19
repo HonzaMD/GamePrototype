@@ -380,11 +380,14 @@ public abstract class Label : MonoBehaviour
         ParentForConnections.GetComponentsInLevel1Children(connectables);
         foreach (var c in connectables)
         {
-            if (c.Type != ConnectableType.Off)
-            {
-                if (c.Type != ConnectableType.OwnedByInventory || inventory.ActiveObj != this)
-                    return false;
-            }
+            if (c.Type == ConnectableType.Off)
+                continue;
+
+            if (c.Type == ConnectableType.Physics && c is RbJoint rbj && !rbj.IsConnected)
+                continue;
+
+            if (c.Type != ConnectableType.OwnedByInventory || inventory.ActiveObj != this)
+                return false;
         }
         return true;
     }

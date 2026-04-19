@@ -33,4 +33,5 @@ public class PrefabsStore : ScriptableObject
     public TreeTrunk TreeTrunkDg;
     public LabelWithSettings TreeBranch;
     public LabelWithSettings TreeBranchDg;
+    public Placeable JoinerGlue;
 }

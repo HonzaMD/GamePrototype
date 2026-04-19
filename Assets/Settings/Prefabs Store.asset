@@ -56,3 +56,5 @@ MonoBehaviour:
     type: 3}
   TreeBranchDg: {fileID: 4835553169761571448, guid: 644b944c8bf59154aa91cc57d180b010,
     type: 3}
+  JoinerGlue: {fileID: 4869101982465581121, guid: 421cc07ec14af3344a68e641680af35c,
+    type: 3}
