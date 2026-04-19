@@ -58,6 +58,7 @@ namespace Assets.Scripts.Core
         MultiActivatesByThrow,
         MultiActivatesInHand,
         JoinerGlue,
+        DeepGlue,
     }
 
     public static class KsidX

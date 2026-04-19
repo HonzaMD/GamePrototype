@@ -77,6 +77,8 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         inventory.SetQuickSlot(-6, Game.Instance.PrefabsStore.Knife);
         inventory.StoreProto(Game.Instance.PrefabsStore.JoinerGlue, 10);
         inventory.SetQuickSlot(-5, Game.Instance.PrefabsStore.JoinerGlue);
+        inventory.StoreProto(Game.Instance.PrefabsStore.DeepGlue, 10);
+        inventory.SetQuickSlot(-4, Game.Instance.PrefabsStore.DeepGlue);
     }
 
     public void GameUpdate()

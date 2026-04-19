@@ -267,6 +267,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 299059050983617863}
+  - component: {fileID: 1586555301936227562}
+  - component: {fileID: 5638375161236795016}
   m_Layer: 10
   m_Name: DeepGlue
   m_TagString: Untagged
@@ -283,13 +285,44 @@ Transform:
   m_GameObject: {fileID: 1373379041487861600}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.25, y: 0.25, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8166037079577382997}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1586555301936227562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1373379041487861600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80c18dc4ca18f5499e2ed3408dae68a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PosOffset: {x: -0.15, y: -0.15}
+  PlacedPosition: {x: -12345678, y: 12345678}
+  Size: {x: 0.3, y: 0.3}
+  Ksid: 49
+  CellBlocking: 0
+  SubCellFlags: 1
+  Settings: {fileID: 11400000, guid: 903f3ad81ca258543b0c7f317f28bcf9, type: 2}
+--- !u!114 &5638375161236795016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1373379041487861600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7850b2d7bb7a7c645bc332e6bd687156, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1414043539603918072
 GameObject:
   m_ObjectHideFlags: 0

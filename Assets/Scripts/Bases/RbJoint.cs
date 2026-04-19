@@ -139,12 +139,28 @@ namespace Assets.Scripts.Bases
             }
             else if ((state & State.SpConnection) == 0)
             {
+                if (!CanClearActiveRb(MyObj) || !CanClearActiveRb(OtherObj))
+                {
+                    Debug.LogError($"SetupSp: {MyObj.name} nebo {OtherObj.name} ma aktivni RB a neni AutoAtachRB, prerusuji");
+                    return;
+                }
+
                 Disconnect(false);
+                ClearActiveRbIfNeeded(MyObj);
+                ClearActiveRbIfNeeded(OtherObj);
 
                 AddNode1();
                 AddNodeAndEdge();
                 SetState(State.SpConnection);
             }
+        }
+
+        private static bool CanClearActiveRb(Placeable p) => !p.HasActiveRB || p.Settings.AutoAtachRB || p.Ksid.IsChildOf(Ksid.SpNode);
+
+        private static void ClearActiveRbIfNeeded(Placeable p)
+        {
+            if (p.HasActiveRB)
+                p.DetachRigidBody(true, false);
         }
 
         private void AddNode1()
