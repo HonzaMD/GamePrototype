@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -17,12 +18,23 @@ namespace Assets.Scripts.Core.StaticPhysics
         private int topNodeIndex; // prideluji od 1
         private int topJointIndex; // prideluji od 0
 
-        private const int edgePoolMax = 10;
+        private const int edgePoolMax = 25;
         private readonly Stack<EdgeEnd[]>[] edgeEndsPool = Enumerable.Range(0, edgePoolMax).Select(i => new Stack<EdgeEnd[]>()).ToArray();
 
-        // volano z threadu hry
-        public int ReserveNodeIndex() 
+        // zachyceno v konstruktoru na game threadu (SpInterface je vytvoren z Game.cs)
+        private readonly int gameThreadId = Thread.CurrentThread.ManagedThreadId;
+
+        [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
+        private void AssertGameThread()
         {
+            if (Thread.CurrentThread.ManagedThreadId != gameThreadId)
+                throw new InvalidOperationException("SpDataManager: ReserveNodeIndex/FreeNodeIndex musi byt volano z game threadu");
+        }
+
+        // volano z threadu hry
+        public int ReserveNodeIndex()
+        {
+            AssertGameThread();
             if (freeNodeIndexes.Count > 0)
                 return freeNodeIndexes.Pop();
             topNodeIndex++;
@@ -32,6 +44,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         // volano z threadu hry
         public void FreeNodeIndex(int index)
         {
+            AssertGameThread();
             freeNodeIndexes.Push(index);
         }
 

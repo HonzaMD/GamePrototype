@@ -17,7 +17,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         public int In1Root;
         public int Out0Root;  // odchozi barva
         public int Out1Root;
-        public float Out0Lengh;  // delka cesty do rootu. 
-        public float Out1Lengh;
+        public float Out0Length;  // delka cesty do rootu.
+        public float Out1Length;
     }
 }

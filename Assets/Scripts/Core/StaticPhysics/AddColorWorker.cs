@@ -132,40 +132,40 @@ namespace Assets.Scripts.Core.StaticPhysics
                     
                     if (otherEnd.Out0Root == color)
                     {
-                        if (otherEnd.Out0Lengh == lengthB)
+                        if (otherEnd.Out0Length == lengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
-                        otherEnd.Out0Lengh = lengthB;
+                        otherEnd.Out0Length = lengthB;
                     } 
                     else if (otherEnd.Out1Root == color)
                     {
-                        if (otherEnd.Out1Lengh == lengthB)
+                        if (otherEnd.Out1Length == lengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
-                        otherEnd.Out1Lengh = lengthB;
+                        otherEnd.Out1Length = lengthB;
                     }
-                    else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Lengh, color, otherEnd.Out1Root))
+                    else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Length, color, otherEnd.Out1Root))
                     {
                         // napred zkusim horsi hranu
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         edges[f].In1Root = color;
                         otherEnd.Out1Root = color;
-                        otherEnd.Out1Lengh = lengthB;
+                        otherEnd.Out1Length = lengthB;
                     }
                     else
                     {
                         continue;
                     }
 
-                    if (Utils.IsDistanceBetter(otherEnd.Out1Lengh, otherEnd.Out0Lengh, otherEnd.Out1Root, otherEnd.Out0Root))
+                    if (Utils.IsDistanceBetter(otherEnd.Out1Length, otherEnd.Out0Length, otherEnd.Out1Root, otherEnd.Out0Root))
                     {
                         // swap
-                        float tempLen = otherEnd.Out0Lengh;
+                        float tempLen = otherEnd.Out0Length;
                         int tempRoot = otherEnd.Out0Root;
-                        otherEnd.Out0Lengh = otherEnd.Out1Lengh;
+                        otherEnd.Out0Length = otherEnd.Out1Length;
                         otherEnd.Out0Root = otherEnd.Out1Root;
                         edges[f].In0Root = otherEnd.Out1Root;
-                        otherEnd.Out1Lengh = tempLen;
+                        otherEnd.Out1Length = tempLen;
                         otherEnd.Out1Root = tempRoot;
                         edges[f].In1Root = tempRoot;
                     }

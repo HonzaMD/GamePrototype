@@ -114,7 +114,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private void EnsureValidNodes(ref InputCommand ic)
         {
             if (ic.indexA == 0)
-                throw new InvalidOperationException("Zadal jdi sp index 0");
+                throw new InvalidOperationException("Zadal jsi sp index 0");
 
             if (ic.Command != SpCommand.AddNode && ic.Command != SpCommand.AddNodeAndJoint)
             {
@@ -144,7 +144,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private bool AddJointPrepare(in InputCommand ic, int icPos)
         {
             if (ic.indexA == ic.indexB)
-                throw new InvalidOperationException("Nemuzu vytvorit harnu do sama sebe.");
+                throw new InvalidOperationException("Nemuzu vytvorit hranu do sama sebe.");
             ref var nodeA = ref data.GetNode(ic.indexA);
             ref var nodeB = ref data.GetNode(ic.indexB);
             if (deletedNodes.Contains(ic.indexA) || deletedNodes.Contains(ic.indexB))

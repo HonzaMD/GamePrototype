@@ -54,7 +54,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                     return ref edges[f];
                 }
             }
-            throw new InvalidOperationException("Hranda tu neni");
+            throw new InvalidOperationException("Hrana tu neni");
         }
 
         public readonly float ShortestColorDistance(int color) => ShortestColorDistance(color, edges, isFixedRoot);
@@ -68,10 +68,10 @@ namespace Assets.Scripts.Core.StaticPhysics
             float ret = float.MaxValue;
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root == color && edges[f].Out0Lengh < ret)
-                    ret = edges[f].Out0Lengh;
-                if (edges[f].Out1Root == color && edges[f].Out1Lengh < ret)
-                    ret = edges[f].Out1Lengh;
+                if (edges[f].Out0Root == color && edges[f].Out0Length < ret)
+                    ret = edges[f].Out0Length;
+                if (edges[f].Out1Root == color && edges[f].Out1Length < ret)
+                    ret = edges[f].Out1Length;
             }
             return ret;
         }
@@ -91,15 +91,15 @@ namespace Assets.Scripts.Core.StaticPhysics
             float ret = float.MaxValue;
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root != 0 && edges[f].Out0Lengh < ret)
+                if (edges[f].Out0Root != 0 && edges[f].Out0Length < ret)
                 {
                     color = edges[f].Out0Root;
-                    ret = edges[f].Out0Lengh;
+                    ret = edges[f].Out0Length;
                 }
-                if (edges[f].Out1Root != 0 && edges[f].Out1Lengh < ret)
+                if (edges[f].Out1Root != 0 && edges[f].Out1Length < ret)
                 {
                     color = edges[f].Out1Root;
-                    ret = edges[f].Out1Lengh;
+                    ret = edges[f].Out1Length;
                 }
             }
             return ret;
@@ -131,10 +131,10 @@ namespace Assets.Scripts.Core.StaticPhysics
             {
                 if (edges[f].Out0Root != color1 && edges[f].Out1Root != color1)
                 {
-                    if (edges[f].Out0Root != 0 && edges[f].Out0Lengh < length2)
+                    if (edges[f].Out0Root != 0 && edges[f].Out0Length < length2)
                     {
                         color2 = edges[f].Out0Root;
-                        length2 = edges[f].Out0Lengh;
+                        length2 = edges[f].Out0Length;
                     }
                 }
             }
@@ -149,10 +149,10 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root == color && edges[f].Out0Lengh > 0)
-                    sum += 1 / edges[f].Out0Lengh;
-                if (edges[f].Out1Root == color && edges[f].Out1Lengh > 0)
-                    sum += 1 / edges[f].Out1Lengh;
+                if (edges[f].Out0Root == color && edges[f].Out0Length > 0)
+                    sum += 1 / edges[f].Out0Length;
+                if (edges[f].Out1Root == color && edges[f].Out1Length > 0)
+                    sum += 1 / edges[f].Out1Length;
             }
             return sum;
         }
@@ -180,10 +180,10 @@ namespace Assets.Scripts.Core.StaticPhysics
         //    ref EdgeEnd end = ref edges[0];
         //    for (int f = 0; f < edges.Length; f++)
         //    {
-        //        if (edges[f].Out0Root == color && edges[f].Out0Lengh < distance)
-        //            distance = edges[f].Out0Lengh;
-        //        if (edges[f].Out1Root == color && edges[f].Out1Lengh < distance)
-        //            distance = edges[f].Out1Lengh;
+        //        if (edges[f].Out0Root == color && edges[f].Out0Length < distance)
+        //            distance = edges[f].Out0Length;
+        //        if (edges[f].Out1Root == color && edges[f].Out1Length < distance)
+        //            distance = edges[f].Out1Length;
         //        if (edges[f].Other == from)
         //            end = ref edges[f];
         //    }

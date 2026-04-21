@@ -89,10 +89,11 @@ namespace Assets.Scripts.Core.StaticPhysics
         private void ProcessOutCommands()
         {
             var commands = OutputCommands;
+
+            // Faze 1: callbacky. SpConnectEdgeAsRb a SpBreakEdge potrebuji
+            // jeste vidte spNodeIndex obou stran, aby si overily match indexu.
             for (int f = 0; f < commands.Length; f++)
             {
-                if (commands[f].Command is SpCommand.FreeNode or SpCommand.FallNode)
-                    data.FreeNodeIndex(commands[f].indexA);
                 if (commands[f].Command == SpCommand.FallNode)
                 {
                     commands[f].nodeA.SpFall(commands[f].indexA);
@@ -107,10 +108,19 @@ namespace Assets.Scripts.Core.StaticPhysics
                 }
             }
 
+            // Faze 2: vynulovani spNodeIndex padlych placeable.
             for (int f = 0; f < commands.Length; f++)
             {
                 if (commands[f].Command == SpCommand.FallNode)
                     commands[f].nodeA.SpRemoveIndex(commands[f].indexA);
+            }
+
+            // Faze 3: teprve ted vratit indexy do poolu. Reentrantni kod
+            // z faze 1/2 uz tak nemuze pres ReserveNodeIndex dostat nas index.
+            for (int f = 0; f < commands.Length; f++)
+            {
+                if (commands[f].Command is SpCommand.FreeNode or SpCommand.FallNode)
+                    data.FreeNodeIndex(commands[f].indexA);
             }
         }
 
@@ -235,12 +245,11 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         internal void ApplyTempForce(int spNodeIndex, Vector2 force, float sourceMass, VelocityFlags flags)
         {
-            ApplyTempForce(spNodeIndex, force * (sourceMass * ((flags & VelocityFlags.IsImpact) != 0 ? PhysicsConsts.ImpulseToMassDumped : PhysicsConsts.ImpulseToMass)), flags);
+            ApplyTempForce(spNodeIndex, force * (sourceMass * ((flags & VelocityFlags.IsImpact) != 0 ? PhysicsConsts.ImpulseToMassDumped : PhysicsConsts.ImpulseToMass)));
         }
 
-        internal void ApplyTempForce(int spNodeIndex, Vector2 force, VelocityFlags flags)
+        internal void ApplyTempForce(int spNodeIndex, Vector2 force)
         {
-            //Debug.Log($"{force} RV: {CollisionForceToSp.RV} Flags: {flags}");
             AddForceCommand(new ForceCommand() { indexA = spNodeIndex, forceA = force });
         }
     }

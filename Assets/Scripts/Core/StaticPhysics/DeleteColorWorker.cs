@@ -79,14 +79,14 @@ namespace Assets.Scripts.Core.StaticPhysics
             if (edge.Out0Root == color)
             {
                 edge.Out0Root = edge.Out1Root;
-                edge.Out0Lengh = edge.Out1Lengh;
+                edge.Out0Length = edge.Out1Length;
                 edge.Out1Root = 0;
-                edge.Out1Lengh = 0;
+                edge.Out1Length = 0;
             }
             else if (edge.Out1Root == color)
             {
                 edge.Out1Root = 0;
-                edge.Out1Lengh = 0;
+                edge.Out1Length = 0;
             }
             workQueue.Enqueue(new Work() { Node = index, Color = color });
         }

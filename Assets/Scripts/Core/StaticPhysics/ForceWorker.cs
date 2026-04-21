@@ -16,7 +16,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> deletedNodes;
         private readonly BinaryHeap<Work> workQueue = new();
         private readonly Dictionary<int, (int, int)> activeEdges = new();
-        private readonly Dictionary<int, (float Damage, int indexA, int indexB)> bigBrokemEdges = new();
+        private readonly Dictionary<int, (float Damage, int indexA, int indexB)> bigBrokenEdges = new();
         private bool tempPhase;
 
         private struct Work : IComparable<Work>
@@ -131,7 +131,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private bool EnsureValidNodes(int index)
         {
             if (index == 0)
-                throw new InvalidOperationException("Zadal jdi sp index 0");
+                throw new InvalidOperationException("Zadal jsi sp index 0");
 
             return data.IsNodeValid(index);
         }
@@ -170,9 +170,9 @@ namespace Assets.Scripts.Core.StaticPhysics
                 for (int f = 0; f < edges.Length; f++)
                 {
                     if (edges[f].Out0Root == work.Color)
-                        UpdateForce(ref work, invLenSum, edges[f].Out0Lengh, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, invLenSum, edges[f].Out0Length, edges[f].Joint, edges[f].Other);
                     if (edges[f].Out1Root == work.Color)
-                        UpdateForce(ref work, invLenSum, edges[f].Out1Lengh, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, invLenSum, edges[f].Out1Length, edges[f].Joint, edges[f].Other);
                 }
             }
         }
@@ -298,25 +298,25 @@ namespace Assets.Scripts.Core.StaticPhysics
                     ref var endA = ref data.GetNode(pair.Value.Item1).GetEnd(pair.Value.Item2);
                     ref var endB = ref data.GetNode(pair.Value.Item2).GetEnd(pair.Value.Item1);
 
-                    int color = Utils.IsDistanceBetter(endA.Out0Lengh, endB.Out0Lengh, endA.Out0Root, endB.Out0Root) ? endA.Out0Root : endB.Out0Root;
+                    int color = Utils.IsDistanceBetter(endA.Out0Length, endB.Out0Length, endA.Out0Root, endB.Out0Root) ? endA.Out0Root : endB.Out0Root;
 
-                    if (bigBrokemEdges.TryGetValue(color, out var edge))
+                    if (bigBrokenEdges.TryGetValue(color, out var edge))
                     {
                         if (damage <= edge.Damage)
                             continue;
                     }
 
-                    bigBrokemEdges[color] = (damage, pair.Value.Item1, pair.Value.Item2);
+                    bigBrokenEdges[color] = (damage, pair.Value.Item1, pair.Value.Item2);
                 }
             }
 
-            if (bigBrokemEdges.Count == 0)
+            if (bigBrokenEdges.Count == 0)
             {
                 activeEdges.Clear();
             }
             else
             {
-                foreach (var edge in bigBrokemEdges.Values)
+                foreach (var edge in bigBrokenEdges.Values)
                 {
                     inCommands.Add(new InputCommand()
                     {
@@ -335,7 +335,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                     });
                 }
 
-                bigBrokemEdges.Clear();
+                bigBrokenEdges.Clear();
             }
         }
 
