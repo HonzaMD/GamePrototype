@@ -116,6 +116,23 @@ public class SpTests
         return output;
     }
 
+    // Kaskada s BigOnly az do ustaleni - odpovida chovani SpInterface.Runner
+    private static SpanList<OutputCommand> RunSPBig(GraphWorker worker, SpanList<InputCommand> input, int maxCascades = 4)
+    {
+        var forces = new ForceCommand[0];
+        var output = new SpanList<OutputCommand>();
+        var input2 = new SpanList<InputCommand>();
+        worker.ApplyChanges(input.AsSpan(), forces, output);
+        for (int i = 0; i < maxCascades; i++)
+        {
+            worker.GetBrokenEdgesBigOnly(input2, output);
+            if (input2.Count == 0) break;
+            worker.ApplyChanges(input2.AsSpan(), forces, output);
+            input2.Clear();
+        }
+        return output;
+    }
+
     [Test]
     public void SpTests4FreeFall()
     {
@@ -222,12 +239,379 @@ public class SpTests
     }
 
 
+    [Test]
+    public void SpTests7ForceSymmetry()
+    {
+        // Diamond s cyklem (dva roots + cross-link) - nutne pro dvoubarevne cesty.
+        // Ukolem: UpdateForce(+F) -> UpdateForce(-F) vrati joint state do puvodni podoby.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);
+        var n1 = r1.Connect(Vector2.down, 0, force: Vector2.down);
+        var n2 = n1.Connect(Vector2.right, 0, force: Vector2.down * 0.5f);
+        var r2 = n2.Connect(Vector2.up, 0, isFixed: true);
+        r1.Connect(n2, 0); // cross-link
+        var input = n1.Build();
+
+        RunSP(worker, input);
+
+        var baseline = new (float compress, float moment)[4];
+        for (int i = 0; i < 4; i++)
+            baseline[i] = (dm.GetJoint(i).compress, dm.GetJoint(i).moment);
+
+        // Faze 1: zrus sily (node.force += (-F) -> 0)
+        var cancel = new SpanList<InputCommand>();
+        cancel.Add(new InputCommand { Command = SpCommand.UpdateForce, indexA = n1.Id, forceA = Vector2.up });
+        cancel.Add(new InputCommand { Command = SpCommand.UpdateForce, indexA = n2.Id, forceA = Vector2.up * 0.5f });
+        RunSP(worker, cancel);
+
+        // Faze 2: obnov sily
+        var restore = new SpanList<InputCommand>();
+        restore.Add(new InputCommand { Command = SpCommand.UpdateForce, indexA = n1.Id, forceA = Vector2.down });
+        restore.Add(new InputCommand { Command = SpCommand.UpdateForce, indexA = n2.Id, forceA = Vector2.down * 0.5f });
+        RunSP(worker, restore);
+
+        for (int i = 0; i < 4; i++)
+        {
+            Assert.AreEqual(baseline[i].compress, dm.GetJoint(i).compress, 1e-4f, $"joint {i} compress");
+            Assert.AreEqual(baseline[i].moment, dm.GetJoint(i).moment, 1e-4f, $"joint {i} moment");
+        }
+    }
+
+    [Test]
+    public void SpTests8TempForces()
+    {
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var n = r.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(worker, n.Build());
+
+        var permanentCompress = dm.GetJoint(0).compress;
+        Assert.AreEqual(0f, dm.GetJoint(0).tempCompress, "temp bez temp forces musi byt 0");
+
+        // Napalim temp force
+        var tempForces = new ForceCommand[] { new ForceCommand { indexA = n.Id, forceA = Vector2.down * 3f } };
+        var emptyInput = new SpanList<InputCommand>();
+        var output = new SpanList<OutputCommand>();
+        worker.ApplyChanges(emptyInput.AsSpan(), tempForces, output);
+
+        Assert.AreNotEqual(0f, dm.GetJoint(0).tempCompress, "temp force nebyla propagovana");
+        Assert.AreEqual(permanentCompress, dm.GetJoint(0).compress, 1e-4f, "perm compress se nesmi zmenit");
+
+        // GetBrokenEdgesBigOnly vynuluje tempCompress/tempMoment po vyhodnoceni
+        var input2 = new SpanList<InputCommand>();
+        worker.GetBrokenEdgesBigOnly(input2, output);
+
+        Assert.AreEqual(0f, dm.GetJoint(0).tempCompress, "temp se po BigOnly musi vynulovat");
+        Assert.AreEqual(permanentCompress, dm.GetJoint(0).compress, 1e-4f);
+    }
+
+    [Test]
+    public void SpTests9Cascade()
+    {
+        // Dve nezavisle vetve z rootu, obe se slabym joitem dole.
+        // BigOnly smi v jednom kole ulomit jen nejhorsiho na barvu, druhe kolo ulomi druhou.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var l = r.Connect(Vector2.left, 0);
+        var ll = l.Connect(Vector2.down, 2, force: Vector2.down);       // mensi damage
+        var right = r.Connect(Vector2.right, 0);
+        var rr = right.Connect(Vector2.down, 2, force: Vector2.down * 2f); // vetsi damage
+        var input = rr.Build();
+
+        var output = RunSPBig(worker, input);
+
+        var arr = output.AsSpan().ToArray();
+        Assert.AreEqual(2, arr.Count(c => c.Command == SpCommand.RemoveJoint), "ocekavam 2 RemoveJoint v kaskade");
+        Assert.AreEqual(2, arr.Count(c => c.Command == SpCommand.FallNode), "ocekavam padnuti LL i RR");
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == ll.Id));
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == rr.Id));
+    }
+
+    [Test]
+    public void SpTests10DualColor()
+    {
+        // Dva fixed rooty, mezi nimi jeden uzel se silou. Out1 slot musi nest druhou barvu.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);
+        var n = r1.Connect(Vector2.down, 0, force: Vector2.down);
+        var r2 = n.Connect(Vector2.down, 0, isFixed: true);
+        RunSP(worker, n.Build());
+
+        var c0 = MathF.Abs(dm.GetJoint(0).compress);
+        var c1 = MathF.Abs(dm.GetJoint(1).compress);
+
+        Assert.IsTrue(c0 > 0.1f, "joint 0 musi nest sily od N");
+        Assert.IsTrue(c1 > 0.1f, "joint 1 musi nest sily od N");
+        Assert.AreEqual(c0, c1, 1e-3f, "sily se rozdeli rovnomerne mezi dva roots");
+    }
+
+    [Test]
+    public void SpTests11DisjointRoots()
+    {
+        // Dve disjoint struktury ve stejnem dm - nesmi se ovlivnovat.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);
+        var n1 = r1.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(worker, n1.Build());
+
+        var r2 = new Node(dm, isFixed: true, point: Vector2.right * 10f);
+        var n2 = r2.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(worker, n2.Build());
+
+        Assert.AreEqual(1f, MathF.Abs(dm.GetJoint(0).compress), 1e-3f, "joint ve structure 1 nese svoji silu 1");
+        Assert.AreEqual(1f, MathF.Abs(dm.GetJoint(1).compress), 1e-3f, "joint ve structure 2 nese svoji silu 1 (ne 2!)");
+    }
+
+    [Test]
+    public void SpTests12ColorFallback()
+    {
+        // Uzel visi na dvou fixed roots. Odstranime jednu cestu - musi zustat viset na druhe.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);
+        var n = r1.Connect(Vector2.down, 0, force: Vector2.down);
+        var r2 = n.Connect(Vector2.down, 0, isFixed: true);
+        RunSP(worker, n.Build());
+
+        // Zlomim R1-N
+        var breakCmd = new SpanList<InputCommand>();
+        breakCmd.Add(new InputCommand { Command = SpCommand.RemoveJoint, indexA = r1.Id, indexB = n.Id });
+        var output = RunSP(worker, breakCmd);
+
+        var arr = output.AsSpan().ToArray();
+        Assert.IsFalse(arr.Any(c => c.Command == SpCommand.FallNode), "N nesmi spadnout, stale visi na R2");
+        Assert.AreEqual(1f, MathF.Abs(dm.GetJoint(1).compress), 1e-3f, "zbyly joint N-R2 musi nest plnou silu");
+    }
+
+    [Test]
+    public void SpTests13LimitsBoundary()
+    {
+        // compress == compressLimit nesmi prasknout, compress > compressLimit musi.
+        // strength 3 => limity (2,2,2), force down * 2 da compress == 2.
+        var dmOk = new SpDataManager();
+        var workerOk = new GraphWorker(dmOk);
+        var rOk = new Node(dmOk, isFixed: true);
+        var nOk = rOk.Connect(Vector2.down, 3, force: Vector2.down * 2f);
+        var outputOk = RunSP(workerOk, nOk.Build());
+
+        Assert.IsFalse(outputOk.AsSpan().ToArray().Any(c => c.Command == SpCommand.RemoveJoint), "force == limit nesmi prasknout");
+        Assert.AreEqual(2f, MathF.Abs(dmOk.GetJoint(0).compress), 1e-4f);
+
+        // Fresh instance, jen nepatrne pres limit
+        var dmBreak = new SpDataManager();
+        var workerBreak = new GraphWorker(dmBreak);
+        var rB = new Node(dmBreak, isFixed: true);
+        var nB = rB.Connect(Vector2.down, 3, force: Vector2.down * 2.01f);
+        var outputBreak = RunSP(workerBreak, nB.Build());
+
+        Assert.IsTrue(outputBreak.AsSpan().ToArray().Any(c => c.Command == SpCommand.RemoveJoint), "force > limit musi prasknout");
+    }
+
+    [Test]
+    public void SpTests14ExplicitRemoveJoint()
+    {
+        // Primy RemoveJoint command bez prekroceni limitu.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var a = r.Connect(Vector2.down, 0);
+        var b = a.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(worker, b.Build());
+
+        var cmd = new SpanList<InputCommand>();
+        cmd.Add(new InputCommand { Command = SpCommand.RemoveJoint, indexA = a.Id, indexB = b.Id });
+        var output = RunSP(worker, cmd);
+
+        var arr = output.AsSpan().ToArray();
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == b.Id), "B musi spadnout po rozpojeni");
+        // A zustava pripojene k root
+        Assert.IsFalse(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == a.Id));
+    }
+
+    [Test]
+    public void SpTests15SelfLoopThrows()
+    {
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var n = r.Connect(Vector2.down, 0);
+        RunSP(worker, n.Build());
+
+        var cmd = new SpanList<InputCommand>();
+        cmd.Add(new InputCommand
+        {
+            Command = SpCommand.AddJoint,
+            indexA = n.Id,
+            indexB = n.Id,
+            stretchLimit = 5f, compressLimit = 5f, momentLimit = 5f,
+        });
+
+        Assert.Throws<InvalidOperationException>(() => RunSP(worker, cmd));
+    }
+
+    [Test]
+    public void SpTests16NodeIndexRecycle()
+    {
+        var dm = new SpDataManager();
+
+        // Primy pool test
+        int i1 = dm.ReserveNodeIndex();
+        int i2 = dm.ReserveNodeIndex();
+        Assert.AreNotEqual(i1, i2);
+        dm.FreeNodeIndex(i1);
+        int i3 = dm.ReserveNodeIndex();
+        Assert.AreEqual(i1, i3, "FreeNodeIndex -> Reserve musi vratit stejny index");
+
+        // Round-trip: add -> remove -> free -> reserve -> add (znovu, cisty state)
+        var worker = new GraphWorker(dm);
+        int iFree = dm.ReserveNodeIndex();
+        var add = new SpanList<InputCommand>();
+        add.Add(new InputCommand { Command = SpCommand.AddNode, indexA = iFree, isAFixed = true });
+        RunSP(worker, add);
+
+        var rm = new SpanList<InputCommand>();
+        rm.Add(new InputCommand { Command = SpCommand.RemoveNode, indexA = iFree });
+        var output = RunSP(worker, rm);
+
+        Assert.IsTrue(output.AsSpan().ToArray().Any(c => c.Command == SpCommand.FreeNode && c.indexA == iFree));
+        dm.FreeNodeIndex(iFree); // to by jinak delal SpInterface.ProcessOutCommands
+
+        int iReused = dm.ReserveNodeIndex();
+        Assert.AreEqual(iFree, iReused);
+
+        // Pokud by ClearNode nefungovala, AddNode hodi "Cekal jsem novy node"
+        var add2 = new SpanList<InputCommand>();
+        add2.Add(new InputCommand { Command = SpCommand.AddNode, indexA = iReused, isAFixed = true });
+        Assert.DoesNotThrow(() => RunSP(worker, add2));
+    }
+
+    [Test]
+    public void SpTests17UpdateJointLimitsShrink()
+    {
+        // Zmenseni limitu na aktivnim jointu pod jeho aktualni zatez musi vest k prasknuti.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var n = r.Connect(Vector2.down, 0, force: Vector2.down); // limity (5,5,5)
+        RunSP(worker, n.Build());
+
+        var compress = MathF.Abs(dm.GetJoint(0).compress);
+        Assert.IsTrue(compress > 0.5f && compress < 5f);
+
+        // Sniz limity pod compress
+        var shrink = new SpanList<InputCommand>();
+        shrink.Add(new InputCommand
+        {
+            Command = SpCommand.UpdateJointLimits,
+            indexA = n.Id, indexB = r.Id,
+            stretchLimit = 0.1f, compressLimit = 0.1f, momentLimit = 0.1f,
+        });
+        var output = RunSP(worker, shrink);
+
+        Assert.IsTrue(output.AsSpan().ToArray().Any(c => c.Command == SpCommand.RemoveJoint), "zmenseny limit musi ulomit");
+    }
+
+    [Test]
+    public void SpTests18RemoveFixedRoot()
+    {
+        // Odstraneni fixed rootu odpoji celou vetev.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var a = r.Connect(Vector2.down, 0);
+        var b = a.Connect(Vector2.down, 0);
+        RunSP(worker, b.Build());
+
+        var rm = new SpanList<InputCommand>();
+        rm.Add(new InputCommand { Command = SpCommand.RemoveNode, indexA = r.Id });
+        var output = RunSP(worker, rm);
+
+        var arr = output.AsSpan().ToArray();
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FreeNode && c.indexA == r.Id), "root ma vratit FreeNode");
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == a.Id), "A musi spadnout");
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == b.Id), "B musi spadnout");
+    }
+
+    [Test]
+    public void SpTests19SingleFloatingNodeFalls()
+    {
+        // Jediny AddNode bez isFixed a bez jointu - musi okamzite spadnout.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var n = new Node(dm, force: Vector2.down);
+        var output = RunSP(worker, n.Build());
+
+        var arr = output.AsSpan().ToArray();
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == n.Id), "osamocely node musi spadnout");
+        Assert.IsFalse(arr.Any(c => c.Command == SpCommand.FallEdge), "zadne FallEdge - node nema zadnou hranu");
+    }
+
+    [Test]
+    public void SpTests20FloatingChainFalls()
+    {
+        // Retezec 3 propojenych uzlu bez jedineho fixed - cela komponenta musi spadnout,
+        // vcetne obou FallEdge (aby se v RB slepily jako tuhe teleso).
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var a = new Node(dm, force: Vector2.down);
+        var b = a.Connect(Vector2.right, 0, force: Vector2.down);
+        var c = b.Connect(Vector2.right, 0, force: Vector2.down);
+        var output = RunSP(worker, c.Build());
+
+        var arr = output.AsSpan().ToArray();
+        Assert.AreEqual(3, arr.Count(x => x.Command == SpCommand.FallNode), "vsechny 3 uzly musi spadnout");
+        Assert.AreEqual(2, arr.Count(x => x.Command == SpCommand.FallEdge), "oba jointy se ma prenest do RB pres FallEdge");
+    }
+
+    [Test]
+    public void SpTests21AddAndRemoveFixedInSameBatch()
+    {
+        // Pridame fixed + napojeny node + dalsi navazany node, a ve stejnem batchi
+        // rovnou fixed root odebereme. Vysledek: fixed ma FreeNode, zbytek spadne.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r = new Node(dm, isFixed: true);
+        var a = r.Connect(Vector2.down, 0, force: Vector2.down);
+        var b = a.Connect(Vector2.down, 0, force: Vector2.down);
+
+        var input = b.Build();
+        r.BreakNode(input); // RemoveNode(r) v tomtez batchi
+
+        var output = RunSP(worker, input);
+
+        var arr = output.AsSpan().ToArray();
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FreeNode && c.indexA == r.Id), "r mel dostat FreeNode");
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == a.Id), "a musi spadnout");
+        Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == b.Id), "b musi spadnout");
+    }
+
     #region class Limits
     private static class Limits
     {
         public static (float Stretch, float Compress, float Moment)[] Data = new[]
         {
-            (5f, 5f, 5f)
+            (5f, 5f, 5f),        // 0: default
+            (100f, 100f, 100f),  // 1: strong
+            (0.5f, 0.5f, 0.5f),  // 2: weak
+            (2f, 2f, 2f),        // 3: boundary
         };
     }
     #endregion
@@ -242,6 +626,7 @@ public class SpTests
         private readonly int id;
         private readonly int fromId;
         private readonly int fromId2;
+        public int Id => id;
         private readonly bool isFixed;
         private List<Node> nodes;
 

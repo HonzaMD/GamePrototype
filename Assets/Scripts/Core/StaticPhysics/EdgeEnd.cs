@@ -6,18 +6,22 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
-    // sily se prenaseji ze smeru In -> Out. Az se dostanou do FixedRootu
-    // index fixed rootu urcuje barvu sipek
-    // hrana 0 je vzdy ta lepsi tzn kratsi cetsta k cili
+    // EdgeEnd = jeden konec hrany. Hrana existuje dvakrat (v A.edges a B.edges), sdileji Joint index.
+    // Smer sireni sily (list -> koren):
+    //
+    //   [LeafNode] -Out->--Joint-->-In- [Node] -Out->--Joint-->-In- [RootNode]
+    //
+    // Out* = konec blizsi listu, In* = zrcadlovy konec blizsi koreni. Barva = index FixedRoot.
+    // Slot 0 je vzdy lepsi (kratsi) cesta, slot 1 je alternativa.
     struct EdgeEnd
     {
-        public int Other;     // index nodu, kam hrana vede
-        public int Joint;     // index SpJointu
-        public int In0Root;   // prichozi barva
+        public int Other;         // index sousedniho uzlu
+        public int Joint;         // index sdileneho SpJointu
+        public int In0Root;       // barva prichazejici touto hranou z listove strany
         public int In1Root;
-        public int Out0Root;  // odchozi barva
+        public int Out0Root;      // barva cesty ven touto hranou ke koreni
         public int Out1Root;
-        public float Out0Length;  // delka cesty do rootu.
+        public float Out0Length;  // celkova delka te cesty ke koreni
         public float Out1Length;
     }
 }

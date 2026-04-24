@@ -15,6 +15,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> deletedNodes = new();
         private readonly HashSet<int> deletedEdges = new();
         private readonly Dictionary<(int, int), int> newEdges = new();
+        private readonly List<(int, int)> pendingJointsToCancel = new();
         private readonly DeleteColorWorker deleteColorWorker;
         private readonly AddColorWorker addColorWorker;
         private readonly ForceWorker forceWorker;
@@ -55,7 +56,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
                 if (ic.Command == SpCommand.RemoveNode)
                 {
-                    RemoveNode(ic);
+                    RemoveNode(ic, inputs);
                 }
             }
 
@@ -196,7 +197,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
         }
 
-        private void RemoveNode(in InputCommand ic)
+        private void RemoveNode(in InputCommand ic, Span<InputCommand> inputs)
         {
             if (deletedNodes.Contains(ic.indexA))
                 return;
@@ -214,6 +215,25 @@ namespace Assets.Scripts.Core.StaticPhysics
                     toUpdate.Add(indexB);
                 }
             }
+
+            // Zrus pending AddJoint/AddNodeAndJoint v tomtez batchi, kde figuruje tento uzel.
+            // Jinak by protistrana mela navyseny newEdgeCount, ale AddJoint by kvuli deletedNodes
+            // preskocil a ApplyEdgeArrs by zahlasil nesedici pocet hran.
+            foreach (var pair in newEdges)
+            {
+                if (pair.Key.Item1 == ic.indexA || pair.Key.Item2 == ic.indexA)
+                    pendingJointsToCancel.Add(pair.Key);
+            }
+            for (int f = 0; f < pendingJointsToCancel.Count; f++)
+            {
+                var key = pendingJointsToCancel[f];
+                int icIndex = newEdges[key];
+                newEdges.Remove(key);
+                int other = key.Item1 == ic.indexA ? key.Item2 : key.Item1;
+                data.GetNode(other).newEdgeCount--;
+                inputs[icIndex].ClearAddJoint();
+            }
+            pendingJointsToCancel.Clear();
         }
 
         private void CreateNewEdgeArrs(int i)

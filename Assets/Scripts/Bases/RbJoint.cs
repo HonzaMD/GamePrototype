@@ -155,7 +155,7 @@ namespace Assets.Scripts.Bases
             }
         }
 
-        private static bool CanClearActiveRb(Placeable p) => !p.HasActiveRB || p.Settings.AutoAtachRB || p.Ksid.IsChildOf(Ksid.SpNode);
+        private static bool CanClearActiveRb(Placeable p) => !p.HasActiveRB || p.Settings.AutoAtachRB || p.Ksid.IsChildOf(Ksid.SpMoving);
 
         private static void ClearActiveRbIfNeeded(Placeable p)
         {
