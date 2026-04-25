@@ -179,7 +179,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void UpdateForce(ref Work work, float invLenSum, float length, int jointI, int otherNode)
         {
-            if (length == 0)
+            if (length <= 0)
             {
                 UpdateForceZeroLen(ref work, jointI, otherNode);
                 return;

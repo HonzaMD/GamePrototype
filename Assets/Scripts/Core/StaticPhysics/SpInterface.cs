@@ -136,7 +136,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             if (runnerException != null)
             {
-                Debug.LogError("Spadl SP Runner " + runnerException.Message);
+                Debug.LogError("Spadl SP Runner " + runnerException.ToString());
                 runnerException = null;
             }
         }

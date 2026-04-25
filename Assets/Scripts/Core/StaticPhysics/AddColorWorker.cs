@@ -157,6 +157,9 @@ namespace Assets.Scripts.Core.StaticPhysics
                         continue;
                     }
 
+                    if (otherEnd.In1Root == color || otherEnd.In0Root == color)
+                        throw new InvalidOperationException("Pridal jsem barevnou hranu v obou smerech. Cyklus.");
+
                     if (Utils.IsDistanceBetter(otherEnd.Out1Length, otherEnd.Out0Length, otherEnd.Out1Root, otherEnd.Out0Root))
                     {
                         // swap
@@ -171,7 +174,49 @@ namespace Assets.Scripts.Core.StaticPhysics
                     }
 
                     if (lengthB < otherDist)
+                    {
                         workQueue.Add(new Work() { Color = color, Length = lengthB, Node = indexB });
+                        DeleteOppositeEdges(ref nodeB, indexB, lengthB, work.Node, color);
+                    }
+                }
+            }
+        }
+
+        // po pridani hrany jsme zlepsili SCD uzlu. Musime projit vsechny jeho Out hrany a zkontrolovat ze vedou do uzlu s nizsim SCD
+        private void DeleteOppositeEdges(ref SpNode node, int nodeIndex, float mySCD, int sourceIndex, int color)
+        {
+            var edges = node.newEdges;
+            for (int f = 0; f < edges.Length; f++)
+            {
+                int otherIndex = edges[f].Other;
+                if (otherIndex == sourceIndex) // obrana abychom si nesmazali hranu delky 0
+                    continue;
+                if (edges[f].Out0Root == color || edges[f].Out1Root == color)
+                {
+                    ref var other = ref data.GetNode(otherIndex);
+                    float otherSCD = other.ShortestColorDistanceAny(color);
+                    if (otherSCD >= mySCD)
+                    {
+                        toUpdate.Add(otherIndex);
+                        other.EnsureNewEdges(data);
+                        ref var otherEnd = ref other.GetEndNew(nodeIndex);
+
+                        if (edges[f].Out0Root == color)
+                        {
+                            edges[f].Out0Root = edges[f].Out1Root;
+                            edges[f].Out0Length = edges[f].Out1Length;
+                            edges[f].Out1Root = 0;
+                            edges[f].Out1Length = 0;
+                            otherEnd.In0Root = otherEnd.In1Root;
+                            otherEnd.In1Root = 0;
+                        }
+                        else
+                        {
+                            edges[f].Out1Root = 0;
+                            edges[f].Out1Length = 0;
+                            otherEnd.In1Root = 0;
+                        }
+                    }
                 }
             }
         }

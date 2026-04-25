@@ -108,5 +108,19 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
         internal bool IsNodeValid(int index) => index < nodes.Length && nodes[index].edges != null;
+
+        // Pro testy: vrati Out0Root a Out1Root hrany z 'from' do 'to'. Hrana musi existovat.
+        public (int Out0Root, int Out1Root) GetOutRoots(int from, int to)
+        {
+            ref var node = ref nodes[from];
+            if (node.edges == null)
+                throw new InvalidOperationException($"Uzel {from} neexistuje");
+            for (int f = 0; f < node.edges.Length; f++)
+            {
+                if (node.edges[f].Other == to)
+                    return (node.edges[f].Out0Root, node.edges[f].Out1Root);
+            }
+            throw new InvalidOperationException($"Hrana {from}->{to} neni");
+        }
     }
 }

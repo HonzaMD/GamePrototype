@@ -124,8 +124,8 @@
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
-    <Compile Include="Assets\Scripts\Map\LevelPairing.cs" />
     <Compile Include="Assets\Scripts\Stuff\DeepGlue.cs" />
+    <Compile Include="Assets\Scripts\Map\LevelPairing.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\Cell.cs" />
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />

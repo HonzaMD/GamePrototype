@@ -603,6 +603,42 @@ public class SpTests
         Assert.IsTrue(arr.Any(c => c.Command == SpCommand.FallNode && c.indexA == b.Id), "b musi spadnout");
     }
 
+    [Test]
+    public void SpTests22ColorCycleAfterShortcut()
+    {
+        // Scenar: vyrobime retez R1 - C - B - A "naokolo" (cesta delky 6.5),
+        // pak pridame primy edge R1-A jako zkratku (delka 0.5).
+        // A.SCD(R1) klesne 6.5 -> 0.5. AddColorWorker na to reaguje rozsirenim
+        // R1 z A do B (B.SCD 4 > A.SCD 0.5). Tim se na B.edge_to_A nastavi Out0=R1
+        // se smerem k A. Jenze A.edge_to_B.Out0=R1 (stara hodnota retezem) zustane
+        // - nikdo ji neinvalidoval - takze obe strany hrany A-B maji Out0=R1.
+        // To je cyklus barevneho grafu, ktery by zacyklil ForceWorker.Update.
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);
+        var c  = r1.Connect(Vector2.right * 2f, 0);                       // c = (2,0)
+        var b  = c.Connect(Vector2.up * 2f, 0);                           // b = (2,2)
+        var a  = b.Connect(new Vector2(-1.5f, -2f), 0);                   // a = (0.5,0)
+        RunSP(worker, a.Build());
+
+        // L_R1A = 0.5; chain k A je 2+2+2.5 = 6.5. Zkratka radove kratsi.
+        // Pro B: chain 4, pres A 0.5 + 2.5 = 3 -> taky se vyplati -> kaskada.
+        var shortcut = r1.Connect(a, 0);
+        RunSP(worker, shortcut.Build());
+
+        var aSide = dm.GetOutRoots(a.Id, b.Id);
+        var bSide = dm.GetOutRoots(b.Id, a.Id);
+
+        bool aSideHasR1 = aSide.Out0Root == r1.Id || aSide.Out1Root == r1.Id;
+        bool bSideHasR1 = bSide.Out0Root == r1.Id || bSide.Out1Root == r1.Id;
+
+        Assert.IsFalse(aSideHasR1 && bSideHasR1,
+            $"Barevny cyklus: hrana A-B nese R1 v obou smerech. " +
+            $"A.edge_to_B.Out=({aSide.Out0Root},{aSide.Out1Root}); " +
+            $"B.edge_to_A.Out=({bSide.Out0Root},{bSide.Out1Root})");
+    }
+
     #region class Limits
     private static class Limits
     {
