@@ -120,9 +120,10 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
 
-        public readonly bool FindOtherColor(int color1, out int color2, out float length2) => FindOtherColor(color1, edges, out color2, out length2);
+        public readonly bool FindOtherColor(int color1, out int color2, out float length2, out float strength1, out float strength2)
+            => FindOtherColor(color1, edges, out color2, out length2, out strength1, out strength2);
 
-        private static bool FindOtherColor(int color1, EdgeEnd[] edges, out int color2, out float length2)
+        private static bool FindOtherColor(int color1, EdgeEnd[] edges, out int color2, out float length2, out float strength1, out float strength2)
         {
             color2 = 0;
             length2 = float.MaxValue;
@@ -138,23 +139,64 @@ namespace Assets.Scripts.Core.StaticPhysics
                     }
                 }
             }
+
+            strength1 = 0;
+            strength2 = 0;
+            if (color2 != 0)
+            {
+                for (int f = 0; f < edges.Length; f++)
+                {
+                    if (edges[f].Out0Root == color1 && edges[f].Out0Strength > strength1)
+                        strength1 = edges[f].Out0Strength;
+                    if (edges[f].Out1Root == color1 && edges[f].Out1Strength > strength1)
+                        strength1 = edges[f].Out1Strength;
+
+                    if (edges[f].Out0Root == color2 && edges[f].Out0Strength > strength2)
+                        strength2 = edges[f].Out0Strength;
+                    if (edges[f].Out1Root == color2 && edges[f].Out1Strength > strength2)
+                        strength2 = edges[f].Out1Strength;
+                }
+            }
             return color2 != 0;
         }
 
-        public readonly float GetInvLenSum(int color) => GetInvLenSum(color, edges);
+        // Spocita vsechny sumy potrebne pro vazene rozdeleni sily mezi vystupnimi cestami barvy.
+        // Sumy mohou byt 0 nebo Infinity; SafeWeight pri nasledne aplikaci dela fallback na 1/count.
+        public readonly WeightSums GetCombinedSums(int color)
+            => GetCombinedSums(color, edges);
 
-        private static float GetInvLenSum(int color, EdgeEnd[] edges)
+        private static WeightSums GetCombinedSums(int color, EdgeEnd[] edges)
         {
-            float sum = 0;
+            float invLenSum = 0;
+            float strSum = 0;
+            int count = 0;
 
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root == color && edges[f].Out0Length > 0)
-                    sum += 1 / edges[f].Out0Length;
-                if (edges[f].Out1Root == color && edges[f].Out1Length > 0)
-                    sum += 1 / edges[f].Out1Length;
+                if (edges[f].Out0Root == color)
+                {
+                    invLenSum += 1f / edges[f].Out0Length;
+                    strSum += edges[f].Out0Strength;
+                    count++;
+                }
+                if (edges[f].Out1Root == color)
+                {
+                    invLenSum += 1f / edges[f].Out1Length;
+                    strSum += edges[f].Out1Strength;
+                    count++;
+                }
             }
-            return sum;
+
+            float pSum = 0;
+            for (int f = 0; f < edges.Length; f++)
+            {
+                if (edges[f].Out0Root == color)
+                    pSum += ForceSplitWeighting.CombinedP(1f / edges[f].Out0Length, edges[f].Out0Strength, invLenSum, strSum, count);
+                if (edges[f].Out1Root == color)
+                    pSum += ForceSplitWeighting.CombinedP(1f / edges[f].Out1Length, edges[f].Out1Strength, invLenSum, strSum, count);
+            }
+
+            return new WeightSums(invLenSum, strSum, pSum, count);
         }
 
         internal void EnsureNewEdges(SpDataManager data)

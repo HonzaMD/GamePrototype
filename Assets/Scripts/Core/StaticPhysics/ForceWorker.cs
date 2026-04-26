@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -145,39 +144,30 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             ref var node = ref data.GetNode(work.Node);
 
-            if (work.phase == 0 && node.FindOtherColor(work.Color, out int color2, out float length2))
+            if (work.phase == 0 && node.FindOtherColor(work.Color, out int color2, out float length2, out float strength1, out float strength2))
             {
-                float lenSum = work.Length + length2;
-                float w1, w2;
-                if (lenSum > 0)
-                {
-                    w1 = work.Length / lenSum;
-                    w2 = length2 / lenSum;
-                }
-                else
-                {
-                    w1 = w2 = 0.5f;
-                }
+                (float w1, float w2) = ForceSplitWeighting.Compute2Weights(work.Length, length2, strength1, strength2);
 
-                workQueue.Add(new Work() { Color = work.Color, phase = 1, force = work.force * w2, torque = work.torque * w2, Length = work.Length, Node = work.Node });
-                workQueue.Add(new Work() { Color = color2, phase = 1, force = work.force * w1, torque = work.torque * w1, Length = length2, Node = work.Node });
+                workQueue.Add(new Work() { Color = work.Color, phase = 1, force = work.force * w1, torque = work.torque * w1, Length = work.Length, Node = work.Node });
+                workQueue.Add(new Work() { Color = color2, phase = 1, force = work.force * w2, torque = work.torque * w2, Length = length2, Node = work.Node });
             }
             else
             {
-                float invLenSum = node.GetInvLenSum(work.Color);
+                var sums = node.GetCombinedSums(work.Color);
                 EdgeEnd[] edges = node.edges;
 
                 for (int f = 0; f < edges.Length; f++)
                 {
                     if (edges[f].Out0Root == work.Color)
-                        UpdateForce(ref work, invLenSum, edges[f].Out0Length, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, sums, edges[f].Out0Length, edges[f].Out0Strength, edges[f].Joint, edges[f].Other);
                     if (edges[f].Out1Root == work.Color)
-                        UpdateForce(ref work, invLenSum, edges[f].Out1Length, edges[f].Joint, edges[f].Other);
+                        UpdateForce(ref work, sums, edges[f].Out1Length, edges[f].Out1Strength, edges[f].Joint, edges[f].Other);
                 }
             }
         }
 
-        private void UpdateForce(ref Work work, float invLenSum, float length, int jointI, int otherNode)
+
+        private void UpdateForce(ref Work work, in WeightSums sums, float length, float strength, int jointI, int otherNode)
         {
             if (length <= 0)
             {
@@ -185,7 +175,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 return;
             }
 
-            float w = 1 / (length * invLenSum);
+            float w = ForceSplitWeighting.ComputeWeight(1f / length, strength, sums);
+            if (w <= 0)
+                return;
+
             float dir = MathF.Sign(otherNode - work.Node);
             Vector2 force = work.force * (w * dir);
             float torque = work.torque * w;

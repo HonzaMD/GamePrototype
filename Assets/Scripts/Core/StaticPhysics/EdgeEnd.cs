@@ -23,5 +23,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         public int Out1Root;
         public float Out0Length;  // celkova delka te cesty ke koreni
         public float Out1Length;
+        public float Out0Strength; // pevnost (nosnost) te cesty ke koreni; vyssi cislo = unese vic
+        public float Out1Strength;
     }
 }
