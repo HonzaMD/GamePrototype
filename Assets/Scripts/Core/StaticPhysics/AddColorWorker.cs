@@ -23,6 +23,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly SpDataManager data;
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
+        private readonly ConsistencyWorker consistencyWorker;
         private readonly BinaryHeap<Work> workQueue = new BinaryHeap<Work>();
 
         private struct Work : IComparable<Work>
@@ -34,11 +35,12 @@ namespace Assets.Scripts.Core.StaticPhysics
             public int CompareTo(Work other) => (int)Mathf.Sign(Length - other.Length);
         }
 
-        public AddColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes)
+        public AddColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes, ConsistencyWorker consistencyWorker)
         {
             this.data = data;
             this.toUpdate = toUpdate;
             this.deletedNodes = deletedNodes;
+            this.consistencyWorker = consistencyWorker;
         }
 
         internal void Run()
@@ -70,11 +72,11 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void TestColorCandidate(int index, in SpNode node, int f, int color)
         {
-            if (IsColorValid(color, node.newEdges, f) && CanExtend(node, color, out float startDist))
+            if (IsFirstColor(color, node.newEdges, f) && CanExtend(node, color, out float startDist))
                 workQueue.Add(new Work() { Color = color, Length = startDist, Node = index });
         }
 
-        private bool IsColorValid(int color, EdgeEnd[] newEdges, int f)
+        private bool IsFirstColor(int color, EdgeEnd[] newEdges, int f)
         {
             if (color == 0)
                 return false;
@@ -118,6 +120,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             float startDist = node.ShortestColorDistanceNew(color);
             if (startDist != work.Length)
                 return; // dostal jsem se sem rychleji
+            float outStrength = node.FindOutStrengthNew(color);
 
             var edges = node.newEdges;
             for (int f = 0; f < edges.Length; f++)
@@ -128,49 +131,49 @@ namespace Assets.Scripts.Core.StaticPhysics
                 if (otherDist > startDist)
                 {
                     ref var otherEnd = ref nodeB.GetEndAny(work.Node);
-                    float lengthB = data.GetJoint(edges[f].Joint).length + startDist;
+                    ref var joint = ref data.GetJoint(edges[f].Joint);
+                    float lengthB = joint.length + startDist;
+                    float strengthB = Mathf.Min(joint.MinLimit, outStrength);
                     
                     if (otherEnd.Out0Root == color)
                     {
-                        if (otherEnd.Out0Length == lengthB)
+                        if (otherEnd.Out0Length == lengthB && otherEnd.Out0Strength == strengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out0Length = lengthB;
+                        otherEnd.Out0Strength = strengthB;
                     } 
                     else if (otherEnd.Out1Root == color)
                     {
-                        if (otherEnd.Out1Length == lengthB)
+                        if (otherEnd.Out1Length == lengthB && otherEnd.Out1Strength == strengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         otherEnd.Out1Length = lengthB;
+                        otherEnd.Out1Strength = strengthB;
                     }
                     else if (Utils.IsDistanceBetter(lengthB, otherEnd.Out1Length, color, otherEnd.Out1Root))
                     {
                         // napred zkusim horsi hranu
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
                         edges[f].In1Root = color;
+                        consistencyWorker.MarkDirty(indexB, otherEnd.Out1Root);
                         otherEnd.Out1Root = color;
                         otherEnd.Out1Length = lengthB;
+                        otherEnd.Out1Strength = strengthB;
                     }
                     else
                     {
                         continue;
                     }
 
+                    consistencyWorker.MarkDirty(indexB, color);
+
                     if (otherEnd.In1Root == color || otherEnd.In0Root == color)
                         throw new InvalidOperationException("Pridal jsem barevnou hranu v obou smerech. Cyklus.");
 
                     if (Utils.IsDistanceBetter(otherEnd.Out1Length, otherEnd.Out0Length, otherEnd.Out1Root, otherEnd.Out0Root))
                     {
-                        // swap
-                        float tempLen = otherEnd.Out0Length;
-                        int tempRoot = otherEnd.Out0Root;
-                        otherEnd.Out0Length = otherEnd.Out1Length;
-                        otherEnd.Out0Root = otherEnd.Out1Root;
-                        edges[f].In0Root = otherEnd.Out1Root;
-                        otherEnd.Out1Length = tempLen;
-                        otherEnd.Out1Root = tempRoot;
-                        edges[f].In1Root = tempRoot;
+                        EdgeEnd.Swap(ref otherEnd, ref edges[f]);
                     }
 
                     if (lengthB < otherDist)
@@ -203,19 +206,14 @@ namespace Assets.Scripts.Core.StaticPhysics
 
                         if (edges[f].Out0Root == color)
                         {
-                            edges[f].Out0Root = edges[f].Out1Root;
-                            edges[f].Out0Length = edges[f].Out1Length;
-                            edges[f].Out1Root = 0;
-                            edges[f].Out1Length = 0;
-                            otherEnd.In0Root = otherEnd.In1Root;
-                            otherEnd.In1Root = 0;
+                            EdgeEnd.Delete0(ref edges[f], ref otherEnd);
                         }
                         else
                         {
-                            edges[f].Out1Root = 0;
-                            edges[f].Out1Length = 0;
-                            otherEnd.In1Root = 0;
+                            EdgeEnd.Delete1(ref edges[f], ref otherEnd);
                         }
+
+                        // neni potreba volta MarkDirty (nodeIndex, color), protoze uz jsme zavolali drive.
                     }
                 }
             }

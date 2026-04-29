@@ -160,6 +160,25 @@ namespace Assets.Scripts.Core.StaticPhysics
             return color2 != 0;
         }
 
+
+        public float FindOutStrengthNew(int color) => FindOutStrength(color, newEdges, isFixedRoot);
+        public float FindOutStrengthAny(int color) => FindOutStrength(color, newEdges ?? edges, isFixedRoot);
+
+        private static float FindOutStrength(int color, EdgeEnd[] edges, int isFixedRoot)
+        {
+            if (isFixedRoot == color)
+                return float.PositiveInfinity; // root unese cokoliv, pevnost prvni hrany pak urcuje jen MinLimit jointu
+            float strength = 0;
+            for (int f = 0; f < edges.Length; f++)
+            {
+                if (edges[f].Out0Root == color && edges[f].Out0Strength > strength)
+                    strength = edges[f].Out0Strength;
+                if (edges[f].Out1Root == color && edges[f].Out1Strength > strength)
+                    strength = edges[f].Out1Strength;
+            }
+            return strength;
+        }
+
         // Spocita vsechny sumy potrebne pro vazene rozdeleni sily mezi vystupnimi cestami barvy.
         // Sumy mohou byt 0 nebo Infinity; SafeWeight pri nasledne aplikaci dela fallback na 1/count.
         public readonly WeightSums GetCombinedSums(int color)

@@ -11,7 +11,7 @@ namespace Assets.Scripts.Core.StaticPhysics
     {
         // Vazici parametry pro kombinaci delka x pevnost (varianta 2b: (wLen+EpsLen)*(wStr+EpsStr)).
         // 0 = ciste multiplikativni (silny kontrast), vetsi = mekci (blizsi aritm. prumeru).
-        private const float EpsLen = 0.1f;
+        private const float EpsLen = 0.05f;
         private const float EpsStr = 0.1f;
 
         // Vraci num/sum, ale pri 0/0 nebo Inf/Inf (NaN) vrati 1/count jako uniformni fallback.

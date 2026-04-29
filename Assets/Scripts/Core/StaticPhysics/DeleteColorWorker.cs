@@ -20,6 +20,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly SpDataManager data;
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
+        private readonly ConsistencyWorker consistencyWorker;
         private readonly Queue<Work> workQueue = new Queue<Work>();
 
         private struct Work
@@ -28,11 +29,12 @@ namespace Assets.Scripts.Core.StaticPhysics
             public int Color;
         }
 
-        public DeleteColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes)
+        public DeleteColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes, ConsistencyWorker consistencyWorker)
         {
             this.data = data;
             this.toUpdate = toUpdate;
             this.deletedNodes = deletedNodes;
+            this.consistencyWorker = consistencyWorker;
         }
 
         internal void Run()
@@ -50,45 +52,28 @@ namespace Assets.Scripts.Core.StaticPhysics
             ref var node = ref data.GetNode(index);
             for (int f = 0; f < node.newEdges.Length; f++)
             {
-                bool delete = false;
                 if (node.newEdges[f].In0Root == color)
                 {
-                    delete = true;
-                    node.newEdges[f].In0Root = node.newEdges[f].In1Root;
-                    node.newEdges[f].In1Root = 0;
+                    ref var outEdge = ref DeleteOtherEdge(color, node.newEdges[f].Other, index);
+                    EdgeEnd.Delete0(ref outEdge, ref node.newEdges[f]);
                 }
                 else if (node.newEdges[f].In1Root == color)
                 {
-                    delete = true;
-                    node.newEdges[f].In1Root = 0;
-                }
-
-                if (delete)
-                {
-                    DeleteOtherEdge(color, node.newEdges[f].Other, index);
+                    ref var outEdge = ref DeleteOtherEdge(color, node.newEdges[f].Other, index);
+                    EdgeEnd.Delete1(ref outEdge, ref node.newEdges[f]);
                 }
             }
         }
 
-        private void DeleteOtherEdge(int color, int index, int from)
+        private ref EdgeEnd DeleteOtherEdge(int color, int index, int from)
         {
             toUpdate.Add(index);
             ref var node = ref data.GetNode(index);
             node.EnsureNewEdges(data);
             ref var edge = ref node.GetEndNew(from);
-            if (edge.Out0Root == color)
-            {
-                edge.Out0Root = edge.Out1Root;
-                edge.Out0Length = edge.Out1Length;
-                edge.Out1Root = 0;
-                edge.Out1Length = 0;
-            }
-            else if (edge.Out1Root == color)
-            {
-                edge.Out1Root = 0;
-                edge.Out1Length = 0;
-            }
             workQueue.Enqueue(new Work() { Node = index, Color = color });
+            //consistencyWorker.MarkDirty(index, color); Neni potreba volat protoze z uzlu smazu vsechny In Hrany a uzel davam do ToUpdate (Uzel bude bud listem nebo barvu nebude mit vubec)
+            return ref edge;
         }
 
         private void DetectChanges()
@@ -110,11 +95,11 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void TestColorCandidate(int index, in SpNode node, int f, int color)
         {
-            if (IsColorValid(color, node.newEdges, f) && node.ShortestColorDistance(color) != node.ShortestColorDistanceNew(color))
+            if (IsFirstColor(color, node.newEdges, f) && node.ShortestColorDistance(color) != node.ShortestColorDistanceNew(color))
                 workQueue.Enqueue(new Work() { Node = index, Color = color });
         }
 
-        private bool IsColorValid(int color, EdgeEnd[] newEdges, int f)
+        private bool IsFirstColor(int color, EdgeEnd[] newEdges, int f)
         {
             if (color == 0)
                 return false;

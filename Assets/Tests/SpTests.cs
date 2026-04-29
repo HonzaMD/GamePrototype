@@ -639,6 +639,176 @@ public class SpTests
             $"B.edge_to_A.Out=({bSide.Out0Root},{bSide.Out1Root})");
     }
 
+    // ====================================================================
+    // toUpdate correctness tests
+    //
+    // ForceWorker.RemoveForces (stara topologie) + AddForces (nova topologie)
+    // funguje korektne jen kdyz toUpdate obsahuje VSECHNY uzly, jejichz
+    // force-routing se mezi starou a novou topologii zmenil. To zahrnuje
+    // listy hluboko pod modifikovanou hranou - jejich routing zavisi na
+    // junction profilech a delkach/pevnostech podel cele cesty k rootu.
+    //
+    // Strategie: postavit stejnou cilovou topologii dvema zpusoby:
+    //   (a) "fresh" v jednom batchi, (b) "incremental" - zaklad pak modifikace.
+    // Joint compress/moment hodnoty MUSI byt identicke. Lisi-li se, toUpdate
+    // ma diru.
+    //
+    // Predpoklad: oba scenare volaji ReserveNodeIndex / Build ve stejnem poradi,
+    // takze node IDs i joint indexy se shoduji.
+    // ====================================================================
+
+    private static void AssertJointEquals(SpDataManager fresh, SpDataManager incr, int from, int to, string label)
+    {
+        int idxFresh = fresh.GetJointIndex(from, to);
+        int idxIncr = incr.GetJointIndex(from, to);
+        var jf = fresh.GetJoint(idxFresh);
+        var ji = incr.GetJoint(idxIncr);
+        Assert.AreEqual(jf.compress, ji.compress, 1e-3f, $"{label} compress (fresh={jf.compress}, incr={ji.compress})");
+        Assert.AreEqual(jf.moment, ji.moment, 1e-3f, $"{label} moment (fresh={jf.moment}, incr={ji.moment})");
+    }
+
+    [Test]
+    public void SpTests23ShortcutFreshVsIncremental()
+    {
+        // Pridanim zkratky upstream se meni rozlozeni sily v listu n3 (visi pod n2).
+        // n3 nema modifikovanou zadnou svou hranu - musi byt v toUpdate jen kvuli zmene
+        // junction profilu na n2 (n2 dostalo druhou cestu k rootu).
+
+        // (a) fresh
+        var dmF = new SpDataManager();
+        var wF = new GraphWorker(dmF);
+        var rF = new Node(dmF, isFixed: true);
+        var n1F = rF.Connect(Vector2.down, 0);
+        var n2F = n1F.Connect(Vector2.down, 0);
+        var n3F = n2F.Connect(Vector2.down, 0, force: Vector2.down);
+        rF.Connect(n2F, 0); // zkratka soucasti fresh stavby
+        RunSP(wF, n3F.Build());
+
+        // (b) incremental: nejprve retez, pak zkratka
+        var dmI = new SpDataManager();
+        var wI = new GraphWorker(dmI);
+        var rI = new Node(dmI, isFixed: true);
+        var n1I = rI.Connect(Vector2.down, 0);
+        var n2I = n1I.Connect(Vector2.down, 0);
+        var n3I = n2I.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(wI, n3I.Build());
+        var sc = rI.Connect(n2I, 0);
+        RunSP(wI, sc.Build());
+
+        Assert.AreEqual(rF.Id, rI.Id);  // sanity: node IDs match
+        Assert.AreEqual(n3F.Id, n3I.Id);
+
+        AssertJointEquals(dmF, dmI, rF.Id, n1F.Id, "R-n1");
+        AssertJointEquals(dmF, dmI, n1F.Id, n2F.Id, "n1-n2");
+        AssertJointEquals(dmF, dmI, n2F.Id, n3F.Id, "n2-n3");
+        AssertJointEquals(dmF, dmI, rF.Id, n2F.Id, "R-n2 (zkratka)");
+    }
+
+    [Test]
+    public void SpTests24SecondRootFreshVsIncremental()
+    {
+        // Pridani druheho fixed rootu vyrobi novou barvu. List n2 mel jen jednu barvu;
+        // po pridani R2 ma dve a jeho FindOtherColor pri force propagaci dela split.
+        // n2 musi byt v toUpdate s novym color profilem.
+
+        // (a) fresh
+        var dmF = new SpDataManager();
+        var wF = new GraphWorker(dmF);
+        var r1F = new Node(dmF, isFixed: true);
+        var n1F = r1F.Connect(Vector2.down, 0);
+        var n2F = n1F.Connect(Vector2.down, 0, force: Vector2.down);
+        var r2F = n1F.Connect(Vector2.up, 0, isFixed: true);
+        RunSP(wF, n2F.Build());
+
+        // (b) incremental: nejprve jen R1-n1-n2 retez se silou, pak teprve R2
+        var dmI = new SpDataManager();
+        var wI = new GraphWorker(dmI);
+        var r1I = new Node(dmI, isFixed: true);
+        var n1I = r1I.Connect(Vector2.down, 0);
+        var n2I = n1I.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(wI, n2I.Build());
+        var r2I = n1I.Connect(Vector2.up, 0, isFixed: true);
+        RunSP(wI, r2I.Build());
+
+        AssertJointEquals(dmF, dmI, r1F.Id, n1F.Id, "R1-n1");
+        AssertJointEquals(dmF, dmI, n1F.Id, n2F.Id, "n1-n2");
+        AssertJointEquals(dmF, dmI, r2F.Id, n1F.Id, "R2-n1 (novy root)");
+    }
+
+    [Test]
+    public void SpTests25StrengthChangeFreshVsIncremental()
+    {
+        // Dve paralelni cesty z n2 k R1 - jedna primo (R1-n2 se strong limity),
+        // druha pres n1 (boundary str=3, limit 2). Pevnost pres silnejsi cestu by mela
+        // posunout vahu do silnejsi vetve. Pri inkrementalnim pridani silne zkratky
+        // musi byt n3 (list se silou pod n2) v toUpdate aby se sila prerozdelila.
+        // Pozn: nelze pouzit str=2 (limit 0.5) protoze v round 1 incrementalu by retez
+        // s plnou silou prasknul jeste pred pridanim zkratky.
+
+        // (a) fresh - silna zkratka R1-n2 (strength 1, limit 100) + R1-n1-n2 (strength 3, limit 2)
+        var dmF = new SpDataManager();
+        var wF = new GraphWorker(dmF);
+        var rF = new Node(dmF, isFixed: true);
+        var n1F = rF.Connect(Vector2.down, 3);
+        var n2F = n1F.Connect(Vector2.down, 3);
+        var n3F = n2F.Connect(Vector2.down, 0, force: Vector2.down);
+        rF.Connect(n2F, 1);                                        // silna zkratka
+        RunSP(wF, n3F.Build());
+
+        // (b) incremental: stejny zaklad, pak pridat zkratku
+        var dmI = new SpDataManager();
+        var wI = new GraphWorker(dmI);
+        var rI = new Node(dmI, isFixed: true);
+        var n1I = rI.Connect(Vector2.down, 3);
+        var n2I = n1I.Connect(Vector2.down, 3);
+        var n3I = n2I.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(wI, n3I.Build());
+        var sc = rI.Connect(n2I, 1);
+        RunSP(wI, sc.Build());
+
+        AssertJointEquals(dmF, dmI, rF.Id, n1F.Id, "R-n1");
+        AssertJointEquals(dmF, dmI, n1F.Id, n2F.Id, "n1-n2");
+        AssertJointEquals(dmF, dmI, n2F.Id, n3F.Id, "n2-n3");
+        AssertJointEquals(dmF, dmI, rF.Id, n2F.Id, "R-n2 silna zkratka");
+    }
+
+    [Test]
+    public void SpTests26DeepLeafShortcutFreshVsIncremental()
+    {
+        // Hlubsi retez: zkratka u n2, ale list se silou je n4 (2 hopy pod n2).
+        // n4 nema modifikovanou zadnou hranu, a presto jeho force routing zavisi
+        // na novem junction profilu n2.
+
+        // (a) fresh
+        var dmF = new SpDataManager();
+        var wF = new GraphWorker(dmF);
+        var rF = new Node(dmF, isFixed: true);
+        var n1F = rF.Connect(Vector2.down, 0);
+        var n2F = n1F.Connect(Vector2.down, 0);
+        var n3F = n2F.Connect(Vector2.down, 0);
+        var n4F = n3F.Connect(Vector2.down, 0, force: Vector2.down);
+        rF.Connect(n2F, 0); // zkratka R-n2
+        RunSP(wF, n4F.Build());
+
+        // (b) incremental
+        var dmI = new SpDataManager();
+        var wI = new GraphWorker(dmI);
+        var rI = new Node(dmI, isFixed: true);
+        var n1I = rI.Connect(Vector2.down, 0);
+        var n2I = n1I.Connect(Vector2.down, 0);
+        var n3I = n2I.Connect(Vector2.down, 0);
+        var n4I = n3I.Connect(Vector2.down, 0, force: Vector2.down);
+        RunSP(wI, n4I.Build());
+        var sc = rI.Connect(n2I, 0);
+        RunSP(wI, sc.Build());
+
+        AssertJointEquals(dmF, dmI, rF.Id, n1F.Id, "R-n1");
+        AssertJointEquals(dmF, dmI, n1F.Id, n2F.Id, "n1-n2");
+        AssertJointEquals(dmF, dmI, n2F.Id, n3F.Id, "n2-n3");
+        AssertJointEquals(dmF, dmI, n3F.Id, n4F.Id, "n3-n4");
+        AssertJointEquals(dmF, dmI, rF.Id, n2F.Id, "R-n2 zkratka");
+    }
+
     #region class Limits
     private static class Limits
     {

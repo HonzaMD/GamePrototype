@@ -9,8 +9,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{D2665D7C-5407-8258-F0B2-65E5242B16D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -63,7 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
-    <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceSplitWeighting.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
@@ -171,6 +169,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpDataManager.cs" />
     <Compile Include="Assets\Scripts\Stuff\ContactDamageTrigger.cs" />
     <Compile Include="Assets\Scripts\Stuff\Dir8.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\ConsistencyWorker.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
@@ -188,6 +187,7 @@
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\Stuff\TreeTrunk.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceSplitWeighting.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
   </ItemGroup>
   <ItemGroup>

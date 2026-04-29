@@ -20,6 +20,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private Exception runnerException;
         private int runnerTicks;
         private int updateTicks;
+        private TimeSpan maxUpdateTime;
 
         private SpanList<InputCommand> publicInCommands = new();
         private SpanList<InputCommand> waitingInCommands = new();
@@ -126,10 +127,16 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         private void LogStats()
         {
-            //if (updateTicks % 100 == 5)
-            //{
-            //    Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}");
-            //}
+            if (updateTicks % 100 == 5)
+            {
+                TimeSpan lastMaxUpdate;
+                lock (sync)
+                {
+                    lastMaxUpdate = maxUpdateTime;
+                    maxUpdateTime = TimeSpan.Zero;
+                }
+                Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}, MaxUpdateTime: {lastMaxUpdate}");
+            }
         }
 
         private void CheckException()
@@ -146,6 +153,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             try
             {
                 bool moreBrokenEdges = false;
+                var stopwatch = new System.Diagnostics.Stopwatch();
 
                 while (true)
                 {
@@ -159,7 +167,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                             (waitingForceCommands, privateForceCommands) = (privateForceCommands, waitingForceCommands);
                             if (waitingOutCommands.Count == 0)
                                 (waitingOutCommands, privateOutCommands) = (privateOutCommands, waitingOutCommands);
+                            maxUpdateTime = TimeSpan.FromTicks(Math.Max(stopwatch.Elapsed.Ticks, maxUpdateTime.Ticks));
                         }
+
+                        stopwatch.Restart();
 
                         if (moreBrokenEdges)
                         {
@@ -193,9 +204,11 @@ namespace Assets.Scripts.Core.StaticPhysics
                             }
 
                             privateForceCommands.Clear();
+                            stopwatch.Stop();
                         }
                         else
                         {
+                            stopwatch.Stop();
                             break;
                         }
                     }

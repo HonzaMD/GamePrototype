@@ -18,14 +18,16 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly List<(int, int)> pendingJointsToCancel = new();
         private readonly DeleteColorWorker deleteColorWorker;
         private readonly AddColorWorker addColorWorker;
+        private readonly ConsistencyWorker consistencyWorker;
         private readonly ForceWorker forceWorker;
         private readonly FindFallenWorker findFallenWorker;
 
         public GraphWorker(SpDataManager dataManager)
         {
             this.data = dataManager;
-            deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
-            addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes);
+            consistencyWorker = new ConsistencyWorker(data, toUpdate, deletedNodes);
+            deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes, consistencyWorker);
+            addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes, consistencyWorker);
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
             findFallenWorker = new FindFallenWorker(data, this, toUpdate, deletedNodes);
         }
@@ -86,6 +88,8 @@ namespace Assets.Scripts.Core.StaticPhysics
                 else if (ic.Command == SpCommand.UpdateJointLimits)
                     UpdateJointLimits(ic);
             }
+
+            consistencyWorker.Run();
 
             forceWorker.RemoveForces();
 
@@ -252,6 +256,11 @@ namespace Assets.Scripts.Core.StaticPhysics
                     node.newEdges[count] = node.edges[f];
                     count++;
                 }
+                else
+                {
+                    consistencyWorker.MarkDirty(i, node.edges[f].Out0Root);
+                    consistencyWorker.MarkDirty(i, node.edges[f].Out1Root);
+                }
             }
             node.newEdgeCount = count;
         }
@@ -317,6 +326,15 @@ namespace Assets.Scripts.Core.StaticPhysics
                 joint.compressLimit = ic.compressLimit;
                 joint.momentLimit = ic.momentLimit;
                 forceWorker.MarkJointActive(jointIndex, ic.indexA, ic.indexB, ref joint);
+
+                // Strength vsech cest pres tento joint se mohla zmenit -> MarkDirty pro obe strany ve vsech barvach.
+                ref var nodeB = ref data.GetNode(ic.indexB);
+                ref var endA = ref nodeA.GetEndAny(ic.indexB);
+                ref var endB = ref nodeB.GetEndAny(ic.indexA);
+                consistencyWorker.MarkDirty(ic.indexA, endA.Out0Root);
+                consistencyWorker.MarkDirty(ic.indexA, endA.Out1Root);
+                consistencyWorker.MarkDirty(ic.indexB, endB.Out0Root);
+                consistencyWorker.MarkDirty(ic.indexB, endB.Out1Root);
             }
         }
 

@@ -26,16 +26,15 @@ namespace Assets.Scripts.Core.StaticPhysics
             public int Node;
             public int Color;
             public float Length;
-            public int phase;
 
             public int CompareTo(Work other)
             {
-                int ret = phase - other.phase;
+                int ret = (int)Mathf.Sign(other.Length - Length); // radim sestupne -> zpracuji daleko od korene driv
                 if (ret == 0)
                 {
-                    ret = (int)Mathf.Sign(other.Length - Length); // radim sestupne
+                    ret = Node - other.Node; // veci ke stejnemu uzlu budou za sebou
                     if (ret == 0)
-                        ret = Node - other.Node; // zarucim veci ke stejnemu uzlu budou za sebou
+                        ret = Color - other.Color; // a v ramci nich i podle barvy (kvuli Accumulate)
                 }
                 return ret;
             }
@@ -83,12 +82,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             {
                 ref var node = ref data.GetNode(index);
                 if (node.force != Vector2.zero && node.isFixedRoot == 0)
-                {
-                    var length = node.BestDistance(out var color);
-                    if (color == -1)
-                        throw new InvalidOperationException("Cekal jsem ze node bude propojeny s nejakym rootem");
-                    workQueue.Add(new Work() { Color = color, phase = 0, Length = length, Node = index, force = -node.force });
-                }
+                    EnqueueAtSource(index, ref node, -node.force, throwIfNoColor: true);
             }
         }
 
@@ -100,11 +94,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                 {
                     ref var node = ref data.GetNode(index);
                     if (node.force != Vector2.zero && node.isFixedRoot == 0)
-                    {
-                        var length = node.BestDistance(out var color);
-                        if (color != -1)
-                            workQueue.Add(new Work() { Color = color, phase = 0, Length = length, Node = index, force = node.force });
-                    }
+                        EnqueueAtSource(index, ref node, node.force, throwIfNoColor: false);
                 }
             }
         }
@@ -118,12 +108,32 @@ namespace Assets.Scripts.Core.StaticPhysics
                 {
                     ref var node = ref data.GetNode(index);
                     if (node.isFixedRoot == 0)
-                    {
-                        var length = node.BestDistance(out var color);
-                        if (color != -1)
-                            workQueue.Add(new Work() { Color = color, phase = 0, Length = length, Node = index, force = tempForces[f].forceA });
-                    }
+                        EnqueueAtSource(index, ref node, tempForces[f].forceA, throwIfNoColor: false);
                 }
+            }
+        }
+
+        // Source-split: pokud uzel ma 2 barvy, rozdelime silu vahami uz tady. Pak uz kazda
+        // pulka jen propaguje v jednu barvu az do korene (zadne dalsi splity po ceste).
+        private void EnqueueAtSource(int index, ref SpNode node, Vector2 force, bool throwIfNoColor)
+        {
+            float length1 = node.BestDistance(out int color1);
+            if (color1 == -1)
+            {
+                if (throwIfNoColor)
+                    throw new InvalidOperationException("Cekal jsem ze node bude propojeny s nejakym rootem");
+                return;
+            }
+
+            if (node.FindOtherColor(color1, out int color2, out float length2, out float strength1, out float strength2))
+            {
+                var (w1, w2) = ForceSplitWeighting.Compute2Weights(length1, length2, strength1, strength2);
+                workQueue.Add(new Work() { Color = color1, force = force * w1, Length = length1, Node = index });
+                workQueue.Add(new Work() { Color = color2, force = force * w2, Length = length2, Node = index });
+            }
+            else
+            {
+                workQueue.Add(new Work() { Color = color1, force = force, Length = length1, Node = index });
             }
         }
 
@@ -143,26 +153,15 @@ namespace Assets.Scripts.Core.StaticPhysics
             Accumulate(ref work);
 
             ref var node = ref data.GetNode(work.Node);
+            var sums = node.GetCombinedSums(work.Color);
+            EdgeEnd[] edges = node.edges;
 
-            if (work.phase == 0 && node.FindOtherColor(work.Color, out int color2, out float length2, out float strength1, out float strength2))
+            for (int f = 0; f < edges.Length; f++)
             {
-                (float w1, float w2) = ForceSplitWeighting.Compute2Weights(work.Length, length2, strength1, strength2);
-
-                workQueue.Add(new Work() { Color = work.Color, phase = 1, force = work.force * w1, torque = work.torque * w1, Length = work.Length, Node = work.Node });
-                workQueue.Add(new Work() { Color = color2, phase = 1, force = work.force * w2, torque = work.torque * w2, Length = length2, Node = work.Node });
-            }
-            else
-            {
-                var sums = node.GetCombinedSums(work.Color);
-                EdgeEnd[] edges = node.edges;
-
-                for (int f = 0; f < edges.Length; f++)
-                {
-                    if (edges[f].Out0Root == work.Color)
-                        UpdateForce(ref work, sums, edges[f].Out0Length, edges[f].Out0Strength, edges[f].Joint, edges[f].Other);
-                    if (edges[f].Out1Root == work.Color)
-                        UpdateForce(ref work, sums, edges[f].Out1Length, edges[f].Out1Strength, edges[f].Joint, edges[f].Other);
-                }
+                if (edges[f].Out0Root == work.Color)
+                    UpdateForce(ref work, sums, edges[f].Out0Length, edges[f].Out0Strength, edges[f].Joint, edges[f].Other);
+                if (edges[f].Out1Root == work.Color)
+                    UpdateForce(ref work, sums, edges[f].Out1Length, edges[f].Out1Strength, edges[f].Joint, edges[f].Other);
             }
         }
 
@@ -204,7 +203,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             if (data.GetNode(otherNode).isFixedRoot == 0)
             {
                 force *= dir;
-                workQueue.Add(new Work() { Color = work.Color, force = force, torque = torque, Length = length - joint.length, Node = otherNode, phase = work.phase });
+                workQueue.Add(new Work() { Color = work.Color, force = force, torque = torque, Length = length - joint.length, Node = otherNode });
             }
         }
 
@@ -225,7 +224,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             if (data.GetNode(otherNode).isFixedRoot == 0)
             {
-                workQueue.Add(new Work() { Color = work.Color, torque = work.torque, Node = otherNode, phase = work.phase });
+                workQueue.Add(new Work() { Color = work.Color, torque = work.torque, Node = otherNode });
             }
         }
 
@@ -234,7 +233,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             while (workQueue.Count > 0)
             {
                 ref var other = ref workQueue.Peek();
-                if (other.Node == work.Node && other.phase == work.phase && other.Color == work.Color)
+                if (other.Node == work.Node && other.Color == work.Color)
                 {
                     work.force += other.force;
                     work.torque += other.torque;

@@ -25,5 +25,40 @@ namespace Assets.Scripts.Core.StaticPhysics
         public float Out1Length;
         public float Out0Strength; // pevnost (nosnost) te cesty ke koreni; vyssi cislo = unese vic
         public float Out1Strength;
+
+        public static void Delete0(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
+        {
+            outEnd.Out0Root = outEnd.Out1Root;
+            outEnd.Out0Length = outEnd.Out1Length;
+            outEnd.Out0Strength = outEnd.Out1Strength;
+            outEnd.Out1Root = 0;
+            outEnd.Out1Length = 0;
+            outEnd.Out1Strength = 0;
+            inEnd.In0Root = inEnd.In1Root;
+            inEnd.In1Root = 0;
+        }
+
+        public static void Delete1(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
+        {
+            outEnd.Out1Root = 0;
+            outEnd.Out1Length = 0;
+            outEnd.Out1Strength = 0;
+            inEnd.In1Root = 0;
+        }
+
+        public static void Swap(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
+        {
+            float tempLen = outEnd.Out0Length;
+            float tempStr = outEnd.Out0Strength;
+            int tempRoot = outEnd.Out0Root;
+            outEnd.Out0Length = outEnd.Out1Length;
+            outEnd.Out0Strength = outEnd.Out1Strength;
+            outEnd.Out0Root = outEnd.Out1Root;
+            inEnd.In0Root = outEnd.Out1Root;
+            outEnd.Out1Length = tempLen;
+            outEnd.Out1Strength = tempStr;
+            outEnd.Out1Root = tempRoot;
+            inEnd.In1Root = tempRoot;
+        }
     }
 }
