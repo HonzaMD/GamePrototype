@@ -17,12 +17,26 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly Stack<int> freeJointIndexes = new Stack<int>();
         private int topNodeIndex; // prideluji od 1
         private int topJointIndex; // prideluji od 0
+        //private List<JournalRec> journal = new();
 
         private const int edgePoolMax = 25;
         private readonly Stack<EdgeEnd[]>[] edgeEndsPool = Enumerable.Range(0, edgePoolMax).Select(i => new Stack<EdgeEnd[]>()).ToArray();
 
         // zachyceno v konstruktoru na game threadu (SpInterface je vytvoren z Game.cs)
         private readonly int gameThreadId = Thread.CurrentThread.ManagedThreadId;
+
+        //private struct JournalRec
+        //{
+        //    public int fromI, toI;
+        //    public float fromL, toL;
+        //    public float startSCD, targetSCD;
+        //    public int color;
+
+        //    public override string ToString()
+        //    {
+        //        return $"({fromI}-{toI} Color: {color}, Length: {fromL} -> {toL}, StartSCD: {startSCD}, TargetSCD:{targetSCD})";
+        //    }
+        //}
 
         [System.Diagnostics.Conditional("UNITY_ASSERTIONS")]
         private void AssertGameThread()
@@ -109,6 +123,8 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         internal bool IsNodeValid(int index) => index < nodes.Length && nodes[index].edges != null;
 
+        internal int NodesTopIndex => topNodeIndex;
+
         // Pro testy: vrati Out0Root a Out1Root hrany z 'from' do 'to'. Hrana musi existovat.
         public (int Out0Root, int Out1Root) GetOutRoots(int from, int to)
         {
@@ -136,5 +152,25 @@ namespace Assets.Scripts.Core.StaticPhysics
             }
             throw new InvalidOperationException($"Hrana {from}->{to} neni");
         }
+
+        //public void JournalLog(int fromI, int toI, int color, float fromL, float toL, float startSCD, float targetSCD)
+        //{
+        //    journal.Add(new JournalRec() { fromI = fromI, toI = toI, color = color, fromL = fromL, toL = toL, startSCD = startSCD, targetSCD = targetSCD });
+        //}
+
+        //public void ClearJournal() => journal.Clear();
+
+        //internal string PrintJournal(int color, int node)
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    sb.AppendLine();
+        //    foreach (var rec in journal)
+        //    {
+        //        if (rec.color == color && (rec.toI == node || rec.fromI == node))
+        //            sb.AppendLine(rec.ToString());
+        //    }
+        //    sb.AppendLine("===");
+        //    return sb.ToString();
+        //}
     }
 }

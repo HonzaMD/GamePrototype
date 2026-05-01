@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -155,6 +156,8 @@ namespace Assets.Scripts.Core.StaticPhysics
             ref var node = ref data.GetNode(work.Node);
             var sums = node.GetCombinedSums(work.Color);
             EdgeEnd[] edges = node.edges;
+
+            Assert.IsTrue(Mathf.Abs(work.Length - node.ShortestColorDistance(work.Color)) < 0.001, "Nesedi mi delka na SCD "/* + data.PrintJournal(work.Color, work.Node)*/);
 
             for (int f = 0; f < edges.Length; f++)
             {

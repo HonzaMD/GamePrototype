@@ -809,6 +809,297 @@ public class SpTests
         AssertJointEquals(dmF, dmI, rF.Id, n2F.Id, "R-n2 zkratka");
     }
 
+    [Test]
+    public void SpTests27OrphanedColorOverwrite()
+    {
+        // Krok 1: dva rooty R1, R2 oba na N3, retez N3-N4-N5-N6.
+        //  N5.SCD(R1) = N5.SCD(R2) = 3. Hrana N5->N4 nese Out0=R1, Out1=R2 (oboji len 3).
+        //  Hrana N5-N6 ma In0=R1, In1=R2 (mirror N6.Out0=R1, Out1=R2 - R1/R2 cesta z N6 vede pres N5).
+        //
+        // Krok 2: pridame R3 napojeny na N4 a N6 (oboji hrana ~sqrt(2)).
+        //  AddColorWorker expanduje R3 z N4 do N5 s lengthB ~2.41, coz je lepsi nez Out1=R2 (3).
+        //  V else-if vetvi (AddColorWorker.cs ~r158) prepiseme Out1Root=R2 -> R3 a oznacime
+        //  (N5, R2) jako dirty.
+        //  Jenze hrana N5-N6 stale ma In1Root=R2 - osyrela vstupni hrana, R2 do N5 vchazi
+        //  ale uz nikam nevychazi.
+        //  ConsistencyWorker pak nad (N5, R2) napocita scd=MaxValue, ale prochazi In1Root=R2
+        //  hranu -> Assert "hrana bez korenu" failne (ConsistencyWorker.cs:143).
+
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var r1 = new Node(dm, isFixed: true);                             // (0, 0)
+        var n3 = r1.Connect(Vector2.right, 0);                            // (1, 0)
+        var r2 = new Node(dm, isFixed: true, point: Vector2.right * 2f);  // (2, 0)
+        r2.Connect(n3, 0);
+        var n4 = n3.Connect(Vector2.down, 0);                             // (1, -1)
+        var n5 = n4.Connect(Vector2.down, 0);                             // (1, -2)
+        var n6 = n5.Connect(Vector2.down, 0);                             // (1, -3)
+        RunSP(worker, n6.Build());
+
+        var r3 = new Node(dm, isFixed: true, point: new Vector2(2f, -2f)); // (2, -2)
+        r3.Connect(n4, 0);                                                 // sqrt(2)
+        var edge = r3.Connect(n6, 0);                                      // sqrt(2)
+        RunSP(worker, edge.Build());
+    }
+
+    [Test]
+    public void SpTests28RandomTopology()
+    {
+        // Deterministicky nahodne vystaveny graf: 20 fixed roots + 80 regularnich uzlu, 120 hran.
+        // Pak 50 nahodnych modifikacnich kroku ze vsech druhu (Add/Remove Node/Joint, UpdateForce/Limits).
+        // Test sleduje, ze ApplyChanges + InvariantValidator nezasertuje na zadnem kroku.
+        const int seed = 12345;
+        const int rootCount = 20;
+        const int totalNodes = 100;
+        const int targetEdges = 120;
+        const int modSteps = 50;
+
+        var rng = new System.Random(seed);
+        var dm = new SpDataManager();
+        var worker = new GraphWorker(dm);
+
+        var alive = new HashSet<int>();
+        var fixedNodes = new HashSet<int>();
+        var nodeForce = new Dictionary<int, Vector2>();
+        var edgesSet = new HashSet<(int, int)>();
+        var neighbors = new Dictionary<int, HashSet<int>>();
+
+        Vector2 RandomPoint() => new Vector2((float)(rng.NextDouble() * 50.0 - 25.0), (float)(rng.NextDouble() * 50.0 - 25.0));
+        Vector2 RandomForce(double scale) => new Vector2((float)((rng.NextDouble() - 0.5) * 2 * scale), (float)((rng.NextDouble() - 0.5) * 2 * scale));
+        int RandomStrength() => rng.Next(0, Limits.Data.Length);
+        (int, int) Norm(int a, int b) => a < b ? (a, b) : (b, a);
+        int PickAlive() => alive.ElementAt(rng.Next(alive.Count));
+        bool TryPickEdge(out int a, out int b)
+        {
+            if (edgesSet.Count == 0) { a = b = 0; return false; }
+            var e = edgesSet.ElementAt(rng.Next(edgesSet.Count));
+            a = e.Item1; b = e.Item2;
+            return true;
+        }
+
+        void RegisterAdd(int id, Vector2 force, bool isFixed)
+        {
+            alive.Add(id);
+            if (isFixed) fixedNodes.Add(id);
+            nodeForce[id] = force;
+            neighbors[id] = new HashSet<int>();
+        }
+
+        void RegisterEdge(int a, int b)
+        {
+            edgesSet.Add(Norm(a, b));
+            neighbors[a].Add(b);
+            neighbors[b].Add(a);
+        }
+
+        void DropNode(int id)
+        {
+            if (!alive.Remove(id)) return;
+            fixedNodes.Remove(id);
+            if (neighbors.TryGetValue(id, out var nbs))
+            {
+                foreach (var nb in nbs)
+                {
+                    edgesSet.Remove(Norm(id, nb));
+                    if (neighbors.TryGetValue(nb, out var nbnbs))
+                        nbnbs.Remove(id);
+                }
+                neighbors.Remove(id);
+            }
+            nodeForce.Remove(id);
+            dm.FreeNodeIndex(id);
+        }
+
+        void DropEdge(int a, int b)
+        {
+            if (!edgesSet.Remove(Norm(a, b))) return;
+            if (neighbors.TryGetValue(a, out var na)) na.Remove(b);
+            if (neighbors.TryGetValue(b, out var nb)) nb.Remove(a);
+        }
+
+        void ProcessOutput(SpanList<OutputCommand> output)
+        {
+            var span = output.AsSpan();
+            for (int i = 0; i < span.Length; i++)
+            {
+                var cmd = span[i];
+                if (cmd.Command == SpCommand.FallNode || cmd.Command == SpCommand.FreeNode)
+                    DropNode(cmd.indexA);
+                else if (cmd.Command == SpCommand.RemoveJoint)
+                    DropEdge(cmd.indexA, cmd.indexB);
+            }
+        }
+
+        SpanList<OutputCommand> RunSettle(SpanList<InputCommand> input, int maxCascades = 10)
+        {
+            var forces = new ForceCommand[0];
+            var output = new SpanList<OutputCommand>();
+            var input2 = new SpanList<InputCommand>();
+            worker.ApplyChanges(input.AsSpan(), forces, output);
+            for (int i = 0; i < maxCascades; i++)
+            {
+                worker.GetBrokenEdgesBigOnly(input2, output);
+                if (input2.Count == 0) break;
+                worker.ApplyChanges(input2.AsSpan(), forces, output);
+                input2.Clear();
+            }
+            return output;
+        }
+
+        // --- Initial build: 20 fixed roots ---
+        var input = new SpanList<InputCommand>();
+        for (int i = 0; i < rootCount; i++)
+        {
+            int id = dm.ReserveNodeIndex();
+            input.Add(new InputCommand { Command = SpCommand.AddNode, indexA = id, pointA = RandomPoint(), isAFixed = true });
+            RegisterAdd(id, Vector2.zero, true);
+        }
+
+        // 80 regularnich uzlu, kazdy se napojuje na nahodny existujici alive node => zaruci pripojeni ke kostre
+        for (int i = 0; i < totalNodes - rootCount; i++)
+        {
+            int parent = PickAlive();
+            int id = dm.ReserveNodeIndex();
+            var force = rng.NextDouble() < 0.3 ? RandomForce(1.0) : Vector2.zero;
+            int s = RandomStrength();
+            var lim = Limits.Data[s];
+            input.Add(new InputCommand
+            {
+                Command = SpCommand.AddNodeAndJoint,
+                indexA = id, pointA = RandomPoint(), forceA = force, indexB = parent,
+                stretchLimit = lim.Stretch, compressLimit = lim.Compress, momentLimit = lim.Moment,
+            });
+            RegisterAdd(id, force, false);
+            RegisterEdge(id, parent);
+        }
+
+        // Doplnit cross-hrany az do targetEdges
+        int attempts = 0;
+        while (edgesSet.Count < targetEdges && attempts < targetEdges * 20)
+        {
+            attempts++;
+            int a = PickAlive(), b = PickAlive();
+            if (a == b) continue;
+            if (edgesSet.Contains(Norm(a, b))) continue;
+            int s = RandomStrength();
+            var lim = Limits.Data[s];
+            input.Add(new InputCommand
+            {
+                Command = SpCommand.AddJoint,
+                indexA = a, indexB = b,
+                stretchLimit = lim.Stretch, compressLimit = lim.Compress, momentLimit = lim.Moment,
+            });
+            RegisterEdge(a, b);
+        }
+
+        Assert.AreEqual(targetEdges, edgesSet.Count, "build: ocekavam plny pocet hran");
+
+        var output0 = RunSettle(input);
+        ProcessOutput(output0);
+
+        // --- 50 modifikacnich kroku ---
+        for (int step = 0; step < modSteps; step++)
+        {
+            input = new SpanList<InputCommand>();
+            int kind = rng.Next(7);
+
+            switch (kind)
+            {
+                case 0: // AddNode (samostatny - obvykle spadne, fixed roots zustanou)
+                {
+                    int id = dm.ReserveNodeIndex();
+                    bool fix = rng.NextDouble() < 0.3;
+                    var force = rng.NextDouble() < 0.5 ? RandomForce(1.0) : Vector2.zero;
+                    input.Add(new InputCommand { Command = SpCommand.AddNode, indexA = id, pointA = RandomPoint(), isAFixed = fix, forceA = force });
+                    RegisterAdd(id, force, fix);
+                    break;
+                }
+                case 1: // AddNodeAndJoint
+                {
+                    if (alive.Count == 0) break;
+                    int parent = PickAlive();
+                    int id = dm.ReserveNodeIndex();
+                    var force = rng.NextDouble() < 0.4 ? RandomForce(1.0) : Vector2.zero;
+                    int s = RandomStrength();
+                    var lim = Limits.Data[s];
+                    input.Add(new InputCommand
+                    {
+                        Command = SpCommand.AddNodeAndJoint,
+                        indexA = id, pointA = RandomPoint(), forceA = force, indexB = parent,
+                        stretchLimit = lim.Stretch, compressLimit = lim.Compress, momentLimit = lim.Moment,
+                    });
+                    RegisterAdd(id, force, false);
+                    RegisterEdge(id, parent);
+                    break;
+                }
+                case 2: // AddJoint mezi dvema alive nody (bez self-loop a duplicit)
+                {
+                    if (alive.Count < 2) break;
+                    int a = PickAlive(), b = PickAlive();
+                    if (a == b) break;
+                    if (edgesSet.Contains(Norm(a, b))) break;
+                    int s = RandomStrength();
+                    var lim = Limits.Data[s];
+                    input.Add(new InputCommand
+                    {
+                        Command = SpCommand.AddJoint,
+                        indexA = a, indexB = b,
+                        stretchLimit = lim.Stretch, compressLimit = lim.Compress, momentLimit = lim.Moment,
+                    });
+                    RegisterEdge(a, b);
+                    break;
+                }
+                case 3: // RemoveJoint
+                {
+                    if (!TryPickEdge(out int a, out int b)) break;
+                    input.Add(new InputCommand { Command = SpCommand.RemoveJoint, indexA = a, indexB = b });
+                    DropEdge(a, b);
+                    break;
+                }
+                case 4: // RemoveNode (pripadne vc. fixed rootu - spousti kaskady padu)
+                {
+                    if (alive.Count == 0) break;
+                    int id = PickAlive();
+                    input.Add(new InputCommand { Command = SpCommand.RemoveNode, indexA = id });
+                    // tracking se srovna v ProcessOutput pres FreeNode/FallNode
+                    break;
+                }
+                case 5: // UpdateForce - relativni delta
+                {
+                    if (alive.Count == 0) break;
+                    int id = PickAlive();
+                    var delta = RandomForce(0.5);
+                    input.Add(new InputCommand { Command = SpCommand.UpdateForce, indexA = id, forceA = delta });
+                    if (nodeForce.ContainsKey(id))
+                        nodeForce[id] += delta;
+                    break;
+                }
+                case 6: // UpdateJointLimits
+                {
+                    if (!TryPickEdge(out int a, out int b)) break;
+                    int s = RandomStrength();
+                    var lim = Limits.Data[s];
+                    input.Add(new InputCommand
+                    {
+                        Command = SpCommand.UpdateJointLimits,
+                        indexA = a, indexB = b,
+                        stretchLimit = lim.Stretch, compressLimit = lim.Compress, momentLimit = lim.Moment,
+                    });
+                    break;
+                }
+            }
+
+            if (input.Count == 0) continue;
+
+            var stepOutput = RunSettle(input);
+            ProcessOutput(stepOutput);
+        }
+
+        // Sanity: aspon fixed roots by mely prezit (RemoveNode na ne dopada zridka pri 50 krocich)
+        Assert.IsTrue(alive.Count > 0, "po vsech krocich nezbyl ani jeden zivy uzel");
+    }
+
     #region class Limits
     private static class Limits
     {

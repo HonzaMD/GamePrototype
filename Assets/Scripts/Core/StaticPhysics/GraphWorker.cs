@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -21,19 +22,23 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly ConsistencyWorker consistencyWorker;
         private readonly ForceWorker forceWorker;
         private readonly FindFallenWorker findFallenWorker;
+        private readonly InvariantValidator invariantValidator;
 
         public GraphWorker(SpDataManager dataManager)
         {
             this.data = dataManager;
             consistencyWorker = new ConsistencyWorker(data, toUpdate, deletedNodes);
-            deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes, consistencyWorker);
-            addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes, consistencyWorker);
+            deleteColorWorker = new DeleteColorWorker(data, toUpdate, deletedNodes);
+            addColorWorker = new AddColorWorker(data, toUpdate, deletedNodes, consistencyWorker, deleteColorWorker);
             forceWorker = new ForceWorker(data, toUpdate, deletedNodes);
             findFallenWorker = new FindFallenWorker(data, this, toUpdate, deletedNodes);
+            invariantValidator = new InvariantValidator(data);
         }
 
         public void ApplyChanges(Span<InputCommand> inputs, Span<ForceCommand> tempForces, SpanList<OutputCommand> output)
         {
+            //data.ClearJournal();
+
             for (int f = 0; f < inputs.Length; f++)
             {
                 ref var ic = ref inputs[f];
@@ -91,6 +96,8 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             consistencyWorker.Run();
 
+            //invariantValidator.Validate(true);
+
             forceWorker.RemoveForces();
 
             for (int f = 0; f < inputs.Length; f++)
@@ -107,6 +114,8 @@ namespace Assets.Scripts.Core.StaticPhysics
                 ApplyEdgeArrs(i);
             }
 
+            //invariantValidator.Validate(true, deletedNodes);
+
             forceWorker.AddForces();
             forceWorker.AddTempForces(tempForces);
 
@@ -114,6 +123,8 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             FreeJoints();
             FreeNodes(output);
+
+            //invariantValidator.Validate(false);
         }
 
         private void EnsureValidNodes(ref InputCommand ic)
@@ -303,9 +314,11 @@ namespace Assets.Scripts.Core.StaticPhysics
             joint.compressLimit = ic.compressLimit;
             joint.momentLimit = ic.momentLimit;
 
+            Assert.AreEqual(edgeA, default(EdgeEnd));
             edgeA.Joint = jointIndex;
             edgeA.Other = ic.indexB;
 
+            Assert.AreEqual(edgeB, default(EdgeEnd));
             edgeB.Joint = jointIndex;
             edgeB.Other = ic.indexA;
         }
@@ -319,7 +332,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private void UpdateJointLimits(in InputCommand ic)
         {
             ref var nodeA = ref data.GetNode(ic.indexA);
-            if (nodeA.ConnectsTo(ic.indexB, out int jointIndex))
+            if (nodeA.ConnectsToAny(ic.indexB, out int jointIndex))
             {
                 ref var joint = ref data.GetJoint(jointIndex);
                 joint.stretchLimit = ic.stretchLimit;
@@ -331,10 +344,10 @@ namespace Assets.Scripts.Core.StaticPhysics
                 ref var nodeB = ref data.GetNode(ic.indexB);
                 ref var endA = ref nodeA.GetEndAny(ic.indexB);
                 ref var endB = ref nodeB.GetEndAny(ic.indexA);
-                consistencyWorker.MarkDirty(ic.indexA, endA.Out0Root);
-                consistencyWorker.MarkDirty(ic.indexA, endA.Out1Root);
-                consistencyWorker.MarkDirty(ic.indexB, endB.Out0Root);
-                consistencyWorker.MarkDirty(ic.indexB, endB.Out1Root);
+                consistencyWorker.MarkDirty(ic.indexA, endA.In0Root);
+                consistencyWorker.MarkDirty(ic.indexA, endA.In1Root);
+                consistencyWorker.MarkDirty(ic.indexB, endB.In0Root);
+                consistencyWorker.MarkDirty(ic.indexB, endB.In1Root);
             }
         }
 

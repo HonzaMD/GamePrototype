@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Assertions;
 
 namespace Assets.Scripts.Core.StaticPhysics
 {
@@ -28,6 +31,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         public static void Delete0(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
         {
+            AssertConsistency(ref outEnd, ref inEnd);
             outEnd.Out0Root = outEnd.Out1Root;
             outEnd.Out0Length = outEnd.Out1Length;
             outEnd.Out0Strength = outEnd.Out1Strength;
@@ -40,6 +44,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         public static void Delete1(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
         {
+            AssertConsistency(ref outEnd, ref inEnd);
             outEnd.Out1Root = 0;
             outEnd.Out1Length = 0;
             outEnd.Out1Strength = 0;
@@ -48,6 +53,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
         public static void Swap(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
         {
+            AssertConsistency(ref outEnd, ref inEnd);
             float tempLen = outEnd.Out0Length;
             float tempStr = outEnd.Out0Strength;
             int tempRoot = outEnd.Out0Root;
@@ -59,6 +65,15 @@ namespace Assets.Scripts.Core.StaticPhysics
             outEnd.Out1Strength = tempStr;
             outEnd.Out1Root = tempRoot;
             inEnd.In1Root = tempRoot;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Conditional("UNITY_ASSERTIONS")]
+        private static void AssertConsistency(ref EdgeEnd outEnd, ref EdgeEnd inEnd)
+        {
+            Assert.AreEqual(outEnd.Out0Root, inEnd.In0Root);
+            Assert.AreEqual(outEnd.Out1Root, inEnd.In1Root);
+            Assert.AreEqual(outEnd.Joint, inEnd.Joint);
         }
     }
 }

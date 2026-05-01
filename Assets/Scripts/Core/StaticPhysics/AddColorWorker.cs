@@ -24,7 +24,9 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
         private readonly ConsistencyWorker consistencyWorker;
+        private readonly DeleteColorWorker deleteColorWorker;
         private readonly BinaryHeap<Work> workQueue = new BinaryHeap<Work>();
+        private float scdLimit;
 
         private struct Work : IComparable<Work>
         {
@@ -35,16 +37,18 @@ namespace Assets.Scripts.Core.StaticPhysics
             public int CompareTo(Work other) => (int)Mathf.Sign(Length - other.Length);
         }
 
-        public AddColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes, ConsistencyWorker consistencyWorker)
+        public AddColorWorker(SpDataManager data, HashSet<int> toUpdate, HashSet<int> deletedNodes, ConsistencyWorker consistencyWorker, DeleteColorWorker deleteColorWorker)
         {
             this.data = data;
             this.toUpdate = toUpdate;
             this.deletedNodes = deletedNodes;
             this.consistencyWorker = consistencyWorker;
+            this.deleteColorWorker = deleteColorWorker;
         }
 
         internal void Run()
         {
+            scdLimit = 0;
             DetectWork();
             while (workQueue.Count > 0)
             {
@@ -58,15 +62,20 @@ namespace Assets.Scripts.Core.StaticPhysics
             {
                 if (!deletedNodes.Contains(index))
                 {
-                    ref var node = ref data.GetNode(index);
-
-                    TestColorCandidate(index, node, 0, node.isFixedRoot);
-                    for (int f = 0; f < node.newEdges.Length; f++)
-                    {
-                        TestColorCandidate(index, node, f, node.newEdges[f].Out0Root);
-                        TestColorCandidate(index, node, f, node.newEdges[f].Out1Root);
-                    }
+                    DetectWorkFromNode(index);
                 }
+            }
+        }
+
+        public void DetectWorkFromNode(int index)
+        {
+            ref var node = ref data.GetNode(index);
+
+            TestColorCandidate(index, node, 0, node.isFixedRoot);
+            for (int f = 0; f < node.newEdges.Length; f++)
+            {
+                TestColorCandidate(index, node, f, node.newEdges[f].Out0Root);
+                TestColorCandidate(index, node, f, node.newEdges[f].Out1Root);
             }
         }
 
@@ -93,6 +102,8 @@ namespace Assets.Scripts.Core.StaticPhysics
         private bool CanExtend(in SpNode node, int color, out float startDist)
         {
             startDist = node.ShortestColorDistanceNew(color);
+            if (startDist < scdLimit)
+                return false;
 
             var edges = node.newEdges;
             for (int f = 0; f < edges.Length; f++)
@@ -104,7 +115,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                     float otherDist = nodeB.ShortestColorDistanceAny(color);
                     if (otherDist > startDist)
                     {
-                        if (edges[f].In1Root == 0 || edges[f].In0Root == 0 || Utils.IsDistanceBetter(startDist, node.ShortestColorDistanceNew(edges[f].In1Root), color, edges[f].In1Root))
+                        //if (edges[f].In1Root == 0 || edges[f].In0Root == 0 || Utils.IsDistanceBetter(startDist, node.ShortestColorDistanceNew(edges[f].In1Root), color, edges[f].In1Root))
                             return true;
                     }
                 }
@@ -115,6 +126,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private void ExpandColor()
         {
             var work = workQueue.Remove();
+            scdLimit = work.Length;
             ref var node = ref data.GetNode(work.Node);
             int color = work.Color;
             float startDist = node.ShortestColorDistanceNew(color);
@@ -140,6 +152,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                         if (otherEnd.Out0Length == lengthB && otherEnd.Out0Strength == strengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
+                        //data.JournalLog(work.Node, indexB, color, otherEnd.Out0Length, lengthB, startDist, otherDist);
                         otherEnd.Out0Length = lengthB;
                         otherEnd.Out0Strength = strengthB;
                     } 
@@ -148,6 +161,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                         if (otherEnd.Out1Length == lengthB && otherEnd.Out1Strength == strengthB)
                             continue;
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
+                        //data.JournalLog(work.Node, indexB, color, otherEnd.Out1Length, lengthB, startDist, otherDist);
                         otherEnd.Out1Length = lengthB;
                         otherEnd.Out1Strength = strengthB;
                     }
@@ -155,11 +169,13 @@ namespace Assets.Scripts.Core.StaticPhysics
                     {
                         // napred zkusim horsi hranu
                         otherEnd = ref EnsureWritable(ref otherEnd, work.Node, indexB, ref nodeB);
+                        //data.JournalLog(work.Node, indexB, color, otherEnd.Out1Length, lengthB, startDist, otherDist);
                         edges[f].In1Root = color;
-                        consistencyWorker.MarkDirty(indexB, otherEnd.Out1Root);
+                        int colorTodelete = otherEnd.Out1Root;
                         otherEnd.Out1Root = color;
                         otherEnd.Out1Length = lengthB;
                         otherEnd.Out1Strength = strengthB;
+                        deleteColorWorker.StartdeleteFrom(colorTodelete, indexB, this);
                     }
                     else
                     {

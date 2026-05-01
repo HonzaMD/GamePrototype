@@ -27,7 +27,10 @@ namespace Assets.Scripts.Core.StaticPhysics
             return false;
         }
 
-        internal readonly bool ConnectsTo(int index, out int joint)
+        internal readonly bool ConnectsTo(int index, out int joint) => ConnectsTo(index, out joint, edges);
+        internal readonly bool ConnectsToAny(int index, out int joint) => ConnectsTo(index, out joint, newEdges ?? edges);
+
+        private static bool ConnectsTo(int index, out int joint, EdgeEnd[] edges)
         {
             for (int f = 0; f < edges.Length; f++)
             {
@@ -130,13 +133,18 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             for (int f = 0; f < edges.Length; f++)
             {
-                if (edges[f].Out0Root != color1 && edges[f].Out1Root != color1)
+                if (edges[f].Out0Root == color1)
                 {
-                    if (edges[f].Out0Root != 0 && edges[f].Out0Length < length2)
+                    if (edges[f].Out1Root != 0 && edges[f].Out1Length < length2)
                     {
-                        color2 = edges[f].Out0Root;
-                        length2 = edges[f].Out0Length;
+                        color2 = edges[f].Out1Root;
+                        length2 = edges[f].Out1Length;
                     }
+                }
+                else if (edges[f].Out0Root != 0 && edges[f].Out0Length < length2)
+                {
+                    color2 = edges[f].Out0Root;
+                    length2 = edges[f].Out0Length;
                 }
             }
 
@@ -161,6 +169,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
 
+        public float FindOutStrength(int color) => FindOutStrength(color, edges, isFixedRoot);
         public float FindOutStrengthNew(int color) => FindOutStrength(color, newEdges, isFixedRoot);
         public float FindOutStrengthAny(int color) => FindOutStrength(color, newEdges ?? edges, isFixedRoot);
 

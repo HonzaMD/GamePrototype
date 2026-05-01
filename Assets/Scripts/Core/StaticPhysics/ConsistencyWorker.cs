@@ -130,16 +130,49 @@ namespace Assets.Scripts.Core.StaticPhysics
                 int color = KeyColor(key);
 
                 ref var node = ref data.GetNode(nodeIdx);
-                node.EnsureNewEdges(data);
-                var edges = node.newEdges;
+                var edges = node.newEdges ?? node.edges;
+
+                float outStr = node.FindOutStrengthAny(color);
+                float scd = node.ShortestColorDistanceAny(color);
 
                 for (int f = 0; f < edges.Length; f++)
                 {
-                    if (edges[f].Out0Root == color)
-                        edges[f].Out0Strength = ComputeStrength(edges[f].Other, color, edges[f].Joint);
-                    if (edges[f].Out1Root == color)
-                        edges[f].Out1Strength = ComputeStrength(edges[f].Other, color, edges[f].Joint);
+                    if (edges[f].In0Root == color)
+                    {
+                        Assert.IsTrue(scd != float.MaxValue, "hrana bez korenu");
+                        int indexB = edges[f].Other;
+                        ref var nodeB = ref data.GetNode(indexB);
+                        ref var otherEnd = ref nodeB.GetEndAny(nodeIdx);
+                        ref var joint = ref data.GetJoint(edges[f].Joint);
+                        float lengthB = joint.length + scd;
+                        float strengthB = Mathf.Min(joint.MinLimit, outStr);
+
+                        Assert.AreEqual(lengthB, otherEnd.Out0Length, "hrana ma spatnouy LENGTH");
+                        if (otherEnd.Out0Length == lengthB && otherEnd.Out0Strength == strengthB)
+                            continue;
+                        ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
+                        otherEnd2.Out0Length = lengthB;
+                        otherEnd2.Out0Strength = strengthB;
+                    }
+                    else if (edges[f].In1Root == color)
+                    {
+                        Assert.IsTrue(scd != float.MaxValue, "hrana bez korenu");
+                        int indexB = edges[f].Other;
+                        ref var nodeB = ref data.GetNode(indexB);
+                        ref var otherEnd = ref nodeB.GetEndAny(nodeIdx);
+                        ref var joint = ref data.GetJoint(edges[f].Joint);
+                        float lengthB = joint.length + scd;
+                        float strengthB = Mathf.Min(joint.MinLimit, outStr);
+
+                        Assert.AreEqual(lengthB, otherEnd.Out1Length, "hrana ma spatnouy LENGTH");
+                        if (otherEnd.Out1Length == lengthB && otherEnd.Out1Strength == strengthB)
+                            continue;
+                        ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
+                        otherEnd2.Out1Length = lengthB;
+                        otherEnd2.Out1Strength = strengthB;
+                    }
                 }
+
 
                 // Otevri In sousedy (downstream kandidaty)
                 for (int f = 0; f < edges.Length; f++)
@@ -167,13 +200,21 @@ namespace Assets.Scripts.Core.StaticPhysics
                 throw new InvalidOperationException("Cyklus v barevnem grafu");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float ComputeStrength(int otherNode, int color, int jointI)
+
+        private ref EdgeEnd EnsureWritable(ref EdgeEnd otherEnd, int nodeIdx, ref SpNode node, ref SpNode nodeB, out EdgeEnd[] edges)
         {
-            ref var joint = ref data.GetJoint(jointI);
-            ref var other = ref data.GetNode(otherNode);
-            float otherStr = other.FindOutStrengthAny(color);
-            return Mathf.Min(joint.MinLimit, otherStr);
+            node.EnsureNewEdges(data);
+            edges = node.newEdges;
+
+            if (nodeB.newEdges == null)
+            {
+                nodeB.EnsureNewEdges(data);
+                return ref nodeB.GetEndNew(nodeIdx);
+            }
+            else
+            {
+                return ref otherEnd;
+            }
         }
     }
 }

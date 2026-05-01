@@ -91,6 +91,7 @@
     <Compile Include="Assets\Scripts\Bases\StaticBehaviour.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Utils.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\Menu.cs" />
+    <Compile Include="Assets\Scripts\Core\StaticPhysics\InvariantValidator.cs" />
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
