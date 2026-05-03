@@ -96,7 +96,7 @@ namespace Assets.Scripts.Core.StaticPhysics
 
             consistencyWorker.Run();
 
-            //invariantValidator.Validate(true);
+            invariantValidator.Validate(true);
 
             forceWorker.RemoveForces();
 
@@ -114,7 +114,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                 ApplyEdgeArrs(i);
             }
 
-            //invariantValidator.Validate(true, deletedNodes);
+            invariantValidator.Validate(true, deletedNodes);
 
             forceWorker.AddForces();
             forceWorker.AddTempForces(tempForces);
@@ -124,7 +124,7 @@ namespace Assets.Scripts.Core.StaticPhysics
             FreeJoints();
             FreeNodes(output);
 
-            //invariantValidator.Validate(false);
+            invariantValidator.Validate(false);
         }
 
         private void EnsureValidNodes(ref InputCommand ic)
@@ -314,11 +314,9 @@ namespace Assets.Scripts.Core.StaticPhysics
             joint.compressLimit = ic.compressLimit;
             joint.momentLimit = ic.momentLimit;
 
-            Assert.AreEqual(edgeA, default(EdgeEnd));
             edgeA.Joint = jointIndex;
             edgeA.Other = ic.indexB;
 
-            Assert.AreEqual(edgeB, default(EdgeEnd));
             edgeB.Joint = jointIndex;
             edgeB.Other = ic.indexA;
         }

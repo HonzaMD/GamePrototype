@@ -133,43 +133,47 @@ namespace Assets.Scripts.Core.StaticPhysics
                 var edges = node.newEdges ?? node.edges;
 
                 float outStr = node.FindOutStrengthAny(color);
+#if UNITY_ASSERTIONS
                 float scd = node.ShortestColorDistanceAny(color);
+#endif
 
                 for (int f = 0; f < edges.Length; f++)
                 {
-                    if (edges[f].In0Root == color)
+                    if (edges[f].In0Root == color || edges[f].In1Root == color)
                     {
+#if UNITY_ASSERTIONS
                         Assert.IsTrue(scd != float.MaxValue, "hrana bez korenu");
+                        Assert.AreNotEqual(edges[f].In0Root, edges[f].In1Root, "Stejna barva v obou slotech");
+#endif
                         int indexB = edges[f].Other;
                         ref var nodeB = ref data.GetNode(indexB);
                         ref var otherEnd = ref nodeB.GetEndAny(nodeIdx);
                         ref var joint = ref data.GetJoint(edges[f].Joint);
+#if UNITY_ASSERTIONS
                         float lengthB = joint.length + scd;
+#endif
                         float strengthB = Mathf.Min(joint.MinLimit, outStr);
 
-                        Assert.AreEqual(lengthB, otherEnd.Out0Length, "hrana ma spatnouy LENGTH");
-                        if (otherEnd.Out0Length == lengthB && otherEnd.Out0Strength == strengthB)
-                            continue;
-                        ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
-                        otherEnd2.Out0Length = lengthB;
-                        otherEnd2.Out0Strength = strengthB;
-                    }
-                    else if (edges[f].In1Root == color)
-                    {
-                        Assert.IsTrue(scd != float.MaxValue, "hrana bez korenu");
-                        int indexB = edges[f].Other;
-                        ref var nodeB = ref data.GetNode(indexB);
-                        ref var otherEnd = ref nodeB.GetEndAny(nodeIdx);
-                        ref var joint = ref data.GetJoint(edges[f].Joint);
-                        float lengthB = joint.length + scd;
-                        float strengthB = Mathf.Min(joint.MinLimit, outStr);
-
-                        Assert.AreEqual(lengthB, otherEnd.Out1Length, "hrana ma spatnouy LENGTH");
-                        if (otherEnd.Out1Length == lengthB && otherEnd.Out1Strength == strengthB)
-                            continue;
-                        ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
-                        otherEnd2.Out1Length = lengthB;
-                        otherEnd2.Out1Strength = strengthB;
+                        if (edges[f].In0Root == color)
+                        {
+#if UNITY_ASSERTIONS
+                            Assert.AreEqual(lengthB, otherEnd.Out0Length, "hrana ma spatnouy LENGTH");
+#endif
+                            if (otherEnd.Out0Strength == strengthB)
+                                continue;
+                            ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
+                            otherEnd2.Out0Strength = strengthB;
+                        }
+                        else
+                        {
+#if UNITY_ASSERTIONS
+                            Assert.AreEqual(lengthB, otherEnd.Out1Length, "hrana ma spatnouy LENGTH");
+#endif
+                            if (otherEnd.Out1Strength == strengthB)
+                                continue;
+                            ref var otherEnd2 = ref EnsureWritable(ref otherEnd, nodeIdx, ref node, ref nodeB, out edges);
+                            otherEnd2.Out1Strength = strengthB;
+                        }
                     }
                 }
 

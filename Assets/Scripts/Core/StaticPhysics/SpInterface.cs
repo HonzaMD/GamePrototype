@@ -135,7 +135,7 @@ namespace Assets.Scripts.Core.StaticPhysics
                     lastMaxUpdate = maxUpdateTime;
                     maxUpdateTime = TimeSpan.Zero;
                 }
-                Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}, MaxUpdateTime: {lastMaxUpdate}");
+                //Debug.Log($"SP stats: Updates: {updateTicks}, Worker Ticks: {runnerTicks}, MaxUpdateTime: {lastMaxUpdate}");
             }
         }
 

@@ -7,8 +7,10 @@ namespace Assets.Scripts.Core.StaticPhysics
 {
     // Po dokonceni ApplyChanges projde vsechny zive uzly a overi globalni invarianty grafu.
     // Cele Validate je [Conditional("UNITY_ASSERTIONS")] - v release/non-dev buildu nulovy overhead.
-    internal class InvariantValidator
+    public class InvariantValidator
     {
+        public static bool EnableInvariantValidator;
+
         private const float Eps = 1e-3f;
 
         private readonly SpDataManager data;
@@ -20,16 +22,18 @@ namespace Assets.Scripts.Core.StaticPhysics
         }
 
         [Conditional("UNITY_ASSERTIONS")]
-        [Conditional("DEBUG_SP")]
         public void Validate(bool befereRemoveForce, HashSet<int> deletedNodes = null)
         {
-            this.befereRemoveForce = befereRemoveForce;
-            int top = data.NodesTopIndex;
-            for (int i = 1; i <= top; i++)
+            if (EnableInvariantValidator)
             {
-                if (!data.IsNodeValid(i) || deletedNodes?.Contains(i) == true)
-                    continue;
-                ValidateNode(i);
+                this.befereRemoveForce = befereRemoveForce;
+                int top = data.NodesTopIndex;
+                for (int i = 1; i <= top; i++)
+                {
+                    if (!data.IsNodeValid(i) || deletedNodes?.Contains(i) == true)
+                        continue;
+                    ValidateNode(i);
+                }
             }
         }
 

@@ -10,6 +10,11 @@ using UnityEngine.TestTools;
 
 public class SpTests
 {
+    public SpTests()
+    {
+        InvariantValidator.EnableInvariantValidator = true;
+    }
+
     // A Test behaves as an ordinary method
     [Test]
     public void SpTests1SipleBreak()
