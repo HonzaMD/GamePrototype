@@ -37,7 +37,25 @@ namespace Assets.Scripts.Map
 
         private void Awake()
         {
+            if (WorldsCount >= 10)
+                throw new InvalidOperationException("CellSim stagger formula assumes WorldsCount < 10");
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void OnDestroy()
+        {
+            for (int f = 0; f < Maps.Length; f++)
+                Maps[f]?.CellSim?.Dispose();
+        }
+
+        public void EndInitModeForAll()
+        {
+            for (int f = 0; f < Maps.Length; f++)
+            {
+                var m = Maps[f];
+                if (m != null && m.CellSim.InitMode)
+                    m.CellSim.EndInit();
+            }
         }
 
         public Map MapFromPos(float posX)

@@ -50,6 +50,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private const int movingObjectMaxPtr = 20;
     private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
     private int updateTicker;
+    private int fixedUpdateTicker;
 
     private readonly Stopwatch sw = new();
     private int lastGCCount;
@@ -188,6 +189,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
         else if (State == GameState.CreatingLevels && !MapWorlds.IsWorking)
         {
+            MapWorlds.EndInitModeForAll();
             InputController.SetCharacterInSelectedMap();
             MapWorlds.SwitchWorld(MapWorlds.SelectedMap.Id);
             State = GameState.SwitchWorld;
@@ -389,6 +391,12 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         StaticPhysics.Update();
         Pool.UpdateAgeAtPhysicsUpdate();
         ConnectablePool.UpdateAgeAtPhysicsUpdate();
+
+        var maps = MapWorlds.Maps;
+        int slot = fixedUpdateTicker % 10;
+        if (slot < maps.Length && maps[slot] != null)
+            maps[slot].CellSim.Step();
+        fixedUpdateTicker++;
     }
 
     public static Map MapFromPos(float posX) => Instance.MapWorlds.MapFromPos(posX);

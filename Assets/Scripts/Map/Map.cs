@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Map.CellSims;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,8 @@ namespace Assets.Scripts.Map
         public List<ReflectionProbe> ReflectionProbes { get; } = new ();
         public WorldBuilder WorldBuilder { get; set; }
 
+        public CellSimWorld CellSim { get; }
+
 
         public Map(MapSettings settings, Ksids ksids, int id, MapWorlds mapWorlds)
             : this(settings.posx, settings.posy, settings.sizex, settings.sizey, ksids, id, mapWorlds)
@@ -45,6 +48,8 @@ namespace Assets.Scripts.Map
             mapsSec = new MapSecondary[(int)SecondaryMap.Last];
             for (int f = 1; f < mapsSec.Length; f++)
                 mapsSec[f] = new(posx, posy, sizex, sizey, ksids, this);
+
+            CellSim = new CellSimWorld(this, sizex, sizey);
         }
 
         public MapSecondary Secondary(SecondaryMap map) => mapsSec[(int)map];
