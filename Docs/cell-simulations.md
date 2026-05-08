@@ -13,6 +13,22 @@ Per-buňková simulace pro vlastnosti světa (teplota, prvky v hlíně, kapaliny
 - Frekvence ~5 Hz (každý 10. fixed update).
 - Game objekty mají náhodný R/W přístup do polí — různá frekvence per objekt.
 
+## Update 2026-05-08: 3-buffer R/W model
+
+Při implementaci jsme změnili gameplay ↔ sim mechanismus pro spojitá pole (teplota, fill, pressure, element). Místo původního *Front/Back + write queue* používáme **3-buffer model**:
+
+- **Public** — gameplay R/W, instant visibility vlastních zápisů.
+- **Front** — sim snapshot `Public` na začátku stepu (kopie). Sim z něho čte.
+- **Back** — sim výstup. Po sim kroku se aplikuje delta: `Public += Back - Front`.
+
+**Důvod**: queue model rozbíjel "check-then-take" vzor (gameplay přečte hodnotu, rozhodne, zapíše; další přečtení vidí starou hodnotu, protože queue se aplikuje až v dalším stepu → opakovaný zápis ⇒ debt). 3-buffer model dává gameplay-side instant visibility a sim si drží vlastní izolovanou kopii (Front), takže běh jobu je race-free i bez locků.
+
+**Cena**: jeden buffer per pole navíc + jeden snapshot copy + jeden reconcile pass per step. Oba pasy jsou Burst-vektorizovatelné lineární smyčky, sub-ms na 933k cellech.
+
+**Zápisové fronty (`NativeQueue<...Write>`)** ponecháváme v plánu pro **řídké/diskrétní zápisy** (zejména `material` change), kde je batch pattern přirozenější a 3. buffer by byl plýtvání pamětí. Per-field continuous queues z původního návrhu (TempWrite, FillWrite, ElementWrite) odpadly.
+
+Detaily jsou aplikovány níže v sekci *Layout (SoA per svět)* a *Gameplay API*. Diskusní sekce o debt modelu, Margolus konzervaci, kavitaci atd. zůstávají v platnosti — gameplay-write semantika "signed storage + debt" funguje na *Public* bufferu identicky.
+
 ## Architektonická volba: CPU + Burst Jobs
 
 Důvody:
@@ -36,27 +52,28 @@ public sealed class CellSimWorld : IDisposable
     // Material byte = flags v horních bitech | ID v dolních bitech (viz "Material encoding").
     public NativeArray<byte> material;
 
-    // Per simulace (double buffer):
-    public NativeArray<float> temperatureFront, temperatureBack;
-    public NativeArray<short> fillFront,        fillBack;     // voda; logický rozsah 0..255,
-                                                              // signed + širší pro overflow / debt
-    public NativeArray<float> pressureFront,    pressureBack;
-
-    public NativeArray<sbyte> elementFront,     elementBack;  // diskrétní prvky; signed pro debt model
+    // Per pole (3-buffer model — viz Update 2026-05-08):
+    //   *Public* — gameplay R/W, instant visibility
+    //   *Front*  — snapshot Public na začátku stepu, sim čte
+    //   *Back*   — sim výstup; reconcile: Public += Back - Front
+    public NativeArray<float> temperaturePublic, temperatureFront, temperatureBack;
+    public NativeArray<short> fillPublic,        fillFront,        fillBack;   // logický rozsah 0..255,
+                                                                                // signed/widened pro overflow / debt
+    public NativeArray<float> pressurePublic,    pressureFront,    pressureBack;
+    public NativeArray<sbyte> elementPublic,     elementFront,     elementBack; // signed pro debt model
 
     // Tabulky (small, indexované celým material bytem):
     public NativeArray<MaterialProps> matTable;
 
-    // Gameplay → sim zápisová fronta (per pole, vč. materiálu):
+    // Material change queue — ponecháno pro řídké/diskrétní zápisy (transformace cell typu).
+    // Kontinuální pole (temp/fill/element) jsou pokryta 3-buffer modelem výše.
     public NativeQueue<MaterialWrite> materialWrites;
-    public NativeQueue<TempWrite>     tempWrites;
-    public NativeQueue<FillWrite>     fillWrites;
-    public NativeQueue<ElementWrite>  elementWrites;
 
     public JobHandle pending;
-    public bool      InitMode;     // true při loadu — povoluje přímý zápis do bufferů
+    public bool      InitMode;     // true při loadu — sim se neplánuje, gameplay zapisuje přímo do Public
 
     public int Idx(int x, int y) => y * Width + x;
+    public int Idx(Vector2Int pos) => pos.y * Width + pos.x;
 }
 
 public struct MaterialProps
@@ -159,36 +176,31 @@ Tím získáme jednu uniformní cestu pro:
 
 ### Gameplay API
 
+Souřadnice používají `Vector2Int` (stejný systém jako `Map`). Metody jsou bounds-checked a clampují hodnoty do rozsahu typu. Pro perf-kritický kód je *Public* buffer veřejný — přímý přístup `world.elementPublic[world.Idx(pos)]` je rychlejší (bez bounds checku, bez clampu).
+
 ```csharp
-// READ — instant, bez synchronizace; clamp na 0 maskuje záporné účetní mezistavy
-public float GetTemperature(int x, int y) =>
-    world.temperatureFront[world.Idx(x, y)];
+// READ — instant, čte Public buffer; clamp na 0 maskuje záporné účetní mezistavy.
+public float GetTemperature(Vector2Int pos);
+public int   GetFill(Vector2Int pos);
+public int   GetElement(Vector2Int pos);
 
-public int GetFill(int x, int y) =>
-    math.max(0, (int)world.fillFront[world.Idx(x, y)]);
+// WRITE — instant do Public bufferu. Sim si vezme snapshot Public → Front
+// na začátku dalšího stepu, žádná queue.
+public void AddHeat(Vector2Int pos, float dT);
+public void AddFill(Vector2Int pos, int delta);
+public void AddElement(Vector2Int pos, int delta);
+public void SetElement(Vector2Int pos, int value);
 
-public int GetElement(int x, int y) =>
-    math.max(0, (int)world.elementFront[world.Idx(x, y)]);
+// Odebírání: signed delta, povoluje pokles do záporu (debt — viz "Gameplay R/W
+// semantika"). Díky instant visibility v Public bufferu už opakované check-then-take
+// nekumuluje debt: druhé GetElement po AddElement(-N) vidí už sníženou hodnotu.
 
-// WRITE — queue, aplikuje se na začátku dalšího stepu (runtime mode)
-public void AddHeat(int x, int y, float dT) =>
-    world.tempWrites.Enqueue(new TempWrite { idx = world.Idx(x, y), delta = dT });
+// Material change — řídké zápisy, queue (batch transakce):
+public void ChangeMaterial(Vector2Int pos, byte newMat);
 
-public void AddWater(int x, int y, int d) =>
-    world.fillWrites.Enqueue(new FillWrite { idx = world.Idx(x, y), delta = d });
-
-// Odebírání: signed delta, povoluje pokles do záporu (debt — viz "Gameplay R/W semantika").
-// Volající dostane indikaci, kolik bylo v Front před odebráním (best-effort info).
-public int RemoveElement(int x, int y, int amount)
-{
-    int idx = world.Idx(x, y);
-    int seen = math.max(0, (int)world.elementFront[idx]);
-    world.elementWrites.Enqueue(new ElementWrite { idx = idx, delta = -amount });
-    return math.min(seen, amount);
-}
-
-public void ChangeMaterial(int x, int y, byte newMat) =>
-    world.materialWrites.Enqueue(new MaterialWrite { idx = world.Idx(x, y), material = newMat });
+// Direct access pro perf-hot kód — bez bounds checku, raw sbyte (může být záporný):
+//   world.elementPublic[world.Idx(pos)] += (sbyte)delta;
+//   world.elementPublic[world.Idx(x, y)] = (sbyte)v;
 ```
 
 ### Společné optimalizace (k zvážení později)

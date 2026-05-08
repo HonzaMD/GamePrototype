@@ -127,6 +127,7 @@
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
     <Compile Include="Assets\Scripts\Stuff\DeepGlue.cs" />
     <Compile Include="Assets\Scripts\Map\LevelPairing.cs" />
+    <Compile Include="Assets\Scripts\Map\CellSims\CellSimJobs.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\Cell.cs" />
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
@@ -155,6 +156,7 @@
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
     <Compile Include="Assets\Scripts\Stuff\CannonSettings.cs" />
     <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
+    <Compile Include="Assets\Scripts\Map\CellSims\ElementMargolusJob.cs" />
     <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
@@ -1174,6 +1176,18 @@
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Burst">
+      <HintPath>Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.UI">
