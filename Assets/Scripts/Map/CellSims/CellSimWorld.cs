@@ -6,13 +6,28 @@ using UnityEngine;
 
 namespace Assets.Scripts.Map.CellSims
 {
+    [Flags]
+    public enum MaterialFlags : byte
+    {
+        None = 0,
+        // Dirt — buňka může nést prvky (Margolus element redistribute respektuje).
+        // Volné horní bity rezervovány pro další flagy (Solid, BlocksWater, ...).
+        Dirt = 1 << 7,
+    }
+
     public sealed class CellSimWorld : IDisposable
     {
+        public const byte DirtMask = (byte)MaterialFlags.Dirt;
+
         public readonly Map Map;
         public readonly int Width;
         public readonly int Height;
 
+        // Material byte = flagy v horních bitech | ID v dolních bitech.
+        // Sim job ho čte ReadOnly. Gameplay zápisy v runtime jdou přes materialWrites
+        // (ApplyMaterialWritesJob na začátku stepu), aby sim job nikdy neviděl rozbitý stav.
         public NativeArray<byte> material;
+        private NativeQueue<MaterialWrite> materialWrites;
 
         // Element field — diskrétní hmota přes Margolus block rule.
         // 3-buffer model: gameplay R/W přes elementPublic, sim si snapshotne Public→Front,
@@ -33,6 +48,7 @@ namespace Assets.Scripts.Map.CellSims
             Height = height;
             int n = width * height;
             material = new NativeArray<byte>(n, Allocator.Persistent);
+            materialWrites = new NativeQueue<MaterialWrite>(Allocator.Persistent);
             elementPublic = new NativeArray<sbyte>(n, Allocator.Persistent);
             elementFront = new NativeArray<sbyte>(n, Allocator.Persistent);
             elementBack = new NativeArray<sbyte>(n, Allocator.Persistent);
@@ -64,6 +80,21 @@ namespace Assets.Scripts.Map.CellSims
             elementPublic[idx] = (sbyte)math.clamp(v, sbyte.MinValue, sbyte.MaxValue);
         }
 
+        // ---- Material R/W API ----
+        // Material čteme jen ze sim jobů, ne zpětně do gameplay → write-only API.
+        // V InitMode přímý zápis (level load = desítky tisíc cellů, fronta by byla overhead).
+        // V runtime enqueue → ApplyMaterialWritesJob na začátku stepu, sim za běhu nikdy
+        // nevidí rozbitý stav.
+        public void SetMaterial(Vector2Int pos, byte newMat)
+        {
+            if ((uint)pos.x >= (uint)Width || (uint)pos.y >= (uint)Height) return;
+            int idx = pos.y * Width + pos.x;
+            if (InitMode)
+                material[idx] = newMat;
+            else
+                materialWrites.Enqueue(new MaterialWrite { Idx = idx, NewMat = newMat });
+        }
+
         // ---- Lifecycle ----
 
         public void EndInit()
@@ -80,10 +111,12 @@ namespace Assets.Scripts.Map.CellSims
 
             // 1. Sync část — blokuje main thread, ale jen krátce.
             //    a) Dokončíme Margolus z minulého stepu (Back má sim výstup, Front starý snapshot).
-            //    b) Reconcile + nový snapshot v jednom průchodu:
+            //    b) Aplikujeme materialWrites z gameplay (sparse → IJob.Run, žádný overhead).
+            //    c) Reconcile + nový snapshot v jednom průchodu:
             //       Pub_new = Pub + (Back - Front), Front_new = Pub_new.
             //    Po Complete() je Public konsolidovaný a gameplay s ním zase může pracovat.
             Pending.Complete();
+            new ApplyMaterialWritesJob { Queue = materialWrites, Material = material }.Run();
             new CellSimReconcileSnapshotSByteJob
             {
                 Back = elementBack,
@@ -107,6 +140,7 @@ namespace Assets.Scripts.Map.CellSims
             {
                 EFront = elementFront,
                 EBack = elementBack,
+                Material = material,
                 Width = Width,
                 BlocksX = blocksX,
                 Offset = offset,
@@ -121,6 +155,7 @@ namespace Assets.Scripts.Map.CellSims
         {
             Pending.Complete();
             if (material.IsCreated) material.Dispose();
+            if (materialWrites.IsCreated) materialWrites.Dispose();
             if (elementPublic.IsCreated) elementPublic.Dispose();
             if (elementFront.IsCreated) elementFront.Dispose();
             if (elementBack.IsCreated) elementBack.Dispose();

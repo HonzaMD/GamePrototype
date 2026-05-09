@@ -5,12 +5,33 @@ using Unity.Mathematics;
 
 namespace Assets.Scripts.Map.CellSims
 {
+    public struct MaterialWrite
+    {
+        public int Idx;
+        public byte NewMat;
+    }
+
     [BurstCompile]
     internal struct CellSimCopySByteJob : IJobParallelFor
     {
         [ReadOnly][NoAlias] public NativeArray<sbyte> Src;
         [WriteOnly][NoAlias] public NativeArray<sbyte> Dst;
         public void Execute(int i) => Dst[i] = Src[i];
+    }
+
+    // Drain materialWrites queue do material bufferu. Single-threaded — řídké zápisy,
+    // schedule overhead by se nevyplatil; volá se .Run() inline na začátku stepu.
+    [BurstCompile]
+    internal struct ApplyMaterialWritesJob : IJob
+    {
+        public NativeQueue<MaterialWrite> Queue;
+        [NoAlias] public NativeArray<byte> Material;
+
+        public void Execute()
+        {
+            while (Queue.TryDequeue(out var w))
+                Material[w.Idx] = w.NewMat;
+        }
     }
 
     // Combined reconcile + snapshot — jeden lineární průchod místo dvou.
