@@ -12,7 +12,19 @@ namespace Assets.Scripts.Map.CellSims
         None = 0,
         // Dirt — buňka může nést prvky (Margolus element redistribute respektuje).
         // Volné horní bity rezervovány pro další flagy (Solid, BlocksWater, ...).
+        BasicDirt = WaterBlock | Dirt,
+
+        WaterBlock = 1 << 6,
         Dirt = 1 << 7,
+    }
+
+    public enum MaterialChangeType
+    {
+        None,
+        Dirt1to1Add,
+        Dirt1to1Remove,
+        Dirt0to1,
+        Dirt1to0,
     }
 
     public sealed class CellSimWorld : IDisposable
@@ -24,10 +36,12 @@ namespace Assets.Scripts.Map.CellSims
         public readonly int Height;
 
         // Material byte = flagy v horních bitech | ID v dolních bitech.
-        // Sim job ho čte ReadOnly. Gameplay zápisy v runtime jdou přes materialWrites
-        // (ApplyMaterialWritesJob na začátku stepu), aby sim job nikdy neviděl rozbitý stav.
-        public NativeArray<byte> material;
-        private NativeQueue<MaterialWrite> materialWrites;
+        // 2-buffer model: gameplay R/W přes materialPublic (instant visibility, vč. SetMaterial
+        // returns prev). Sim job čte materialPrivate — snapshot Public, který se kopíruje na
+        // začátku každého stepu (CellSimCopyByteJob, parallel Burst). Sim materiál nemění,
+        // takže není potřeba reconcile.
+        public NativeArray<byte> materialPublic;
+        public NativeArray<byte> materialPrivate;
 
         // Element field — diskrétní hmota přes Margolus block rule.
         // 3-buffer model: gameplay R/W přes elementPublic, sim si snapshotne Public→Front,
@@ -47,8 +61,8 @@ namespace Assets.Scripts.Map.CellSims
             Width = width;
             Height = height;
             int n = width * height;
-            material = new NativeArray<byte>(n, Allocator.Persistent);
-            materialWrites = new NativeQueue<MaterialWrite>(Allocator.Persistent);
+            materialPublic = new NativeArray<byte>(n, Allocator.Persistent);
+            materialPrivate = new NativeArray<byte>(n, Allocator.Persistent);
             elementPublic = new NativeArray<sbyte>(n, Allocator.Persistent);
             elementFront = new NativeArray<sbyte>(n, Allocator.Persistent);
             elementBack = new NativeArray<sbyte>(n, Allocator.Persistent);
@@ -80,19 +94,20 @@ namespace Assets.Scripts.Map.CellSims
             elementPublic[idx] = (sbyte)math.clamp(v, sbyte.MinValue, sbyte.MaxValue);
         }
 
-        // ---- Material R/W API ----
-        // Material čteme jen ze sim jobů, ne zpětně do gameplay → write-only API.
-        // V InitMode přímý zápis (level load = desítky tisíc cellů, fronta by byla overhead).
-        // V runtime enqueue → ApplyMaterialWritesJob na začátku stepu, sim za běhu nikdy
-        // nevidí rozbitý stav.
-        public void SetMaterial(Vector2Int pos, byte newMat)
+        public byte SetMaterial(Vector2Int pos, byte newMat)
         {
-            if ((uint)pos.x >= (uint)Width || (uint)pos.y >= (uint)Height) return;
+            if ((uint)pos.x >= (uint)Width || (uint)pos.y >= (uint)Height) return 0;
             int idx = pos.y * Width + pos.x;
-            if (InitMode)
-                material[idx] = newMat;
-            else
-                materialWrites.Enqueue(new MaterialWrite { Idx = idx, NewMat = newMat });
+            byte prev = materialPublic[idx];
+            materialPublic[idx] = newMat;
+            return prev;
+        }
+
+        public byte GetMaterial(Vector2Int pos)
+        {
+            if ((uint)pos.x >= (uint)Width || (uint)pos.y >= (uint)Height) return 0;
+            int idx = pos.y * Width + pos.x;
+            return materialPublic[idx];
         }
 
         // ---- Lifecycle ----
@@ -109,22 +124,29 @@ namespace Assets.Scripts.Map.CellSims
 
             int n = Width * Height;
 
-            // 1. Sync část — blokuje main thread, ale jen krátce.
+            // 1. Sync část — blokuje main thread, ale jen krátce. Definuje deterministický
+            //    "snapshot moment": vše zapsané do Public bufferů PŘED Step() vidí tento step
+            //    simulace; cokoli zapsané PO Step() jde do dalšího stepu. Bez tohoto sync
+            //    snapshotu by gameplay zápisy během async fáze racovaly s copy/reconcile joby.
             //    a) Dokončíme Margolus z minulého stepu (Back má sim výstup, Front starý snapshot).
-            //    b) Aplikujeme materialWrites z gameplay (sparse → IJob.Run, žádný overhead).
-            //    c) Reconcile + nový snapshot v jednom průchodu:
-            //       Pub_new = Pub + (Back - Front), Front_new = Pub_new.
-            //    Po Complete() je Public konsolidovaný a gameplay s ním zase může pracovat.
+            //    b) Reconcile + nový snapshot elementů (Pub_new = Pub + Back - Front, Front_new = Pub_new).
+            //    c) Snapshot materialPublic → materialPrivate.
+            //    Oba sync joby běží paralelně (disjunktní buffery).
             Pending.Complete();
-            new ApplyMaterialWritesJob { Queue = materialWrites, Material = material }.Run();
-            new CellSimReconcileSnapshotSByteJob
+            var reconcile = new CellSimReconcileSnapshotSByteJob
             {
                 Back = elementBack,
                 Front = elementFront,
                 Pub = elementPublic,
-            }.Schedule(n, 1024).Complete();
+            }.Schedule(n, 1024);
+            var copyMaterial = new CellSimCopyByteJob
+            {
+                Src = materialPublic,
+                Dst = materialPrivate,
+            }.Schedule(n, 1024);
+            JobHandle.CombineDependencies(reconcile, copyMaterial).Complete();
 
-            // 2. Async část — main thread je volný, gameplay může R/W elementPublic.
+            // 2. Async část — main thread je volný, gameplay může R/W Public buffery.
             //    a) Init Back = Front (border cells netknuté Margolusem mají v příštím
             //       reconcile delta=0, když Width/Height nedělitelné offsetem → 1-cell pruh).
             //    b) Margolus block step.
@@ -140,7 +162,7 @@ namespace Assets.Scripts.Map.CellSims
             {
                 EFront = elementFront,
                 EBack = elementBack,
-                Material = material,
+                Material = materialPrivate,
                 Width = Width,
                 BlocksX = blocksX,
                 Offset = offset,
@@ -154,8 +176,8 @@ namespace Assets.Scripts.Map.CellSims
         public void Dispose()
         {
             Pending.Complete();
-            if (material.IsCreated) material.Dispose();
-            if (materialWrites.IsCreated) materialWrites.Dispose();
+            if (materialPublic.IsCreated) materialPublic.Dispose();
+            if (materialPrivate.IsCreated) materialPrivate.Dispose();
             if (elementPublic.IsCreated) elementPublic.Dispose();
             if (elementFront.IsCreated) elementFront.Dispose();
             if (elementBack.IsCreated) elementBack.Dispose();

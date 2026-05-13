@@ -148,6 +148,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />
     <Compile Include="Assets\Scripts\Bases\Status.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DCGroup.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ElementSource.cs" />
     <Compile Include="Assets\Scripts\Stuff\Occluder.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpJoint.cs" />
     <Compile Include="Assets\Scripts\Map\Map.cs" />
@@ -193,6 +194,7 @@
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceSplitWeighting.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ElementMedium.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Scripts\MainGameAsm.asmdef" />

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Assets.Scripts.Core;
+using Assets.Scripts.Map.CellSims;
 using Assets.Scripts.Stuff;
 using UnityEngine;
 
@@ -45,6 +46,8 @@ namespace Assets.Scripts.Bases
         public Sprite Icon;
         [Tooltip("Poradi v inventari")]
         public int IconOrder;
+        [Tooltip("Material pro Cell based Simulace. (None - neucastni se)")]
+        public MaterialFlags SimMaterial;
 
         [Header("Main Flags")]
         [Tooltip("IsGroup")]
@@ -53,6 +56,8 @@ namespace Assets.Scripts.Bases
         public bool Unseparable;
         [Tooltip("Pro objekty ktere maji byt ovladany pomoci pripojovaneho RbLabel")]
         public bool AutoAtachRB;
+        [Tooltip("Pro objekty ktere se nikdy nehybaji, napr SpFixed")]
+        public bool IsStatic;
 
         [Header("Collision")]
         [Tooltip("Pokud je > 0, umisti se navic i do sekundarni mapy")]

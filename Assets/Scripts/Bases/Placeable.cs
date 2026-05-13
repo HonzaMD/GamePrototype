@@ -3,6 +3,7 @@ using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Core.StaticPhysics;
 using Assets.Scripts.Map;
+using Assets.Scripts.Map.CellSims;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -107,6 +108,9 @@ public class Placeable : Label, ILevelPlaceabe
     public override PlaceableSettings GetSettings() => Settings;
     public virtual (float StretchLimit, float CompressLimit, float MomentLimit) SpLimits => (Settings.SpStretchLimit, Settings.SpCompressLimit, Settings.SpMomentLimit);
     protected virtual void AfterMapPlaced(Map map, bool goesFromInventory) { }
+    protected virtual void MapPlacedStatic(Map map) { SetupCellSimMaterial(map, true); }
+    protected virtual void MapRemovedStatic(Map map) { SetupCellSimMaterial(map, false); }
+    protected virtual void DirtFlagChange(Map map, Vector2Int cellPos, MaterialChangeType changeType) {  }
 
     public bool IsTrigger => Settings.IsTrigger;
     public int SpNodeIndex => spNodeIndex;
@@ -157,6 +161,8 @@ public class Placeable : Label, ILevelPlaceabe
         }
 
         AfterMapPlaced(map, goesFromInventory);
+        if (Settings.IsStatic)
+            MapPlacedStatic(map);
     }
 
     private void AutoAttachRB()
@@ -169,12 +175,17 @@ public class Placeable : Label, ILevelPlaceabe
     {
         if (IsMapPlaced)
         {
-            GetMap().Remove(this);
+            var map = GetMap();
+            map.Remove(this);
             if (TryGetComponent<IActiveObject>(out var ao))
             {
                 Game.Instance.DeactivateObject(ao);
             }
             Game.Instance.RemoveMovingObject(this);
+            
+            if (spNodeIndex != 0 || Settings.IsStatic)
+                MapRemovedStatic(map);
+            
             if (spNodeIndex != 0)
             {
                 Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
@@ -489,6 +500,8 @@ public class Placeable : Label, ILevelPlaceabe
         {
             spNodeIndex = 0;
             DisconnectConnectables(ConnectableType.MassTransfer);
+            if (!Settings.IsStatic)
+                MapRemovedStatic(GetMap());
         }
     }
 
@@ -551,5 +564,81 @@ public class Placeable : Label, ILevelPlaceabe
         cmd.isAFixed = isFixed;
         if (!isFixed)
             cmd.forceA = Vector2.down * GetMass();
+        if (!Settings.IsStatic)
+            MapPlacedStatic(GetMap());
+    }
+
+    private void SetupCellSimMaterial(Map map, bool adding)
+    {
+        if (Settings.SimMaterial == MaterialFlags.None)
+            return;
+
+        Vector2Int cellPos = map.WorldToCell(Center);
+        Vector2 cellCenter = map.CellToWorld(cellPos) + Map.CellSize2d * 0.5f;
+
+        Placeable best = null;
+        int bestTier = 0;
+        float bestDistSq = float.MaxValue;
+
+        ref var cell = ref map.GetCell(cellPos);
+        foreach (var p in cell)
+        {
+            if (!ChangesCellMaterial(map, cellPos, p))
+                continue;
+
+            float distSq = (p.Center - cellCenter).sqrMagnitude;
+            int tier = p.SubCellFlags == SubCellFlags.Free ? 3
+                     : (p.transform.position.z < 0.25f ? 2 : 1);
+
+            const float eps = 1e-6f;
+            if (distSq < bestDistSq - eps || (distSq < bestDistSq + eps && tier > bestTier))
+            {
+                best = p;
+                bestTier = tier;
+                bestDistSq = distSq;
+            }
+        }
+
+        byte mat = best != null ? (byte)best.Settings.SimMaterial : (byte)0;
+        byte oldMat = map.CellSim.SetMaterial(cellPos, mat);
+
+        CallDirtFlagChangeEvents(map, cellPos, ref cell, mat, oldMat, adding);
+    }
+
+    private void CallDirtFlagChangeEvents(Map map, Vector2Int cellPos, ref Cell cell, byte mat, byte oldMat, bool adding)
+    {
+        bool wasDirt = HasDirt(oldMat);
+        bool isDirt = HasDirt(mat);
+        bool thisIsDirt = HasDirt(Settings.SimMaterial);
+
+        if (wasDirt != isDirt)
+        {
+            var change = isDirt ? MaterialChangeType.Dirt0to1 : MaterialChangeType.Dirt1to0;
+            foreach (var p in cell)
+            {
+                if (!ChangesCellMaterial(map, cellPos, p))
+                    continue;
+                if (HasDirt(p.Settings.SimMaterial))
+                    p.DirtFlagChange(map, cellPos, change);
+            }
+            if (!adding && thisIsDirt)
+                DirtFlagChange(map, cellPos, change);
+        }
+        else if (wasDirt && thisIsDirt)
+        {
+            DirtFlagChange(map, cellPos, adding ? MaterialChangeType.Dirt1to1Add : MaterialChangeType.Dirt1to1Remove);
+        }
+    }
+
+    private static bool HasDirt(byte mat) => (mat & CellSimWorld.DirtMask) != 0;
+    private static bool HasDirt(MaterialFlags flags) => ((byte)flags & CellSimWorld.DirtMask) != 0;
+
+    private static bool ChangesCellMaterial(Map map, Vector2Int cellPos, Placeable p)
+    {
+        if (p.Settings.SimMaterial == MaterialFlags.None || (p.SpNodeIndex == 0 && !p.Settings.IsStatic))
+            return false;
+        if (map.WorldToCell(p.Center) != cellPos)
+            return false;
+        return true;
     }
 }

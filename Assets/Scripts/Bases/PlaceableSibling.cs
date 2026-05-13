@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Core.Inventory;
+using Assets.Scripts.Map.CellSims;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Assets.Scripts.Bases
 {
@@ -18,6 +18,21 @@ namespace Assets.Scripts.Bases
     public interface IHasAfterMapPlaced
     {
         void AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory);
+    }
+
+    public interface IHasMapPlacedStatic
+    {
+        void MapPlacedStatic(Map.Map map, Placeable placeableSibling);
+    }
+
+    public interface IHasMapRemovedStatic
+    {
+        void MapRemovedStatic(Map.Map map, Placeable placeableSibling);
+    }
+
+    public interface IHasDirtFlagChange
+    {
+        void DirtFlagChange(Map.Map map, Vector2Int cellPos, MaterialChangeType changeType, Placeable placeableSibling);
     }
 
     public interface IHasInventory
@@ -52,6 +67,36 @@ namespace Assets.Scripts.Bases
             GetComponents(components);
             foreach (var c in components)
                 c.AfterMapPlaced(map, this, goesFromInventory);
+            components.Return();
+        }
+
+        protected override void MapPlacedStatic(Map.Map map)
+        {
+            base.MapPlacedStatic(map);
+            var components = ListPool<IHasMapPlacedStatic>.Rent();
+            GetComponents(components);
+            foreach (var c in components)
+                c.MapPlacedStatic(map, this);
+            components.Return();
+        }
+
+        protected override void MapRemovedStatic(Map.Map map)
+        {
+            base.MapRemovedStatic(map);
+            var components = ListPool<IHasMapRemovedStatic>.Rent();
+            GetComponents(components);
+            foreach (var c in components)
+                c.MapRemovedStatic(map, this);
+            components.Return();
+        }
+
+        protected override void DirtFlagChange(Map.Map map, Vector2Int cellPos, MaterialChangeType changeType)
+        {
+            base.DirtFlagChange(map, cellPos, changeType);
+            var components = ListPool<IHasDirtFlagChange>.Rent();
+            GetComponents(components);
+            foreach (var c in components)
+                c.DirtFlagChange(map, cellPos, changeType, this);
             components.Return();
         }
 

@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
-  m_Name: SandCombinner Settings
+  m_Name: BlockSettings
   m_EditorClassIdentifier: 
-  Prototype: {fileID: 228842591024314374, guid: d6434c7ecb349a049b980b68c5e128ce,
+  Prototype: {fileID: 1379594005347536211, guid: 29931b6639b832b40a107df3aa74326d,
     type: 3}
   Icon: {fileID: 0}
   IconOrder: 0
-  HasSubPlaceables: 1
+  HasSubPlaceables: 0
   Unseparable: 0
   AutoAtachRB: 0
   IsStatic: 1
