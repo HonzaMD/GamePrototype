@@ -38,6 +38,7 @@ public enum CellFlags
 
     AllCells = Cell0 | Cell1,
     AllPartCells = Cell0Part | Cell1Part,
+    AllFullEx = (SubCellFlags.FullEx << CellUtils.Cell0Shift) | (SubCellFlags.FullEx << CellUtils.Cell1Shift),
 }
 
 public class Placeable : Label, ILevelPlaceabe
@@ -74,6 +75,8 @@ public class Placeable : Label, ILevelPlaceabe
         PlacedPosition = Pivot + PosOffset;
         if (SubCellFlags != SubCellFlags.Free)
             CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
+        if (IsInMovingObjects)
+            CellBlocking = CellBlocking & ~CellFlags.AllFullEx;
     }
 
     protected void RefreshBounds(Vector3 offset, Vector3 size)
