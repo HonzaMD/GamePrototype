@@ -31,9 +31,9 @@ MonoBehaviour:
   Mass: 0
   Density: 1000
   DensityMode: 0
-  SpStretchLimit: 1000
-  SpCompressLimit: 1000
-  SpMomentLimit: 1000
+  SpStretchLimit: 10000
+  SpCompressLimit: 10000
+  SpMomentLimit: 10000
   RecievesOnCollisionEnter: 0
   RecievesOnCollisionStay: 0
   HasMultiplePhysicsEvents: 0

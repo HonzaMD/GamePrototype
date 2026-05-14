@@ -29,7 +29,7 @@ MonoBehaviour:
   BBSize: {x: 0.5, y: 0.5}
   UseSimpleBBCollisions: 0
   Mass: 0
-  Density: 1000
+  Density: 2000
   DensityMode: 0
   SpStretchLimit: 10000
   SpCompressLimit: 10000
