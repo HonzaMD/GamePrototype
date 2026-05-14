@@ -12,32 +12,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
   m_Name: HotBlock
   m_EditorClassIdentifier: 
+  Prototype: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
+    type: 3}
+  Icon: {fileID: 0}
+  IconOrder: 0
+  SimMaterial: 0
   HasSubPlaceables: 0
-  UseSimpleBBCollisions: 1
+  Unseparable: 0
+  AutoAtachRB: 0
+  IsStatic: 0
+  SecondaryMapIndex: 0
+  IsTrigger: 0
+  RecomputeBB: 1
+  IsOBB: 0
+  BBPosOffset: {x: 0, y: 0}
+  BBSize: {x: 0.5, y: 0.5}
+  UseSimpleBBCollisions: 0
   Mass: 0
   Density: 1000
   DensityMode: 0
-  Prototype: {fileID: 1379594005347536211, guid: f12ef17221a9d11438b739ccd42554a6,
-    type: 3}
-  Unseparable: 0
-  AutoAtachRB: 0
-  IsTrigger: 0
-  IsOBB: 0
-  SecondaryMapIndex: 0
-  Icon: {fileID: 0}
-  IconOrder: 0
-  SpStretchLimit: 1000
-  SpCompressLimit: 1000
-  SpMomentLimit: 1000
+  SpStretchLimit: 10000
+  SpCompressLimit: 10000
+  SpMomentLimit: 10000
+  RecievesOnCollisionEnter: 0
+  RecievesOnCollisionStay: 0
+  HasMultiplePhysicsEvents: 0
+  KnifeDmg: 0
+  KnifeJointCutStretchLimit: 0
+  ContactDmgPerFrame: 1
+  MaxHealth: 0
+  DamageResistances: []
   ActivityAnimation:
     serializedVersion: 2
     m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  KnifeDmg: 0
-  ContactDmgPerFrame: 1
-  MaxHealth: 0
-  DamageResistances: []
   HitEffect: {fileID: 0}
   DeathEffect: {fileID: 0}

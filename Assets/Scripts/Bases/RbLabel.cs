@@ -43,6 +43,7 @@ namespace Assets.Scripts.Bases
             p.PlaceableC.LevelPlaceAfterInstanciate(map, pos);
         }
         bool ILevelPlaceabe.SecondPhase => false;
+        Placeable ILevelPlaceabe.Prototype => throw new NotSupportedException();
 
         private Label SubLabel => transform.GetComponentInFirstChild<Label>().ToRealNull();
 

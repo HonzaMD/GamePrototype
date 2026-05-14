@@ -19,6 +19,16 @@ namespace Assets.Scripts.Map
         public int SizeX => Data[0].Length;
         public int SizeY => Data.Length;
 
+        private ILevelPlaceabe hotBlock;
+        private ILevelPlaceabe treeTrunk;
+
+        private void InitPlaceableCache(PrefabsStore prefabsStore, List<Placeable> toConnect)
+        {
+            hotBlock = new ConnectSpPlacer(prefabsStore.HotBlock, toConnect);
+            treeTrunk = new SecondPhasePlacer(prefabsStore.TreeTrunk);
+        }
+
+
         public IEnumerable<(ILevelPlaceabe, Vector3)> Placeables(PrefabsStore prefabsStore, LvlBuildMode buildMode, Transform levelRoot, Vector2Int levelOffset)
         {
             this.levelOffset = levelOffset;
@@ -26,6 +36,9 @@ namespace Assets.Scripts.Map
             Assert.IsTrue(Data.GroupBy(s => s.Length).Count() == 1);
 
             var delayed = new List<(ILevelPlaceabe, Vector3)>();
+            var toConnect = new List<Placeable>();
+
+            InitPlaceableCache(prefabsStore, toConnect);
 
             int y = Data.Length - 1;
             foreach (string str in Data)
@@ -48,6 +61,9 @@ namespace Assets.Scripts.Map
                 }
                 y--;
             }
+
+            foreach (var tc in toConnect)
+                ConnectSpPlacer.ConnectSpNeighbors(tc);
 
             foreach (var d in delayed)
                 yield return d;
@@ -78,8 +94,8 @@ namespace Assets.Scripts.Map
                 case '*': return prefabsStore.PointLight;
                 case 'A': return prefabsStore.Character;
                 case 'G': return prefabsStore.PoisonGas;
-                case 'F': return prefabsStore.HotBlock;
-                case 'T': return new SecondPhasePlacer(prefabsStore.TreeTrunk);
+                case 'F': return hotBlock;
+                case 'T': return treeTrunk;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }
@@ -181,6 +197,7 @@ namespace Assets.Scripts.Map
                 PlankSegment.AddToMap(map, Game.Instance.PrefabsStore.LadderSegment, parent, start.AddZ(z), end.AddZ(z));
             }
             bool ILevelPlaceabe.SecondPhase => true;
+            Placeable ILevelPlaceabe.Prototype => throw new NotSupportedException();
         }
 
         private class RopePlacer : ILevelPlaceabe
@@ -203,6 +220,7 @@ namespace Assets.Scripts.Map
                 RopeSegment.AddToMap(map, parent, start.AddZ(z), end.AddZ(z), fixEnd);
             }
             bool ILevelPlaceabe.SecondPhase => true;
+            Placeable ILevelPlaceabe.Prototype => throw new NotSupportedException();
         }
 
         private class SecondPhasePlacer : ILevelPlaceabe
@@ -219,6 +237,56 @@ namespace Assets.Scripts.Map
             public void Instantiate(Map map, Transform parent, Vector3 pos)
             {
                 placeabe.Instantiate(map, parent, pos);
+            }
+            Placeable ILevelPlaceabe.Prototype => placeabe.Prototype;
+        }
+
+        private class ConnectSpPlacer : ILevelPlaceabe
+        {
+            private static readonly Vector2Int[] neighborOffsets =
+            {
+                Vector2Int.left, Vector2Int.right, Vector2Int.up, Vector2Int.down,
+            };
+
+            private readonly Placeable prototype;
+            private readonly List<Placeable> toConnect;
+
+            public ConnectSpPlacer(Placeable prototype, List<Placeable> toConnect)
+            {
+                this.prototype = prototype;
+                this.toConnect = toConnect;
+            }
+
+            public bool SecondPhase => false;
+            Placeable ILevelPlaceabe.Prototype => prototype;
+
+            public void Instantiate(Map map, Transform parent, Vector3 pos)
+            {
+                var p = GameObject.Instantiate(prototype, parent);
+                p.LevelPlaceAfterInstanciate(map, pos);
+                toConnect.Add(p);
+            }
+
+            public static void ConnectSpNeighbors(Placeable p)
+            {
+                Map map = p.GetMap();
+                Vector2Int cell = map.WorldToCell(p.Center);
+                var candidates = ListPool<Placeable>.Rent();
+                int tag = 0;
+
+                foreach (var off in neighborOffsets)
+                    map.Get(candidates, cell + off, Ksid.SpAutoConnect, ref tag);
+
+                foreach (var c in candidates)
+                {
+                    if (c != p && (p.CellBlocking & c.CellBlocking & CellFlags.AllPartCells) != 0)
+                        p.CreateRbJoint(c).SetupSp();
+                }
+
+                if (p.SpNodeIndex == 0)
+                    p.AttachRigidBody(true, false);
+
+                candidates.Return();
             }
         }
     }

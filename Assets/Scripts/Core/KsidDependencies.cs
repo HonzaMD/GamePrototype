@@ -67,9 +67,13 @@ namespace Assets.Scripts.Core
                 (Ksid.TreeTrunk, Ksid.SpMoving),
                 (Ksid.JoinerGlue, Ksid.SpMoving),
                 (Ksid.DeepGlue, Ksid.SpMoving),
+                (Ksid.HotBlock, Ksid.SpMoving),
                 (Ksid.TreeTrunk, Ksid.BlocksTreeRoots),
                 (Ksid.SpNode, Ksid.SpNodeOrSandCombiner),
                 (Ksid.SandCombiner, Ksid.SpNodeOrSandCombiner),
+
+                (Ksid.SpFixed, Ksid.SpAutoConnect),
+                (Ksid.HotBlock, Ksid.SpAutoConnect),
 
                 (Ksid.Character, Ksid.HasInventory),
                 (Ksid.Chest, Ksid.HasInventory),

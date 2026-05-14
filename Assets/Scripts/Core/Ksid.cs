@@ -59,6 +59,7 @@ namespace Assets.Scripts.Core
         MultiActivatesInHand,
         JoinerGlue,
         DeepGlue,
+        SpAutoConnect,
     }
 
     public static class KsidX

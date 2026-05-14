@@ -161,7 +161,7 @@ public class Level : MonoBehaviour
                 CloneRoot(ref PlaceablesRoots[0], false);
             foreach (var pair in levelSource.Placeables(prefabStore, buildMode, PlaceablesRoots[0].transform, new Vector2Int(localCellsX, localCellsY)))
             {
-                var obj = UnityEditor.PrefabUtility.InstantiatePrefab((pair.Item1 as Placeable).gameObject, PlaceablesRoots[0].transform) as GameObject;
+                var obj = UnityEditor.PrefabUtility.InstantiatePrefab(pair.Item1.Prototype.gameObject, PlaceablesRoots[0].transform) as GameObject;
                 obj.GetComponent<Placeable>().SetPlacedPosition(pair.Item2);
             }
         }

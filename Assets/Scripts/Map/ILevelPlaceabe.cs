@@ -11,5 +11,6 @@ namespace Assets.Scripts.Map
     {
         void Instantiate(Map map, Transform parent, Vector3 pos);
         bool SecondPhase { get; }
+        Placeable Prototype { get; }
     }
 }

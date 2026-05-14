@@ -121,6 +121,7 @@ public class Placeable : Label, ILevelPlaceabe
         p.LevelPlaceAfterInstanciate(map, pos);
     }
     bool ILevelPlaceabe.SecondPhase => false;
+    Placeable ILevelPlaceabe.Prototype => this;
 
 
     public void LevelPlaceAfterInstanciate(Map map, Vector3 pos)
