@@ -60,6 +60,7 @@ namespace Assets.Scripts.Core
         JoinerGlue,
         DeepGlue,
         SpAutoConnect,
+        BasicDirt,
     }
 
     public static class KsidX

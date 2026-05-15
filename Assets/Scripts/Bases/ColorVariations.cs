@@ -6,6 +6,10 @@ public class ColorVariations : MonoBehaviour
 {
     private static Dictionary<Material, Material[]> variations = new();
     private const int variationsNum = 8;
+    // posun vzoru v object-space; *Scale shaderu => jiná oblast voronoi.
+    // ~50 stačí na výrazně jiný vzhled, není tak velký, aby trpěla přesnost sin-hashe.
+    private const float offsetRadius = 50f;
+    private static readonly int PatternOffsetId = Shader.PropertyToID("_PatternOffset");
 
     void Start()
     {
@@ -33,6 +37,11 @@ public class ColorVariations : MonoBehaviour
             Color.RGBToHSV(m.color, out var h, out var s, out var v);
             var color = Random.ColorHSV(Lo(h), Hi(h), Lo(s), Hi(s), Lo(v), Hi(v));
             m.color = color;
+
+            // procedurální materiály (žula): posuň vzor, ať je každá varianta jiná
+            if (m.HasProperty(PatternOffsetId))
+                m.SetVector(PatternOffsetId, Random.insideUnitSphere * offsetRadius);
+
             materials[i] = m;
         }
         return materials;

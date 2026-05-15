@@ -35,4 +35,5 @@ public class PrefabsStore : ScriptableObject
     public LabelWithSettings TreeBranchDg;
     public Placeable JoinerGlue;
     public Placeable DeepGlue;
+    public Placeable BasicDirt;
 }

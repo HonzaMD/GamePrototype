@@ -60,3 +60,5 @@ MonoBehaviour:
     type: 3}
   DeepGlue: {fileID: 1586555301936227562, guid: bbc6dd0a3dbd5dd4287b05931c2af0e4,
     type: 3}
+  BasicDirt: {fileID: 3186552436626526341, guid: 89891cc2b515faf4e91c057f65d999ae,
+    type: 3}

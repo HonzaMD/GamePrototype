@@ -10,36 +10,36 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
-  m_Name: BlockSettings
+  m_Name: BasicDirtSettings
   m_EditorClassIdentifier: 
-  Prototype: {fileID: 1379594005347536211, guid: 29931b6639b832b40a107df3aa74326d,
+  Prototype: {fileID: 3186552436626526341, guid: 89891cc2b515faf4e91c057f65d999ae,
     type: 3}
   Icon: {fileID: 0}
   IconOrder: 0
-  SimMaterial: 255
+  SimMaterial: 0
   HasSubPlaceables: 0
   Unseparable: 0
   AutoAtachRB: 0
-  IsStatic: 1
+  IsStatic: 0
   SecondaryMapIndex: 0
   IsTrigger: 0
-  RecomputeBB: 0
+  RecomputeBB: 1
   IsOBB: 0
   BBPosOffset: {x: 0, y: 0}
   BBSize: {x: 0.5, y: 0.5}
-  UseSimpleBBCollisions: 1
+  UseSimpleBBCollisions: 0
   Mass: 0
-  Density: 1000
+  Density: 2000
   DensityMode: 0
-  SpStretchLimit: 100000
-  SpCompressLimit: 100000
-  SpMomentLimit: 100000
+  SpStretchLimit: 20000
+  SpCompressLimit: 20000
+  SpMomentLimit: 20000
   RecievesOnCollisionEnter: 0
   RecievesOnCollisionStay: 0
   HasMultiplePhysicsEvents: 0
   KnifeDmg: 0
   KnifeJointCutStretchLimit: 0
-  ContactDmgPerFrame: 0
+  ContactDmgPerFrame: 1
   MaxHealth: 0
   DamageResistances: []
   ActivityAnimation:

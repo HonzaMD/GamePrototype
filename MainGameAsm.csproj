@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\LevelDirtTest.cs" />
     <Compile Include="Assets\Scripts\Core\Ksid.cs" />
     <Compile Include="Assets\Scripts\Bases\IPhysicsEvents.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\InventoryVisualizer.cs" />

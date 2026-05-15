@@ -21,11 +21,13 @@ namespace Assets.Scripts.Map
 
         private ILevelPlaceabe hotBlock;
         private ILevelPlaceabe treeTrunk;
+        private ILevelPlaceabe basicDirt;
 
         private void InitPlaceableCache(PrefabsStore prefabsStore, List<Placeable> toConnect)
         {
             hotBlock = new ConnectSpPlacer(prefabsStore.HotBlock, toConnect);
             treeTrunk = new SecondPhasePlacer(prefabsStore.TreeTrunk);
+            basicDirt = new ConnectSpPlacer(prefabsStore.BasicDirt, toConnect);
         }
 
 
@@ -96,6 +98,7 @@ namespace Assets.Scripts.Map
                 case 'G': return prefabsStore.PoisonGas;
                 case 'F': return hotBlock;
                 case 'T': return treeTrunk;
+                case 'D': return basicDirt;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }
