@@ -14,7 +14,7 @@ namespace Assets.Scripts.Core.StaticPhysics
         private readonly HashSet<int> toUpdate;
         private readonly HashSet<int> deletedNodes;
         private readonly Queue<int> workQueue = new();
-        private readonly List<(int Index, int NodeA, int NodeB)> edgesToFall = new();
+        private readonly Dictionary<int, (int NodeA, int NodeB)> edgesToFall = new();
         private SpanList<OutputCommand> output;
 
         public FindFallenWorker(SpDataManager data, GraphWorker graphWorker, HashSet<int> toUpdate, HashSet<int> deletedNodes)
@@ -64,10 +64,11 @@ namespace Assets.Scripts.Core.StaticPhysics
             for (int f = 0; f < node.edges.Length; f++)
             {
                 int indexB = node.edges[f].Other;
-                if (toUpdate.Remove(indexB) && !deletedNodes.Contains(indexB))
+                if (!deletedNodes.Contains(indexB))
                 {
-                    workQueue.Enqueue(indexB);
-                    edgesToFall.Add((node.edges[f].Joint, index, indexB));
+                    edgesToFall[node.edges[f].Joint] = (index, indexB);
+                    if (toUpdate.Remove(indexB))
+                        workQueue.Enqueue(indexB);
                 }
             }
             output.Add(new OutputCommand()
@@ -91,19 +92,19 @@ namespace Assets.Scripts.Core.StaticPhysics
         {
             foreach (var edge in edgesToFall)
             {
-                ref var joint = ref data.GetJoint(edge.Index);
+                ref var joint = ref data.GetJoint(edge.Key);
                 output.Add(new OutputCommand()
                 {
                     Command = SpCommand.FallEdge,
-                    indexA = edge.NodeA,
-                    indexB = edge.NodeB,
-                    nodeA = data.GetNode(edge.NodeA).placeable,
-                    nodeB = data.GetNode(edge.NodeB).placeable,
+                    indexA = edge.Value.NodeA,
+                    indexB = edge.Value.NodeB,
+                    nodeA = data.GetNode(edge.Value.NodeA).placeable,
+                    nodeB = data.GetNode(edge.Value.NodeB).placeable,
                     compressLimit = joint.compressLimit,
                     stretchLimit = joint.stretchLimit,
                     momentLimit = joint.momentLimit,
                 });
-                graphWorker.FreeJoint(edge.Index);
+                graphWorker.FreeJoint(edge.Key);
             }
             edgesToFall.Clear();
         }

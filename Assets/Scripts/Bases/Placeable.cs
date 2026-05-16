@@ -317,7 +317,8 @@ public class Placeable : Label, ILevelPlaceabe
         {
             case DensityMode.BoundingBox:
                 {
-                    float vol = Size.x * Size.y * Mathf.Min(Size.x, Size.y);
+                    int doublecell = CellBlocking.IsDoubleCell() ? 2 : 1;
+                    float vol = Size.x * Size.y * Mathf.Min(Size.x, Size.y) * doublecell;
                     return vol * settings.Density;
                 }
             case DensityMode.Circle:

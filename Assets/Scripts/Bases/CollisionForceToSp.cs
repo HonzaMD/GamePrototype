@@ -39,6 +39,15 @@ public class CollisionForceToSp : MonoBehaviour
         }
     }
 
+    private void OnJointBreak(float breakForce)
+    {
+        var label = GetComponent<Label>();
+        Game.Instance.GlobalTimerHandler.Plan(0.07f, disconnectBrokenRbJointsAction, label);
+    }
+
+    private static readonly Action<Label> disconnectBrokenRbJointsAction = static l => l.DisconnectBrokenRbJoints();
+
+
     private void TransferForce(Collision collision, Label otherLabel)
     {
         VelocityFlags flags = collision.relativeVelocity.sqrMagnitude > PhysicsConsts.ImpactVelocitySqr

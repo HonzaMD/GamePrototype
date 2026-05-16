@@ -392,6 +392,18 @@ public abstract class Label : MonoBehaviour
         return true;
     }
 
+    public void DisconnectBrokenRbJoints()
+    {
+        var rbjs = ListPool<RbJoint>.Rent();
+        ParentForConnections.GetComponentsInLevel1Children(rbjs);
+        foreach (var rbj in rbjs)
+        {
+            if (!rbj.IsConnected)
+                rbj.Disconnect();
+        }
+        rbjs.Return();
+    }
+
     public virtual void InventoryPush(Inventory inventory) => throw new NotSupportedException();
     public virtual void InventoryPop(Transform parent, Vector3 pos, Map map) => throw new NotSupportedException();
     public virtual bool IsInInventory => false;
