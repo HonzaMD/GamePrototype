@@ -36,4 +36,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable JoinerGlue;
     public Placeable DeepGlue;
     public Placeable BasicDirt;
+    public Placeable DirtElSrc;
 }

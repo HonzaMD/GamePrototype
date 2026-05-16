@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
-  m_Name: BasicDirtSettings
+  m_Name: DirtElSourceSettings
   m_EditorClassIdentifier: 
-  Prototype: {fileID: 3186552436626526341, guid: 89891cc2b515faf4e91c057f65d999ae,
+  Prototype: {fileID: 3186552436626526341, guid: 70f13f66ce25cd3449dfe4eed7397ae3,
     type: 3}
   Icon: {fileID: 0}
   IconOrder: 0

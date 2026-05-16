@@ -23,7 +23,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Granite_Mat
+  m_Name: Granite_Mat ElSrc
   m_Shader: {fileID: -6465566751694194690, guid: 4027a85c8128fe34482093a59227887b,
     type: 3}
   m_Parent: {fileID: 0}
@@ -90,7 +90,7 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
-    - _Scale: 8
+    - _Scale: 6.42
     - _SmoothDark: 0.15
     - _SmoothLight: 0.35
     - _Speckle: 0.12
@@ -116,17 +116,17 @@ Material:
     - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
-    - _WarpStrength: 0.35
+    - _WarpStrength: 2.18
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.5882353, g: 0.34762847, b: 0.20392156, a: 0}
+    - _Color: {r: 0.5882353, g: 0.49983343, b: 0.20392156, a: 0}
     - _Color1: {r: 0.46226412, g: 0.11556596, b: 0.09399996, a: 0}
-    - _Color2: {r: 0.25490198, g: 0.24111415, b: 0.23529412, a: 0}
-    - _Color3: {r: 0.73333335, g: 0.33027452, b: 0.26666668, a: 0}
-    - _Color4: {r: 0.518, g: 0.51306665, b: 0.51306665, a: 0}
+    - _Color2: {r: 0.30627954, g: 0.333, b: 0.26973, a: 0}
+    - _Color3: {r: 0.5404167, g: 0.56, b: 0.35336, a: 0}
+    - _Color4: {r: 0.5176471, g: 0.44156575, b: 0.4110118, a: 0}
     - _ColorWeights: {r: 0.45, g: 0.25, b: 0.2, a: 0.1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
