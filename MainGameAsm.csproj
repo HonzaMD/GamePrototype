@@ -134,6 +134,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Cannon.cs" />
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
+    <Compile Include="Assets\Scripts\Map\CellSims\CellSimDebug.cs" />
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Utils\FpsCounter.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\ShadowWorker.cs" />

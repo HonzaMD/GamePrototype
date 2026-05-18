@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Assets.Scripts.Stuff
 {
     [RequireComponent(typeof(PlaceableSibling))]
-    public class ElementSource : ElementMedium, IActiveObject1Sec
+    public class ElementSource : ElementMedium, IActiveObject1Sec, IHasAfterMapPlaced, IHasCleanup
     {
         public void GameUpdate1Sec()
         {
@@ -18,6 +18,17 @@ namespace Assets.Scripts.Stuff
             Vector2Int cellPos = map.WorldToCell(placeable.Center);
             if ((map.CellSim.GetMaterial(cellPos) & CellSimWorld.DirtMask) != 0 && map.CellSim.GetElement(cellPos) < 5)
                 map.CellSim.AddElement(cellPos, 1);
+        }
+
+        void IHasAfterMapPlaced.AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)
+        {
+            Game.Instance.ActivateObject(this);
+        }
+
+        public new void Cleanup(bool goesToInventory)
+        {
+            Game.Instance.DeactivateObject(this);
+            base.Cleanup(goesToInventory);
         }
     }
 }

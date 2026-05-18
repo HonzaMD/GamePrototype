@@ -144,6 +144,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             updateTicker++;
         }
 
+        Assets.Scripts.Map.CellSims.CellSimDebug.Render(); // debug overlay cell sim (F9); zakomentuj = vypnuto
+
         //if (!cameraMode)
         //    Character.GameUpdate();
         InputController.Camera.GameUpdate();
