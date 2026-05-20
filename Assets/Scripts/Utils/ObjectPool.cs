@@ -21,6 +21,8 @@ namespace Assets.Scripts.Utils
         {
             obj.gameObject.SetActive(false);
             obj.transform.parent = transform;
+            obj.transform.localRotation = prototype.transform.localRotation;
+            obj.transform.localScale = prototype.transform.localScale;
 
             var stack = GetStack(prototype);
             stack.Enqueue((obj, counter));

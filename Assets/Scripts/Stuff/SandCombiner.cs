@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SandCombiner : Placeable, ISimpleTimerConsumer 
+public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
 {
     [HideInInspector]
     public int L1;
@@ -19,6 +19,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
     private Placeable massTarget;
 
     private int collapsingToken;
+
+    private static readonly Vector2Int[] N4 = { Vector2Int.left, Vector2Int.right, Vector2Int.up, Vector2Int.down };
 
     public bool IsFullCell => (SubCellFlags & SubCellFlags.FullEx) != 0;
     public bool Collapsing => (collapsingToken & 1) != 0;
@@ -58,6 +60,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
         }
 
         TryTransferMass(map);
+
+        Game.Instance.ActivateObject(this);
     }
 
     private void TryTransferMass(Map map)
@@ -178,6 +182,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
 
         MassTransferer.Disconnect();
 
+        Game.Instance.DeactivateObject(this);
+
         base.Cleanup(goesToInventory);
 
         CleanupSize();
@@ -193,5 +199,105 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer
                 Game.Instance.StaticPhysics.ApplyTempForce(massTarget.SpNodeIndex, velocity, sourceMass, flags);
             }
         }
+    }
+
+    public void GameUpdate20Sec()
+    {
+        if (Collapsing)
+            return;
+
+        var map = GetMap();
+
+        if (!massTarget)
+            TryTransferMass(map);
+
+        var toKill = ListPool<Placeable>.Rent();
+        if (CanTurnIntoDirt(map, toKill))
+            TurnIntoBasicDirt(map, toKill);
+        toKill.Return();
+    }
+
+    private bool CanTurnIntoDirt(Map map, List<Placeable> toKill)
+    {
+        int cellz = CellZ;
+        var myCell = map.WorldToCell(Pivot);
+
+        int fullOrSandCount = 0;
+        foreach (var off in N4)
+        {
+            var flags = map.GetCellBlocking(myCell + off);
+            if (flags.HasSubFlag(SubCellFlags.Full, cellz) || flags.HasSubFlag(SubCellFlags.Sand, cellz))
+                fullOrSandCount++;
+        }
+        if (fullOrSandCount < 3)
+            return false;
+
+        var list = ListPool<Placeable>.Rent();
+        int tag = 0;
+        bool foundDirt = false;
+        foreach (var off in N4)
+        {
+            list.Clear();
+            map.Get(list, myCell + off, Ksid.Dirt, ref tag);
+            foreach (var p in list)
+            {
+                if (p.SpNodeIndex != 0 && p.CellBlocking.HasSubFlag(SubCellFlags.FullEx, cellz))
+                {
+                    foundDirt = true;
+                    break;
+                }
+            }
+            if (foundDirt)
+                break;
+        }
+        list.Return();
+
+        if (!foundDirt)
+            return false;
+
+        ref var cell = ref map.GetCell(myCell);
+        foreach (var p in cell)
+        {
+            if ((p.CellBlocking & CellFlags.AllPartCells) == 0)
+                continue;
+
+            if (p is SandCombiner || p.Ksid.IsChildOfOrEq(Ksid.SandLike))
+            {
+                toKill.Add(p);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void TurnIntoBasicDirt(Map map, List<Placeable> toKill)
+    {
+        var myCell = map.WorldToCell(Pivot);
+        Vector3 dirtPos = map.CellToWorld(myCell);
+        Transform parent = LevelGroup;
+
+        foreach (var p in toKill)
+            if (p.IsAlive)
+                p.Kill();
+
+        var dirt = Game.Instance.PrefabsStore.BasicDirt.Create(parent, dirtPos, map);
+
+        var spNeighbors = ListPool<Placeable>.Rent();
+        int tag = 0;
+        foreach (var off in N4)
+            map.Get(spNeighbors, myCell + off, Ksid.SpNode, ref tag);
+
+        foreach (var c in spNeighbors)
+        {
+            if ((c.CellBlocking & CellFlags.AllFullEx) != 0
+                && (c.SpNodeIndex != 0 || c.Ksid.IsChildOfOrEq(Ksid.SpFixed)))
+            {
+                dirt.CreateRbJoint(c).SetupSp();
+            }
+        }
+        spNeighbors.Return();
     }
 }

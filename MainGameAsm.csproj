@@ -157,6 +157,7 @@
     <Compile Include="Assets\Scripts\Stuff\Explosion.cs" />
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
+    <Compile Include="Assets\Scripts\Utils\GameUpdates20Sec.cs" />
     <Compile Include="Assets\Scripts\Stuff\CannonSettings.cs" />
     <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\ElementMargolusJob.cs" />

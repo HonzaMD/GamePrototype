@@ -195,6 +195,9 @@ public class Placeable : Label, ILevelPlaceabe
                 Game.Instance.StaticPhysics.RemoveNode(spNodeIndex);
                 spNodeIndex = 0;
             }
+
+            if (Settings.Prototype is Placeable proto)
+                CellBlocking = proto.CellBlocking;
         }
         base.Cleanup(goesToInventory);
     }

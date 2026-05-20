@@ -44,6 +44,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private readonly List<(Placeable Obj, int Tag, Map Map)> movingObjects = new();
     private readonly FpsCounter fpsCounter = new();
     private readonly GameUpdates1Sec gameUpdates1Sec;
+    private readonly GameUpdates20Sec gameUpdates20Sec = new();
     private readonly VCore visibility = new();
     private int movingObjectInserterPtr;
     private int movingObjectWorkPtr;
@@ -128,6 +129,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             fpsCounter.GameUpdate();
             gameUpdates1Sec.GameUpdate();
+            gameUpdates20Sec.GameUpdate();
             UpdateTimes[7] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3 && InputController.Character)
             {
@@ -321,6 +323,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public void DeactivateObject(IActiveObject o) => o.PendingRemove = true;
     public void ActivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Activate(o);
     public void DeactivateObject(IActiveObject1Sec o) => gameUpdates1Sec.Deactivate(o);
+    public void ActivateObject(IActiveObject20Sec o) => gameUpdates20Sec.Activate(o);
+    public void DeactivateObject(IActiveObject20Sec o) => gameUpdates20Sec.Deactivate(o);
 
     internal void AddMovingObject(Placeable p, Map map)
     {

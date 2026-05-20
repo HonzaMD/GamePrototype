@@ -290,7 +290,7 @@ namespace Assets.Scripts.Map
 
         private void MarkByBB(Placeable p, int zShift, Content content)
         {
-            Vector2 shrink = Vector2.Min(new Vector2(0.03f, 0.03f), p.Size) * 0.5f;
+            Vector2 shrink = Vector2.Min(new Vector2(0.01f, 0.01f), p.Size) * 0.5f;
             Vector2Int a = WorldToBuffC(p.PlacedPosition + shrink);
             Vector2Int b = WorldToBuffC(p.PlacedPosition + p.Size - shrink);
             a = Vector2Int.Max(Vector2Int.zero, a);
