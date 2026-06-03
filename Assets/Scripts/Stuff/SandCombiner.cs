@@ -223,13 +223,15 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
         var myCell = map.WorldToCell(Pivot);
 
         int fullOrSandCount = 0;
+        int elementCount = map.CellSim.GetElement(myCell);
         foreach (var off in N4)
         {
             var flags = map.GetCellBlocking(myCell + off);
             if (flags.HasSubFlag(SubCellFlags.Full, cellz) || flags.HasSubFlag(SubCellFlags.Sand, cellz))
                 fullOrSandCount++;
+            elementCount += map.CellSim.GetElement(myCell + off);
         }
-        if (fullOrSandCount < 3)
+        if (fullOrSandCount < 3 || elementCount < 4)
             return false;
 
         var list = ListPool<Placeable>.Rent();
@@ -241,7 +243,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
             map.Get(list, myCell + off, Ksid.Dirt, ref tag);
             foreach (var p in list)
             {
-                if (p.SpNodeIndex != 0 && p.CellBlocking.HasSubFlag(SubCellFlags.FullEx, cellz))
+                if (p.IsStatic && p.CellBlocking.HasSubFlag(SubCellFlags.FullEx, cellz))
                 {
                     foundDirt = true;
                     break;
@@ -284,6 +286,8 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
                 p.Kill();
 
         var dirt = Game.Instance.PrefabsStore.BasicDirt.Create(parent, dirtPos, map);
+
+        map.CellSim.AddElement(myCell, -4);
 
         var spNeighbors = ListPool<Placeable>.Rent();
         int tag = 0;

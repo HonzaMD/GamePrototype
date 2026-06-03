@@ -117,6 +117,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     public bool IsTrigger => Settings.IsTrigger;
     public int SpNodeIndex => spNodeIndex;
+    public bool IsStatic => Settings.IsStatic || SpNodeIndex != 0;
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
     {
@@ -187,7 +188,7 @@ public class Placeable : Label, ILevelPlaceabe
             }
             Game.Instance.RemoveMovingObject(this);
             
-            if (spNodeIndex != 0 || Settings.IsStatic)
+            if (IsStatic)
                 MapRemovedStatic(map);
             
             if (spNodeIndex != 0)
@@ -643,7 +644,7 @@ public class Placeable : Label, ILevelPlaceabe
 
     private static bool ChangesCellMaterial(Map map, Vector2Int cellPos, Placeable p)
     {
-        if (p.Settings.SimMaterial == MaterialFlags.None || (p.SpNodeIndex == 0 && !p.Settings.IsStatic))
+        if (p.Settings.SimMaterial == MaterialFlags.None || !p.IsStatic)
             return false;
         if (map.WorldToCell(p.Center) != cellPos)
             return false;

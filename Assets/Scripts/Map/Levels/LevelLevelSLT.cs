@@ -95,7 +95,7 @@ namespace Assets.Scripts.Map
 "                                                                               HHHHHHHHHHHHH                           R                        ",
 "                                                                                                                   RRRR                         ",
 "                                                  L                                                               R                             ",
-"        s    s           L   HHHHHHHHHHHHHHHHHHHHHL   HHH     m            HHH        s                          RHHHHHHHHHH                    ",
+"        s    s           L   HHHHHHHHHHHHHHEHHHHHHL   HHH     m            HHH        s                          RHHHHHHHHHH                    ",
 "HHHHHHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH    HHHHHHH   HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
 "HHHHHHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH    HHHHHHH      HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
 "HHHHHHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHL   HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH    HHHHHHH      HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
