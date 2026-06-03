@@ -16,6 +16,7 @@ public class PrefabsStore : ScriptableObject
     public Placeable StickyBomb;
     public RbLabel RbBase;
     public SandCombiner SandCombiner;
+    public SandCombiner SandCombinerFull;
     public Explosion Explosion;
     public RbJoint RbJoint;
     public ParticleEffect ParticleEffect;

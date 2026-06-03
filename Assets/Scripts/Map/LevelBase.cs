@@ -102,6 +102,7 @@ namespace Assets.Scripts.Map
                 case 'T': return treeTrunk;
                 case 'D': return basicDirt;
                 case 'E': return dirtElSrc;
+                case '#': return prefabsStore.SandCombinerFull;
                 default: throw new InvalidOperationException("Nezname pismeno");
             }
         }

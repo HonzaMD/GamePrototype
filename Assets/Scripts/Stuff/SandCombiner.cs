@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
+public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec, ILevelPlaceabe
 {
     [HideInInspector]
     public int L1;
@@ -60,6 +60,30 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
         }
 
         TryTransferMass(map);
+
+        Game.Instance.ActivateObject(this);
+    }
+
+    public void InitFull(Map map)
+    {
+        L1 = 4;
+        L4 = 4;
+        mass = 0;
+
+        SubCellFlags = SubCellFlags.Full | SubCellFlags.Sand;
+
+        PlaceToMap(map, false);
+
+        for (int f = 0; f < transform.childCount; f++)
+        {
+            if (transform.GetChild(f).TryGetComponent(out Placeable p))
+            {
+                mass += p.GetMass();
+            }
+        }
+
+        TryTransferMass(map);
+        map.AddCellStateTest(map.WorldToCell(Pivot), CellZ == 0 ? CellStateCahnge.FreeSand0 : CellStateCahnge.FreeSand1);
 
         Game.Instance.ActivateObject(this);
     }
@@ -227,11 +251,11 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
         foreach (var off in N4)
         {
             var flags = map.GetCellBlocking(myCell + off);
-            if (flags.HasSubFlag(SubCellFlags.Full, cellz) || flags.HasSubFlag(SubCellFlags.Sand, cellz))
+            if (flags.HasSubFlag(SubCellFlags.FullEx, cellz) || flags.HasSubFlag(SubCellFlags.Sand, cellz))
                 fullOrSandCount++;
             elementCount += map.CellSim.GetElement(myCell + off);
         }
-        if (fullOrSandCount < 3 || elementCount < 4)
+        if (fullOrSandCount < 4 || elementCount < 4)
             return false;
 
         var list = ListPool<Placeable>.Rent();
@@ -304,4 +328,13 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec
         }
         spNeighbors.Return();
     }
+
+    void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)
+    {
+        var p = Instantiate(this, parent);
+        p.SetPlacedPosition(pos);
+        p.InitFull(map);
+    }
+    bool ILevelPlaceabe.SecondPhase => false;
+    Placeable ILevelPlaceabe.Prototype => this;
 }
