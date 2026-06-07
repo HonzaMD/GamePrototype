@@ -61,6 +61,7 @@ namespace Assets.Scripts.Core
         DeepGlue,
         SpAutoConnect,
         BasicDirt,
+        HasDeathOverride,
     }
 
     public static class KsidX

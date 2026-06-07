@@ -9,7 +9,7 @@ namespace Assets.Scripts.Bases
 {
     internal static class StaticBehaviour
     {
-        private static Action<Label, Ksid, float, Vector3> applyDamageAction = ApplyDamage;
+        private static Action<Label, Ksid, float, Vector3> resolveHitAction = ResolveHit;
 
         public static void KillWithEffect(this Label label, Vector3 pos)
         {
@@ -28,40 +28,93 @@ namespace Assets.Scripts.Bases
             label.Kill();
         }
 
-        public static void ApplyDamageDelayed(this Label label, Ksid damageType, float intensity, Vector3 hitPosition)
+        /// <summary>
+        /// Vstupní bod pro úder. Pokud label nemá vůbec mít damageType řešit, zahodí ho.
+        /// Použij když volající dopředu netestuje kompatibilitu.
+        /// </summary>
+        public static void TryHit(this Label label, Ksid damageType, float intensity, Vector3 hitPosition)
         {
             if (label.KsidGet.IsChildOf(damageType))
-            {
-                var hitOffset = hitPosition - label.transform.position;
-                Game.Instance.GlobalTimerHandler.WithKsidFloatVectorParams.Plan(0.05f, applyDamageAction, label, damageType, intensity, hitOffset);
-            }
+                label.Hit(damageType, intensity, hitPosition);
         }
 
         /// <summary>
-        /// Radeji volej z casovace, at se ti neprovedou kill efekty uvnitr nejakyho slozityho procesingu
+        /// Vstupní bod pro úder. Aplikuje rezistence/armor, spustí hit efekt a naplánuje
+        /// vyhodnocení dopadu (HP/smrt) s krátkou prodlevou. Volat jen pokud volající
+        /// už ověřil že label může damageType obdržet — jinak použij TryHit.
         /// </summary>
-        private static void ApplyDamage(this Label label, Ksid damageType, float intensity, Vector3 hitOffset)
+        public static void Hit(this Label label, Ksid damageType, float intensity, Vector3 hitPosition)
         {
-            var ksids = Game.Instance.Ksids;
-            if (ksids.IsParentOrEqual(label.KsidGet, damageType))
+            var settings = label.GetSettings();
+            float effective = ComputeEffectiveDamage(settings, damageType, intensity);
+            if (effective <= 0f)
+                return;
+
+            SpawnHitEffect(settings, label, hitPosition);
+            var hitOffset = hitPosition - label.transform.position;
+            Game.Instance.GlobalTimerHandler.WithKsidFloatVectorParams.Plan(0.05f, resolveHitAction, label, damageType, effective, hitOffset);
+        }
+
+        private static float ComputeEffectiveDamage(PlaceableSettings settings, Ksid damageType, float intensity)
+        {
+            if (settings == null)
+                return intensity;
+
+            var resistances = settings.DamageResistances;
+            if (resistances == null)
+                return intensity;
+
+            float passthrough = 1f;
+            float totalArmor = 0f;
+            for (int i = 0; i < resistances.Length; i++)
             {
-                if (ksids.IsParentOrEqual(damageType, Ksid.CausesExplosion) && ksids.IsParentOrEqual(label.KsidGet, Ksid.Explosive))
+                ref var entry = ref resistances[i];
+                if (damageType.IsChildOfOrEq(entry.DamageType))
                 {
-                    label.Explode();
-                }
-                else
-                {
-                    var hitPosition = label.transform.position + hitOffset;
-                    if (label.TryGetComponent<Status>(out var status))
-                    {
-                        status.ApplyDamage(damageType, intensity, hitPosition);
-                    }
-                    else
-                    {
-                        label.KillWithEffect(hitPosition);
-                    }
+                    passthrough *= 1f - entry.Resistance;
+                    totalArmor += entry.Armor;
                 }
             }
+            return Mathf.Max(0f, intensity * passthrough - totalArmor);
+        }
+
+        private static void SpawnHitEffect(PlaceableSettings settings, Label label, Vector3 hitPosition)
+        {
+            if (settings == null || settings.HitEffect == null)
+                return;
+            var pe = settings.HitEffect.CreateWithotInit(label.LevelGroup, hitPosition);
+            pe.Init(2f);
+        }
+
+        /// <summary>
+        /// Vyhodnocení dopadu po prodlevě. Status spravuje HP a rozhoduje o smrti,
+        /// jinak zásah objekt rovnou killuje (případně přes death override).
+        /// </summary>
+        private static void ResolveHit(this Label label, Ksid damageType, float damage, Vector3 hitOffset)
+        {
+            if (label.TryGetComponent<Status>(out var status))
+            {
+                if (!status.ReduceHealth(damage))
+                    return;
+            }
+
+            var hitPosition = label.transform.position + hitOffset;
+
+            if (label.KsidGet.IsChildOf(Ksid.HasDeathOverride))
+            {
+                if (TryDieExploding(label, damageType)) 
+                    return;
+                // future death overrides: TryDieShattering(label, damage, hitPosition), ...
+            }
+            label.KillWithEffect(hitPosition);
+        }
+
+        private static bool TryDieExploding(Label label, Ksid damageType)
+        {
+            if (!label.KsidGet.IsChildOf(Ksid.Explosive) || !damageType.IsChildOf(Ksid.CausesExplosion)) 
+                return false;
+            label.Explode();
+            return true;
         }
 
 
@@ -105,9 +158,9 @@ namespace Assets.Scripts.Bases
             float selfDmg = dmgSpeed * selfDmgFactor * PhysicsConsts.ImpactDmgScale;
             float otherDmg = dmgSpeed * otherDmgFactor * PhysicsConsts.ImpactDmgScale;
 
-            myLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, selfDmg, hitPosition);
+            myLabel.TryHit(Ksid.DamagedByImpact, selfDmg, hitPosition);
             if (otherRB == null || isSpring)
-                otherLabel.ApplyDamageDelayed(Ksid.DamagedByImpact, otherDmg, hitPosition);
+                otherLabel.TryHit(Ksid.DamagedByImpact, otherDmg, hitPosition);
         }
 
 
@@ -128,7 +181,7 @@ namespace Assets.Scripts.Bases
                 {
                     float dmg = ComputeKnifeDmg(knife, impactSpeedSqr);
                     if (dmg > 0)
-                        targetLabel.ApplyDamageDelayed(Ksid.DamagedByKnife, dmg, hitPosition);
+                        targetLabel.Hit(Ksid.DamagedByKnife, dmg, hitPosition);
                 }
 
                 float cutLimit = knife.GetJointCutStretchLimit();
@@ -159,7 +212,7 @@ namespace Assets.Scripts.Bases
                 var settings = dealerLabel.GetSettings();
                 if (settings != null && settings.ContactDmgPerFrame > 0)
                 {
-                    targetLabel.ApplyDamageDelayed(Ksid.DamagedByContact, settings.ContactDmgPerFrame, hitPosition);
+                    targetLabel.Hit(Ksid.DamagedByContact, settings.ContactDmgPerFrame, hitPosition);
                 }
             }
         }

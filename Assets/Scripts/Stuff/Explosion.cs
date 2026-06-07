@@ -67,7 +67,7 @@ namespace Assets.Scripts.Stuff
                 }
                 if (distanceSq < sizeSq2)
                 {
-                    p.ApplyDamageDelayed(Ksid.DamagedByExplosion, (sizeSq2 - distanceSq) * 150, hitPoint);
+                    p.TryHit(Ksid.DamagedByExplosion, (sizeSq2 - distanceSq) * 150, hitPoint);
                 }
             }
         }

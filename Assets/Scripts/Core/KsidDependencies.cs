@@ -57,6 +57,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Knife, Ksid.AffectedByExplosion),
                 (Ksid.Chest, Ksid.AffectedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
+                (Ksid.Explosive, Ksid.HasDeathOverride),
 
                 (Ksid.SpFixed, Ksid.SpNode),
                 (Ksid.SpMoving, Ksid.SpNode),
