@@ -104,7 +104,9 @@ namespace Assets.Scripts.Bases
             {
                 if (TryDieExploding(label, damageType)) 
                     return;
-                // future death overrides: TryDieShattering(label, damage, hitPosition), ...
+                if (TryDieShattering(label, damageType))
+                    return;
+                // future death overrides
             }
             label.KillWithEffect(hitPosition);
         }
@@ -115,6 +117,92 @@ namespace Assets.Scripts.Bases
                 return false;
             label.Explode();
             return true;
+        }
+
+        private static bool TryDieShattering(Label label, Ksid damageType)
+        {
+            if (!label.KsidGet.IsChildOf(Ksid.Dirt) || !damageType.IsChildOf(Ksid.CausesShatter))
+                return false;
+            label.Shatter();
+            return true;
+        }
+
+
+        // Mřížka pro rozsypání hlíny na gravel (2 sloupce x 3 řady = 6 kousků na buňku)
+        private const int GravelCols = 2;
+        private const int GravelRows = 3;
+
+        /// <summary>
+        /// Rozbije hlínu. Pokud je hlína zarovnaná na buňku (má FullEx flag), vznikne na jejím
+        /// místě SandCombiner, jinak se rozsype na mřížku gravel objektů. Původní hlina mohla
+        /// zabírat obě z-vrstvy — pak se náhrada vytvoří pro obě, jinak jen pro tu kterou zabírá.
+        /// </summary>
+        private static void Shatter(this Label label)
+        {
+            Placeable dirt = label.PlaceableC;
+            if (dirt == null)
+                return;
+
+            Map.Map map = dirt.GetMap();
+            Transform parent = dirt.LevelGroup;
+            bool aligned = (dirt.CellBlocking & CellFlags.AllFullEx) != 0;
+
+            bool layer0 = dirt.CellBlocking.IsPartBlock0();
+            bool layer1 = dirt.CellBlocking.IsPartBlock1();
+
+            Vector2Int cell = map.WorldToCell(dirt.Center);
+            Vector2 center = dirt.Center;
+            // jen Z rotace (2.5D), ať natočení hlíny neovlivní z souřadnici gravelu
+            Quaternion rot = Quaternion.Euler(0, 0, dirt.transform.eulerAngles.z);
+
+            dirt.Kill();
+
+            if (layer0)
+                ShatterLayer(map, parent, aligned, 0, cell, center, rot);
+            if (layer1)
+                ShatterLayer(map, parent, aligned, 1, cell, center, rot);
+        }
+
+        private static void ShatterLayer(Map.Map map, Transform parent, bool aligned, int cellz, Vector2Int cell, Vector2 center, Quaternion rot)
+        {
+            if (aligned)
+            {
+                Vector3 pos = map.CellToWorld(cell).AddZ(cellz * 0.5f);
+                var combiner = Game.Instance.PrefabsStore.SandCombinerFull.CreateWithotInit(parent, pos);
+                combiner.InitFull(map);
+            }
+            else
+            {
+                SpawnGravelGrid(map, parent, cellz, center, rot);
+            }
+        }
+
+        private static void SpawnGravelGrid(Map.Map map, Transform parent, int cellz, Vector2 center, Quaternion rot)
+        {
+            // v 50 % případů mřížku otočíme o dalších 90° -> střídá se 2x3 a 3x2
+            if (UnityEngine.Random.value < 0.5f)
+                rot *= Quaternion.Euler(0, 0, 90f);
+
+            float z = cellz * 0.5f;
+            Vector2 half = Map.Map.CellSize2d * 0.5f;
+            float slotW = Map.Map.CellSize2d.x / GravelCols;
+            float slotH = Map.Map.CellSize2d.y / GravelRows;
+            // jitter jen v rámci slotu, ať se kousky nepřekrývají a pak se moc nerozletí
+            float jitterX = slotW * 0.15f;
+            float jitterY = slotH * 0.15f;
+
+            for (int c = 0; c < GravelCols; c++)
+            {
+                for (int r = 0; r < GravelRows; r++)
+                {
+                    // offset od středu v lokálních osách hlíny, pak otočíme rotací hlíny
+                    Vector2 local = new Vector2(
+                        (c + 0.5f) * slotW - half.x + UnityEngine.Random.Range(-jitterX, jitterX),
+                        (r + 0.5f) * slotH - half.y + UnityEngine.Random.Range(-jitterY, jitterY));
+                    Vector3 pos = center.AddZ(z) + rot * (Vector3)local;
+                    Game.Instance.PrefabsStore.Gravel.Create(parent, pos, map);
+                }
+            }
         }
 
 

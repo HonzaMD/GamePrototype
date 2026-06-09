@@ -38,7 +38,7 @@ namespace Assets.Scripts.Map
 "HH                                                     DDD                 DDD                              P     ",
 "H                                                     DDDD               DDDDD                              P     ",
 "HHHHH                                                DDDDD                 DDD                                   H",
-"HHHHHHHHH                            HHHHHHHHHHHH    DDDDDDDDDDDDDDDDDDDDDDDDDD                                HHH",
+"HHHHHHHHH                            HHHHHHHHHHHH    DDDDDDDDDDDDDDDDDDDDDDDDED                                HHH",
 "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ",
         };
     }

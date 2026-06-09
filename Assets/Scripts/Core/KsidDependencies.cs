@@ -50,14 +50,20 @@ namespace Assets.Scripts.Core
                 (Ksid.Cannon, Ksid.DamagedByExplosion),
                 (Ksid.JoinerGlue, Ksid.DamagedByExplosion),
                 (Ksid.DeepGlue, Ksid.DamagedByExplosion),
+                (Ksid.Dirt, Ksid.DamagedByExplosion),
                 (Ksid.DamagedByExplosion, Ksid.AffectedByExplosion),
                 (Ksid.Character, Ksid.AffectedByExplosion),
                 (Ksid.Rope, Ksid.AffectedByExplosion),
                 (Ksid.SpMoving, Ksid.AffectedByExplosion),
                 (Ksid.Knife, Ksid.AffectedByExplosion),
                 (Ksid.Chest, Ksid.AffectedByExplosion),
+                
                 (Ksid.DamagedByExplosion, Ksid.CausesExplosion),
+                (Ksid.DamagedByImpact, Ksid.CausesExplosion),
+                (Ksid.DamagedByExplosion, Ksid.CausesShatter),
+                (Ksid.DamagedByImpact, Ksid.CausesShatter),
                 (Ksid.Explosive, Ksid.HasDeathOverride),
+                (Ksid.Dirt, Ksid.HasDeathOverride),
 
                 (Ksid.SpFixed, Ksid.SpNode),
                 (Ksid.SpMoving, Ksid.SpNode),
@@ -90,6 +96,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SmallMonster, Ksid.DamagedByImpact),
                 (Ksid.Light, Ksid.DamagedByImpact),
                 (Ksid.Cannon, Ksid.DamagedByImpact),
+                (Ksid.Dirt, Ksid.DamagedByImpact),
 
                 (Ksid.Knife, Ksid.DealsKnifeDamage),
                 (Ksid.Character, Ksid.DamagedByKnife),

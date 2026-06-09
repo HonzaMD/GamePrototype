@@ -62,6 +62,7 @@ namespace Assets.Scripts.Core
         SpAutoConnect,
         BasicDirt,
         HasDeathOverride,
+        CausesShatter,
     }
 
     public static class KsidX
