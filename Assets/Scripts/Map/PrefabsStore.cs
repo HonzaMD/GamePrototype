@@ -38,4 +38,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable DeepGlue;
     public Placeable BasicDirt;
     public Placeable DirtElSrc;
+    public Placeable DirtBuilder;
 }

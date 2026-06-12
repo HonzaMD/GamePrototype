@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
+  m_Name: DirtBuilderSettings
+  m_EditorClassIdentifier: 
+  Prototype: {fileID: 6305871483602145192, guid: 2012e8de97baffe4e999dd1715089792,
+    type: 3}
+  Icon: {fileID: -1116921671, guid: a9320db951d9eef44baa5ac6e33a861e, type: 3}
+  IconOrder: 34
+  SimMaterial: 0
+  HasSubPlaceables: 0
+  Unseparable: 0
+  AutoAtachRB: 1
+  IsStatic: 0
+  SecondaryMapIndex: 0
+  IsTrigger: 0
+  RecomputeBB: 0
+  IsOBB: 0
+  BBPosOffset: {x: 0, y: 0}
+  BBSize: {x: 0.5, y: 0.5}
+  UseSimpleBBCollisions: 0
+  Mass: 4
+  Density: 1000
+  DensityMode: 0
+  SpStretchLimit: 1000
+  SpCompressLimit: 1000
+  SpMomentLimit: 1000
+  RecievesOnCollisionEnter: 0
+  RecievesOnCollisionStay: 0
+  HasMultiplePhysicsEvents: 0
+  KnifeDmg: 0
+  KnifeJointCutStretchLimit: 0
+  ContactDmgPerFrame: 0
+  MaxHealth: 0
+  DamageResistances: []
+  ActivityAnimation:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.009284124
+      outSlope: 0.009284124
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.29616675
+      value: -0.33549225
+      inSlope: -0.6414351
+      outSlope: -0.6414351
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.19059397
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.501003
+      value: 0.69223493
+      inSlope: 17.765846
+      outSlope: 2.0245621
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.051414743
+      outWeight: 0.65493697
+    - serializedVersion: 3
+      time: 0.6130626
+      value: 0.69223493
+      inSlope: -1.3439164
+      outSlope: -1.3439164
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.40140623
+      outWeight: 0.15671134
+    - serializedVersion: 3
+      time: 0.9719415
+      value: -0.03494233
+      inSlope: 0.014374425
+      outSlope: 0.014374425
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.099915646
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1.6672361
+      outSlope: -1.6672361
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 1
+    m_RotationOrder: 4
+  HitEffect: {fileID: 0}
+  DeathEffect: {fileID: 0}

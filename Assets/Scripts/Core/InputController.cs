@@ -20,6 +20,12 @@ namespace Assets.Scripts.Core
         public SimpleCameraController Camera;
         public ThrowController ThrowController;
 
+        // Markery zarovnane na bunky, kterymi mire drzeny IHandAimer (DirtBuilder).
+        // Scenove objekty, defaultne neaktivni. UpdateAim si jeden vybere, SetActiveMarker ho rozsviti.
+        public Transform CellMarkerGreen;
+        public Transform CellMarkerRed;
+        private Transform activeMarker;
+
         private int characterPos;
         private readonly List<Character3> characters = new();
 
@@ -121,6 +127,9 @@ namespace Assets.Scripts.Core
 
             mousePosInWord = Camera.Camera.ScreenToWorldPoint(mousePos);
 
+            // Marker drzeneho IHandAimeru (DirtBuilder). Bez aktivni postavy se zhasne.
+            SetActiveMarker(Character ? Character.UpdateHandAim() : null);
+
             Game.Instance.TimeOfDay.ChangeLightVariant(IsBLightVariant());
         }
 
@@ -129,6 +138,18 @@ namespace Assets.Scripts.Core
         {
             var v = Character ? Character.ArmSphere.transform.position.XY() : Camera.transform.position.XY();
             return Game.Instance.MapWorlds.SelectedMap.LightVariantMap.Find(v.x, v.y);
+        }
+
+        // Rozsviti zadany marker a zhasne ten predchozi. null = zadny marker.
+        private void SetActiveMarker(Transform marker)
+        {
+            if (activeMarker == marker)
+                return;
+            if (activeMarker)
+                activeMarker.gameObject.SetActive(false);
+            activeMarker = marker;
+            if (activeMarker)
+                activeMarker.gameObject.SetActive(true);
         }
 
         public Vector3 GetMousePosOnZPlane(float z)

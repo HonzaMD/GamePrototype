@@ -79,6 +79,8 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         inventory.SetQuickSlot(-5, Game.Instance.PrefabsStore.JoinerGlue);
         inventory.StoreProto(Game.Instance.PrefabsStore.DeepGlue, 10);
         inventory.SetQuickSlot(-4, Game.Instance.PrefabsStore.DeepGlue);
+        inventory.StoreProto(Game.Instance.PrefabsStore.DirtBuilder, 1);
+        inventory.SetQuickSlot(-3, Game.Instance.PrefabsStore.DirtBuilder);
     }
 
     public void GameUpdate()
@@ -324,6 +326,19 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             desiredZMove = transform.position.z < 0.25f ? Map.CellSize.z : -Map.CellSize.z;
             zMoveTimeout = 1;
         }
+    }
+
+    // Pokud drzime IHandAimer (DirtBuilder) ve stavu ItemUse, necha ho zvolit marker a vrati ho,
+    // jinak null. Aktivaci/deaktivaci markeru ridi InputController ze sveho GameUpdate.
+    public Transform UpdateHandAim()
+    {
+        if (cState == ControlState.ItemUse)
+        {
+            var ho = GetHoldObject();
+            if (ho != null && ho.KsidGet.IsChildOf(Ksid.AimsInHand) && ho.TryGetComponent(out IHandAimer aimer))
+                return aimer.UpdateAim(this);
+        }
+        return null;
     }
 
     private ControlState ResetControl()

@@ -63,6 +63,8 @@ namespace Assets.Scripts.Core
         BasicDirt,
         HasDeathOverride,
         CausesShatter,
+        DirtBuilder,
+        AimsInHand,
     }
 
     public static class KsidX

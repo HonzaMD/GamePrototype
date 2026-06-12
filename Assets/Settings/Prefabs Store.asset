@@ -66,3 +66,5 @@ MonoBehaviour:
     type: 3}
   DirtElSrc: {fileID: 3186552436626526341, guid: 70f13f66ce25cd3449dfe4eed7397ae3,
     type: 3}
+  DirtBuilder: {fileID: 6305871483602145192, guid: 2012e8de97baffe4e999dd1715089792,
+    type: 3}

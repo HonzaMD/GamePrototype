@@ -463,6 +463,46 @@ namespace Assets.Scripts.Core.Inventory
             return ref slot;
         }
 
+        // Kolik kusu daneho typu je k dispozici napric linkovanymi inventari.
+        // Z vlastniho inventare bereme az do nuly, z linku jen prebytek nad jejich DesiredCount
+        // (stejna semantika jako RemoveUnneeded pri auto-doplnovani).
+        public int CountConsumable(Label key)
+        {
+            int sum = 0;
+            foreach (var inv in links)
+            {
+                ref var slot = ref inv.FindSlot(key);
+                if (slot.Key == key)
+                    sum += inv == this ? slot.CountInside : Math.Max(0, slot.CountInside - slot.DesiredCount);
+            }
+            return sum;
+        }
+
+        // Odebere count kusu napric linky. Z vlastniho inventare az do nuly (resi se prvni),
+        // z ostatnich linku jen prebytek nad jejich DesiredCount.
+        // Vrati false a nic neodebere, pokud neni dost.
+        public bool TryConsume(Label key, int count)
+        {
+            if (CountConsumable(key) < count)
+                return false;
+            foreach (var inv in links)
+            {
+                if (count <= 0)
+                    break;
+                ref var slot = ref inv.FindSlot(key);
+                if (slot.Key != key)
+                    continue;
+                int available = inv == this ? slot.CountInside : Math.Max(0, slot.CountInside - slot.DesiredCount);
+                int take = Math.Min(available, count);
+                if (take > 0)
+                {
+                    inv.RemoveObj(slot.Index, take);
+                    count -= take;
+                }
+            }
+            return true;
+        }
+
         public bool TryGetSlot(Label key, out int slot)
         {
             if (key == null)

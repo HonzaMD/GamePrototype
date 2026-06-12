@@ -1,6 +1,7 @@
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
+using Assets.Scripts.Stuff;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections;
@@ -281,52 +282,14 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec,
         if (!foundDirt)
             return false;
 
-        ref var cell = ref map.GetCell(myCell);
-        foreach (var p in cell)
-        {
-            if ((p.CellBlocking & CellFlags.AllPartCells) == 0)
-                continue;
-
-            if (p is SandCombiner || p.Ksid.IsChildOfOrEq(Ksid.SandLike))
-            {
-                toKill.Add(p);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        return true;
+        return DirtFactory.CollectCellForDirt(map, myCell, toKill);
     }
 
     private void TurnIntoBasicDirt(Map map, List<Placeable> toKill)
     {
         var myCell = map.WorldToCell(Pivot);
-        Vector3 dirtPos = map.CellToWorld(myCell);
-        Transform parent = LevelGroup;
-
-        foreach (var p in toKill)
-            if (p.IsAlive)
-                p.Kill();
-
-        var dirt = Game.Instance.PrefabsStore.BasicDirt.Create(parent, dirtPos, map);
-
+        DirtFactory.BuildDirt(map, myCell, LevelGroup, toKill);
         map.CellSim.AddElement(myCell, -4);
-
-        var spNeighbors = ListPool<Placeable>.Rent();
-        int tag = 0;
-        foreach (var off in N4)
-            map.Get(spNeighbors, myCell + off, Ksid.SpNode, ref tag);
-
-        foreach (var c in spNeighbors)
-        {
-            if ((c.CellBlocking & CellFlags.AllFullEx) != 0
-                && (c.SpNodeIndex != 0 || c.Ksid.IsChildOfOrEq(Ksid.SpFixed)))
-            {
-                dirt.CreateRbJoint(c).SetupSp();
-            }
-        }
-        spNeighbors.Return();
     }
 
     void ILevelPlaceabe.Instantiate(Map map, Transform parent, Vector3 pos)

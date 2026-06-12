@@ -101,6 +101,7 @@
     <Compile Include="Assets\Scripts\Core\KsidNode.cs" />
     <Compile Include="Assets\Scripts\Utils\CharacterNames.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
+    <Compile Include="Assets\Scripts\Stuff\DirtBuilder.cs" />
     <Compile Include="Assets\Scripts\Map\WorldBuilder.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Cannon.cs" />
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
+    <Compile Include="Assets\Scripts\Stuff\DirtFactory.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimDebug.cs" />
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Utils\FpsCounter.cs" />
