@@ -30,7 +30,7 @@ public class SandCombiner : Placeable, ISimpleTimerConsumer, IActiveObject20Sec,
 
     public override float GetMass() => mass;
 
-    private void Start()
+    private void Awake()
     {
         MassTransferer.Init(DisconnectMassTarget);
     }

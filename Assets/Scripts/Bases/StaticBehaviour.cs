@@ -145,7 +145,7 @@ namespace Assets.Scripts.Bases
 
             Map.Map map = dirt.GetMap();
             Transform parent = dirt.LevelGroup;
-            bool aligned = (dirt.CellBlocking & CellFlags.AllFullEx) != 0;
+            bool aligned = dirt.CellBlocking.IsCellAligned();
 
             bool layer0 = dirt.CellBlocking.IsPartBlock0();
             bool layer1 = dirt.CellBlocking.IsPartBlock1();

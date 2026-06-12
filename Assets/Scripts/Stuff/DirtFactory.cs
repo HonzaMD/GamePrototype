@@ -24,9 +24,13 @@ namespace Assets.Scripts.Stuff
                     continue;
 
                 if (p is SandCombiner || p.Ksid.IsChildOfOrEq(Ksid.SandLike))
+                {
                     toKill.Add(p);
-                else
+                }
+                else if (!(p.IsStatic && !p.CellBlocking.IsCellAligned() && p.Ksid.IsChildOfOrEq(Ksid.Dirt)))
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -49,9 +53,12 @@ namespace Assets.Scripts.Stuff
 
             foreach (var c in spNeighbors)
             {
-                if ((c.CellBlocking & CellFlags.AllFullEx) != 0 && (c.SpNodeIndex != 0 || c.Ksid.IsChildOfOrEq(Ksid.SpFixed)))
+                if (c.SpNodeIndex != 0 || c.Ksid.IsChildOfOrEq(Ksid.SpFixed))
                 {
-                    dirt.CreateRbJoint(c).SetupSp();
+                    if (c.CellBlocking.IsCellAligned() || (c.Ksid.IsChildOfOrEq(Ksid.Dirt) && dirt.Touches(c, 0.05f)))
+                    {
+                        dirt.CreateRbJoint(c).SetupSp();
+                    }
                 }
             }
             spNeighbors.Return();
