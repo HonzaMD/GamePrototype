@@ -41,7 +41,13 @@ MonoBehaviour:
   KnifeJointCutStretchLimit: 0
   ContactDmgPerFrame: 1
   MaxHealth: 0
-  DamageResistances: []
+  DamageResistances:
+  - DamageType: 33
+    Resistance: 0
+    Armor: 15
+  - DamageType: 17
+    Resistance: 0
+    Armor: 10
   ActivityAnimation:
     serializedVersion: 2
     m_Curve: []
