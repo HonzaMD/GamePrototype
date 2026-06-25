@@ -47,7 +47,7 @@ MonoBehaviour:
     Armor: 60
   - DamageType: 17
     Resistance: 0
-    Armor: 160
+    Armor: 140
   ActivityAnimation:
     serializedVersion: 2
     m_Curve: []
