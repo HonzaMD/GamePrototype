@@ -158,20 +158,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             {
                 ResetControl();
             }
-            //holdRotationAngle = 0;
-            //if (!throwCtrl.ThrowActive)
-            //{
-            //    if (dropHold)
-            //    {
-            //        holdTarget = Vector2.zero;
-            //        dropHold = false;
-            //        desiredHold = false;
-            //    }
-            //    else
-            //    {
-            //        RecatchHold();
-            //    }
-            //}
         }
 
         bool guiInFocus = Game.Instance.Hud.GuiInFocus;

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 
 public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlaced
@@ -55,7 +54,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private static List<Placeable> placeables = new List<Placeable>();
 
     private Label delayedEnableCollisionLabel;
-    private Vector3 mClose;
     private readonly Action<object, int> DelayedEnableCollisionsA;
 
     public ChLegsArms()
@@ -692,23 +690,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             InventoryReturn();
     }
 
-    //private void EnsurePrevioslyHoldIsFirst()
-    //{
-    //	if (delayedEnableCollisionLabel != null)
-    //	{
-    //		for (int f = 0; f < placeables.Count; f++)
-    //		{
-    //			if (placeables[f] == delayedEnableCollisionLabel)
-    //			{
-    //				var p = placeables[f];
-    //				placeables[f] = placeables[0];
-    //				placeables[0] = p;
-    //				break;
-    //			}
-    //		}
-    //	}
-    //}
-
     private void SetHoldTarget(int index)
     {
         if (holdTarget == Vector2.zero)
@@ -781,11 +762,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 return true;
             }
         }
-        //else if ((ArmSphere.transform.position - candidate).sqrMagnitude <= radius * radius)
-        //{
-        //	PlaceLeg(index, candidate, (candidate - ArmSphere.transform.position).normalized);
-        //	return true;
-        //}
         return false;
     }
 
@@ -828,10 +804,6 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 desiredJump = false;
                 jumpStarted = true;
                 RemoveAllLegs();
-            }
-            else
-            {
-                //body.AddForce(0, -maxAcceleration, 0, ForceMode.VelocityChange);
             }
         }
         else
