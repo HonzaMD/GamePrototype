@@ -629,6 +629,9 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
 1. **Refaktor `ChLegsArms`** — zobecnit počet nohou/rukou, přidat `MovementMode` (`Legged`/`Free`,
    gravitace off), public API pro AI (`desired*` settery, `DropAllLimbs`). Ověřit, že `Free` lítá
    (balon). RB neuspáváme — to dělá Unity samo.
+   > Rozpracováno v [chlegsarms-refactor.md](chlegsarms-refactor.md): kýbl A (zpřehlednění)
+   > je hotový, kýbl B (rozdělení GameUpdate/FixedUpdate + oprava hodu) a kýbl C
+   > (`MovementMode`, generalizace končetin, `MonsterController`) čekají.
 2. **`MonsterController : ChLegsArms`** (abstraktní) — blackboard (3 regiony), `Directive` standing,
    eval smyčka (modifiery + arbitráž zámku), napojení na `IActiveObject`, `virtual ApplyDirective`.
 3. **`CrawlerStyle : MonsterController`** — port `SmallMonster` crawl/flip + `WantMove` do override
