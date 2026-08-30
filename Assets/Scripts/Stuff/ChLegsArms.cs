@@ -85,37 +85,60 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     protected void AdjustLegsArms(bool allowHoldDrop)
     {
         map.Move(placeable);
-
         TickLimbTimers();
+        DetachUnwantedLimbs(allowHoldDrop);
+        TryCatchWithFreeLeg();
+        TryCatchWithFreeArm();
+        TryHoldOrPickUp();
+        DetachCatchDuplicatingHold();
+    }
 
+    private void DetachUnwantedLimbs(bool allowHoldDrop)
+    {
         DetachLegIfNeeded(0);
         DetachLegIfNeeded(1);
-        DetachArmIfNeeded(2, allowHoldDrop);
+        DetachArmIfNeeded(2, allowHoldDrop);   // POZOR: pri pusteni planuje ScheduleCollisionRestore
         DetachArmIfNeeded(3, allowHoldDrop);
+    }
 
+    private void TryCatchWithFreeLeg()
+    {
         if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && TrySelectFreeLeg(out var index))
         {
             TryCatchLeg(index);
         }
+    }
 
-        if (desiredCatch && TrySelectFreeArm(out index))
+    private void TryCatchWithFreeArm()
+    {
+        if (desiredCatch && TrySelectFreeArm(out var index))
         {
             TryCatchArm(index);
         }
+    }
 
-        bool tryHold = desiredHold && !ArmHolds;
+    private void TryHoldOrPickUp()
+    {
+        if (TrySelectArmForHold(out var index, out bool tryHold))
+        {
+            TryHold(index, tryHold);
+        }
+    }
+
+    // Tri rezimy se prekryvaji: desiredHold (chci nest), desiredPickUp (chci sebrat do inventare),
+    // pickupToHold (sebrani zahajene mysi, ma skoncit v ruce).
+    // Kdyz zadna ruka neni volna a jde jen o dokonceni pickupToHold, pouzije se uz DRZICI ruka
+    // - predmet v ni se prehmatne na sebrani, misto aby se pickup zahodil.
+    private bool TrySelectArmForHold(out int index, out bool tryHold)
+    {
+        tryHold = desiredHold && !ArmHolds;
         bool freeArm = TrySelectFreeArm(out index);
         if (!freeArm && !tryHold && pickupToHold && !desiredPickUp)
         {
             index = GetHoldIndex();
             freeArm = index != -1;
         }
-        if ((tryHold || desiredPickUp || pickupToHold) && freeArm)
-        {
-            TryHold(index, tryHold);
-        }
-
-        DetachCatchDuplicatingHold();
+        return (tryHold || desiredPickUp || pickupToHold) && freeArm;
     }
 
 
@@ -401,25 +424,30 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         limbStatus[index] = Catch;
     }
 
+    // Spolecny vypocet pro vsechny tri druhy poskozeni koncetinou.
+    // Vraci false, kdyz koncetina na nicem nevisi.
+    private bool TryGetLimbImpact(int index, out Label otherLabel, out float relSpeedSqr)
+    {
+        otherLabel = limbTargets[index];
+        if (otherLabel == null)
+        {
+            relSpeedSqr = 0;
+            return false;
+        }
+        relSpeedSqr = (body.linearVelocity - otherLabel.Velocity).sqrMagnitude;
+        return true;
+    }
+
     private void ApplyLimbImpactDamage(int index)
     {
-        var otherLabel = limbTargets[index];
-        if (otherLabel == null) return;
-
-        var relVelocity = body.linearVelocity - otherLabel.Velocity;
-        float impactSpeed = relVelocity.sqrMagnitude;
-
-        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true, Limbs[index].position);
+        if (!TryGetLimbImpact(index, out var otherLabel, out float relSpeedSqr)) return;
+        StaticBehaviour.ApplyImpactDamage(relSpeedSqr, placeable, otherLabel, true, Limbs[index].position);
     }
 
     private void ApplyLimbKnifeDamage(int index)
     {
-        var otherLabel = limbTargets[index];
-        if (otherLabel == null) return;
-
-        var relVelocity = body.linearVelocity - otherLabel.Velocity;
-
-        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel, Limbs[index].position);
+        if (!TryGetLimbImpact(index, out var otherLabel, out float relSpeedSqr)) return;
+        StaticBehaviour.ApplyKnifeDamageOneWay(relSpeedSqr, placeable, otherLabel, Limbs[index].position);
     }
 
     private void ApplyLimbContactDamage(int index)
@@ -476,8 +504,20 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private void TryCatchArm(int index)
     {
+        // otherPlaced a center se zachyti PRED pokusy - uspesny attach muze stav koncetin zmenit.
         bool otherPlaced = ArmCatched;
         var center = ArmSphere.transform.position.XY();
+
+        if (TryCatchNearbyObject(index, otherPlaced, center))
+            return;
+
+        CollectCellCornerCandidates();
+        TryCatchCellCorner(index, otherPlaced, center);
+    }
+
+    // Faze 1: chytit se uz existujiciho Placeable typu Catch v dosahu ruky.
+    private bool TryCatchNearbyObject(int index, bool otherPlaced, Vector2 center)
+    {
         var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
 
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
@@ -495,14 +535,19 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                         PlaceLimbAtHitZ(index, ref hitInfo, null, Catch);
                         ApplyLimbImpactDamage(index);
                         placeables.Clear();
-                        return;
+                        return true;
                     }
                 }
             }
         }
 
         placeables.Clear();
+        return false;
+    }
 
+    // Faze 2: nasbirat do statickeho bufru armCandidates rohy blokujicich bunek v dosahu ruky.
+    private void CollectCellCornerCandidates()
+    {
         var c = map.WorldToCell(ArmSphere.transform.position.XY());
         var c1 = c - Settings.ArmCellRadius;
         var c2 = c + Settings.ArmCellRadius + Vector2Int.one;
@@ -532,7 +577,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 }
             }
         }
+    }
 
+    // Faze 3: zkusit se chytit nasbiranych rohu. Vzdy vyprazdni armCandidates.
+    private void TryCatchCellCorner(int index, bool otherPlaced, Vector2 center)
+    {
         foreach (var pos in armCandidates)
         {
             if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center) >= 0)
@@ -649,17 +698,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
                         if (TryAttachLimbTo(index, ref hitInfo, p))
                         {
-                            pickupToHold = false;
-                            if (!p.HasActiveRB)
-                                ((Placeable)p).AttachRigidBody(true, false);
-                            PlaceLimbAtHitZ(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
-                            ApplyLimbImpactDamage(index);
-                            SetCollisionIgnored(limbTargets[index], true);
-                            if (tryHold && pickUpAllowed)
-                                InventoryPickupAndActivate(p);
-                            if (tryHold)
-                                SetHoldTarget(index);
-                            TryCorrectZPos(limbTargets[index]);
+                            CompleteHold(index, ref hitInfo, holdHandle, p, tryHold, pickUpAllowed);
                             return HoldOneResult.Attached;
                         }
                     }
@@ -668,6 +707,23 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             }
         }
         return HoldOneResult.NotACandidate;
+    }
+
+    // Vola se az po uspesnem TryAttachLimbTo - vsechny side efekty uchopeni na jednom miste:
+    // predmet dostane RB, vypnou se kolize s nami, pripadne se zaeviduje do inventare a srovna Z.
+    private void CompleteHold(int index, ref RaycastHit hitInfo, Transform holdHandle, Label p, bool tryHold, bool pickUpAllowed)
+    {
+        pickupToHold = false;
+        if (!p.HasActiveRB)
+            ((Placeable)p).AttachRigidBody(true, false);
+        PlaceLimbAtHitZ(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
+        ApplyLimbImpactDamage(index);
+        SetCollisionIgnored(limbTargets[index], true);
+        if (tryHold && pickUpAllowed)
+            InventoryPickupAndActivate(p);
+        if (tryHold)
+            SetHoldTarget(index);
+        TryCorrectZPos(limbTargets[index]);
     }
 
     protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
@@ -774,6 +830,23 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         AdjustXOrientation();
 
         Vector2 groundVelocity = GetGroundVelocity();
+
+        ApplyMoveForce(groundVelocity);              // pise legUpDir -> musi byt pred podporou nohou
+        ApplyArmsCatchForce(groundVelocity);
+
+        bool jumpStarted = ApplyJumpOrLegSupport();  // POZOR: pri odrazu vola DetachAllLegs()
+        if (!jumpStarted)
+            ApplyDrag();
+
+        ApplyZMove();                                // POZOR: teleportuje transform, prepoji koncetiny
+        ApplyHoldForces();
+        ApplyLimbsContactDamage();
+    }
+
+    // Pohon tela. Dve vetve: visi na rukou (plny 2D regulator) / stoji na nohou (jen horizontalne).
+    // Pise legUpDir, ktery pak cte ApplyJumpOrLegSupport.
+    private void ApplyMoveForce(Vector2 groundVelocity)
+    {
         if (ArmCatched)
         {
             var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), Settings.maxAcceleration);
@@ -793,10 +866,16 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             body.AddForce(forceVec, ForceMode.VelocityChange);
             ApplyReactionToCaughtLimbs(forceVec * 0.8f);
         }
+    }
 
+    private void ApplyArmsCatchForce(Vector2 groundVelocity)
+    {
         body.AddForce(GetArmsCatchForce(groundVelocity), ForceMode.VelocityChange);
+    }
 
-        bool jumpStarted = false;
+    // Vraci true, pokud se v tomto kroku odrazil skok - pak se neaplikuje drag.
+    private bool ApplyJumpOrLegSupport()
+    {
         if (desiredJump)
         {
             if (LegOnGround)
@@ -805,8 +884,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
                 ApplyReactionToLegs(new Vector3(0, jumpForce, 0), true);
                 desiredJump = false;
-                jumpStarted = true;
                 DetachAllLegs();
+                return true;
             }
         }
         else
@@ -817,29 +896,33 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             float legSF = GetLegSideForce();
             body.AddForce(legSF, 0, 0, ForceMode.VelocityChange);
         }
+        return false;
+    }
 
-        if (!jumpStarted)
-            body.AddForce(GetDrag());
+    private void ApplyDrag()
+    {
+        body.AddForce(GetDrag());
+    }
 
-        if (desiredZMove != 0)
+    // POZOR: teleportuje transform po ose Z, odpoji chycene koncetiny a prehmatne drzeny predmet.
+    private void ApplyZMove()
+    {
+        if (desiredZMove == 0)
+            return;
+
+        var p = transform.position;
+        if (placeable.CanZMove(p.z + desiredZMove))
         {
-            var p = transform.position;
-            if (placeable.CanZMove(p.z + desiredZMove))
-            {
-                p.z += desiredZMove;
-                transform.position = p;
-                var ho = GetHoldObject();
-                if (ho != null)
-                    TryCorrectZPos(ho);
-                DetachAllCaughtLimbs();
-                MarkIdleLimbsFree();
-                ResetHold();
-            }
-            desiredZMove = 0;
+            p.z += desiredZMove;
+            transform.position = p;
+            var ho = GetHoldObject();
+            if (ho != null)
+                TryCorrectZPos(ho);
+            DetachAllCaughtLimbs();
+            MarkIdleLimbsFree();
+            ResetHold();
         }
-
-        ApplyHoldForce();
-        ApplyLimbsContactDamage();
+        desiredZMove = 0;
     }
 
     protected virtual void AdjustXOrientation()
@@ -850,7 +933,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             lastXOrientation = -1;
     }
 
-    private void ApplyHoldForce()
+    private void ApplyHoldForces()
     {
         if (limbStatus[2] == Hold)
             ApplyHoldForce(2, false);
@@ -865,34 +948,40 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private void ApplyHoldForce(int index, bool isPickUp)
     {
         var label = limbTargets[index];
-        if (label != null)
-        {
-            var lRB = label.Rigidbody;
-            if (lRB != null)
-            {
-                var armPos = Limbs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
-                var destPos = ArmSphere.transform.position.XY();
-                var holdTarget = isPickUp ? ComputeHoldTarget(index) : this.holdTarget;
-                destPos += holdTarget;
-                GetDecollisionDistance(limbTargets[index], out var decollision);
-                destPos += decollision;
-                destPos += this.body.linearVelocity.XY() * Time.fixedDeltaTime;
+        if (label == null)
+            return;
+        var lRB = label.Rigidbody;
+        if (lRB == null)
+            return;
 
-                var center = ArmSphere.transform.position.XY() + this.body.linearVelocity.XY() * Time.fixedDeltaTime;
-                var speed = Mathf.Clamp((center - armPos).magnitude / ArmSphere.radius, 0.5f, 1.3f);
+        var armPos = Limbs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
+        var destPos = ComputeHoldDestination(index, isPickUp);
 
-                var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
-                var koef = body.mass * 0.6f / lRB.mass;
-                if (koef > 1)
-                    koef = Mathf.Log(koef) + 1;
-                var force = Vector2.ClampMagnitude(dist, Settings.HoldMoveAcceleration * speed * koef);
-                label.ApplyVelocity(force, body.mass * 0.6f, VelocityFlags.LimitVelocity);
+        var center = ArmSphere.transform.position.XY() + body.linearVelocity.XY() * Time.fixedDeltaTime;
+        var speed = Mathf.Clamp((center - armPos).magnitude / ArmSphere.radius, 0.5f, 1.3f);
 
-                ApplyHoldTorque(index, lRB, label);
+        var dist = (destPos - armPos) * Settings.HoldMoveSpeed * Settings.HoldMoveSpeed;
+        var koef = body.mass * 0.6f / lRB.mass;
+        if (koef > 1)
+            koef = Mathf.Log(koef) + 1;
+        var force = Vector2.ClampMagnitude(dist, Settings.HoldMoveAcceleration * speed * koef);
+        label.ApplyVelocity(force, body.mass * 0.6f, VelocityFlags.LimitVelocity);
 
-                body.AddForce(-force * 0.8f, lRB.mass, VelocityFlags.None);
-            }
-        }
+        ApplyHoldTorque(index, lRB, label);
+
+        body.AddForce(-force * 0.8f, lRB.mass, VelocityFlags.None);
+    }
+
+    // Kam ma drzeny predmet mirit: pozice ruky + hold target + odstrceni z kolize
+    // + predikce posunu tela za jeden fyzikalni krok.
+    private Vector2 ComputeHoldDestination(int index, bool isPickUp)
+    {
+        var destPos = ArmSphere.transform.position.XY();
+        destPos += isPickUp ? ComputeHoldTarget(index) : holdTarget;
+        GetDecollisionDistance(limbTargets[index], out var decollision);
+        destPos += decollision;
+        destPos += body.linearVelocity.XY() * Time.fixedDeltaTime;
+        return destPos;
     }
 
     private void ApplyHoldTorque(int index, Rigidbody lRB, Label p)
