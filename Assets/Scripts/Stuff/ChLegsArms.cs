@@ -11,6 +11,28 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+// Motor postavy i priser. Zadna AI uvnitr - jen provadi, co rekne potomek pres desired*.
+// Rozdeleno do partial souboru: .Limbs (stav koncetin), .Hold (drzeni), .Forces (sily).
+//
+// DVA VSTUPNI BODY (pozor, kazdy jina frekvence - viz Docs/chlegsarms-refactor.md, kybl B):
+//   AdjustLegsArms(bool)  <- GameUpdate potomka (frame rate)  - umistuje/odpojuje koncetiny
+//   GameFixedUpdate()     <- Game.FixedUpdate (50 Hz)         - aplikuje sily
+//
+// AUTOMAT KONCETINY (indexy 0,1 = nohy; 2,3 = ruce):
+//   Free --TryCatch*--> Catch  --+
+//   Free --TryHold*---> Hold   --+-- Detach* --> Timeout(1.0) --TickLimbTimers--> Free(<=0)
+//   Free --TryHold*---> PickUp --+
+//
+// limbStatus[i] je float se TREMI vyznamy:
+//   - presna konstanta Free/Timeout/Catch/Hold/PickUp = stav
+//   - hodnota v (0, 1]  = dobihajici timeout po pusteni
+//   - ZAPORNA hodnota bez dolni meze = jak dlouho je koncetina volna;
+//     TrySelectFreeLimb na tom stoji (zapornejsi = dele volna = vyber ji)
+//
+// ODPOJENI JDE PRES CALLBACK, ne primo:
+//   DetachLimb(i) -> Connectable.Disconnect() -> lambda z InitConnectables -> OnLimbDetached(i)
+//   Nepřimost je nutna: Disconnect() chodi i zvenku (DisconnectTargetsOwnJoints),
+//   a OnLimbDetached je jedine misto, ktere vraci vec do inventare.
 public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlaced
 {
     private const float Free = 0;
