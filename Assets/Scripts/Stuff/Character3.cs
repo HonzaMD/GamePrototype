@@ -137,7 +137,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             resetHoldTimeout += Time.deltaTime;
         if (resetHoldTimeout > 0.6f && !(cState is ControlState.ItemAdjust or ControlState.TryHold or ControlState.ItemAnimation))
         {
-            RecatchHold();
+            ResetHold();
             resetHoldTimeout = 0;
         }
 
@@ -380,7 +380,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     {
         desiredHold = false;
         if (ArmHolds)
-            RecatchHold();
+            ResetHold();
         if (IsInventoryActive)
             InventoryReturn();
         Vector3 pos = holdTarget != Vector2.zero
@@ -523,6 +523,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     public void ActivateHoldAnimation(AnimationCurve animation, float returnTime, float speed)
     {
         cState = ControlState.ItemAnimation;
-        holdAnimator = HoldAnimator.Create(GetHoldLeg(), holdTarget, animation, returnTime, speed);
+        holdAnimator = HoldAnimator.Create(GetHoldLimb(), holdTarget, animation, returnTime, speed);
     }
 }

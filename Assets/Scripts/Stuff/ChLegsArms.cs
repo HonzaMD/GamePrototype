@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlaced
 {
@@ -20,14 +21,16 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     public ChSettings Settings;
 
-    public Transform[] Legs;
-    private float[] legArmStatus = new float[4];
-    private Label[] legsConnectedLabels = new Label[4];
-    private Connectable[] legsConnectables = new Connectable[4];
+    // Poradi je nosne: 0,1 = nohy, 2,3 = ruce.
+    [FormerlySerializedAs("Legs")]
+    public Transform[] Limbs;
+    private float[] limbStatus = new float[4];
+    private Label[] limbTargets = new Label[4];
+    private Connectable[] limbConnectors = new Connectable[4];
 
-    protected bool LegOnGround => legArmStatus[0] == Catch || legArmStatus[1] == Catch;
-    protected bool ArmCatched => legArmStatus[2] == Catch || legArmStatus[3] == Catch;
-    protected bool ArmHolds => legArmStatus[2] == Hold || legArmStatus[3] == Hold;
+    protected bool LegOnGround => limbStatus[0] == Catch || limbStatus[1] == Catch;
+    protected bool ArmCatched => limbStatus[2] == Catch || limbStatus[3] == Catch;
+    protected bool ArmHolds => limbStatus[2] == Hold || limbStatus[3] == Hold;
 
     private Vector3 legUpDir = Vector3.up;
 
@@ -53,29 +56,29 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private static List<Vector2> armCandidates = new List<Vector2>();
     private static List<Placeable> placeables = new List<Placeable>();
 
-    private Label delayedEnableCollisionLabel;
-    private readonly Action<object, int> DelayedEnableCollisionsA;
+    private Label pendingCollisionRestore;
+    private readonly Action<object, int> OnCollisionRestoreTimerA;
 
     public ChLegsArms()
     {
-        DelayedEnableCollisionsA = DelayedEnableCollisions;
+        OnCollisionRestoreTimerA = OnCollisionRestoreTimer;
     }
 
     protected void AwakeB()
     {
         body = GetComponent<Rigidbody>();
         placeable = GetComponent<Placeable>();
-        Settings.Initialize(ArmSphere, Legs);
+        Settings.Initialize(ArmSphere, Limbs);
         InitConnectables();
     }
 
     private void InitConnectables()
     {
-        for (int f = 0; f < Legs.Length; f++)
+        for (int f = 0; f < Limbs.Length; f++)
         {
             int index = f;
-            legsConnectables[f] = Legs[f].GetComponent<Connectable>();
-            legsConnectables[f].Init(() => RemoveLegArmInner(index));
+            limbConnectors[f] = Limbs[f].GetComponent<Connectable>();
+            limbConnectors[f].Init(() => OnLimbDetached(index));
         }
     }
 
@@ -83,25 +86,25 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     {
         map.Move(placeable);
 
-        DoTimeouts();
+        TickLimbTimers();
 
-        TryRemoveLeg(0);
-        TryRemoveLeg(1);
-        TryRemoveArm(2, allowHoldDrop);
-        TryRemoveArm(3, allowHoldDrop);
+        DetachLegIfNeeded(0);
+        DetachLegIfNeeded(1);
+        DetachArmIfNeeded(2, allowHoldDrop);
+        DetachArmIfNeeded(3, allowHoldDrop);
 
-        if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && SelectFreeLeg(out var index))
+        if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && TrySelectFreeLeg(out var index))
         {
-            TryPlaceLeg(index);
+            TryCatchLeg(index);
         }
 
-        if (desiredCatch && SelectFreeArm(out index))
+        if (desiredCatch && TrySelectFreeArm(out index))
         {
-            TryPlaceArm(index);
+            TryCatchArm(index);
         }
 
         bool tryHold = desiredHold && !ArmHolds;
-        bool freeArm = SelectFreeArm(out index);
+        bool freeArm = TrySelectFreeArm(out index);
         if (!freeArm && !tryHold && pickupToHold && !desiredPickUp)
         {
             index = GetHoldIndex();
@@ -112,229 +115,229 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             TryHold(index, tryHold);
         }
 
-        RemoveCatchIfHold();
+        DetachCatchDuplicatingHold();
     }
 
 
-    private void RemoveCatchIfHold()
+    private void DetachCatchDuplicatingHold()
     {
-        for (int f = 0; f < legArmStatus.Length; f++)
+        for (int f = 0; f < limbStatus.Length; f++)
         {
-            if (legArmStatus[f] == Hold || legArmStatus[f] == PickUp)
+            if (limbStatus[f] == Hold || limbStatus[f] == PickUp)
             {
-                for (int g = 0; g < legArmStatus.Length; g++)
+                for (int g = 0; g < limbStatus.Length; g++)
                 {
-                    if (legArmStatus[g] == Catch && legsConnectedLabels[f] == legsConnectedLabels[g])
-                        RemoveLegArm(g);
+                    if (limbStatus[g] == Catch && limbTargets[f] == limbTargets[g])
+                        DetachLimb(g);
                 }
             }
         }
     }
 
-    private void DoTimeouts()
+    private void TickLimbTimers()
     {
-        for (int f = 0; f < legArmStatus.Length; f++)
+        for (int f = 0; f < limbStatus.Length; f++)
         {
-            if (legArmStatus[f] <= Timeout)
-                legArmStatus[f] -= Time.deltaTime * Settings.LegTimeout;
+            if (limbStatus[f] <= Timeout)
+                limbStatus[f] -= Time.deltaTime * Settings.LegTimeout;
         }
     }
 
-    private void TryRemoveLeg(int index)
+    private void DetachLegIfNeeded(int index)
     {
-        if (legArmStatus[index] == Catch)
+        if (limbStatus[index] == Catch)
         {
             if (desiredCrouch)
             {
-                RemoveLegArm(index);
+                DetachLimb(index);
             }
             else
             {
-                var lpos = Legs[index].position.XY();
+                var lpos = Limbs[index].position.XY();
                 var center = LegSphere.transform.position.XY();
                 var radius = desiredJump ? LegSphere.radius * 1.2f : LegSphere.radius;
                 if ((lpos - center).sqrMagnitude > radius * radius)
                 {
-                    RemoveLegArm(index);
+                    DetachLimb(index);
                 }
-                else if (legArmStatus[OtherIndex(index)] == Catch)
+                else if (limbStatus[PairedLimb(index)] == Catch)
                 {
-                    float otherX = Legs[OtherIndex(index)].position.x;
+                    float otherX = Limbs[PairedLimb(index)].position.x;
                     if (lpos.x <= otherX && otherX < center.x && body.linearVelocity.x >= 0)
-                        RemoveLegArm(index);
+                        DetachLimb(index);
                     if (lpos.x >= otherX && otherX > center.x && body.linearVelocity.x <= 0)
-                        RemoveLegArm(index);
+                        DetachLimb(index);
                 }
             }
         }
     }
 
-    private void TryRemoveArm(int index, bool allowHoldDrop)
+    private void DetachArmIfNeeded(int index, bool allowHoldDrop)
     {
-        if (legArmStatus[index] == Catch)
+        if (limbStatus[index] == Catch)
         {
             if (!desiredCatch)
             {
-                RemoveLegArm(index);
+                DetachLimb(index);
             }
             else
             {
-                var lpos = Legs[index].position.XY();
+                var lpos = Limbs[index].position.XY();
                 var center = ArmSphere.transform.position.XY();
                 var radius = ArmSphere.radius;
                 if ((lpos - center).sqrMagnitude > radius * radius)
                 {
-                    RemoveLegArm(index);
+                    DetachLimb(index);
                 }
-                else if (legArmStatus[OtherIndex(index)] == Catch)
+                else if (limbStatus[PairedLimb(index)] == Catch)
                 {
                     var dotPos1 = Vector2.Dot(desiredVelocity, lpos - center);
                     if (dotPos1 < 0)
                     {
-                        var dotPos2 = Vector2.Dot(desiredVelocity, Legs[OtherIndex(index)].position.XY() - center);
+                        var dotPos2 = Vector2.Dot(desiredVelocity, Limbs[PairedLimb(index)].position.XY() - center);
                         if (dotPos1 <= dotPos2)
-                            RemoveLegArm(index);
+                            DetachLimb(index);
                     }
                 }
             }
         }
-        else if (legArmStatus[index] == Hold)
+        else if (limbStatus[index] == Hold)
         {
             if (!desiredHold)
             {
-                EnableCollision(legsConnectedLabels[index]);
-                RemoveLegArm(index);
+                ScheduleCollisionRestore(limbTargets[index]);
+                DetachLimb(index);
             }
             else if (allowHoldDrop)
             {
-                var lpos = Legs[index].position.XY();
+                var lpos = Limbs[index].position.XY();
                 var center = ArmSphere.transform.position.XY();
                 var radius = ArmSphere.radius * 1.8f;
                 if ((lpos - center).sqrMagnitude > radius * radius)
                 {
-                    EnableCollision(legsConnectedLabels[index]);
-                    RemoveLegArm(index);
+                    ScheduleCollisionRestore(limbTargets[index]);
+                    DetachLimb(index);
                 }
             }
         }
-        else if (legArmStatus[index] == PickUp)
+        else if (limbStatus[index] == PickUp)
         {
-            var lpos = Legs[index].position.XY();
+            var lpos = Limbs[index].position.XY();
             var center = ArmSphere.transform.position.XY();
             var radius = ArmSphere.radius * 1.8f;
             var dist = (lpos - center).sqrMagnitude;
             if (dist > radius * radius)
             {
-                legArmStatus[index] = Timeout;
-                EnableCollision(legsConnectedLabels[index]);
-                RemoveLegArm(index);
+                limbStatus[index] = Timeout;
+                ScheduleCollisionRestore(limbTargets[index]);
+                DetachLimb(index);
             }
             var dest = ArmSphere.transform.position.XY() + ComputeHoldTarget(index);
             dist = (lpos - dest).sqrMagnitude;
             if (dist < 0.3f * 0.3f)
             {
-                EnableCollision(legsConnectedLabels[index]);
-                RemoveLegArm(index);
+                ScheduleCollisionRestore(limbTargets[index]);
+                DetachLimb(index);
             }
         }
     }
 
-    protected void RecatchHold()
+    protected void ResetHold()
     {
-        if (legArmStatus[2] == Hold)
-            RecatchHold(2);
-        if (legArmStatus[3] == Hold)
-            RecatchHold(3);
+        if (limbStatus[2] == Hold)
+            ResetHold(2);
+        if (limbStatus[3] == Hold)
+            ResetHold(3);
     }
 
-    private void RecatchHold(int index)
+    private void ResetHold(int index)
     {
-        EnableCollision(legsConnectedLabels[index]);
-        RemoveLegArm(index);
-        legArmStatus[index] = Free;
+        ScheduleCollisionRestore(limbTargets[index]);
+        DetachLimb(index);
+        limbStatus[index] = Free;
     }
 
-    private int OtherIndex(int index) => index ^ 1;
+    private int PairedLimb(int index) => index ^ 1;
 
-    private void RemoveLegArm(int index)
+    private void DetachLimb(int index)
     {
-        legsConnectables[index].Disconnect();
-        if (legsConnectedLabels[index] || legArmStatus[index] > Timeout)
+        limbConnectors[index].Disconnect();
+        if (limbTargets[index] || limbStatus[index] > Timeout)
             Debug.LogError("Dosconnect se neudelal");
     }
 
-    private Transform RemoveLegArmInner(int index)
+    private Transform OnLimbDetached(int index)
     {
-        if (legArmStatus[index] == Hold && IsInventoryActive && !desiredHold)
+        if (limbStatus[index] == Hold && IsInventoryActive && !desiredHold)
             InventoryReturn();
-        if (legArmStatus[index] == PickUp)
-            InventoryPickup(legsConnectedLabels[index]);
-        legArmStatus[index] = Timeout;
-        legsConnectedLabels[index] = null;
+        if (limbStatus[index] == PickUp)
+            InventoryPickup(limbTargets[index]);
+        limbStatus[index] = Timeout;
+        limbTargets[index] = null;
         return transform;
     }
 
     protected virtual void InventoryPickup(Label label) { }
     protected virtual void InventoryPickupAndActivate(Label label) { }
 
-    private void RemoveAllLegs()
+    private void DetachAllLegs()
     {
-        if (legArmStatus[0] == Catch)
-            RemoveLegArm(0);
-        if (legArmStatus[1] == Catch)
-            RemoveLegArm(1);
+        if (limbStatus[0] == Catch)
+            DetachLimb(0);
+        if (limbStatus[1] == Catch)
+            DetachLimb(1);
     }
 
-    private void RemoveAllCatchedLegsArms()
+    private void DetachAllCaughtLimbs()
     {
-        for (int f = 0; f < Legs.Length; f++)
+        for (int f = 0; f < Limbs.Length; f++)
         {
-            if (legArmStatus[f] == Catch)
-                RemoveLegArm(f);
+            if (limbStatus[f] == Catch)
+                DetachLimb(f);
         }
     }
 
-    private void RemoveAllLegsArms()
+    private void DetachAllLimbs()
     {
-        for (int f = 0; f < Legs.Length; f++)
+        for (int f = 0; f < Limbs.Length; f++)
         {
-            if (legsConnectedLabels[f] != null)
-                RemoveLegArm(f);
+            if (limbTargets[f] != null)
+                DetachLimb(f);
         }
     }
 
-    private void ActivateSomeLegsArms()
+    private void MarkIdleLimbsFree()
     {
-        if (legArmStatus[0] > Free && legArmStatus[1] > Free && !LegOnGround)
+        if (limbStatus[0] > Free && limbStatus[1] > Free && !LegOnGround)
         {
-            if (legArmStatus[0] < legArmStatus[1] && legArmStatus[0] <= Timeout)
+            if (limbStatus[0] < limbStatus[1] && limbStatus[0] <= Timeout)
             {
-                legArmStatus[0] = Free;
+                limbStatus[0] = Free;
             }
-            else if (legArmStatus[1] <= Timeout)
+            else if (limbStatus[1] <= Timeout)
             {
-                legArmStatus[1] = Free;
+                limbStatus[1] = Free;
             }
         }
 
-        if (legArmStatus[2] > Free && legArmStatus[3] > Free && !ArmCatched)
+        if (limbStatus[2] > Free && limbStatus[3] > Free && !ArmCatched)
         {
-            if (legArmStatus[2] < legArmStatus[3] && legArmStatus[2] <= Timeout)
+            if (limbStatus[2] < limbStatus[3] && limbStatus[2] <= Timeout)
             {
-                legArmStatus[2] = Free;
+                limbStatus[2] = Free;
             }
-            else if (legArmStatus[3] <= Timeout)
+            else if (limbStatus[3] <= Timeout)
             {
-                legArmStatus[3] = Free;
+                limbStatus[3] = Free;
             }
         }
     }
 
-    private void TryPlaceLeg(int index)
+    private void TryCatchLeg(int index)
     {
-        if (legArmStatus[OtherIndex(index)] == Catch)
+        if (limbStatus[PairedLimb(index)] == Catch)
         {
-            float otherX = Legs[OtherIndex(index)].position.x;
+            float otherX = Limbs[PairedLimb(index)].position.x;
             var centerX = LegSphere.transform.position.x;
             if (otherX > centerX && body.linearVelocity.x > 0)
                 return;
@@ -343,28 +346,28 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
 
         Vector3 direction = Vector3.down * Settings.maxSpeed + body.linearVelocity;
-        if (RayCastLeg(index, direction, LegSphere.radius))
+        if (TryCatchLegAlong(index, direction, LegSphere.radius))
             return;
 
         float radius = desiredJump ? LegSphere.radius * 1.2f : LegSphere.radius * 0.7f;
-        if (RayCastLeg(index, Vector3.down, radius))
+        if (TryCatchLegAlong(index, Vector3.down, radius))
             return;
 
-        if (desiredJump && legArmStatus[OtherIndex(index)] != Catch)
+        if (desiredJump && limbStatus[PairedLimb(index)] != Catch)
         {
             direction = new Vector3(Mathf.Sign(body.linearVelocity.x) * -0.5f, -1f);
-            if (RayCastLeg(index, direction, radius))
+            if (TryCatchLegAlong(index, direction, radius))
                 return;
         }
     }
 
-    private bool RayCastLeg(int index, Vector3 direction, float radius)
+    private bool TryCatchLegAlong(int index, Vector3 direction, float radius)
     {
         if (Physics.Raycast(LegSphere.transform.position, direction, out var hitInfo, radius, Settings.legStandLayerMask, QueryTriggerInteraction.Ignore))
         {
-            if (hitInfo.normal.y >= Settings.minGroundDotProduct && ConnectLabel(index, ref hitInfo))
+            if (hitInfo.normal.y >= Settings.minGroundDotProduct && TryAttachLimbTo(index, ref hitInfo))
             {
-                PlaceLeg(index, ref hitInfo);
+                PlaceLimbAtOwnZ(index, ref hitInfo);
                 ApplyLimbImpactDamage(index);
                 ApplyLimbKnifeDamage(index);
                 return true;
@@ -373,96 +376,96 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         return false;
     }
 
-    bool ConnectLabel(int index, ref RaycastHit hitInfo, Label reqLabel = null)
+    bool TryAttachLimbTo(int index, ref RaycastHit hitInfo, Label reqLabel = null)
     {
         if (Label.TryFind(hitInfo.collider.transform, out var label) && (reqLabel == null || label == reqLabel))
         {
-            DisconnectOppositeAttachements(label);
-            legsConnectedLabels[index] = label;
-            legsConnectables[index].ConnectTo(label, ConnectableType.LegArm, true);
+            DisconnectTargetsOwnJoints(label);
+            limbTargets[index] = label;
+            limbConnectors[index].ConnectTo(label, ConnectableType.LegArm, true);
             return true;
         }
         return false;
     }
 
-    private void DisconnectOppositeAttachements(Label label)
+    private void DisconnectTargetsOwnJoints(Label label)
     {
         if (label.KsidGet.IsChildOf(Ksid.DisconnectedByCatch) && label.TryGetComponent<IConnector>(out var connector))
             connector.Disconnect(placeable);
     }
 
-    private void PlaceLeg(int index, ref RaycastHit hitInfo)
+    private void PlaceLimbAtOwnZ(int index, ref RaycastHit hitInfo)
     {
-        Legs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.legZ[index] + transform.position.z);
-        Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
-        legArmStatus[index] = Catch;
+        Limbs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.limbZ[index] + transform.position.z);
+        Limbs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+        limbStatus[index] = Catch;
     }
 
     private void ApplyLimbImpactDamage(int index)
     {
-        var otherLabel = legsConnectedLabels[index];
+        var otherLabel = limbTargets[index];
         if (otherLabel == null) return;
 
         var relVelocity = body.linearVelocity - otherLabel.Velocity;
         float impactSpeed = relVelocity.sqrMagnitude;
 
-        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true, Legs[index].position);
+        StaticBehaviour.ApplyImpactDamage(impactSpeed, placeable, otherLabel, true, Limbs[index].position);
     }
 
     private void ApplyLimbKnifeDamage(int index)
     {
-        var otherLabel = legsConnectedLabels[index];
+        var otherLabel = limbTargets[index];
         if (otherLabel == null) return;
 
         var relVelocity = body.linearVelocity - otherLabel.Velocity;
 
-        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel, Legs[index].position);
+        StaticBehaviour.ApplyKnifeDamageOneWay(relVelocity.sqrMagnitude, placeable, otherLabel, Limbs[index].position);
     }
 
     private void ApplyLimbContactDamage(int index)
     {
-        var otherLabel = legsConnectedLabels[index];
+        var otherLabel = limbTargets[index];
         if (otherLabel == null) return;
-        StaticBehaviour.ApplyContactDamageBidirectional(placeable, otherLabel, Legs[index].position);
+        StaticBehaviour.ApplyContactDamageBidirectional(placeable, otherLabel, Limbs[index].position);
     }
 
     private void ApplyLimbsContactDamage()
     {
-        for (int i = 0; i < legArmStatus.Length; i++)
+        for (int i = 0; i < limbStatus.Length; i++)
         {
-            if (legArmStatus[i] >= Catch)
+            if (limbStatus[i] >= Catch)
                 ApplyLimbContactDamage(i);
         }
     }
 
-    private void PlaceLeg3d(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)
+    private void PlaceLimbAtHitZ(int index, ref RaycastHit hitInfo, Transform holdHandle, float statusType)
     {
         if (holdHandle)
         {
-            Legs[index].position = holdHandle.position;
-            Legs[index].rotation = holdHandle.rotation * handleToLegRot;
+            Limbs[index].position = holdHandle.position;
+            Limbs[index].rotation = holdHandle.rotation * handleToLegRot;
         }
         else
         {
-            Legs[index].position = hitInfo.point;
-            Legs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+            Limbs[index].position = hitInfo.point;
+            Limbs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
         }
-        legArmStatus[index] = statusType;
+        limbStatus[index] = statusType;
     }
     private static Quaternion handleToLegRot = Quaternion.FromToRotation(Vector3.up, Vector3.forward);
 
 
-    private bool SelectFreeLeg(out int index) => SelectFreeLegArm(out index, 0, 1);
-    private bool SelectFreeArm(out int index) => SelectFreeLegArm(out index, 2, 3);
+    private bool TrySelectFreeLeg(out int index) => TrySelectFreeLimb(out index, 0, 1);
+    private bool TrySelectFreeArm(out int index) => TrySelectFreeLimb(out index, 2, 3);
 
-    private bool SelectFreeLegArm(out int index, int i1, int i2)
+    private bool TrySelectFreeLimb(out int index, int i1, int i2)
     {
-        if (legArmStatus[i1] <= Free && legArmStatus[i1] <= legArmStatus[i2])
+        if (limbStatus[i1] <= Free && limbStatus[i1] <= limbStatus[i2])
         {
             index = i1;
             return true;
         }
-        else if (legArmStatus[i2] <= Free)
+        else if (limbStatus[i2] <= Free)
         {
             index = i2;
             return true;
@@ -471,11 +474,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         return false;
     }
 
-    private void TryPlaceArm(int index)
+    private void TryCatchArm(int index)
     {
         bool otherPlaced = ArmCatched;
         var center = ArmSphere.transform.position.XY();
-        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
+        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
 
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius);
         map.Get(placeables, center - radius2, 2 * radius2, Ksid.Catch);
@@ -487,9 +490,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             {
                 if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
                 {
-                    if ((hitInfo.point - pos).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo, p))
+                    if ((hitInfo.point - pos).sqrMagnitude < 0.001 && TryAttachLimbTo(index, ref hitInfo, p))
                     {
-                        PlaceLeg3d(index, ref hitInfo, null, Catch);
+                        PlaceLimbAtHitZ(index, ref hitInfo, null, Catch);
                         ApplyLimbImpactDamage(index);
                         placeables.Clear();
                         return;
@@ -533,7 +536,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         foreach (var pos in armCandidates)
         {
             if (!otherPlaced || Vector2.Dot(desiredVelocity, pos - center) >= 0)
-                if (RayCastArm(index, new Vector3(pos.x, pos.y, ArmSphere.transform.position.z), ArmSphere.radius))
+                if (TryCatchArmAt(index, new Vector3(pos.x, pos.y, ArmSphere.transform.position.z), ArmSphere.radius))
                     break;
         }
 
@@ -559,15 +562,15 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private void TryHoldLastItem(int index)
     {
         var center = ArmSphere.transform.position.XY();
-        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
+        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
         map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, Settings.HoldType);
 
-        if (delayedEnableCollisionLabel != null)
+        if (pendingCollisionRestore != null)
         {
             foreach (var p in placeables)
             {
-                if (p == delayedEnableCollisionLabel)
+                if (p == pendingCollisionRestore)
                 {
                     TryHoldOne(p, index, center3d, tryPickUp: false, tryHold: true);
                     break;
@@ -581,13 +584,13 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private void TryHoldNearItem(int index, bool tryHold)
     {
         var center = ArmSphere.transform.position.XY();
-        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
+        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
         map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, Settings.HoldType);
 
         foreach (var p in placeables)
         {
-            if (TryHoldOne(p, index, center3d, tryPickUp: true, tryHold) == HoldOneResult.Ok)
+            if (TryHoldOne(p, index, center3d, tryPickUp: true, tryHold) == HoldOneResult.Attached)
                 break;
         }
 
@@ -596,9 +599,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private enum HoldOneResult
     {
-        Ok,
-        Failed,
-        FailedToHit,
+        Attached,       // uchopeno
+        NotACandidate,  // objekt vubec nepripada v uvahu (mimo dosah, nesplnuje podminky)
+        RaycastMissed,  // kandidat byl, ale raycast na nej netrefil (neco stoji v ceste)
     }
 
     private HoldOneResult TryHoldOne(Label p, int index, Vector3 center3d, bool tryPickUp, bool tryHold)
@@ -611,7 +614,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 holdHandle = p.GetHoldHandle();
             var pos = holdsAtHandle ? holdHandle.position : p.GetClosestPoint(center3d);
             var zDiff = center3d.z - pos.z;
-            var radius = p == delayedEnableCollisionLabel
+            var radius = p == pendingCollisionRestore
                 ? ArmSphere.radius * 1.5f
                 : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius * 1.4f * 1.4f);
             if (holdsAtHandle)
@@ -622,11 +625,11 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             {
                 pickUpAllowed = IsPickupAllowed(p);
                 if (!tryHold && !pickUpAllowed)
-                    return HoldOneResult.Failed;
+                    return HoldOneResult.NotACandidate;
                 Vector3 mousePos = GetPickupMousePos(p.transform.position.z);
                 var mClose = p.GetClosestPoint(mousePos);
                 if ((mousePos - mClose).sqrMagnitude > 0.1f * 0.1f)
-                    return HoldOneResult.Failed;
+                    return HoldOneResult.NotACandidate;
             }
 
             if ((center3d - pos).magnitude <= radius)
@@ -638,33 +641,33 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                         if (tryHold && desiredHold && ArmHolds)
                         {
                             desiredHold = false;
-                            RecatchHold();
+                            ResetHold();
                             desiredHold = true;
                         }
                         if (tryHold && IsInventoryActive && InventoryGet() != p)
                             InventoryReturn();
 
-                        if (ConnectLabel(index, ref hitInfo, p))
+                        if (TryAttachLimbTo(index, ref hitInfo, p))
                         {
                             pickupToHold = false;
                             if (!p.HasActiveRB)
                                 ((Placeable)p).AttachRigidBody(true, false);
-                            PlaceLeg3d(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
+                            PlaceLimbAtHitZ(index, ref hitInfo, holdHandle, tryHold ? Hold : PickUp);
                             ApplyLimbImpactDamage(index);
-                            IgnoreCollision(legsConnectedLabels[index], true);
+                            SetCollisionIgnored(limbTargets[index], true);
                             if (tryHold && pickUpAllowed)
                                 InventoryPickupAndActivate(p);
                             if (tryHold)
                                 SetHoldTarget(index);
-                            TryCorrectZPos(legsConnectedLabels[index]);
-                            return HoldOneResult.Ok;
+                            TryCorrectZPos(limbTargets[index]);
+                            return HoldOneResult.Attached;
                         }
                     }
                 }
-                return HoldOneResult.FailedToHit;
+                return HoldOneResult.RaycastMissed;
             }
         }
-        return HoldOneResult.Failed;
+        return HoldOneResult.NotACandidate;
     }
 
     protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
@@ -685,8 +688,8 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     private void TryHoldInventory(int index)
     {
         var item = InventoryGet();
-        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.legZ[index]);
-        if (TryHoldOne(item, index, center3d, tryPickUp: false, tryHold: true) == HoldOneResult.Failed)
+        var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
+        if (TryHoldOne(item, index, center3d, tryPickUp: false, tryHold: true) == HoldOneResult.NotACandidate)
             InventoryReturn();
     }
 
@@ -698,7 +701,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private Vector2 ComputeHoldTarget(int index)
     {
-        if (ArmSphere.transform.position.x < Legs[index].position.x)
+        if (ArmSphere.transform.position.x < Limbs[index].position.x)
         {
             return Settings.HoldPosition;
         }
@@ -708,22 +711,22 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
     }
 
-    private void EnableCollision(Label other)
+    private void ScheduleCollisionRestore(Label other)
     {
-        if (other == delayedEnableCollisionLabel)
+        if (other == pendingCollisionRestore)
             return;
-        if (delayedEnableCollisionLabel != null)
+        if (pendingCollisionRestore != null)
         {
-            IgnoreCollision(delayedEnableCollisionLabel, false);
+            SetCollisionIgnored(pendingCollisionRestore, false);
         }
-        delayedEnableCollisionLabel = other;
-        Game.Instance.Timer.Plan(DelayedEnableCollisionsA, 0.25f, other, 0);
+        pendingCollisionRestore = other;
+        Game.Instance.Timer.Plan(OnCollisionRestoreTimerA, 0.25f, other, 0);
     }
 
-    private void IgnoreCollision(Label other, bool ignore)
+    private void SetCollisionIgnored(Label other, bool ignore)
     {
-        if (ignore && other == delayedEnableCollisionLabel)
-            delayedEnableCollisionLabel = null;
+        if (ignore && other == pendingCollisionRestore)
+            pendingCollisionRestore = null;
 
         if (!placeable || !other)
             return;
@@ -741,23 +744,23 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         colliders2.Clear();
     }
 
-    private void DelayedEnableCollisions(object other, int token)
+    private void OnCollisionRestoreTimer(object other, int token)
     {
         var label = (Label)other;
-        if (delayedEnableCollisionLabel == label)
+        if (pendingCollisionRestore == label)
         {
-            delayedEnableCollisionLabel = null;
-            IgnoreCollision(label, false);
+            pendingCollisionRestore = null;
+            SetCollisionIgnored(label, false);
         }
     }
 
-    private bool RayCastArm(int index, Vector3 candidate, float radius)
+    private bool TryCatchArmAt(int index, Vector3 candidate, float radius)
     {
         if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
         {
-            if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && ConnectLabel(index, ref hitInfo))
+            if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && TryAttachLimbTo(index, ref hitInfo))
             {
-                PlaceLeg(index, ref hitInfo);
+                PlaceLimbAtOwnZ(index, ref hitInfo);
                 ApplyLimbImpactDamage(index);
                 return true;
             }
@@ -775,7 +778,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         {
             var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), Settings.maxAcceleration);
             body.AddForce(force, ForceMode.VelocityChange);
-            SendOppositeForceToLegArms(force * 0.8f);
+            ApplyReactionToCaughtLimbs(force * 0.8f);
             legUpDir = Vector3.up;
         }
         else
@@ -788,7 +791,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             var force = Mathf.Clamp(xGVel + desiredVelocity.x - xVel, -Settings.maxAcceleration, Settings.maxAcceleration);
             var forceVec = xAxis * force;
             body.AddForce(forceVec, ForceMode.VelocityChange);
-            SendOppositeForceToLegArms(forceVec * 0.8f);
+            ApplyReactionToCaughtLimbs(forceVec * 0.8f);
         }
 
         body.AddForce(GetArmsCatchForce(groundVelocity), ForceMode.VelocityChange);
@@ -800,17 +803,17 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             {
                 var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.linearVelocity.y;
                 body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
-                SendOppositeForceToLegs(new Vector3(0, jumpForce, 0), true);
+                ApplyReactionToLegs(new Vector3(0, jumpForce, 0), true);
                 desiredJump = false;
                 jumpStarted = true;
-                RemoveAllLegs();
+                DetachAllLegs();
             }
         }
         else
         {
             Vector3 legF = legUpDir * Mathf.Max(GetLegForce(0), GetLegForce(1));
             body.AddForce(legF, ForceMode.VelocityChange);
-            SendOppositeForceToLegs(legF, null);
+            ApplyReactionToLegs(legF, null);
             float legSF = GetLegSideForce();
             body.AddForce(legSF, 0, 0, ForceMode.VelocityChange);
         }
@@ -828,9 +831,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
                 var ho = GetHoldObject();
                 if (ho != null)
                     TryCorrectZPos(ho);
-                RemoveAllCatchedLegsArms();
-                ActivateSomeLegsArms();
-                RecatchHold();
+                DetachAllCaughtLimbs();
+                MarkIdleLimbsFree();
+                ResetHold();
             }
             desiredZMove = 0;
         }
@@ -849,29 +852,29 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private void ApplyHoldForce()
     {
-        if (legArmStatus[2] == Hold)
+        if (limbStatus[2] == Hold)
             ApplyHoldForce(2, false);
-        if (legArmStatus[3] == Hold)
+        if (limbStatus[3] == Hold)
             ApplyHoldForce(3, false);
-        if (legArmStatus[2] == PickUp)
+        if (limbStatus[2] == PickUp)
             ApplyHoldForce(2, true);
-        if (legArmStatus[3] == PickUp)
+        if (limbStatus[3] == PickUp)
             ApplyHoldForce(3, true);
     }
 
     private void ApplyHoldForce(int index, bool isPickUp)
     {
-        var label = legsConnectedLabels[index];
+        var label = limbTargets[index];
         if (label != null)
         {
             var lRB = label.Rigidbody;
             if (lRB != null)
             {
-                var armPos = Legs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
+                var armPos = Limbs[index].position.XY() + label.Velocity.XY() * Time.fixedDeltaTime;
                 var destPos = ArmSphere.transform.position.XY();
                 var holdTarget = isPickUp ? ComputeHoldTarget(index) : this.holdTarget;
                 destPos += holdTarget;
-                GetDecollisionDistance(legsConnectedLabels[index], out var decollision);
+                GetDecollisionDistance(limbTargets[index], out var decollision);
                 destPos += decollision;
                 destPos += this.body.linearVelocity.XY() * Time.fixedDeltaTime;
 
@@ -900,13 +903,13 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
         }
         else
         {
-            Vector3 mousePos = GetPickupMousePos(Legs[index].position.z);
-            Vector3 toMouse = mousePos - Legs[index].position;
+            Vector3 mousePos = GetPickupMousePos(Limbs[index].position.z);
+            Vector3 toMouse = mousePos - Limbs[index].position;
             if (toMouse.sqrMagnitude > 0.01f)
             {
                 var rotVel = lRB.angularVelocity.z;
                 var frameRot = rotVel * Time.fixedDeltaTime * Mathf.Rad2Deg;
-                var labelRot = Quaternion.Euler(0, 0, frameRot) * Legs[index].rotation;
+                var labelRot = Quaternion.Euler(0, 0, frameRot) * Limbs[index].rotation;
 
                 var mouseRot = Quaternion.FromToRotation(Vector3.down, toMouse);
                 var diffRot = labelRot * mouseRot;
@@ -964,12 +967,12 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     {
         int count = 0;
         Vector2 res = Vector2.zero;
-        for (int f = 0; f < Legs.Length; f++)
+        for (int f = 0; f < Limbs.Length; f++)
         {
-            if (legArmStatus[f] == Catch)
+            if (limbStatus[f] == Catch)
             {
                 count++;
-                res += legsConnectedLabels[f].Velocity.XY();
+                res += limbTargets[f].Velocity.XY();
             }
         }
 
@@ -998,9 +1001,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private float GetLegForce(int index)
     {
-        if (legArmStatus[index] == Catch)
+        if (limbStatus[index] == Catch)
         {
-            var legDir = LegSphere.transform.position.XY() - Legs[index].position.XY();
+            var legDir = LegSphere.transform.position.XY() - Limbs[index].position.XY();
             float force = (LegSphere.radius - legDir.magnitude) / LegSphere.radius;
             force *= Settings.LegForce;
             force += Vector3.Dot(legUpDir, body.linearVelocity) * -Settings.LegForceDampening;
@@ -1020,9 +1023,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private float GetLegSideForce(int index)
     {
-        if (legArmStatus[index] == Catch)
+        if (limbStatus[index] == Catch)
         {
-            var delta = (LegSphere.transform.position.x - Legs[index].position.x) / LegSphere.radius;
+            var delta = (LegSphere.transform.position.x - Limbs[index].position.x) / LegSphere.radius;
             return delta * delta * delta * Settings.LegSideLimit;
         }
         return 0;
@@ -1042,9 +1045,9 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
 
     private void GetArmCatchForce(int index, ref Vector2 forceToReduce, ref Vector2 result, Vector2 myVelocity)
     {
-        if (legArmStatus[index] == Catch)
+        if (limbStatus[index] == Catch)
         {
-            var armDir = (ArmSphere.transform.position.XY() - Legs[index].position.XY());
+            var armDir = (ArmSphere.transform.position.XY() - Limbs[index].position.XY());
             var armDirNorm = armDir.normalized;
             var upModifier = Mathf.Clamp01(Vector2.Dot(Vector2.up, desiredVelocity)) * Mathf.Clamp01(Vector2.Dot(Vector2.up, armDirNorm));
             var holdVel = Vector2.Dot(armDirNorm, forceToReduce) + 1 - upModifier;
@@ -1055,83 +1058,83 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
             result += armForce;
             forceToReduce += armForce;
 
-            var relVelocity = Vector2.Dot(armDirNorm, legsConnectedLabels[index].Velocity.XY() - myVelocity);
+            var relVelocity = Vector2.Dot(armDirNorm, limbTargets[index].Velocity.XY() - myVelocity);
             bool isImpact = relVelocity * relVelocity > PhysicsConsts.ImpactVelocitySqr;
-            SendOppositeForce(armForce, index, isImpact);
+            ApplyReactionToLimb(armForce, index, isImpact);
         }
     }
 
-    private void SendOppositeForceToLegArms(Vector3 velocity)
+    private void ApplyReactionToCaughtLimbs(Vector3 velocity)
     {
         int count = 0;
-        foreach (var status in legArmStatus)
+        foreach (var status in limbStatus)
             if (status == Catch)
                 count++;
 
         if (count > 0)
         {
-            for (int f = 0; f < legArmStatus.Length; f++)
+            for (int f = 0; f < limbStatus.Length; f++)
             {
-                if (legArmStatus[f] == Catch)
-                    SendOppositeForce(velocity / count, f, null);
+                if (limbStatus[f] == Catch)
+                    ApplyReactionToLimb(velocity / count, f, null);
             }
         }
     }
 
 
-    private void SendOppositeForceToLegs(Vector3 velocity, bool? isImpact)
+    private void ApplyReactionToLegs(Vector3 velocity, bool? isImpact)
     {
-        if (legArmStatus[0] == Catch)
+        if (limbStatus[0] == Catch)
         {
-            if (legArmStatus[1] == Catch)
+            if (limbStatus[1] == Catch)
             {
-                SendOppositeForce(velocity * 0.5f, 0, isImpact);
-                SendOppositeForce(velocity * 0.5f, 1, isImpact);
+                ApplyReactionToLimb(velocity * 0.5f, 0, isImpact);
+                ApplyReactionToLimb(velocity * 0.5f, 1, isImpact);
             }
             else
             {
-                SendOppositeForce(velocity, 0, isImpact);
+                ApplyReactionToLimb(velocity, 0, isImpact);
             }
         }
-        else if (legArmStatus[1] == Catch)
+        else if (limbStatus[1] == Catch)
         {
-            SendOppositeForce(velocity, 1, isImpact);
+            ApplyReactionToLimb(velocity, 1, isImpact);
         }
     }
 
-    private void SendOppositeForce(Vector3 vector3, int index, bool? isImpact)
+    private void ApplyReactionToLimb(Vector3 vector3, int index, bool? isImpact)
     {
         if (isImpact == null)
         {
-            var relVelocity = body.linearVelocity.XY() - legsConnectedLabels[index].Velocity.XY();
+            var relVelocity = body.linearVelocity.XY() - limbTargets[index].Velocity.XY();
             isImpact = relVelocity.sqrMagnitude > PhysicsConsts.ImpactVelocitySqr;
         }
-        legsConnectedLabels[index].ApplyVelocity(-vector3, body.mass, isImpact.Value ? VelocityFlags.IsImpact : VelocityFlags.None);
+        limbTargets[index].ApplyVelocity(-vector3, body.mass, isImpact.Value ? VelocityFlags.IsImpact : VelocityFlags.None);
     }
 
     public Label GetHoldObject()
     {
-        if (legArmStatus[2] == Hold && legsConnectedLabels[2] && legsConnectedLabels[2].HasActiveRB)
-            return legsConnectedLabels[2];
-        if (legArmStatus[3] == Hold && legsConnectedLabels[3] && legsConnectedLabels[3].HasActiveRB)
-            return legsConnectedLabels[3];
+        if (limbStatus[2] == Hold && limbTargets[2] && limbTargets[2].HasActiveRB)
+            return limbTargets[2];
+        if (limbStatus[3] == Hold && limbTargets[3] && limbTargets[3].HasActiveRB)
+            return limbTargets[3];
         return null;
     }
 
-    public Transform GetHoldLeg()
+    public Transform GetHoldLimb()
     {
-        if (legArmStatus[2] == Hold && legsConnectedLabels[2])
-            return Legs[2];
-        if (legArmStatus[3] == Hold && legsConnectedLabels[3])
-            return Legs[3];
+        if (limbStatus[2] == Hold && limbTargets[2])
+            return Limbs[2];
+        if (limbStatus[3] == Hold && limbTargets[3])
+            return Limbs[3];
         return null;
     }
 
     private int GetHoldIndex()
     {
-        if (legArmStatus[2] == Hold)
+        if (limbStatus[2] == Hold)
             return 2;
-        if (legArmStatus[3] == Hold)
+        if (limbStatus[3] == Hold)
             return 3;
         return -1;
     }
@@ -1139,7 +1142,7 @@ public abstract class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlace
     public virtual void Cleanup(bool goesToInventory)
     {
         Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
-        RemoveAllLegsArms();
+        DetachAllLimbs();
         map = null;
     }
 

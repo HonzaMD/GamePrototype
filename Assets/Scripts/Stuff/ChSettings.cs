@@ -39,19 +39,19 @@ public class ChSettings : ScriptableObject
 	private bool initialized;
 	[NonSerialized]
 	private Vector2Int armCellRadius;
-	public float[] legZ { get; private set; }
+	public float[] limbZ { get; private set; }
 
 	public Vector2 HoldPosition;
 	public Ksid HoldType;
 	public float HoldMoveSpeed = 1f;
 	public float HoldMoveAcceleration = 0.2f;
 
-	public void Initialize(SphereCollider ArmSphere, Transform[] Legs)
+	public void Initialize(SphereCollider ArmSphere, Transform[] Limbs)
 	{
 		if (!initialized)
 		{
 			initialized = true;
-			legZ = Legs.Select(l => l.position.z).ToArray();
+			limbZ = Limbs.Select(l => l.position.z).ToArray();
 			armCatchLayerMask = LayerMask.GetMask("Default", "Catches", "SmallObjs", "MovingObjs");
 			legStandLayerMask = LayerMask.GetMask("Default", "Catches", "MovingObjs");
 			armCellRadius.x = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.x);
