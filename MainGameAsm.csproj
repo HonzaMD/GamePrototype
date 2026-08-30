@@ -64,6 +64,9 @@
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Limbs.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Hold.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Forces.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelDirtTest.cs" />
