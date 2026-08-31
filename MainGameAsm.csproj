@@ -64,9 +64,6 @@
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
-    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Limbs.cs" />
-    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Hold.cs" />
-    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Forces.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelDirtTest.cs" />
@@ -86,6 +83,7 @@
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilderWorker.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level1.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Hold.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
@@ -106,6 +104,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\Commands.cs" />
     <Compile Include="Assets\Scripts\Stuff\DirtBuilder.cs" />
     <Compile Include="Assets\Scripts\Map\WorldBuilder.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Limbs.cs" />
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\KeysToInventory.cs" />
@@ -137,6 +136,7 @@
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Cannon.cs" />
+    <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Forces.cs" />
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
     <Compile Include="Assets\Scripts\Stuff\DirtFactory.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimDebug.cs" />

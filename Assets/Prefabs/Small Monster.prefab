@@ -1115,7 +1115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Settings: {fileID: 11400000, guid: 5f8d8c6805c0cb546ab11c3dd3a5f8d3, type: 2}
-  Legs:
+  Limbs:
   - {fileID: 5057740289562135269}
   - {fileID: 5057740289759063611}
   - {fileID: 5057740290407236556}
