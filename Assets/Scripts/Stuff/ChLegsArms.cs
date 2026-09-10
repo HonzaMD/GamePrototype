@@ -18,8 +18,8 @@ using UnityEngine.Serialization;
 //   AdjustLegsArms(bool)  <- GameFixedUpdate potomka  - umistuje/odpojuje koncetiny
 //   GameFixedUpdate()     <- Game.FixedUpdate         - aplikuje sily
 // Potomek vola AdjustLegsArms sam, aby si kolem nej mohl polozit vlastni stavovy automat
-// (krmi ho pres desired*, cte z nej ArmHolds/ArmCatched). Vzorkovani vstupu a prezentace
-// zustavaji potomkovi v GameUpdate - viz vstupni buffer v Character3.
+// (krmi ho pres desired*, cte z nej ArmHolds/ArmCatched). Vstup hrace vzorkuje
+// InputController a Character3 ho cte jako snimek (PlayerInput) ve fixed kroku.
 //
 // AUTOMAT KONCETINY (indexy 0,1 = nohy; 2,3 = ruce):
 //   Free --TryCatch*--> Catch  --+

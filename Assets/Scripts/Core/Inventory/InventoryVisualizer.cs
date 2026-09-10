@@ -562,7 +562,7 @@ namespace Assets.Scripts.Core.Inventory
                     } 
                     else if (selectItem && Game.Instance.InputController.Character)
                     {
-                        Game.Instance.InputController.Character.InventoryAccess(key);
+                        Game.Instance.InputController.RequestInventoryAccess(key);
                     }
                     Cleanup();
                 }

@@ -102,18 +102,43 @@ v `Game.cs` (`movingObjectWorkPtr % 20`, `fixedUpdateTicker % 10`, 1s/20s bucket
 
 ### Vstupní buffer (dřívější pracovní název „latch" se nepoužívá)
 
-`Character3.SampleInput()` je jediné místo, kde se v postavě čte `Input`. Konvence:
+Buffer patří hráči, ne tělu — žije v `InputController`. Tři vrstvy:
+
+```
+InputController   klávesy → akce          SampleInput() → struct PlayerInput
+Character3        akce → gesta → desired*  stavový automat (PickupPrepare, Throw, …)
+ChLegsArms        desired* → fyzika        (AI příšer vstupuje až tady)
+```
+
+`InputController.SampleInput()` je jediné místo, kde se čte herní `Input`. Pole
+`PlayerInput` jsou pojmenovaná podle akcí (`PickupPressed`, `PrimaryPressed`), ne kláves.
 
 | Tvar | Význam | Píše / čte |
 |---|---|---|
 | `desired*` | co má motor dělat | stavový automat / motor |
-| `*Held` | level vstup — klávesa je držená | Update / FixedUpdate |
-| `*Pressed`, `*Released` | hrana, akumuluje se `\|=`, nuluje `ClearInputEdges()` | Update / FixedUpdate |
+| `*Held`, osy | level vstup — klávesa je držená | Update / FixedUpdate |
+| `*Pressed`, `*Released`, požadavky, akumulátory | hrana, akumuluje se `\|=` | Update / FixedUpdate |
+
+**Snímek místo „kdo čte, ten nuluje".** `InputController.GameFixedUpdate()` běží jako první
+v `Game.FixedUpdate` a udělá `frame = pending; pending.ClearEdges();`. `Character3` čte
+`ref readonly inputController.Frame`. Všichni čtenáři v kroku vidí totéž; při 0 fixed
+krocích za frame se hrany akumulují, při N je dostane jen první.
 
 Level signál hranici mezi frekvencemi snese, stačí ho přepisovat. Hrana ne: při vysokém
 fps by ji další Update přepsal a ztratila by se, při nízkém by proběhla vícekrát.
-Parametry hrany se zachytí v okamžiku hrany (`mousePressedWithPickupKey`, `lastJumpTime`,
+Parametry hrany se zachytí v okamžiku hrany (`PrimaryPressedWithPickup`, `JumpPressTime`,
 `throwVector`), nedočítají se později.
+
+**Přepnutí postavy zahodí rozpracované hrany** (`DropInputEdges`, i při odebrání ovládané
+postavy). Přenesené by novou postavu nechaly skočit nebo bodnout nožem. Poloviční gesta
+(E dole na staré, nahoře na nové) jsou bezpečná, protože `DeactivateInput` volá
+`ResetControl` a znovu vybraná postava startuje z `EmptyHands`/`ItemUse`. Level signály
+zůstávají — jsou to fyzicky držené klávesy. Opuštěná postava vynuluje `desiredVelocity`,
+`desiredCatch` drží dál (visí-li na zdi, nespadne).
+
+**Inventář:** klávesa 0–9 s vybranou položkou v HUD jen přiřadí quick slot — čisté UI,
+provede se hned v `SampleInput`. Jinak jde do snímku jako požadavek, stejně jako klik
+v `InventoryVisualizer` (`RequestInventoryAccess`). Oba provede postava ve fixed kroku.
 
 `lastJumpTime + JumpBufferTime` (0.3 s) **zůstává** — je to buffer pro hráče, který
 zmáčkne skok těsně před dopadem, ne záplata na sync mezi smyčkami.
@@ -174,8 +199,9 @@ při 144 fps dřív 144/s → nyní 50/s. Počítat s přeladěním `LegTimeout`
 `ItemAdjust` je o něco citlivější — pohyb myši se akumuluje přes framy, takže práh 0.05
 už neukusuje deadzone při vysokém FPS.
 
-**Známé, nezměněné:** po `DeactivateInput` (Tab) si postava drží poslední `desiredVelocity`
-a `desiredCatch` a jde dál. Bylo to tak i před kýblem B, nesahalo se na to.
+Jump buffer vyprší po `JumpBufferTime` i u opuštěné postavy (`UncontrolledFixedUpdate`).
+Skok zmáčknutý těsně před Tabem se tak provede nejvýš do 0,3 s, pak zmizí — dřív se
+držel až do dopadu a do té doby postava neměla podporu nohou.
 
 ### Interpolace rigidbodies (odblokováno kýblem B)
 

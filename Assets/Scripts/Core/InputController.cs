@@ -10,9 +10,51 @@ using UnityTemplateProjects;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Assets.Scripts.Utils;
+using Assets.Scripts.Core.Inventory;
 
 namespace Assets.Scripts.Core
 {
+    // Vstup hrace za jeden fyzikalni krok. Pojmenovano podle akci, ne podle klaves.
+    // Level signal (*Held, osy) hranici Update/FixedUpdate snese, pri predani snimku se nenuluje.
+    // Hrana (*Pressed/*Released, pozadavky, akumulatory) ne: pri vysokem fps by ji dalsi
+    // Update prepsal, pri nizkem by probehla vickrat. Proto se akumuluje pres |= a nuluje
+    // ji az predani snimku. Parametry hrany se zachyti v okamziku hrany.
+    public struct PlayerInput
+    {
+        public Vector2 MoveAxes;
+        public bool CatchHeld;                  // prave tlacitko / C
+        public bool ThrowHeld;                  // R
+        public bool ZMoveHeld;                  // Ctrl
+        public bool SlowHeld;                   // Shift
+
+        public bool PickupPressed;              // E
+        public bool PickupReleased;
+        public bool ThrowPressed;               // R
+        public bool ThrowReleased;
+        public bool PrimaryPressed;             // leve tlacitko mysi, mimo GUI
+        public bool PrimaryReleased;
+        public bool PrimaryPressedWithPickup;   // stav E v okamziku kliknuti
+        public bool JumpPressed;
+        public float JumpPressTime;             // plati jen s JumpPressed
+        public int InventorySlot;               // klavesy 0-9, 0 = zadny
+        public Label InventoryKey;              // klik v InventoryVisualizer
+        public Vector2 HoldAdjustShift;         // pohyb mysi kolmo na holdTarget, pro ItemAdjust
+
+        public void ClearEdges()
+        {
+            PickupPressed = false;
+            PickupReleased = false;
+            ThrowPressed = false;
+            ThrowReleased = false;
+            PrimaryPressed = false;
+            PrimaryReleased = false;
+            JumpPressed = false;
+            InventorySlot = 0;
+            InventoryKey = null;
+            HoldAdjustShift = Vector2.zero;
+        }
+    }
+
     public class InputController : MonoBehaviour, IActiveObject
     {
         public bool PendingRemove { get; set; }
@@ -36,7 +78,14 @@ namespace Assets.Scripts.Core
         private Vector3 mouseRayOrigin;
         private bool mouseSampled;
 
+        // Vstupni buffer: SampleInput (Update) plni pending, GameFixedUpdate ho preda jako
+        // frame - jeden snimek pro cely fixed krok, at nezalezi na tom, kdo ho cte a kdy.
+        private PlayerInput pending;
+        private PlayerInput frame;
+
         public List<Character3> Characters => characters;
+
+        public ref readonly PlayerInput Frame => ref frame;
 
         public void SetupCharacter()
         {
@@ -55,6 +104,7 @@ namespace Assets.Scripts.Core
 
             if (old != Character)
             {
+                DropInputEdges();
                 if (old)
                     old.DeactivateInput();
                 if (Character)
@@ -82,6 +132,7 @@ namespace Assets.Scripts.Core
 
             if (index == characterPos)
             {
+                DropInputEdges();
                 character.DeactivateInput();
                 Character = null;
                 Game.Instance.Hud.SetupInventory(null);
@@ -118,8 +169,12 @@ namespace Assets.Scripts.Core
             }
         }
 
+        // Bezi jako prvni v Game.FixedUpdate: preda snimek vstupu pro cely fixed krok.
+        // Probehne-li za frame vic fixed kroku, hrany dostane jen prvni.
         public void GameFixedUpdate()
         {
+            frame = pending;
+            pending.ClearEdges();
         }
 
         public void GameUpdate()
@@ -134,10 +189,79 @@ namespace Assets.Scripts.Core
             mouseRayOrigin = Camera.transform.position;
             mouseSampled = true;
 
-            // Marker drzeneho IHandAimeru (DirtBuilder). Bez aktivni postavy se zhasne.
+            SampleInput();
+
+            // Prezentace pro hrace. Bez aktivni postavy se marker DirtBuilderu zhasne.
             SetActiveMarker(Character ? Character.UpdateHandAim() : null);
+            if (Character)
+                Character.UpdateThrowMarkers();
 
             Game.Instance.TimeOfDay.ChangeLightVariant(IsBLightVariant());
+        }
+
+        // Jedine misto, kde se cte herni Input. Vzorkuje se i bez vybrane postavy -
+        // snimek pak nikdo neprecte a hrany zahodi dalsi predani.
+        private void SampleInput()
+        {
+            bool guiInFocus = Game.Instance.Hud.GuiInFocus;
+            bool pickupHeld = Input.GetKey(KeyCode.E);
+
+            pending.MoveAxes = new Vector2(Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1), Mathf.Clamp(Input.GetAxis("Vertical"), -1, 1));
+            pending.CatchHeld = Input.GetMouseButton(1) || Input.GetKey(KeyCode.C);
+            pending.ThrowHeld = Input.GetKey(KeyCode.R);
+            pending.ZMoveHeld = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            pending.SlowHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+            pending.PickupPressed |= Input.GetKeyDown(KeyCode.E);
+            pending.PickupReleased |= Input.GetKeyUp(KeyCode.E);
+            pending.ThrowPressed |= Input.GetKeyDown(KeyCode.R);
+            pending.ThrowReleased |= Input.GetKeyUp(KeyCode.R);
+            pending.PrimaryReleased |= Input.GetMouseButtonUp(0);
+            pending.HoldAdjustShift += new Vector2(Input.GetAxis("Mouse Y"), -Input.GetAxis("Mouse X"));
+
+            if (Input.GetMouseButtonDown(0) && !guiInFocus)
+            {
+                pending.PrimaryPressed = true;
+                pending.PrimaryPressedWithPickup = pickupHeld;
+            }
+
+            if (Input.GetButtonDown("Jump"))
+            {
+                pending.JumpPressed = true;
+                pending.JumpPressTime = Time.time;
+            }
+
+            // Klavesa 0-9 s vybranou polozkou v HUD jen priradi quick slot - to je cisty
+            // inventar, provede se hned. Jinak je to pozadavek na aktivaci pro postavu.
+            int slot = KeysToInventory.TestKeys();
+            if (slot != 0)
+            {
+                var selectedKey = Game.Instance.Hud.SelectedInventoryKey;
+                if (selectedKey != null)
+                {
+                    if (Character)
+                        Character.Inventory.SetQuickSlot(slot, selectedKey);
+                }
+                else
+                {
+                    pending.InventorySlot = slot;
+                }
+            }
+        }
+
+        // Klik v InventoryVisualizer - kdykoli behem framu. Provede ho postava ve fixed kroku.
+        public void RequestInventoryAccess(Label key)
+        {
+            pending.InventoryKey = key;
+        }
+
+        // Rozpracovane hrany patri postave, pro kterou je hrac zmackl. Prenesene na jinou
+        // by ji nechaly skocit nebo bodnout nozem, proto se pri prepnuti zahodi.
+        // Level signaly zustavaji - jsou to fyzicky drzene klavesy.
+        private void DropInputEdges()
+        {
+            pending.ClearEdges();
+            frame.ClearEdges();
         }
 
 
