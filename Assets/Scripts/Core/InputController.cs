@@ -29,7 +29,12 @@ namespace Assets.Scripts.Core
         private int characterPos;
         private readonly List<Character3> characters = new();
 
+        // Mysi paprsek vzorkovany v GameUpdate. Uklada se i pozice kamery v okamziku vzorku:
+        // GetMousePosOnZPlane z te dvojice rekonstruuje smer paprsku, a kdyby cetl pozici
+        // kamery zive, michal by smer z jednoho framu s pozici z jineho.
         private Vector3 mousePosInWord;
+        private Vector3 mouseRayOrigin;
+        private bool mouseSampled;
 
         public List<Character3> Characters => characters;
 
@@ -126,6 +131,8 @@ namespace Assets.Scripts.Core
             mousePos.z = Camera.Camera.nearClipPlane;
 
             mousePosInWord = Camera.Camera.ScreenToWorldPoint(mousePos);
+            mouseRayOrigin = Camera.transform.position;
+            mouseSampled = true;
 
             // Marker drzeneho IHandAimeru (DirtBuilder). Bez aktivni postavy se zhasne.
             SetActiveMarker(Character ? Character.UpdateHandAim() : null);
@@ -152,9 +159,13 @@ namespace Assets.Scripts.Core
                 activeMarker.gameObject.SetActive(true);
         }
 
+        // Kam mysi paprsek protne rovinu Z. Cte se i z GameFixedUpdate, proto stavi
+        // na vzorku z posledniho GameUpdate, ne na zive pozici kamery.
         public Vector3 GetMousePosOnZPlane(float z)
         {
-            Vector3 cameraPos = Camera.transform.position;
+            // Prvni fyzikalni krok po odpauzovani muze predbehnout prvni GameUpdate.
+            // Bez fallbacku by paprsek mel nulovou delku a vratil NaN do fyziky.
+            Vector3 cameraPos = mouseSampled ? mouseRayOrigin : Camera.transform.position;
             float koef = (z - cameraPos.z) / (mousePosInWord.z - cameraPos.z);
             float x = (mousePosInWord.x - cameraPos.x) * koef + cameraPos.x;
             float y = (mousePosInWord.y - cameraPos.y) * koef + cameraPos.y;

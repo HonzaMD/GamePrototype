@@ -22,13 +22,17 @@ class SmallMonster : ChLegsArms, IActiveObject
 
 	public void GameUpdate()
 	{
+	}
+
+	public override void GameFixedUpdate()
+	{
 		if (turnTimeout > 0.5)
 		{
-			turnTimeout -= Time.deltaTime * 4;
+			turnTimeout -= Time.fixedDeltaTime * 4;
 		}
 		else if (turnTimeout > 0)
 		{
-			turnTimeout -= Time.deltaTime * 4;
+			turnTimeout -= Time.fixedDeltaTime * 4;
 			desiredVelocity.x = Settings.maxSpeed * desiredDirection;
 		}
 		else if (body.linearVelocity.x * desiredDirection <= 0.001 || !WantMove())
@@ -37,8 +41,9 @@ class SmallMonster : ChLegsArms, IActiveObject
 			turnTimeout = 1;
 			desiredDirection *= -1;
 		}
-		
+
 		AdjustLegsArms(true);
+		base.GameFixedUpdate();
 	}
 
 	private bool WantMove()

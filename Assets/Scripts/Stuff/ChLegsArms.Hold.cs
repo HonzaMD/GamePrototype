@@ -55,19 +55,36 @@ public abstract partial class ChLegsArms
         }
     }
 
+    // Pusti drzeny predmet a ruku hned uvolni. Pouziva inventar, ktery do te same ruky
+    // vzapeti vklada jinou vec - proto Free misto bezneho Timeoutu.
     protected void ResetHold()
     {
         if (limbStatus[2] == Hold)
-            ResetHold(2);
+        {
+            DetachHoldLimb(2);
+            limbStatus[2] = Free;
+        }
         if (limbStatus[3] == Hold)
-            ResetHold(3);
+        {
+            DetachHoldLimb(3);
+            limbStatus[3] = Free;
+        }
     }
 
-    private void ResetHold(int index)
+    // Pusti drzeny predmet, ruka jde do bezneho Timeoutu. Pouziva hod: musi pustit uz
+    // v tomhle fyzikalnim kroku, jinak by ApplyHoldForce stahla hozenou vec zpatky k ruce.
+    protected void DetachHold()
+    {
+        if (limbStatus[2] == Hold)
+            DetachHoldLimb(2);
+        if (limbStatus[3] == Hold)
+            DetachHoldLimb(3);
+    }
+
+    private void DetachHoldLimb(int index)
     {
         ScheduleCollisionRestore(limbTargets[index]);
         DetachLimb(index);
-        limbStatus[index] = Free;
     }
 
     private void TryHold(int index, bool tryHold)

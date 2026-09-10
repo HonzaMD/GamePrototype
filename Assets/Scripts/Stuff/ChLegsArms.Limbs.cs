@@ -44,7 +44,7 @@ public abstract partial class ChLegsArms
         for (int f = 0; f < limbStatus.Length; f++)
         {
             if (limbStatus[f] <= Timeout)
-                limbStatus[f] -= Time.deltaTime * Settings.LegTimeout;
+                limbStatus[f] -= Time.fixedDeltaTime * Settings.LegTimeout;
         }
     }
 

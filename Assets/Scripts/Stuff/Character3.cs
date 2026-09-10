@@ -15,12 +15,38 @@ using UnityTemplateProjects;
 [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
 public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 {
+    // Jak dlouho po stisku skoku se skok jeste smi provest. Neni to zaplata na sync mezi
+    // Update a FixedUpdate - je to buffer pro hrace, ktery zmackne skok tesne pred dopadem.
+    private const float JumpBufferTime = 0.3f;
+
     public bool PendingRemove { get; set; }
     private float lastJumpTime;
 
     private float zMoveTimeout;
     private float controlTimeout;
     private float resetHoldTimeout;
+
+    // === Vstupni buffer ===
+    // Vzorkuje ho GameUpdate (frame rate), konzumuje GameFixedUpdate (50 Hz).
+    // Level signal (*Held, desired*) hranici mezi frekvencemi snese, staci ho prepisovat.
+    // Hrana (*Pressed/*Released) ne: pri vysokem fps by ji dalsi Update prepsal a ztratila
+    // by se, pri nizkem by probehla vickrat. Proto se akumuluje pres |= a nuluje ji az
+    // FixedUpdate v ClearInputEdges(). Parametry hrany se zachyti v okamziku hrany.
+    private bool throwKeyHeld;      // R
+    private bool zMoveKeyHeld;      // Ctrl
+    private bool slowKeyHeld;       // Shift
+    private Vector2 moveAxes;
+    private bool pickupPressed;
+    private bool pickupReleased;
+    private bool throwPressed;
+    private bool throwReleased;
+    private bool mousePressed;
+    private bool mouseReleased;
+    private bool mousePressedWithPickupKey;  // stav E v okamziku kliknuti
+    private bool jumpPressed;
+    private int pendingInventorySlot;        // z klaves 0-9
+    private Label pendingInventoryKey;       // z UI (InventoryVisualizer)
+    private Vector2 holdAdjustShift;         // akumulovany pohyb mysi pro ItemAdjust
 
     private Inventory inventory;
     public Status Status { get; private set; }
@@ -83,24 +109,90 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         inventory.SetQuickSlot(-3, Game.Instance.PrefabsStore.DirtBuilder);
     }
 
+    // Update dela jen dve veci: vzorkuje vstup do bufferu a kresli prezentaci hodu.
+    // Vsechno, co cte nebo pise fyzikalni stav, patri do GameFixedUpdate.
     public void GameUpdate()
     {
         if (!inputController)
-            UncontrolledUpdate();
-        else
-            ControlledUpdate();
+            return;
+
+        SampleInput();
+        ShowThrowMarkers();
     }
 
-    private void ControlledUpdate()
+    // Jedine misto v postave, kde se cte Input.
+    private void SampleInput()
     {
-        var throwCtrl = inputController.ThrowController;
+        bool guiInFocus = Game.Instance.Hud.GuiInFocus;
+        bool pickupKeyHeld = Input.GetKey(KeyCode.E);
 
-        UpdatePosition();
-
-        bool jumpButton = Input.GetButtonDown("Jump");
+        throwKeyHeld = Input.GetKey(KeyCode.R);
+        zMoveKeyHeld = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        slowKeyHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         desiredCatch = Input.GetMouseButton(1) || Input.GetKey(KeyCode.C);
+        moveAxes = new Vector2(Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1), Mathf.Clamp(Input.GetAxis("Vertical"), -1, 1));
+        // Kolmy na holdTarget. Akumuluje se, aby prah 0.05 nezavisel na frame rate.
+        holdAdjustShift += new Vector2(Input.GetAxis("Mouse Y"), -Input.GetAxis("Mouse X"));
+
+        pickupPressed |= Input.GetKeyDown(KeyCode.E);
+        pickupReleased |= Input.GetKeyUp(KeyCode.E);
+        throwPressed |= Input.GetKeyDown(KeyCode.R);
+        throwReleased |= Input.GetKeyUp(KeyCode.R);
+        mouseReleased |= Input.GetMouseButtonUp(0);
+
+        if (Input.GetMouseButtonDown(0) && !guiInFocus)
+        {
+            mousePressed = true;
+            mousePressedWithPickupKey = pickupKeyHeld;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpPressed = true;
+            lastJumpTime = Time.time;
+        }
 
         var slot = KeysToInventory.TestKeys();
+        if (slot != 0)
+            pendingInventorySlot = slot;
+    }
+
+    // Prezentace hodu: mirici sipka i duch letici veci. ShowThrowMarker pocita
+    // s Time.deltaTime, takze do Update patri.
+    private void ShowThrowMarkers()
+    {
+        var throwCtrl = inputController.ThrowController;
+        if (!throwCtrl.ThrowActive)
+            return;
+        throwCtrl.PositionLongThrowMarker(this);
+        throwCtrl.ShowThrowMarker(this, body.linearVelocity);
+    }
+
+    private void ClearInputEdges()
+    {
+        pickupPressed = false;
+        pickupReleased = false;
+        throwPressed = false;
+        throwReleased = false;
+        mousePressed = false;
+        mouseReleased = false;
+        jumpPressed = false;
+        holdAdjustShift = Vector2.zero;
+    }
+
+    // Pozadavky na inventar: z klaves 0-9 i z UI, ktere je zaznamenalo kdykoli behem framu.
+    private void ConsumeInventoryRequests()
+    {
+        if (pendingInventoryKey != null)
+        {
+            var key = pendingInventoryKey;
+            pendingInventoryKey = null;
+            if (inventory.TryGetSlot(key, out var uiSlot))
+                InventoryAccess(uiSlot);
+        }
+
+        int slot = pendingInventorySlot;
+        pendingInventorySlot = 0;
         if (slot != 0)
         {
             if (Game.Instance.Hud.SelectedInventoryKey != null)
@@ -112,8 +204,15 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
                 InventoryAccess(slot);
             }
         }
+    }
 
-        controlTimeout += Time.deltaTime;
+    private void ControlledFixedUpdate()
+    {
+        var throwCtrl = inputController.ThrowController;
+
+        ConsumeInventoryRequests();
+
+        controlTimeout += Time.fixedDeltaTime;
         if (cState == ControlState.Pickup && controlTimeout > 2f)
             ResetControl();
         if (cState == ControlState.ThrowReload && controlTimeout > 0.2f)
@@ -134,20 +233,20 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         }
 
         if (resetHoldTimeout > 0)
-            resetHoldTimeout += Time.deltaTime;
+            resetHoldTimeout += Time.fixedDeltaTime;
         if (resetHoldTimeout > 0.6f && !(cState is ControlState.ItemAdjust or ControlState.TryHold or ControlState.ItemAnimation))
         {
             ResetHold();
             resetHoldTimeout = 0;
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && cState != ControlState.ItemAnimation)
+        if (pickupPressed && cState != ControlState.ItemAnimation)
         {
             if (ResetControl() != ControlState.Pickup)
                 firstPress = true;
             cState = ControlState.PickupPrepare;
         }
-        if (Input.GetKeyUp(KeyCode.E) && cState == ControlState.PickupPrepare)
+        if (pickupReleased && cState == ControlState.PickupPrepare)
         {
             if (firstPress)
             {
@@ -160,11 +259,10 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             }
         }
 
-        bool guiInFocus = Game.Instance.Hud.GuiInFocus;
-        bool mouseDown = !guiInFocus && cState != ControlState.ItemAnimation && Input.GetMouseButtonDown(0);
-        bool mouseUp = Input.GetMouseButtonUp(0);
+        bool mouseDown = mousePressed && cState != ControlState.ItemAnimation;
+        bool mouseUp = mouseReleased;
 
-        if (mouseDown && (cState is ControlState.PickupPrepare or ControlState.EmptyHands || (cState is ControlState.ItemUse && Input.GetKey(KeyCode.E))))
+        if (mouseDown && (cState is ControlState.PickupPrepare or ControlState.EmptyHands || (cState is ControlState.ItemUse && mousePressedWithPickupKey)))
         {
             desiredPickUp = false;
             pickupToHold = true;
@@ -175,21 +273,19 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         if (mouseDown && cState == ControlState.Pickup)
             ResetControl();
 
+        // Jump buffer: stisk drzi prani skocit po JumpBufferTime, at hrac trefi i skok
+        // zmackly tesne pred dopadem. Razitko hrany bere SampleInput.
         if (ArmCatched && desiredCatch)
         {
             desiredJump = false;
         }
-        else
+        else if (jumpPressed)
         {
-            if (jumpButton)
-            {
-                desiredJump = true;
-                lastJumpTime = Time.time;
-            }
-            else if (lastJumpTime + 0.3f < Time.time)
-            {
-                desiredJump = false;
-            }
+            desiredJump = true;
+        }
+        else if (lastJumpTime + JumpBufferTime < Time.time)
+        {
+            desiredJump = false;
         }
 
         AnimateHand();
@@ -212,7 +308,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
                 cState = ControlState.EmptyHands;
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && cState != ControlState.ItemAnimation)
+        if (throwPressed && cState != ControlState.ItemAnimation)
         {
             firstPress = false;
             if (cState != ControlState.Throw && armHolds)
@@ -224,7 +320,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.R) && !firstPress && cState != ControlState.ItemAnimation)
+        if (throwReleased && !firstPress && cState != ControlState.ItemAnimation)
         {
             ResetControl();
         }
@@ -263,33 +359,26 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         //desiredCrouch = holdButton && !ArmHolds;
 
         if (zMoveTimeout > 0)
-            zMoveTimeout -= Time.deltaTime * 3f;
+            zMoveTimeout -= Time.fixedDeltaTime * 3f;
 
         if (ArmCatched)
             desiredJump = false;
 
-        float inX = Mathf.Clamp(Input.GetAxis("Horizontal"), -1, 1);
-        float inY = Mathf.Clamp(Input.GetAxis("Vertical"), -1, 1);
-        var speedMode = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 0.5f : (ArmCatched || desiredCrouch) ? 0.6f : 1f;
+        var speedMode = slowKeyHeld ? 0.5f : (ArmCatched || desiredCrouch) ? 0.6f : 1f;
 
         if (ArmCatched)
         {
-            desiredVelocity = new Vector2(inX, inY) * Settings.maxSpeed * speedMode;
+            desiredVelocity = moveAxes * Settings.maxSpeed * speedMode;
         }
         else
         {
-            desiredVelocity.x = inX * Settings.maxSpeed * speedMode;
+            desiredVelocity.x = moveAxes.x * Settings.maxSpeed * speedMode;
             desiredVelocity.y = 0;
         }
 
         if (armHolds && cState is ControlState.TryHold or ControlState.ItemAdjust && holdTarget != Vector2.zero)
         {
-            Vector2 shift;
-            // udelam kolmy
-            shift.y = -Input.GetAxis("Mouse X");
-            shift.x = Input.GetAxis("Mouse Y");
-
-            float amount = Vector2.Dot(holdTarget, shift);
+            float amount = Vector2.Dot(holdTarget, holdAdjustShift);
 
             if (Mathf.Abs(amount) > 0.05f)
             {
@@ -302,16 +391,13 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             }
         }
 
-        if (throwCtrl.ThrowActive)
-        {
-            throwCtrl.PositionLongThrowMarker(this);
-        }
-
-        if (zMoveTimeout <= 0 && cState != ControlState.ItemAnimation && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+        if (zMoveTimeout <= 0 && cState != ControlState.ItemAnimation && zMoveKeyHeld)
         {
             desiredZMove = transform.position.z < 0.25f ? Map.CellSize.z : -Map.CellSize.z;
             zMoveTimeout = 1;
         }
+
+        ClearInputEdges();
     }
 
     // Pokud drzime IHandAimer (DirtBuilder) ve stavu ItemUse, necha ho zvolit marker a vrati ho,
@@ -349,12 +435,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         return oldState;
     }
 
-    private void UpdatePosition()
-    {
-        inputController.GameUpdate();
-    }
-
-    private void UncontrolledUpdate()
+    private void UncontrolledFixedUpdate()
     {
         AnimateHand();
         AdjustLegsArms(cState != ControlState.ItemAnimation);
@@ -370,10 +451,11 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         }
     }
 
+    // Vola UI (InventoryVisualizer) kdykoli behem framu. Jen zaznamena - sahat na drzeni,
+    // rigidbody a mapu smi az GameFixedUpdate pres ConsumeInventoryRequests.
     public void InventoryAccess(Label key)
     {
-        if (inventory.TryGetSlot(key, out var slot))
-            InventoryAccess(slot);
+        pendingInventoryKey = key;
     }
 
     private void InventoryAccess(int quickSlot)
@@ -394,22 +476,30 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     }
 
 
+    // Poradi je nosne: stavovy automat muze pres ThrowObj pustit ruku, takze uz na ni
+    // ApplyHoldForces v base.GameFixedUpdate nesahne a hozena vec dostane plny impuls.
     public override void GameFixedUpdate()
     {
+        if (!inputController)
+            UncontrolledFixedUpdate();
+        else
+            ControlledFixedUpdate();
+
+        base.GameFixedUpdate();
+        ApplyThrow();
+    }
+
+    private void ApplyThrow()
+    {
         if (bodyToThrow == null)
-            base.GameFixedUpdate();
+            return;
         if (inputController)
         {
-            if (inputController.ThrowController.ThrowActive)
-                inputController.ThrowController.ShowThrowMarker(this, body.linearVelocity);
-            if (bodyToThrow != null)
-            {
-                Vector2 force = inputController.ThrowController.ComputeThrowForce(bodyToThrow.mass);
-                bodyToThrow.linearVelocity = (Vector3)force + this.body.linearVelocity;
-                body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
-                bodyToThrow = null;
-            }
+            Vector2 force = inputController.ThrowController.ComputeThrowForce(bodyToThrow.mass);
+            bodyToThrow.linearVelocity = (Vector3)force + this.body.linearVelocity;
+            body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
         }
+        bodyToThrow = null;
     }
 
     public override Label InventoryGet() => inventory.ActiveObj;
@@ -435,12 +525,14 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         if (IsInventoryActive)
         {
             InventoryDrop();
-            if (cState == ControlState.Throw && Input.GetKey(KeyCode.R))
+            if (cState == ControlState.Throw && throwKeyHeld)
             {
                 cState = ControlState.ThrowReload;
                 controlTimeout = 0;
-            }                    
+            }
         }
+        // Az po InventoryDrop: OnLimbDetached vraci vec do inventare, kdyz je jeste aktivni.
+        DetachHold();
     }
 
     protected override Vector3 GetPickupMousePos(float z) => inputController.GetMousePosOnZPlane(z);
@@ -498,6 +590,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     internal void ActivateInput(InputController inputController)
     {
         this.inputController = inputController;
+        ClearInputEdges();
         inventory.ShowInQuickSlots();
         Game.Instance.Hud.SetupInventory(inventory);
     }

@@ -14,9 +14,12 @@ using UnityEngine.Serialization;
 // Motor postavy i priser. Zadna AI uvnitr - jen provadi, co rekne potomek pres desired*.
 // Rozdeleno do partial souboru: .Limbs (stav koncetin), .Hold (drzeni), .Forces (sily).
 //
-// DVA VSTUPNI BODY (pozor, kazdy jina frekvence - viz Docs/chlegsarms-refactor.md, kybl B):
-//   AdjustLegsArms(bool)  <- GameUpdate potomka (frame rate)  - umistuje/odpojuje koncetiny
-//   GameFixedUpdate()     <- Game.FixedUpdate (50 Hz)         - aplikuje sily
+// DVA VSTUPNI BODY, oba na 50 Hz - motor nesmi zaviset na frame rate:
+//   AdjustLegsArms(bool)  <- GameFixedUpdate potomka  - umistuje/odpojuje koncetiny
+//   GameFixedUpdate()     <- Game.FixedUpdate         - aplikuje sily
+// Potomek vola AdjustLegsArms sam, aby si kolem nej mohl polozit vlastni stavovy automat
+// (krmi ho pres desired*, cte z nej ArmHolds/ArmCatched). Vzorkovani vstupu a prezentace
+// zustavaji potomkovi v GameUpdate - viz vstupni buffer v Character3.
 //
 // AUTOMAT KONCETINY (indexy 0,1 = nohy; 2,3 = ruce):
 //   Free --TryCatch*--> Catch  --+
@@ -74,12 +77,15 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected bool desiredCrouch;
     protected Vector2 holdTarget;
 
+    private Label pendingCollisionRestore;
+    private readonly Action<object, int> OnCollisionRestoreTimerA;
+
 
     private static List<Vector2> armCandidates = new List<Vector2>();
     private static List<Placeable> placeables = new List<Placeable>();
 
-    private Label pendingCollisionRestore;
-    private readonly Action<object, int> OnCollisionRestoreTimerA;
+
+    public Map ActiveMap => map;
 
     public ChLegsArms()
     {
@@ -115,14 +121,6 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         DetachCatchDuplicatingHold();
     }
 
-    protected virtual void InventoryPickup(Label label) { }
-    protected virtual void InventoryPickupAndActivate(Label label) { }
-
-    protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
-    protected virtual bool IsPickupAllowed(Label p) => false;
-    protected virtual bool HasMouseControler => false;
-
-
     public virtual void GameFixedUpdate()
     {
         AdjustXOrientation();
@@ -141,6 +139,18 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         ApplyLimbsContactDamage();
     }
 
+    protected virtual void InventoryPickup(Label label) { }
+    protected virtual void InventoryPickupAndActivate(Label label) { }
+
+    protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
+    protected virtual bool IsPickupAllowed(Label p) => false;
+    protected virtual bool HasMouseControler => false;
+
+    public virtual Label InventoryGet() => null;
+    public virtual bool IsInventoryActive => false;
+    public virtual void InventoryReturn() => throw new NotSupportedException();
+    public virtual void InventoryDrop() => throw new NotSupportedException();
+
     public virtual void Cleanup(bool goesToInventory)
     {
         Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
@@ -152,12 +162,4 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     {
         this.map = map;
     }
-
-
-    public virtual Label InventoryGet() => null;
-    public virtual bool IsInventoryActive => false;
-    public virtual void InventoryReturn() => throw new NotSupportedException();
-    public virtual void InventoryDrop() => throw new NotSupportedException();
-
-    public Map ActiveMap => map;
 }

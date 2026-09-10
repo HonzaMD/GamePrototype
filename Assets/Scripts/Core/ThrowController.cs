@@ -80,6 +80,9 @@ namespace Assets.Scripts.Core
                         var body = character.GetHoldObject();
                         if (body != null)
                         {
+                            // Mireni se cte az ted. Marker z Update je o frame stary a
+                            // TryActivateByThrow uz muze predmetem hnout.
+                            UpdateThrowVector(body.transform.position);
                             body.TryActivateByThrow();
                             character.ThrowObj(body);
                         }
@@ -88,6 +91,8 @@ namespace Assets.Scripts.Core
             }
         }
 
+        // Prezentace (Update): mirici sipka. Pri tom osvezi i throwVector/throwForce,
+        // aby sipka ukazovala tam, kam se prave miri.
         public void PositionLongThrowMarker(Character3 character)
         {
             var body = character.GetHoldObject();
@@ -102,6 +107,7 @@ namespace Assets.Scripts.Core
             }
         }
 
+        // Prezentace (Update): duch letici veci. Pocita s Time.deltaTime, z FixedUpdate volat nelze.
         public void ShowThrowMarker(Character3 character, Vector3 characterVelocity)
         {
             if (throwTimer <= 0)

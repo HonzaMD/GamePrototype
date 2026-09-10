@@ -1,7 +1,7 @@
 # Refaktor ChLegsArms — stav a další fáze
 
-Refaktor motoru `ChLegsArms` rozdělený do tří kýblů. **Kýbl A je hotový**, B a C
-čekají. Dokument nese analýzu, aby se dalo pokračovat bez předchozího kontextu.
+Refaktor motoru `ChLegsArms` rozdělený do tří kýblů. **Kýble A a B jsou hotové**, C
+čeká. Dokument nese analýzu, aby se dalo pokračovat bez předchozího kontextu.
 
 Souvisí s [priser-framework.md](priser-framework.md) — celý příšeří framework
 (`MonsterController` → styly pohybu) na `ChLegsArms` staví.
@@ -57,10 +57,12 @@ Zrušená slovesa: `Release`, `Remove`, `Recatch`, `Connect` (v našem kódu).
 - **Testy pro `ChLegsArms` neexistují a nejdou napsat** (MonoBehaviour svázaný
   s Unity fyzikou; Edit Mode testy v `Assets/Tests/` jdou jen na statické
   fyzikální třídy). Jediné ověření chování je odehrát checklist:
-  chůze/běh/šikmá plocha · skok · chytání rukama (pravé tlačítko / `C`), šplhání ·
-  `E` pickup, `E`+myš hold, ItemAdjust, drop · `R`+klik hod, ThrowReload ·
-  nůž (`HoldAnimator`) · `Ctrl` Z-move i s předmětem · inventář, `Tab` ·
-  `SmallMonster` chodí a otáčí se na hraně.
+  chůze/běh/šikmá plocha · skok (i buffer: stisk těsně před dopadem) · chytání rukama
+  (pravé tlačítko / `C`), šplhání · `E` pickup, `E`+myš hold, ItemAdjust, drop ·
+  `R`+klik hod, ThrowReload, **hod při uměle sníženém FPS (~20)** · nůž (`HoldAnimator`) ·
+  `Ctrl` Z-move i s předmětem · inventář klávesami 0–9 i klikem v `InventoryVisualizer`,
+  `Tab` · `SmallMonster` chodí a otáčí se na hraně · míření: marker DirtBuilderu
+  a šipka hodu sedí pod kurzorem.
 - **Perf měření:** `Game.UpdateTimes[3]` (= `UpdateObjects()`) a `UpdateTimes[0]`
   jsou public pole na `Game` → viditelné v Inspectoru za běhu. Plus frekvence
   logu `"## GC ##"` z `Game.LogGC`.
@@ -71,86 +73,119 @@ Zrušená slovesa: `Release`, `Remove`, `Recatch`, `Connect` (v našem kódu).
 
 ---
 
-## Kýbl B — rozdělení GameUpdate / FixedUpdate (DALŠÍ NA ŘADĚ)
+## Kýbl B — rozdělení GameUpdate / FixedUpdate (HOTOVO)
 
-### Nález
-
-Dnešní řez je „rozhoduj a připojuj v Update, aplikuj síly ve FixedUpdate".
+Původní řez byl „rozhoduj a připojuj v Update, aplikuj síly ve FixedUpdate".
 `AdjustLegsArms` je ale čistá fyzika (raycasty, `body.linearVelocity`,
-`ComputePenetration`, `AttachRigidBody`, `SetCollisionIgnored`), takže běží na jiné
+`ComputePenetration`, `AttachRigidBody`, `SetCollisionIgnored`), takže běžela na jiné
 frekvenci než stav, který čte i produkuje.
 
-**Správný řez: Update = vzorkování inputu (latch) + prezentace;
-FixedUpdate = vše, co čte nebo píše fyzikální stav.**
+### Kritérium, podle kterého se rozhoduje umístění (platí i dál)
 
-### Bug: při nízkém FPS se předmět hodí s velmi malou silou
+Dělící čára **není** „herní logika vs. prezentace", ale dvě otázky:
 
-Ruku pouští až `DetachArmIfNeeded` v příštím `GameUpdate`, ale hod aplikuje
-`GameFixedUpdate`. Při nízkém FPS proběhne mezi tím 1–3 dalších fixed kroků,
-ve kterých `ApplyHoldForce` táhne hozený objekt zpátky k ruce.
+1. **Čte nebo píše to fyzikální stav?** (rychlosti RB, síly, raycasty proti pohyblivým
+   colliderům, teleport transformu) → FixedUpdate. Výsledek jinak závisí na tom, kam mezi
+   dva fyzikální kroky trefíš; a po zapnutí `Interpolate` vrací `transform.position`
+   v Update vizuální pózu, ne fyzikální.
+2. **Závisí chování na počtu volání, nebo na uplynulém čase?**
+   `x -= Time.deltaTime * k` je per-sekunda → bezpečné kdekoli. „Zkus teď najít oporu
+   pro nohu" je **per-volání** → jeho frekvence *je* frame rate. Při 144 fps dostane noha
+   144 pokusů/s, při 40 fps 40 — postava doslova chodí jinak.
 
-Clamp je `HoldMoveAcceleration(1.5) × speed(→1.3) × koef`. Pro StickyBomb
-(mass 5, postava mass 50) to je **~5,4 m/s ubráno na každý fixed krok**, proti
-maximálnímu hodu ~8,9 m/s. Jeden krok navíc sebere ~60 % hodu, dva ho zabijí.
+Herní logika v Update je sama o sobě v pořádku. Práce naplánovaná v Update se navíc
+**sama škrtí**, když klesne FPS, kdežto práce ve FixedUpdate se **sama zesiluje**
+(pomalý frame → víc fixed kroků → pomalejší frame). Pro hru CPU-bound na hlavním vlákně
+je Update správný default pro elastickou práci — proto zůstává amortizovaný scheduler
+v `Game.cs` (`movingObjectWorkPtr % 20`, `fixedUpdateTicker % 10`, 1s/20s buckety,
+`ProcessCellStateTests(10)`) tak, jak je.
 
-Existující `if (bodyToThrow == null) base.GameFixedUpdate();`
-(`Character3.GameFixedUpdate`) je záplata na tentýž problém, která navíc obětuje
-celý jeden fyzikální krok lokomoce, podpory nohou i dragu.
+### Vstupní buffer (dřívější pracovní název „latch" se nepoužívá)
 
-**Druhý přispěvatel:** `throwVector`/`throwForce` se počítají jen
-v `ThrowController.PositionLongThrowMarker` z Update, a `SetThrowActive(false,…)`
-shodí `throwActive` **před** `ThrowObj` → míření použité pro hod je vždy o frame staré.
+`Character3.SampleInput()` je jediné místo, kde se v postavě čte `Input`. Konvence:
 
-### Obsah kýblu B
+| Tvar | Význam | Píše / čte |
+|---|---|---|
+| `desired*` | co má motor dělat | stavový automat / motor |
+| `*Held` | level vstup — klávesa je držená | Update / FixedUpdate |
+| `*Pressed`, `*Released` | hrana, akumuluje se `\|=`, nuluje `ClearInputEdges()` | Update / FixedUpdate |
 
-- `AdjustLegsArms` a vše fyzikální → do `GameFixedUpdate`, před aplikaci sil.
-- **Latch vrstva.** Pravidlo: *level-triggered* stav (`desiredVelocity`,
-  `desiredCatch`, `desiredHold`, `desiredCrouch`) hranici snese; *edge-triggered*
-  událost (skok, hod, pickup, zMove, `InventoryAccess`, `TryActivateInHand`) ne.
-  Latch **nastavuje jen Update (akumuluje `|=`, `++`), nuluje jen FixedUpdate**.
-  Láme se to obousměrně: při vysokém FPS se událost ztratí (další Update ji
-  přepíše), při nízkém proběhne 3×. Parametry hrany (`throwVector`) zachytit
-  v okamžiku hrany, ne dočíst později.
-  Dnešní `lastJumpTime + 0.3f` v `Character3` je záplata přesně na tohle a stane
-  se z ní explicitní jump buffer.
-- **Oprava hodu:** pustit ruku přímo v `ThrowObj`; zrušit hack `if (bodyToThrow == null)`.
-- `AnimateHand` / `HoldAnimator.Evaluate` → FixedUpdate (žene `holdTarget`,
-  který konzumuje `ApplyHoldForce` na 50 Hz — není to prezentace, je to bodnutí).
-- `ThrowController.ShowThrowMarker` → Update (je prezentace a používá
-  `Time.deltaTime` uvnitř FixedUpdate).
-- `TickLimbTimers`: `Time.deltaTime` → `Time.fixedDeltaTime`.
-- `InputController.GameUpdate()` se volá **2× za frame** (`Game.Update`
-  a `Character3.UpdatePosition`) — sjednotit.
-- Camera follow (`InputController.GameUpdate` → `Camera.SetAbsolutePosition`)
-  do LateUpdate.
+Level signál hranici mezi frekvencemi snese, stačí ho přepisovat. Hrana ne: při vysokém
+fps by ji další Update přepsal a ztratila by se, při nízkém by proběhla vícekrát.
+Parametry hrany se zachytí v okamžiku hrany (`mousePressedWithPickupKey`, `lastJumpTime`,
+`throwVector`), nedočítají se později.
 
-### Co patří v Update zůstat
+`lastJumpTime + JumpBufferTime` (0.3 s) **zůstává** — je to buffer pro hráče, který
+zmáčkne skok těsně před dopadem, ne záplata na sync mezi smyčkami.
 
-Prezentace: `SimpleCameraController.GameUpdate`, `visibility.Compute`,
-`CellSimDebug.Render`, `fpsCounter`, `SetActiveMarker` (marker DirtBuilderu),
-`TimeOfDay.ChangeLightVariant`, HUD/inventář.
-Vzorkování inputu: `Input.Get*`, `KeysToInventory.TestKeys()`,
-`mousePosInWord = ScreenToWorldPoint(...)`.
+### Opravený bug: při nízkém FPS se předmět hodil s velmi malou silou
 
-Smíšené, chce rozseknout: `PositionLongThrowMarker` dělá zároveň marker
-(prezentace) i přepočet `throwVector` (herní vstup).
+Ruku pouštěl až `DetachArmIfNeeded` v příštím `GameUpdate`, ale hod aplikoval
+`GameFixedUpdate`. Při nízkém FPS proběhlo mezi tím 1–3 dalších fixed kroků, ve kterých
+`ApplyHoldForce` táhla hozený objekt zpátky k ruce — pro StickyBomb (mass 5, postava
+mass 50) ~5,4 m/s ubráno na každý krok proti maximálnímu hodu ~8,9 m/s.
+
+Řeší to pořadí v `Character3.GameFixedUpdate`:
+
+```
+1. ControlledFixedUpdate()   // automat, AnimateHand, AdjustLegsArms; ThrowObj pustí ruku HNED
+2. base.GameFixedUpdate()    // síly — ApplyHoldForces už na hozenou věc nesáhne
+3. ApplyThrow()              // plný impuls
+```
+
+`ThrowObj` volá `DetachHold()` (nové v `ChLegsArms.Hold.cs`) **až po `InventoryDrop()`** —
+`OnLimbDetached` vrací věc do inventáře, dokud je aktivní. Hack
+`if (bodyToThrow == null) base.GameFixedUpdate();` je zrušený, takže se už neobětuje celý
+fyzikální krok lokomoce, podpory nohou a dragu.
+
+Míření: `SetThrowActive(false, throwIt: true, …)` volá `UpdateThrowVector` v okamžiku hodu,
+před `TryActivateByThrow()`. Dřív se bralo z markeru a bylo o frame staré.
+
+### Co se přesunulo
+
+| Kam | Co |
+|---|---|
+| → FixedUpdate | `AdjustLegsArms`, celý stavový automat `Character3`, `AnimateHand`, AI + motor `SmallMonster`, `InventoryAccess` z UI |
+| → Update | `ThrowController.ShowThrowMarker` + `PositionLongThrowMarker` (prezentace) |
+| `deltaTime` → `fixedDeltaTime` | `TickLimbTimers`, `controlTimeout`, `resetHoldTimeout`, `zMoveTimeout`, `SmallMonster.turnTimeout` |
+| zrušeno | `Character3.UpdatePosition()` → tím i druhé volání `InputController.GameUpdate()` za frame |
+
+`InputController.GetMousePosOnZPlane` si teď spolu s `mousePosInWord` ukládá i pozici
+kamery v okamžiku vzorku (`mouseRayOrigin`). Bez toho by míchal směr paprsku z jednoho
+framu s pozicí kamery z jiného — dřív to vycházelo jen díky tomu, že se kamera hýbala
+o dva řádky dřív. `mouseSampled` je fallback na první fyzikální krok po odpauzování, který
+může předběhnout první `GameUpdate` (`Game.FixedUpdate` nemá kontrolu `State`).
+
+### Odchylky od původního zadání kýblu B
+
+- **`Game.cs` beze změny.** Každá položka obou smyček prošla oběma testy výše.
+- **Camera follow zůstal v `InputController.GameUpdate`, LateUpdate se nedělal.**
+  Jakmile `AdjustLegsArms` odešel z Update, hýbe transformem postavy už jen FixedUpdate,
+  a ten v rámci framu běží **před** Update — pozice je na začátku `Game.Update` finální
+  a LateUpdate by nekoupil nic.
 
 ### Očekávaná změna feelu
 
-Kadence končetin se přesune z frame-time na 50 Hz → počítat s přeladěním
-`LegTimeout` (dnes 6.5 postava / 5 příšera) a možná `HoldMoveAcceleration`.
-Je to důsledek, ne regrese.
+Kadence končetin se přesunula z frame-time na 50 Hz. Délka timeoutů v sekundách se
+nemění (`TickLimbTimers` je time-based), mění se **počet pokusů o chycení za sekundu**:
+při 144 fps dřív 144/s → nyní 50/s. Počítat s přeladěním `LegTimeout`
+(dnes 6.5 postava / 5 příšera) a možná `HoldMoveAcceleration`. Je to důsledek, ne regrese.
 
-### Interpolace rigidbodies (až po B)
+`ItemAdjust` je o něco citlivější — pohyb myši se akumuluje přes framy, takže práh 0.05
+už neukusuje deadzone při vysokém FPS.
+
+**Známé, nezměněné:** po `DeactivateInput` (Tab) si postava drží poslední `desiredVelocity`
+a `desiredCatch` a jde dál. Bylo to tak i před kýblem B, nesahalo se na to.
+
+### Interpolace rigidbodies (odblokováno kýblem B)
 
 Všech 8 prefabů má `m_Interpolate: 0` (None) → pohyb je kvantovaný na 20 ms
 a při >50 fps znatelně trhá; nejvíc přes kameru, která sleduje neinterpolovanou
 postavu, takže cuká celý svět.
 
-`Interpolate` zapnout **až po kýblu B**: na interpolovaném RB vrací
-`transform.position` v Update opožděnou hodnotu a ve FixedUpdate skutečnou
-fyzikální pózu — dnešní `AdjustLegsArms` v Update by tiše začal číst rozmazané
-pozice. `m_AutoSyncTransforms: 0` znamená, že raycasty interpolace neovlivní.
+Blokoval to `AdjustLegsArms` v Update, který by na interpolovaném RB tiše začal číst
+rozmazané pozice. Teď je ve FixedUpdate, takže **`Interpolate` jde zapnout**.
+`m_AutoSyncTransforms: 0` znamená, že raycasty interpolace neovlivní.
 Nezapínat globálně (CPU budget) — postava + co je v záběru; jde měnit za běhu.
 
 ---
