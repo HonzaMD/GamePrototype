@@ -20,6 +20,18 @@ class SmallMonster : ChLegsArms, IActiveObject
 		AwakeB();
 	}
 
+	public override void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
+	{
+		base.AfterMapPlaced(map, placeableSibling, goesFromInventory);
+		Game.Instance.ActivateObject(this);
+	}
+
+	public override void Cleanup(bool goesToInventory)
+	{
+		base.Cleanup(goesToInventory);
+		Game.Instance.DeactivateObject(this);
+	}
+
 	public void GameUpdate()
 	{
 	}

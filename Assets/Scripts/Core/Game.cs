@@ -49,11 +49,15 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private int movingObjectInserterPtr;
     private int movingObjectWorkPtr;
     private const int movingObjectMaxPtr = 20;
-    private const int movingObjectVisibilityModulo = movingObjectMaxPtr / 2;
+    private int slowPassFrame = -1;
+    private const int visibilityPeriod = 10;
     private int updateTicker;
     private int fixedUpdateTicker;
+    private static readonly WaitForFixedUpdate waitForFixedUpdate = new();
 
     private readonly Stopwatch sw = new();
+    private readonly Stopwatch mapRefreshSw = new();
+    private double mapRefreshTime;
     private int lastGCCount;
 
     public int CollisionLayaerMask { get; private set; }
@@ -121,8 +125,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             swStart = sw.Elapsed;
             UpdateTriggers();
             UpdateTimes[1] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-            UpdateMovingObjects();
-            UpdateTimes[2] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
+            UpdateTimes[2] = mapRefreshTime; // RefreshMapPositions ze simulaci tohoto framu
+            mapRefreshTime = 0;
             UpdateObjects();
             UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             Timer.GameUpdate();
@@ -131,7 +135,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             gameUpdates1Sec.GameUpdate();
             gameUpdates20Sec.GameUpdate();
             UpdateTimes[7] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-            if (movingObjectWorkPtr % movingObjectVisibilityModulo == 3 && InputController.Character)
+            if (updateTicker % visibilityPeriod == 3 && InputController.Character)
             {
                 visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
                 visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
@@ -248,8 +252,24 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             activeObjects.RemoveRange(write, activeObjects.Count - write);
     }
 
-    private void UpdateMovingObjects()
+    // Bezi po kazde Physics.Simulate (za koliznimi callbacky), takze mapa drzi pozu po posledni
+    // simulaci pro ctenare v Update i FixedUpdate. Viz Docs/map-update-timing.md.
+    private IEnumerator MapRefreshLoop()
     {
+        while (true)
+        {
+            yield return waitForFixedUpdate;
+            RefreshMapPositions();
+        }
+    }
+
+    private void RefreshMapPositions()
+    {
+        mapRefreshSw.Restart();
+        // round robin (plny Move + MovingObjTest) jen v prvni simulaci framu -> perioda v framech
+        bool slowPass = slowPassFrame != Time.frameCount;
+        slowPassFrame = Time.frameCount;
+
         int write = 0;
         for (int i = 0; i < movingObjects.Count; i++)
         {
@@ -260,14 +280,26 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
                 continue;
             }
 
-            if (tag == movingObjectWorkPtr)
+            try
             {
-                map.Move(obj);
-                MovingObjTest(obj, map);
+                if (slowPass && tag == movingObjectWorkPtr)
+                {
+                    map.Move(obj);
+                    MovingObjTest(obj, map);
+                }
+                else if (obj.AlwaysMapMove)
+                {
+                    map.Move(obj);
+                }
+                else
+                {
+                    obj.UpdateMapPosIfMoved(map);
+                }
             }
-            else
+            catch (Exception e)
             {
-                obj.UpdateMapPosIfMoved(map);
+                // vyjimka mimo smycku by ukoncila coroutinu a mapa by se prestala obnovovat
+                UnityEngine.Debug.LogException(e);
             }
 
             movingObjects[write++] = movingObjects[i];
@@ -276,9 +308,13 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         if (write < movingObjects.Count)
             movingObjects.RemoveRange(write, movingObjects.Count - write);
 
-        movingObjectWorkPtr++;
-        if (movingObjectWorkPtr >= movingObjectMaxPtr)
-            movingObjectWorkPtr = 0;
+        if (slowPass)
+        {
+            movingObjectWorkPtr++;
+            if (movingObjectWorkPtr >= movingObjectMaxPtr)
+                movingObjectWorkPtr = 0;
+        }
+        mapRefreshTime += mapRefreshSw.Elapsed.TotalMilliseconds;
     }
 
     private void MovingObjTest(Placeable p, Map map)
@@ -354,6 +390,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             StaticPhysics = new SpInterface();
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
     }
+
+    private void OnEnable() => StartCoroutine(MapRefreshLoop());
 
     public void OnBeforeSerialize()
     {

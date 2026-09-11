@@ -112,7 +112,6 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
 
     protected void AdjustLegsArms(bool allowHoldDrop)
     {
-        map.Move(placeable);
         TickLimbTimers();
         DetachUnwantedLimbs(allowHoldDrop);
         TryCatchWithFreeLeg();

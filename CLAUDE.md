@@ -58,7 +58,6 @@ Runs on a background thread. `SpInterface` exposes a command-queue API (`InputCo
 Game.Update()
 ├── InputController.GameUpdate()
 ├── UpdateTriggers()
-├── UpdateMovingObjects()
 ├── UpdateObjects()       ← all IActiveObject instances
 └── Timer.GameUpdate()
 
@@ -66,13 +65,16 @@ Game.FixedUpdate()
 ├── InputController.GameFixedUpdate()
 ├── IActiveObject.GameFixedUpdate()
 └── StaticPhysics (background thread, synchronized via queues)
+
+WaitForFixedUpdate coroutine (after every Physics.Simulate)
+└── RefreshMapPositions()  ← moving objects → map (see Docs/map-update-timing.md)
 ```
 
 ### Key Interfaces
 
 | Interface | Purpose |
 |-----------|---------|
-| `IActiveObject` | Opt-in to `GameUpdate`/`GameFixedUpdate` calls from `Game` |
+| `IActiveObject` | Opt-in to `GameUpdate`/`GameFixedUpdate` calls from `Game`; register manually via `Game.Instance.ActivateObject`/`DeactivateObject` |
 | `ICanActivate` | Called when a thrown/launched item is activated (via `TryActivateByThrow()`) |
 | `IHoldActivate` | Called when player uses a held item (via `TryActivateInHand()`) |
 | `ISimpleTimerConsumer` | Callback from the unified `Timer` system |

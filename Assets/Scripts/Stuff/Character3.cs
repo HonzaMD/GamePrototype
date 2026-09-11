@@ -63,6 +63,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         base.AfterMapPlaced(map, placeableSibling, goesFromInventory);
         CreateInventory();
         Game.Instance.InputController.AddCharacter(this);
+        Game.Instance.ActivateObject(this);
     }
 
     private void CreateInventory()
@@ -520,6 +521,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     public override void Cleanup(bool goesToInventory)
     {
         base.Cleanup(goesToInventory);
+        Game.Instance.DeactivateObject(this);
         Game.Instance.InputController.RemoveCharacter(this);
         inventory.Kill();
         inventory = null;

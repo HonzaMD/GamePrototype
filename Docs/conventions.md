@@ -204,16 +204,28 @@ Unity `Update()` se nepoužívá pro herní objekty. Místo toho `Game.cs` volá
 Game.Update()
   ├─ InputController.GameUpdate()
   ├─ UpdateTriggers()
-  ├─ UpdateMovingObjects()
   ├─ UpdateObjects()          ← všechny registrované IActiveObject
   └─ Timer.GameUpdate()
 
 Game.FixedUpdate()
   ├─ IActiveObject.GameFixedUpdate()
   └─ StaticPhysics (background thread sync)
+
+WaitForFixedUpdate (po každé Physics.Simulate)
+  └─ RefreshMapPositions()    ← pozice movingObjects do mapy
 ```
 
-Každý `Placeable` se sám zaregistruje při `PlaceToMap()` a odregistruje v `Cleanup()`. Přímé volání `Update()` je anti-pattern.
+`IActiveObject` se registruje ručně — `Game.Instance.ActivateObject(this)` typicky v `AfterMapPlaced`, `DeactivateObject(this)` v `Cleanup`. Samotná implementace interfacu nic neregistruje. Dvojí registrace ani deregistrace neregistrovaného objektu se nehlídá. Přímé volání `Update()` je anti-pattern.
+
+Členství v `movingObjects` (obnova pozice v mapě) je na `IActiveObject` nezávislé — určuje ho aktivní RB (`PlaceToMap`, `RbLabel.Init`/`StopMoving`).
+
+### Kontrakt pro čtenáře mapy
+- Mapa drží stav po poslední simulaci v `Update` i ve `FixedUpdate`.
+- Tolerance **0,1 m** na pozici; `Placeable.AlwaysMapMove` vynutí plný `map.Move` každou simulaci.
+- Rotace a `Size` se propisují až round robinem (≤ 20 framů) — kdo je mění mimo fyziku, volá `map.Move` sám v místě změny.
+- Kolizní callbacky vidí mapu o simulaci pozadu.
+
+Detaily v [map-update-timing.md](map-update-timing.md).
 
 ---
 

@@ -50,6 +50,8 @@ public class Placeable : Label, ILevelPlaceabe
     public Ksid Ksid;
     public CellFlags CellBlocking;
     public SubCellFlags SubCellFlags;
+    // RefreshMapPositions dela plny map.Move kazdou simulaci misto prahu 0,1 m. Lze menit za behu, Cleanup vraci hodnotu z prototypu.
+    public bool AlwaysMapMove;
     [NonSerialized]
     public byte PendingMovingObjRemove;
     [NonSerialized]
@@ -146,14 +148,8 @@ public class Placeable : Label, ILevelPlaceabe
     {
         AutoAttachRB();
         map.Add(this);
-        if (TryGetComponent<IActiveObject>(out var ao))
-        {
-            Game.Instance.ActivateObject(ao);
-        }
-        else if (HasActiveRB)
-        {
+        if (HasActiveRB)
             Game.Instance.AddMovingObject(this, map);
-        }
 
         if (IsGroup)
         {
@@ -182,10 +178,6 @@ public class Placeable : Label, ILevelPlaceabe
         {
             var map = GetMap();
             map.Remove(this);
-            if (TryGetComponent<IActiveObject>(out var ao))
-            {
-                Game.Instance.DeactivateObject(ao);
-            }
             Game.Instance.RemoveMovingObject(this);
             
             if (IsStatic)
@@ -198,7 +190,10 @@ public class Placeable : Label, ILevelPlaceabe
             }
 
             if (Settings.Prototype is Placeable proto)
+            {
                 CellBlocking = proto.CellBlocking;
+                AlwaysMapMove = proto.AlwaysMapMove;
+            }
         }
         base.Cleanup(goesToInventory);
     }
