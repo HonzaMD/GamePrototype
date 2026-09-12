@@ -39,9 +39,11 @@ namespace Assets.Scripts.Core
         public int InventorySlot;               // klavesy 0-9, 0 = zadny
         public Label InventoryKey;              // klik v InventoryVisualizer
         public Vector2 HoldAdjustShift;         // pohyb mysi kolmo na holdTarget, pro ItemAdjust
+        public bool MoveModeTogglePressed;      // TEST MoveMode (smazat) - G
 
         public void ClearEdges()
         {
+            MoveModeTogglePressed = false;      // TEST MoveMode (smazat)
             PickupPressed = false;
             PickupReleased = false;
             ThrowPressed = false;
@@ -217,6 +219,7 @@ namespace Assets.Scripts.Core
             pending.ThrowPressed |= Input.GetKeyDown(KeyCode.R);
             pending.ThrowReleased |= Input.GetKeyUp(KeyCode.R);
             pending.PrimaryReleased |= Input.GetMouseButtonUp(0);
+            pending.MoveModeTogglePressed |= Input.GetKeyDown(KeyCode.G);   // TEST MoveMode (smazat)
             pending.HoldAdjustShift += new Vector2(Input.GetAxis("Mouse Y"), -Input.GetAxis("Mouse X"));
 
             if (Input.GetMouseButtonDown(0) && !guiInFocus)

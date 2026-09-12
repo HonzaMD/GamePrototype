@@ -10,13 +10,19 @@ using UnityEngine;
 [CreateAssetMenu]
 public class ChSettings : ScriptableObject
 {
-	[SerializeField, Range(0f, 100f)]
+	[SerializeField, Range(0f, 50f)]
 	public float maxSpeed = 5f;
 
-	[SerializeField, Range(0f, 100f)]
+	[SerializeField, Range(0f, 5f)]
 	public float maxAcceleration = 0.3f;
 
-	[SerializeField, Range(0f, 10f)]
+    [SerializeField, Range(0f, 50f)]
+    public float maxSpeedFloat = 7f;
+
+    [SerializeField, Range(0f, 5f)]
+    public float maxAccelerationFloat = 0.1f;
+
+    [SerializeField, Range(0f, 10f)]
 	public float jumpHeight = 1.2f;
 
 	public float LegTimeout = 5 * 1.3f;

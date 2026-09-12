@@ -63,7 +63,8 @@ public abstract partial class ChLegsArms
     {
         if (ArmCatched || movementMode == MovementMode.Free)
         {
-            var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), Settings.maxAcceleration);
+            var acceleration = !ArmCatched ? Settings.maxAccelerationFloat : Settings.maxAcceleration;
+            var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), acceleration);
             body.AddForce(force, ForceMode.VelocityChange);
             ApplyReactionToCaughtLimbs(force * 0.8f);
             legUpDir = Vector3.up;

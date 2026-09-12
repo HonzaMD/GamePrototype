@@ -124,6 +124,13 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         if (input.JumpPressed)
             lastJumpTime = input.JumpPressTime;
 
+        // TEST MoveMode (smazat) - G prepina Legged/Free, at jde odzkouset let.
+        if (input.MoveModeTogglePressed)
+        {
+            MoveMode = MoveMode == MovementMode.Legged ? MovementMode.Free : MovementMode.Legged;
+            Debug.Log($"MoveMode: {MoveMode}");
+        }
+
         ConsumeInventoryRequests(input);
 
         controlTimeout += Time.fixedDeltaTime;
@@ -280,9 +287,13 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
         var speedMode = input.SlowHeld ? 0.5f : (ArmCatched || desiredCrouch) ? 0.6f : 1f;
 
-        if (ArmCatched)
+        if (ArmCatched)          
         {
             desiredVelocity = input.MoveAxes * Settings.maxSpeed * speedMode;
+        }
+        else if (MoveMode == MovementMode.Free)
+        {
+            desiredVelocity = input.MoveAxes * Settings.maxSpeedFloat * speedMode;
         }
         else
         {
