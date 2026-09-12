@@ -25,7 +25,8 @@ public abstract partial class ChLegsArms
 
     private void TryCatchWithFreeLeg()
     {
-        if (!desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && TrySelectFreeLeg(out var index))
+        // Ve Free rezimu by se noha chytila zeme, nad kterou jen proletavame - a raycast stoji navic.
+        if (movementMode == MovementMode.Legged && !desiredCrouch && Vector3.Dot(body.linearVelocity, legUpDir) <= 0 && TrySelectFreeLeg(out var index))
         {
             TryCatchLeg(index);
         }

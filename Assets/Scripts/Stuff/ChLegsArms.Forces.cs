@@ -57,11 +57,11 @@ public abstract partial class ChLegsArms
         }
     }
 
-    // Pohon tela. Dve vetve: visi na rukou (plny 2D regulator) / stoji na nohou (jen horizontalne).
-    // Pise legUpDir, ktery pak cte ApplyJumpOrLegSupport.
+    // Pohon tela. Dve vetve: plny 2D regulator (visi na rukou nebo leti) / stoji na nohou
+    // (jen horizontalne). Pise legUpDir, ktery pak cte ApplyJumpOrLegSupport.
     private void ApplyMoveForce(Vector2 groundVelocity)
     {
-        if (ArmCatched)
+        if (ArmCatched || movementMode == MovementMode.Free)
         {
             var force = Vector2.ClampMagnitude(groundVelocity + desiredVelocity - body.linearVelocity.XY(), Settings.maxAcceleration);
             body.AddForce(force, ForceMode.VelocityChange);

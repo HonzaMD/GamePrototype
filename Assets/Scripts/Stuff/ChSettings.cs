@@ -35,6 +35,9 @@ public class ChSettings : ScriptableObject
 
 	public bool monsterMoveOnGround = true;
 
+	// Vychozi rezim pohybu pro druh. ChLegsArms ho smi za behu prepnout (MoveMode).
+	public MovementMode DefaultMovementMode = MovementMode.Legged;
+
 	[NonSerialized]
 	private bool initialized;
 	[NonSerialized]

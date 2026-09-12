@@ -36,6 +36,14 @@ using UnityEngine.Serialization;
 //   DetachLimb(i) -> Connectable.Disconnect() -> lambda z InitConnectables -> OnLimbDetached(i)
 //   Nepřimost je nutna: Disconnect() chodi i zvenku (DisconnectTargetsOwnJoints),
 //   a OnLimbDetached je jedine misto, ktere vraci vec do inventare.
+
+// Rezim pohybu tela. Ruce (chytani, drzeni, pickup) funguji v obou stejne.
+public enum MovementMode
+{
+    Legged,   // stoji na nohou: pohon jen horizontalne, vertikalu resi pruzina nohou a skok
+    Free,     // let: gravitace vypnuta, plny 2D regulator rychlosti, nohy se nechytaji
+}
+
 public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfterMapPlaced
 {
     private const float Free = 0;
@@ -58,6 +66,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected bool ArmHolds => limbStatus[2] == Hold || limbStatus[3] == Hold;
 
     private Vector3 legUpDir = Vector3.up;
+    private MovementMode movementMode;
 
     public SphereCollider LegSphere;
     public SphereCollider ArmSphere;
@@ -98,6 +107,29 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         placeable = GetComponent<Placeable>();
         Settings.Initialize(ArmSphere, Limbs);
         InitConnectables();
+        movementMode = Settings.DefaultMovementMode;
+        ApplyMovementMode();
+    }
+
+    // Jde prepinat za behu (balon, ktery se odlepi od zeme; dravec, ktery dosedne).
+    public MovementMode MoveMode
+    {
+        get => movementMode;
+        set
+        {
+            if (movementMode != value)
+            {
+                movementMode = value;
+                ApplyMovementMode();
+            }
+        }
+    }
+
+    private void ApplyMovementMode()
+    {
+        body.useGravity = movementMode == MovementMode.Legged;
+        if (movementMode == MovementMode.Free)
+            DetachAllLegs();   // uz se nechytaji, drzet stare opory nema smysl
     }
 
     private void InitConnectables()
@@ -160,5 +192,6 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     public virtual void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
     {
         this.map = map;
+        MoveMode = Settings.DefaultMovementMode;   // reset po poolingu
     }
 }
