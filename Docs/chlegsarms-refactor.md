@@ -1,7 +1,8 @@
 # Refaktor ChLegsArms — stav a další fáze
 
-Refaktor motoru `ChLegsArms` rozdělený do tří kýblů. **Kýble A a B jsou hotové**, C
-čeká. Dokument nese analýzu, aby se dalo pokračovat bez předchozího kontextu.
+Refaktor motoru `ChLegsArms` rozdělený do tří kýblů. **Kýble A a B jsou hotové**, kýbl C
+je protříděný (většina bodů zrušena nebo odložena, `MovementMode` hotový). Dokument nese
+analýzu, aby se dalo pokračovat bez předchozího kontextu.
 
 Souvisí s [priser-framework.md](priser-framework.md) — celý příšeří framework
 (`MonsterController` → styly pohybu) na `ChLegsArms` staví.
@@ -218,23 +219,97 @@ Nezapínat globálně (CPU budget) — postava + co je v záběru; jde měnit za
 
 ## Kýbl C — funkční změny (patří už do frameworku)
 
-- `float[] limbStatus` → `LimbState` enum + samostatný `float freeTimer`.
-  Přepíše `TrySelectFreeLimb` a `MarkIdleLimbsFree`, které dnes stojí na
-  neomezeném záporném driftu floatu.
-- Sjednotit 5 paralelních polí (`Limbs`, `limbStatus`, `limbTargets`,
-  `limbConnectors`, `Settings.limbZ`) do `struct Limb` + `Limb[]`.
-  **Perf pozor:** vždy `ref var limb = ref limbs[i]`, nikdy `foreach` ani
-  předávání hodnotou (struct by měl ~40 B).
-- Sloučit `TryAttachLimbTo` + `PlaceLimbAtOwnZ`/`PlaceLimbAtHitZ` — volají se
-  vždy v páru (attach uspěje → hned následuje place).
-- Generalizace počtu nohou/rukou — dnes natvrdo 0,1 / 2,3 a `PairedLimb = i ^ 1`.
-- `MovementMode { Legged, Free }` + `body.useGravity`: stačí změnit podmínku
-  `if (ArmCatched)` v `ApplyMoveForce` na `if (ArmCatched || mode == Free)`.
-  Ta větev už je plný 2D regulátor rychlosti, tedy pohon letadla.
-- Plné rozseknutí `TryHoldOne` (podmínkový strom — nejrizikovější místo v souboru,
-  sahá na inventář, RB, `SetCollisionIgnored` i `MoveZ`).
-- `MonsterController : ChLegsArms` mezivrstva + `CrawlerStyle` (port `SmallMonster`).
-- Zvážit `ListPool<T>` místo statických `armCandidates`/`placeables`
-  ([conventions.md](conventions.md) 2a) — dnes je riziko reentrance, protože
-  `TryCatchNearbyObject` iteruje `placeables` a uvnitř volá cizí kód
-  (`DisconnectTargetsOwnJoints` → `IConnector.Disconnect`).
+Původní seznam byl probrán **lazy**: udělat jen to, co je jednoznačně potřeba nebo
+jednoznačně výhodné. Kritéria:
+
+1. Je to **prerekvizita** něčeho, co bude potřeba v [příšerím frameworku](priser-framework.md)?
+2. Je to refaktor **bez pochybností o přínosu**?
+
+Rozhodující okolnost: **pro `ChLegsArms` nejdou napsat testy**, jediné ověření je odehrát celý
+manuální checklist (viz výše). Každá změna tady tedy stojí plný regresní průchod, ať je jakkoli
+malá — čistě kosmetické přepisy jsou dražší, než vypadají. Čitelnost navíc už vyřešil kýbl A,
+takže zbytek seznamu byl „aby to bylo hezčí uvnitř", ne „aby se to dalo číst".
+
+| Bod | Prereq? | Nepochybný přínos? | Verdikt |
+|---|---|---|---|
+| `MovementMode` + `body.useGravity` | ano | ano (nová schopnost) | **hotovo** |
+| Public API pro AI (`desired*`, `DropAllLimbs`) | ano | ano | s krokem 2 frameworku |
+| Sloučit `TryAttachLimbTo` + `PlaceLimb*` | ne | malý | jen mimochodem |
+| Statické bufry → `ListPool` | ne | **ne** (perf proti) | zrušeno → místo toho debug guard |
+| `LimbState` enum + `freeTimer` | ne | jen čitelnost, široký dosah | odloženo |
+| Generalizace počtu končetin | ne pro v1 | ne (spekulativní) | až to vynutí konkrétní příšera |
+| `struct Limb` místo 5 paralelních polí | ne | **ne** (perf proti) | zrušeno |
+| Plné rozseknutí `TryHoldOne` | ne | ne (max. riziko, jen cesta hráče) | zrušeno |
+| `MonsterController` + `CrawlerStyle` | — | — | není refaktor, je to krok 2/3 frameworku |
+
+### `MovementMode { Legged, Free }` (HOTOVO)
+
+Jediná položka kýblu C, která **přidává schopnost** místo přerovnávání existujícího kódu, a
+zároveň test klíčového tvrzení návrhu („jeden motor, let je jen režim"). Čtyři dotyková místa,
+větev `Legged` beze změny chování:
+
+| Kde | Co |
+|---|---|
+| `ChLegsArms.cs` | `public enum MovementMode { Legged, Free }` (mimo třídu — sahají na něj AI pravidla) a `public MovementMode MoveMode` |
+| `ApplyMoveForce` | `if (ArmCatched)` → `if (ArmCatched || movementMode == Free)`; ta větev už `legUpDir` nastavuje sama a ve `Free` odpadá raycast v `GetLegRotation` |
+| `TryCatchWithFreeLeg` | běží jen v `Legged` — jinak by se noha chytila země, nad kterou jen proletíme, a raycast stojí navíc |
+| `ChSettings.DefaultMovementMode` | výchozí režim druhu (`Legged` = 0, stávající assety se nemění) |
+
+**Přepínání za běhu je podporované** oběma směry (balon, který se odlepí od země; dravec, který
+dosedne). Setter při skutečné změně přepne `body.useGravity` a při přechodu do `Free` zavolá
+`DetachAllLegs()` — nohy chycené před přepnutím by jinak držely `Catch` dál (podpora,
+`LegOnGround`, povolený skok) až do překročení vzdálenosti. Zpět do `Legged` se nohy začnou
+chytat v nejbližším `AdjustLegsArms`.
+
+`AwakeB` režim inicializuje ze `Settings`, `AfterMapPlaced` ho nastavuje znovu jako **reset po
+poolingu** — příšera vrácená do poolu ve `Free` by jinak ožila bez gravitace.
+
+Ruce (chytání, držení, pickup, hod) jedou v obou režimech stejně — to je ten reuse, kvůli
+kterému návrh nechce samostatný `FlyMotor`. **Samotné létání zatím není odzkoušené**, `Free`
+nemá konzumenta; ověří ho první balon, nebo dočasně přepnutý `DefaultMovementMode`
+na `Small Monster`.
+
+### Odloženo
+
+- **Public API pro AI** — v původním seznamu chybělo, přitom je to skutečný prerekvizit:
+  pravidla (`IController`/`IModifier`) jsou samostatné objekty a sahají na motor přes `ctx.Ctrl`,
+  ale `desired*` jsou dnes `protected`; `SleepController` potřebuje `DropAllLimbs()`
+  (= privátní `DetachAllLimbs`). Dělat **až s krokem 2** (`MonsterController`), kdy bude vidět,
+  co přesně pravidla potřebují — ne předem a ne jako samostatný regresní průchod.
+- **`LimbState` enum + `freeTimer`** — dotkne se všech porovnání ve všech čtyřech souborech
+  (`== Catch`, `<= Timeout`, `> Free`, LRU `limbStatus[i1] <= limbStatus[i2]`). „Neomezený
+  záporný drift" je přitom **estetický, ne funkční**: při 50 Hz a `LegTimeout` 6.5 klesá o
+  ~325/s, takže i po hodině nečinnosti je float daleko od ztráty přesnosti. Framework to nikde
+  nepotřebuje.
+- **Generalizace počtu končetin** — nic v krocích 1–7 frameworku ji nežádá: `CrawlerStyle` je
+  port `SmallMonster` (2+2), létající dravec potřebuje ruce na kořist (2+2), balon nepotřebuje
+  nic navíc (nohy vypne `MovementMode`). Cena je vysoká (`PairedLimb = i ^ 1`, natvrdo 2/3 po
+  celém `Hold.cs`, `GetLegForce(0)/(1)`, `ApplyReactionToLegs`, `MarkIdleLimbsFree`, serializované
+  `Limbs` na dvou prefabech, `Settings.limbZ`) a párová logika se na 4 nohy stejně nezobecní
+  indexováním — chtěla by skutečnou chůzovou logiku. **Generalizovat až s druhým konkrétním
+  konzumentem**, jinak to vyjde navržené špatně.
+- **Sloučení `TryAttachLimbTo` + `PlaceLimb*`** — drží invariant „po úspěšném attachi je
+  končetina vždy umístěná a má stav", ale je to 5 volání a varianty se liší (`OwnZ` vs `HitZ`,
+  `Catch`/`Hold`/`PickUp`, různé navazující efekty), takže vznikne metoda s přepínači. Nedělat
+  jako samostatný úkol s vlastním regresním průchodem — jen když se do toho místa sahá jinak.
+- **Debug guard na statické bufry** (náhrada za `ListPool`) — `#if UNITY_EDITOR` příznak
+  „bufr se právě používá" + assert. Pár řádků, kdykoli.
+
+### Zrušeno
+
+- **`struct Limb` místo 5 paralelních polí.** Horké smyčky (`TickLimbTimers`,
+  `MarkIdleLimbsFree`, `ApplyLimbsContactDamage`, `ApplyReactionToCaughtLimbs`,
+  `GetGroundVelocity`) skenují **jen `limbStatus`**, tedy souvislé `float[4]`. Sloučení do ~40 B
+  struktury z toho udělá stride přes 40 bajtů kvůli čtení 4 — dnešní SoA je pro ně **lepší**.
+  Přínos je čistě vizuální, cena je přepis ~60 přístupů plus perf regrese v kódu běžícím 50×/s
+  na každé příšeře. Proti perf budgetu (CPU-bound hlavní vlákno, cíl ~100 probuzených příšer).
+- **Plné rozseknutí `TryHoldOne`.** Nejrizikovější místo v souboru (inventář, RB,
+  `SetCollisionIgnored`, `MoveZ`) a leží **výhradně na cestě hráče** — v1 příšery předměty
+  neberou. Maximální riziko, nulový přínos pro framework.
+- **`ListPool<T>` místo statických `armCandidates`/`placeables`.** Obávaná reentrance reálně
+  nehrozí: `DisconnectTargetsOwnJoints` → cizí `IConnector.Disconnect` → v nejhorším cizí
+  `OnLimbDetached` → inventář, a nic z toho nevolá `map.Get(placeables)`. Víc příšer to nezmění
+  — běží sekvenčně, nevnořeně. `ListPool` by navíc přidal práci na hot path. Místo toho stačí
+  debug guard (výše).
+- **`MonsterController` + `CrawlerStyle`** není refaktor `ChLegsArms`, ale kroky 2 a 3
+  [implementačního pořadí](priser-framework.md#implementační-pořadí) — řeší se tam.

@@ -145,9 +145,12 @@ public enum MovementMode { Legged, Free }
 
 ### Refaktor ChLegsArms (stavíme na ní → smíme ji vylepšit)
 
-- **Zobecnit pevný počet nohou/rukou** — dnes natvrdo 0,1 = nohy, 2,3 = ruce
-  (`SelectFreeLeg`/`SelectFreeArm`). Umožnit i „jen ruce" / jiný počet.
-- Přidat `MovementMode` + přepínání `body.useGravity`.
+- ~~**Zobecnit pevný počet nohou/rukou**~~ — odloženo: nic v krocích 1–7 to nežádá (crawler
+  i dravec jsou 2+2, balon vypne nohy `MovementMode`em). Až s druhým konkrétním konzumentem,
+  viz [chlegsarms-refactor.md](chlegsarms-refactor.md#odloženo).
+- ✅ **`MovementMode` + přepínání `body.useGravity`** — hotovo, i přepínání za běhu
+  (`ChLegsArms.MoveMode`, výchozí režim druhu v `ChSettings.DefaultMovementMode`).
+  Létání samo zatím neodzkoušené — `Free` nemá konzumenta.
 - Vyčlenit **public API** pro AI: settery `desired*` (případně tenké metody),
   `Sleep(bool)` (uspí RB, collidery zůstávají), `BlockedThisStep` (narazil → trigger re-decision;
   není nutné do v1 — `SmallMonster` zaseknutí už pozná).
@@ -626,12 +629,14 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
 
 ## Implementační pořadí
 
-1. **Refaktor `ChLegsArms`** — zobecnit počet nohou/rukou, přidat `MovementMode` (`Legged`/`Free`,
-   gravitace off), public API pro AI (`desired*` settery, `DropAllLimbs`). Ověřit, že `Free` lítá
-   (balon). RB neuspáváme — to dělá Unity samo.
-   > Rozpracováno v [chlegsarms-refactor.md](chlegsarms-refactor.md): kýbl A (zpřehlednění)
-   > je hotový, kýbl B (rozdělení GameUpdate/FixedUpdate + oprava hodu) a kýbl C
-   > (`MovementMode`, generalizace končetin, `MonsterController`) čekají.
+1. **Refaktor `ChLegsArms`** — ✅ v podstatě hotový. `MovementMode` (`Legged`/`Free`, gravitace
+   off) je v kódu včetně přepínání za běhu; zobecnění počtu končetin je odloženo (nikdo ho
+   nežádá); public API pro AI (`desired*` settery, `DropAllLimbs`) se dodělá až s krokem 2, kdy
+   bude vidět, co pravidla potřebují. Zbývá ověřit, že `Free` opravdu lítá (balon).
+   RB neuspáváme — to dělá Unity samo.
+   > Podrobně v [chlegsarms-refactor.md](chlegsarms-refactor.md): kýble A (zpřehlednění)
+   > a B (rozdělení GameUpdate/FixedUpdate + oprava hodu) jsou hotové, kýbl C je protříděný —
+   > většina bodů zrušena nebo odložena.
 2. **`MonsterController : ChLegsArms`** (abstraktní) — blackboard (3 regiony), `Directive` standing,
    eval smyčka (modifiery + arbitráž zámku), napojení na `IActiveObject`, `virtual ApplyDirective`.
 3. **`CrawlerStyle : MonsterController`** — port `SmallMonster` crawl/flip + `WantMove` do override
