@@ -61,6 +61,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private int lastGCCount;
 
     public int CollisionLayaerMask { get; private set; }
+
     public double[] UpdateTimes = new double[8];
     public double[] VisibiltyTimes = new double[6];
     public int[] VisibiltyCounters = new int[6];
@@ -77,6 +78,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     {
         gameUpdates1Sec = new GameUpdates1Sec(fpsCounter);
     }
+
+    public int FixedStepCounter => fixedUpdateTicker;
 
     void Update()
     {

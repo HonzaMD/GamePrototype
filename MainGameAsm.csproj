@@ -9,7 +9,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{D2665D7C-5407-8258-F0B2-65E5242B16D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -64,6 +65,10 @@
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
+    <Compile Include="Assets\Scripts\Ai\MonsterBrain.cs" />
+    <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
+    <Compile Include="Assets\Scripts\Ai\IAiRule.cs" />
+    <Compile Include="Assets\Scripts\Ai\Directive.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelDirtTest.cs" />
