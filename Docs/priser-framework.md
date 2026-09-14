@@ -4,8 +4,9 @@ Návrh frameworku pro skládání chování příšer z vyměnitelných modulů.
 **styl pohybu** a **rozhodovací logiku** nezávisle, bez globálního pathfindingu — vše
 stojí na **lokálním rozhodování**.
 
-> Stav: návrh (design) zrevidovaný, připravený k implementaci. Implementace po krocích, viz
-> [Implementační pořadí](#implementační-pořadí).
+> Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, viz
+> [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která návrh
+> upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`…) — dokument je už obsahuje.
 
 ## Stav revize — kde jsme skončili
 
@@ -17,7 +18,7 @@ existuje jednodušší varianta?). Všechny sekce zrevidovány; zbývají jen
 |-------|------|
 | Organizace tříd (dědičnost stylu × kompozice pravidel) | ✅ zrevidováno |
 | Motor (ChLegsArms jako jediný motor) | ✅ zrevidováno |
-| Mozek (Controller/Modifier, blackboard, eval) | ✅ zrevidováno |
+| Mozek (Rule/Modifier, blackboard, eval) | ✅ zrevidováno |
 | Smysly / Perception | ✅ zrevidováno (vč. konfigurace: `SenseConfig` + `SenseProfile` + per-field override) |
 | Directive | ✅ zrevidováno |
 | Sleep / Wake | ✅ zrevidováno (jeden stav, vstup `EnterSleep(duration)`, branka `Status.CanWake`, časovač přes `ActiveTag`) |
@@ -42,18 +43,19 @@ Jeden MonoBehaviour na prefab — **dědičný řetězec** stojící na existuj�
 ```
 ChLegsArms             „TĚLO"  – jediný motor; desired*, AdjustLegsArms (sdílí i hráč Character3).
  ├─ Character3                   hráč – manuální řízení, žádná AI (beze změny).
- └─ MonsterController   „MOZEK" – abstraktní, VŽDY STEJNÝ framework. Drží blackboard (= veškerý
+ └─ MonsterBrain        „MOZEK" – abstraktní, VŽDY STEJNÝ framework. Drží blackboard (= veškerý
       │                          běhový stav), eval smyčku, sleep. Na IActiveObject je registrován
       │                          JEN když je přísera probuzená.
       ├─ CrawlerStyle   „CHŮZE" – listová třída = styl pohybu. Overriduje překlad Directive→desired*
-      ├─ FlyStyle                 podle terénu/těla. Smí být stavová (config + scratch jako pole).
+      ├─ FlyStyle                 podle terénu/těla. Smí být stavová (scratch jako pole).
       └─ SurfaceStyle             Volba stylu = která komponenta je na prefabu.
 
 vedle motoru (data, ne další MonoBehaviour navíc):
-Status                 „STAV"  – HP + drives (energie, hlad, spánek). Krmí podmínky pravidel.
-IController[]          „ŘÍZENÍ"– prioritizovaný seznam, soupeří o pohybový zámek. [SerializeReference].
-IModifier[]            „REFLEXY"– instantní, běží každý frame, neberou zámek. [SerializeReference].
-SleepController                – wake/sleep a (de)registrace do per-frame ticku.
+Status                 „STAV"   – HP + drives (energie, hlad, spánek). Krmí podmínky pravidel.
+AiSettings             „DRUH"   – ScriptableObject: seznamy pravidel + konfigurace stylu.
+  IAiRule[]            „ŘÍZENÍ" – prioritizovaný seznam, soupeří o pohybový zámek. [SerializeReference].
+  IAiModifier[]        „REFLEXY"– instantní, běží každý fixed krok, neberou zámek. [SerializeReference].
+SleepController                 – wake/sleep a (de)registrace do per-frame ticku.
 ```
 
 **Klíč: dvě nezávislé skládací osy, každá jiným mechanismem.**
@@ -61,38 +63,55 @@ SleepController                – wake/sleep a (de)registrace do per-frame tick
 | Osa | Mechanismus | Proč |
 |-----|-------------|------|
 | **Styl pohybu** (`CrawlerStyle`, `FlyStyle`…) | **dědičnost** – listová třída řetězce | *Jedna* volba na příšeru (tělo se za běhu nemění), pravé **is-a**, a chce **těsný přístup k motoru** (`desired*`, `map`, `body`) **i k blackboardu** (čte smysly/scratch). Obojí má zadarmo přes `protected`. Přesně případ PRO dědičnost. |
-| **Pravidla** (`IController`/`IModifier`) | **kompozice** – `[SerializeReference]` seznamy | Je jich *mnoho*, mix-and-match, pořadí = priorita. Dědičnost by znamenala explozi tříd. Přesně případ PROTI dědičnosti. |
+| **Pravidla** (`IAiRule`/`IAiModifier`) | **kompozice** – `[SerializeReference]` seznamy | Je jich *mnoho*, mix-and-match, pořadí = priorita. Dědičnost by znamenala explozi tříd. Přesně případ PROTI dědičnosti. |
 
 Obě osy zůstávají nezávislé: `CrawlerStyle` jede s hloupým i bohatým seznamem pravidel; pravidla
 „utíkej před hráčem, jinak hledej jídlo" jedou nad lezoucí i létající příserou. Styl se „skládá"
 výběrem komponenty na prefabu místo `[SerializeReference]`.
 
-> **Proč `MonsterController` jako mezičlánek, ne samostatný MonoBehaviour:** mozek vlastní eval
+> **Proč `MonsterBrain` jako mezičlánek, ne samostatný MonoBehaviour:** mozek vlastní eval
 > smyčku, která každý frame volá `AdjustLegsArms` a čte stav motoru (sleep). Když je to tatáž
 > instance, má těsný přístup zadarmo. Samostatná komponenta by si vynutila buď rozšiřování
 > veřejného API `ChLegsArms` (zbytečná abstrakce, viz [Filosofie](#filosofie)), nebo `GetComponent`
-> drátování. Dědičnost ten šev ruší. `SmallMonster` dnes JE přesně takový styl (podtřída
-> `ChLegsArms` s crawl/flip + `WantMove`) → `MonsterController` jen vkládáme mezi něj a bázi.
+> drátování. Dědičnost ten šev ruší. `SmallMonster` byl přesně takový styl (podtřída
+> `ChLegsArms` s crawl/flip + `WantMove`) → `MonsterBrain` se vložil mezi něj a bázi a ze
+> `SmallMonster` se stal `CrawlerStyle`.
 
 ### Jeden tick
 
-Probuzená přísera dělá **veškerou AI v per-frame ticku** (`IActiveObject`) společně s motorem.
-`ChLegsArms` už dělá raycasty a RB síly — pár AI ifů navíc je zanedbatelných. Žádné dělení na
-„rychlý gait" a „pomalý mozek". Throttling se neřeší na úrovni pravidel (žádná `Urgency`/`Cadence`
-v interfacu), ale na úrovni **dat** (freshness smyslů) a případně přes sdílený `SlowTick` signál,
-který si pravidlo přečte samo.
+Probuzená přísera dělá **veškerou AI v ticku** (`IActiveObject`) společně s motorem — **ve fixed
+kroku (50 Hz)**, ne v `Update`: motor nesmí záviset na frame rate a rozhodování z něj nemá smysl
+odpojovat (navíc deterministické, `dt` konstanta). `ChLegsArms` už dělá raycasty a RB síly — pár AI
+ifů navíc je zanedbatelných. Žádné dělení na „rychlý gait" a „pomalý mozek".
+
+```
+MonsterBrain.GameFixedUpdate:  Think() → ApplyDirective() → AdjustLegsArms() → base (síly)
+```
+
+Throttling se neřeší na úrovni pravidel (žádná `Urgency`/`Cadence` v interfacu), ale na úrovni
+**dat** (freshness smyslů) a přes **`brain.SlowTick(period)`**, který si pravidlo přečte samo:
+
+```csharp
+public bool SlowTick(int period) => (Game.Instance.FixedStepCounter + slowOffset) % period == 0;
+```
+
+Periodu volí pravidlo (zná důležitost informace; 25 = ~2×/s). `slowOffset` dostane každá přísera
+v `AfterMapPlaced` z globálního čítače → ~100 probuzených příšer **nedělá drahý sken ve stejném
+kroku** (jinak pravidelný spike).
 
 ### Rozdělení stavu (skládání + perf)
 
-- **Stavové, s Unity refs + těsně vázané na motor** (`ChLegsArms` → `MonsterController` → styl) →
+- **Stavové, s Unity refs + těsně vázané na motor** (`ChLegsArms` → `MonsterBrain` → styl) →
   **jeden MonoBehaviour** (dědičný řetězec, listová třída = styl). Jeden na prefab, běží
   v existujícím prefab poolingu. Hra nepoužívá Unity `Update()` (jede přes `IActiveObject` smyčku
   v `Game`), takže MB bez magických metod nemá per-frame režii navíc. **Styl smí být stavový** —
-  jeho config i scratch (např. `turnTimeout`, `desiredDirection` ze `SmallMonster`) jsou prostě
-  pole listové třídy; reset v `AfterMapPlaced` kvůli poolingu.
-- **Bezstavové vyhodnocovače** (controllery, modifiery) → **plain C# přes `[SerializeReference]`**
+  jeho scratch (např. `turnTimeout`, `direction` v `CrawlerStyle`) jsou prostě pole listové třídy;
+  reset v `Cleanup` kvůli poolingu (hodnotu z prefabu přes `placeable.Prototype`, vzor
+  `Placeable.Cleanup`). **Konfigurace stylu ale patří do `AiSettings`** (viz
+  [Konfigurační body](#konfigurační-body)).
+- **Bezstavové vyhodnocovače** (pravidla, modifiery) → **plain C# přes `[SerializeReference]`**
   v seznamech. Nemají vnitřní stav → **nepotřebují vlastní pooling**. Durativní/sdílený běhový stav
-  drží **centrální blackboard** na `MonsterController` a `Status`.
+  drží **centrální blackboard** na `MonsterBrain` a `Status`.
 
 ---
 
@@ -107,7 +126,7 @@ který si pravidlo přečte samo.
 (`desiredVelocity`, `desiredJump`, `desiredCrouch`, `desiredZMove`, `desiredCatch`, `desiredHold`,
 `desiredPickUp`, `holdTarget`…); `GameFixedUpdate` je čistě výkonná smyčka nad nimi a `AdjustLegsArms`
 řeší umisťování/odpojování končetin. Žádná AI uvnitř není — rozhodování je v podtřídě
-(`SmallMonster`, `Character3`). To je správný řez.
+(`CrawlerStyle` přes `MonsterBrain`, `Character3`). To je správný řez.
 
 Uvnitř už existují **dva subsystémy** (nohy = indexy 0,1; ruce = 2,3) a **dva pohybové režimy**:
 - větev `else` (stojí na nohou): pohon jen horizontálně, vertikálu řeší pružina nohou + skok;
@@ -152,8 +171,8 @@ public enum MovementMode { Legged, Free }
   (`ChLegsArms.MoveMode`, výchozí režim druhu v `ChSettings.DefaultMovementMode`).
   Létání samo zatím neodzkoušené — `Free` nemá konzumenta.
 - Vyčlenit **public API** pro AI: settery `desired*` (případně tenké metody),
-  `Sleep(bool)` (uspí RB, collidery zůstávají), `BlockedThisStep` (narazil → trigger re-decision;
-  není nutné do v1 — `SmallMonster` zaseknutí už pozná).
+  `Sleep(bool)` (uspí RB, collidery zůstávají). Zpětná vazba „narazil" patří stylu, ne motoru —
+  viz [Zpětná vazba z plnění rozkazu](#zpětná-vazba-z-plnění-rozkazu--musíme-dotáhnout).
 - Při refaktoru zpřehlednit `GameFixedUpdate` (rozdělit pohon / podporu nohou / drag / hold).
 
 ---
@@ -165,23 +184,31 @@ public enum MovementMode { Legged, Free }
 
 Pravidla jsou dvojího druhu — v **oddělených seznamech** (pořadí = priorita, proto dvě rozhraní):
 
-### A) `IController` — soupeří o pohybový zámek
+### A) `IAiRule` — soupeří o pohybový zámek
 
 ```csharp
 public enum ActionStatus { Running, Done }
 
-public interface IController              // [SerializeReference]
+public interface IAiRule                    // [SerializeReference]
 {
-    bool Test(in AiContext ctx);          // vstupní podmínka (bezstavová, no-alloc)
-    bool CanBeInterrupted { get; }        // smí ho přebít VYŠŠÍ controller (nebezpečí přeruší žraní)
-    void Begin(in AiContext ctx);         // jednou při získání zámku (init scratch, animace, instant efekt)
-    ActionStatus Tick(in AiContext ctx);  // každý frame dokud drží zámek; Running/Done
-    // (později, volitelně) void End(in AiContext ctx, bool completed);  // úklid přerušeného
+    bool Test(MonsterBrain brain);          // vstupní podmínka (bezstavová, no-alloc)
+    bool CanBeInterrupted { get; }          // smí ho přebít VYŠŠÍ pravidlo (nebezpečí přeruší žraní)
+    void Begin(MonsterBrain brain);         // jednou při získání zámku (init scratch, animace, instant efekt)
+    ActionStatus Tick(MonsterBrain brain);  // každý fixed krok, dokud drží zámek; Running/Done
+    // (později, volitelně) void End(MonsterBrain brain, bool completed);  // úklid přerušeného
 }
 ```
 
-V jednu chvíli drží **zámek jen jeden controller**. Tři typy chování pokrývá jedno rozhraní:
-- **Instant** (např. `SetDirection`): `Test`→`Begin` udělá efekt→`Tick` vrátí `Done` hned. Zabere
+> **Pravidla dostávají přímo `MonsterBrain`** (původní `AiContext` zrušen — `Status`, `SlowTick`,
+> `SetDirective`, smysly i `desired*` jsou na brainu, context by jen duplikoval). Implementace musí
+> být **bezstavová**: všechny příšery druhu sdílí instance pravidel z jednoho `AiSettings` assetu.
+
+**Konvence pojmenování:** pravidla nesou příponu `Rule` / `Modifier` (`RoamRule`, `FleeRule`,
+`SleepRule`…) a leží ve složce `Ai/Rules/` → namespace `Assets.Scripts.Ai.Rules`. Na první pohled
+(kód, inspektor, stack trace) je jasné, že jde o pravidlo; ruší i kolizi `SleepRule` × `SleepController`.
+
+V jednu chvíli drží **zámek jen jedno pravidlo**. Tři typy chování pokrývá jedno rozhraní:
+- **Instant** (např. `SetDirectionRule`): `Test`→`Begin` udělá efekt→`Tick` vrátí `Done` hned. Zabere
   frame (rozhodl o pohybu), ale zámek nedrží.
 - **Durativní one-shot** (bodnutí, hod): drží zámek, `Tick` počítá animaci, `Done` až doběhne.
   Typicky `CanBeInterrupted = false`.
@@ -191,70 +218,72 @@ V jednu chvíli drží **zámek jen jeden controller**. Tři typy chování pokr
 Přirozený invariant: *interruptible* chování jsou skoro vždy bezstavový steering (přerušení = prostě
 zahodit, žádný úklid), *non-interruptible* doběhnou. Proto `End()`/cleanup do v1 nepotřebujeme.
 
-### B) `IModifier` — reflexy, neberou zámek
+### B) `IAiModifier` — reflexy, neberou zámek
 
 ```csharp
-public interface IModifier               // [SerializeReference]
+public interface IAiModifier                // [SerializeReference]
 {
-    bool Test(in AiContext ctx);
-    void Apply(in AiContext ctx);         // instantní, každý frame, nikdy nebere zámek
+    bool Test(MonsterBrain brain);
+    void Apply(MonsterBrain brain);         // instantní, každý fixed krok, nikdy nebere zámek
 }
 ```
 
-Modifiery se vyhodnocují **každý frame, i když controller drží zámek**, a **nikdy** zámek neberou
-ani nezastaví kaskádu controllerů. Mění *kontext/flagy* (orientace, nálada, odvozený stav), které
-pak čtou controllery / styl. Slouží i k **řetězení**: instantní modifier změní kontext a další
+Modifiery se vyhodnocují **každý krok, i když pravidlo drží zámek**, a **nikdy** zámek neberou
+ani nezastaví kaskádu pravidel. Mění *kontext/flagy* (orientace, nálada, odvozený stav), které
+pak čtou pravidla / styl. Slouží i k **řetězení**: instantní modifier změní kontext a další
 pravidla na to navážou. (Vodítko: modifier ať nepřepisuje primární pohybový příkaz, jen kontext —
-ať se nepere s controllerem/stylem.) V1 lezoucí příšera má `Modifiers[]` klidně prázdný.
+ať se nepere s pravidlem/stylem.) V1 lezoucí příšera má `Modifiers[]` klidně prázdný.
 
-### Vyhodnocovací smyčka (každý frame)
+### Vyhodnocovací smyčka (každý fixed krok)
 
 ```
 // 1) Modifiery — VŽDY všechny, shora dolů
 foreach m in Modifiers:
-    if m.Test(ctx): m.Apply(ctx)
+    if m.Test(brain): m.Apply(brain)
 
-// 2) Controllery — arbitráž zámku
-running = bb.Running                       // běžící controller, nebo null
+// 2) Pravidla — arbitráž zámku (running + runningIndex v blackboardu)
 if running != null && !running.CanBeInterrupted:
-    if running.Tick(ctx) == Done: bb.Running = null
-else:
-    handled = false
-    foreach c in Controllers (shora; pokud běží running, jen NAD ním):
-        if c.Test(ctx):
-            c.Begin(ctx)
-            bb.Running = (c.Tick(ctx) == Running) ? c : null
-            handled = true; break          // první, kdo zabere, vyhrává — nižší priorita NEpřebíjí
-    if !handled && running != null:        // nikdo vyšší nezabral → pokračuj v běžícím
-        if running.Tick(ctx) == Done: bb.Running = null
+    if running.Tick(brain) == Done: running = null
+    return
+foreach i in 0 .. (running != null ? runningIndex : Rules.Length):   // jen NAD běžícím
+    if Rules[i].Test(brain):
+        Rules[i].Begin(brain)
+        running = (Rules[i].Tick(brain) == Running) ? Rules[i] : null; runningIndex = i
+        return                             // první, kdo zabere, vyhrává — nižší priorita NEpřebíjí
+if running != null:                        // nikdo vyšší nezabral → pokračuj v běžícím
+    if running.Tick(brain) == Done: running = null
 
-// 3) Pohyb
-if bb.CurrentDirective.Kind != Manual:
-    ApplyDirective(in bb.CurrentDirective)     // virtual; styl (listová třída) přeloží na desired*
-// ChLegsArms.GameFixedUpdate provede desired*
+// 3) Pohyb (mimo Think, takže běží i po return)
+if directive.Kind != None && directive.Kind != Manual:
+    ApplyDirective(in directive)           // virtual; styl (listová třída) přeloží na desired*
+// AdjustLegsArms + ChLegsArms.GameFixedUpdate provede desired*
 ```
 
-**Controllery se neřetězí** (první, kdo projde `Test`, zabere frame — i instantní). Řetězení je
+**Pravidla se neřetězí** (první, kdo projde `Test`, zabere krok — i instantní). Řetězení je
 úkol modifierů. Tím zůstává priorita zachovaná.
 
 ---
 
-## Blackboard (centrální stav na MonsterController)
+## Blackboard (centrální stav na MonsterBrain)
 
-Klíčové pozorování: protože **v jednu chvíli běží jen jeden controller**, durativní stav nepotřebuje
+Klíčové pozorování: protože **v jednu chvíli běží jen jedno pravidlo**, durativní stav nepotřebuje
 per-pravidlo úložiště — stačí **jedna sdílená sada „scratch" polí**. Tři jasně oddělené regiony:
 
 | Region | Kdo zapisuje | Co | Životnost |
 |--------|--------------|----|-----------|
 | **Perception cache** | smysly (lazy gettery) | `SenseResult` per typ (pevná pole) | persistentní, freshness řízená pravidlem |
-| **Action scratch** | běžící controller | timer, fáze, cílový `Label`/pozice | jen po dobu běhu controlleru |
-| **Motor command** | controller / styl | `CurrentDirective` (+ `Manual`) | standing (trvá, dokud se nezmění) |
+| **Action scratch** | běžící pravidlo | `scratchTimer`, `scratchPhase`, `scratchPos`, `scratchTarget` | jen po dobu běhu pravidla |
+| **Motor command** | pravidlo / styl | `CurrentDirective` (`None`/`Manual`/…) | standing (trvá, dokud se nezmění) |
 
-Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Plus ukazatel na
-`Running` controller.
+Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Plus `running`
++ `runningIndex` (běžící pravidlo). Celý blackboard se resetuje v `AfterMapPlaced` (pooling).
 
 `Begin` inicializuje scratch (timer, *zachytí cíl do scratche*). `Tick` scratch aktualizuje
 (`timer -= dt`). Na `Done` se scratch uvolní pro další.
+
+> **Otevřené — životnost `scratchTarget`:** `Label` může být mezitím poolnut a ožít jako něco
+> jiného. Varianty: (a) `Label` vůbec neukládat (jen pozici/`Ksid`), (b) sledovat přes `Connectable`,
+> (c) tagy à la `GlobalTimerHandler`. Rozhodne se s prvním reálným konzumentem (TODO v kódu).
 
 ---
 
@@ -269,16 +298,16 @@ Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Pl
 Smysl zjistí fakt a uloží `(hodnota, timestamp)`. Konzument (pravidlo) řekne, jak staré to smí být:
 
 ```csharp
-var food = ctx.Sense(SenseId.Food, maxAgeMs: 500);  // je-li cache starší, přepočítá teď
+var food = brain.Sense(SenseId.Food, maxAgeMs: 500);  // je-li cache starší, přepočítá teď
 ```
 
-- **Sdílení:** dvě pravidla čtou stejný `ctx.Sense(...)` → spočítá se max 1× za potřebné okno,
+- **Sdílení:** dvě pravidla čtou stejný `brain.Sense(...)` → spočítá se max 1× za potřebné okno,
   ostatní převezmou. Vlastníkem dotazu je getter, ne test. Nejpřísnější konzument (nejmenší
   `maxAge`) fakticky určuje refresh rate.
 - **Reakce každý frame:** test čte cache levně každý frame; throttluje se jen *drahý sken* uvnitř
   getteru. Urgentní data → malé `maxAge`; jídlo → velké.
-- **Vnitřně-pomalá rozhodnutí** („mám jít spát?"): pravidlo se zhradí sdíleným `ctx.SlowTick`
-  (true ~1×/0.5 s) — žádná pole per-rule.
+- **Vnitřně-pomalá rozhodnutí** („mám jít spát?"): pravidlo se zhradí `brain.SlowTick(period)`
+  s periodou dle potřeby (viz [Jeden tick](#jeden-tick)) — žádná pole per-rule.
 
 ### `SenseResult`
 
@@ -299,7 +328,7 @@ public struct SenseResult
 - **Pooling:** `Target` (`Label`) může být mezitím poolnut/zničen — před použitím **ověřit živost**
   (freshness to z větší části řeší, ale ne vždy).
 - **Přímé dotazy:** speciální/komplexní jednorázový dotaz smí pravidlo udělat napřímo
-  (`ctx.Map.Get(...)`) bez smyslové abstrakce. Smysly jsou jen pro sdílená, opakovaná, cachovatelná
+  (`brain.ActiveMap.Get(...)`) bez smyslové abstrakce. Smysly jsou jen pro sdílená, opakovaná, cachovatelná
   fakta. Přímý dotaz v `Test` (běží každý frame) ať se zhradí `SlowTick`em.
 
 ### Konfigurace smyslů (data, ne kód)
@@ -336,7 +365,7 @@ Dvě vrstvy skládané **kompozicí** (ne dědičností settingů):
 [CreateAssetMenu]
 public class SenseProfile : ScriptableObject { public SenseConfig[] Senses; }  // sdílený archetyp
 
-// v MonsterSettings:
+// v AiSettings:
 public SenseProfile  SenseProfile;     // sdílený základ (default)
 public SenseConfig[] SenseOverrides;   // jen odchylky
 ```
@@ -346,7 +375,7 @@ pole**, ostatní si nechají hodnotu z profilu. Tím lze odladit jen dosah a `Ks
 tak nové doplňkové parametry: starý config je nechá default a override se jich nedotkne.
 
 ```csharp
-// resolve: jednou, lazy, cache na MonsterSettings (sdíleno všemi instancemi druhu)
+// resolve: jednou, lazy, cache na AiSettings (sdíleno všemi instancemi druhu)
 var resolved = new SenseConfig[SenseCount];                 // indexed by (int)Slot
 foreach (var c in SenseProfile.Senses)  resolved[(int)c.Slot] = c;
 foreach (var o in SenseOverrides) {                          // merge per-field, jen nedefaultní
@@ -395,12 +424,17 @@ public ref readonly SenseResult Sense(SenseId id, float maxAgeMs)
 
 ## Directive — adaptér AI → motor
 
-> Revidováno. **Není** datový typ kolující AI (žádný controller nečte cizí `Kind`). Je to
-> **standing příkaz pohybu v blackboardu**, který styl každý frame překládá na `desired*`. Vypadl
-> ze signatur `Test`/`Tick`.
+> Revidováno. **Není** datový typ kolující AI (žádné pravidlo nečte cizí `Kind`). Je to
+> **standing příkaz pohybu v blackboardu**, který styl každý fixed krok překládá na `desired*`.
+> Vypadl ze signatur `Test`/`Tick`.
 
 ```csharp
-public enum DirectiveKind { Roam, GoDirection, GoToward, Stop, Manual }
+public enum DirectiveKind
+{
+    None,          // žádný rozkaz — výchozí stav po spawnu i po poolingu (= default); styl se nevolá
+    Manual,        // pravidlo řídí desired* samo; styl se nevolá
+    Stop, Roam, GoDirection, GoToward,
+}
 
 public struct Directive
 {
@@ -411,39 +445,70 @@ public struct Directive
 }
 ```
 
-Dva způsoby, jak controller řídí pohyb:
-1. **`ctx.SetDirective(...)`** — vyšší-úrovňový příkaz; **styl ho překládá na `desired*` podle terénu**
-   (lezec hlídá díry/hrany, balon steeruje/odráží). Tohle je ten odpojovací šev, kvůli kterému
-   framework existuje — controller řekne *co*, styl rozhodne *jak* podle těla. Překlad je
-   `protected virtual` metoda na `MonsterController` (např. `ApplyDirective(in Directive)`), kterou
-   listová třída stylu overriduje — má tak přímý přístup k `desired*`, `map`, `body` i blackboardu.
-2. **`desired*` napřímo přes `ctx.Ctrl`** (= motor, je to `ChLegsArms`) — přesné řízení (ruka při
-   bodnutí). Controller pak nastaví `Kind = Manual`; smyčka ten frame přeskočí `ApplyDirective`.
+Dva způsoby, jak pravidlo řídí pohyb:
+1. **`brain.SetDirective(kind [, direction | target], speedScale = 1)`** — vyšší-úrovňový příkaz;
+   **styl ho překládá na `desired*` podle terénu** (lezec hlídá díry/hrany, balon steeruje/odráží).
+   Tohle je ten odpojovací šev, kvůli kterému framework existuje — pravidlo řekne *co*, styl
+   rozhodne *jak* podle těla. Překlad je `protected virtual ApplyDirective(in Directive)` na
+   `MonsterBrain`, kterou listová třída stylu overriduje — má tak přímý přístup k `desired*`, `map`,
+   `body` i blackboardu.
+2. **`desired*` napřímo přes `brain`** (= motor, je to `ChLegsArms`) — přesné řízení (ruka při
+   bodnutí). Pravidlo pak nastaví `Kind = Manual`; smyčka přeskočí `ApplyDirective`.
 
-**Standing = kontinuita zadarmo:** controller nastaví directive obvykle v `Begin` (cíl do scratche);
-`Tick` může být skoro prázdný — styl pokračuje v rozkazu každý frame sám (jede k uloženému cíli).
-Přepočet jen když se něco změní (cíl se hnul, `BlockedThisStep`). I frame, kdy žádný controller
+**Standing = kontinuita zadarmo:** pravidlo nastaví directive obvykle v `Begin` (cíl do scratche);
+`Tick` může být skoro prázdný — styl pokračuje v rozkazu každý krok sám (jede k uloženému cíli).
+Přepočet jen když se něco změní (cíl se hnul, rozkaz nejde splnit). I krok, kdy žádné pravidlo
 „nepřevezme", jede přísera dál podle standing directive — pohyb se netrhá.
 
-### `AiContext` (no-alloc)
+### `CrawlerStyle` — překlad rozkazu (hotovo)
 
-```csharp
-public readonly ref struct AiContext   // předává se odkazem
-{
-    public readonly MonsterController Ctrl;   // blackboard + (jako ChLegsArms) i motor — táž instance
-    public readonly Status Status;
-    public readonly bool SlowTick;
-    // Ctrl IS-A ChLegsArms → desired*/MovementMode napřímo; Sense(SenseId, maxAgeMs), Map,
-    // SetDirective(...) — helpery. (Pravidla jsou samostatné [SerializeReference] objekty, ref potřebují.)
-}
-```
+| Rozkaz | Lezec |
+|--------|-------|
+| `Stop` | `desiredVelocity.x = 0` |
+| `Roam` | lez; při zaseknutí nebo hraně **otoč** (původní `SmallMonster`) |
+| `GoDirection` | lez daným směrem; při bloku **drží směr**: pauza → rozjezd → zkusí znovu |
+| `GoToward` | směr = `sign(Target.x − x)`, jinak jako `GoDirection`; blíž než 0.25 m ⇒ stůj |
+
+Automat: pauza (stojí) → rozjezd (tlačí, zaseknutí podle rychlosti se netestuje — z klidu je
+rychlost 0) → pohyb (tlačí, testuje zaseknutí). **Hrana (`AiSettings.AvoidHoles`) se testuje ve
+všech fázích s tlakem, i v rozjezdu** — jinak by opakovaný pokus `GoDirection` tlačil do díry.
+Změna rozkazu nebo směru začíná rozjezdem (jinak by klid po `Stop` vypadal jako zaseknutí).
+`SpeedScale` násobí `ChSettings.maxSpeed`.
+
+### Zpětná vazba z plnění rozkazu — MUSÍME DOTÁHNOUT
+
+> ⚠️ **Otevřené, řešit v kroku 4** (s prvními pravidly, která rozkaz vydávají cíleně).
+
+Rozkaz vydá pravidlo, plní ho styl — a **jen styl ví, že cesta nejde** (zeď, díra). Pravidlo to
+zjistit neumí (je nezávislé na těle, `WantMove` ani „zaseknutí" nezná). Dnes se to pravidlo
+**nedozví**: `FleeRule` s `GoDirection` do zdi by donekonečna cukal (styl opakuje pokus, `Tick`
+vidí nebezpečí → `Running`), `SeekFoodRule` by stál na hraně díry. U `Roam` problém není (styl se
+otočí sám). V `CrawlerStyle.Crawl` je na místě detekce bloku TODO.
+
+Varianty, jak blok zveřejnit (styl zapisuje, pravidlo čte na `MonsterBrain`):
+
+1. **Event `BlockedThisStep`** (true jen v kroku detekce) — **nevhodné**: bezstavová pravidla
+   čtou stav, jen když na ně přijde řada (pod jiným pravidlem se `Test` nevolá) → event propásnou.
+2. **Stav vázaný na rozkaz — `float BlockedTime`** (jak dlouho už rozkaz nejde plnit). Trpělivost
+   bez scratche (`Tick`: `BlockedTime > Patience → Done`). **Past:** další krok `FleeRule.Test`
+   znovu projde (nebezpečí trvá) → zabere zámek, `Done`… nižší `DefendRule` se nedostane ke slovu.
+   Aby to `Test` poznal, musel by číst `CurrentDirective` — a pravidlo nemá číst cizí rozkaz.
+3. **Paměť terénu — razítko bloku per směr** (nemaže se změnou rozkazu):
+   `bool WasBlocked(int dir, float withinSeconds)` + `protected ReportBlocked(int dir)` pro styl.
+   Pravidlo rozhodne **už v `Test`** (`DangerNear && !brain.WasBlocked(awayDir, Memory)`) → přirozeně
+   nastoupí nižší pravidlo, po `Memory` s zkusí znovu. Bez oscilace, bez čtení rozkazu, bez scratche.
+   Nevýhoda: `dir` je 1D (lezec); létavec bude chtít 2D (normála bloku + skalární součin) — řešit
+   s `FlyStyle`.
+
+**Směr: varianta 3**, navrhnout finálně až nad `FleeRule`/`SeekFoodRule` (bez konzumenta by to byla
+zbytečná abstrakce).
 
 ---
 
 ## Sleep / Wake
 
 > Revidováno. Spánek je **chování i perf nástroj** zároveň. Funkcionalitu mají **všechny příšery**,
-> liší se jen parametry (v `MonsterSettings`).
+> liší se jen parametry (v `AiSettings`).
 
 Cíl: tisíce příšer existuje, ~100 je probuzených. **Spící přísera je inertní z hlediska AI** — není
 na žádném per-frame ani cyklickém listu. **RB neuspáváme my** — příšera zůstává v Unity fyzice
@@ -491,45 +556,45 @@ branka, stejný kód, dvě chování čistě z hodnoty `SleepNeed`.
 
 ### Dva spouštěče `EnterSleep` (jediná odlišnost)
 
-**1) Dobrovolně — AI pravidlo `Sleep : IController`** (jedna třída, víc instancí v `Controllers[]`,
+**1) Dobrovolně — AI pravidlo `SleepRule : IAiRule`** (jedna třída, víc instancí v `Rules[]`,
 priorita pořadím: NightSleep > Nap > MicroPause; tři délky):
 
 ```csharp
 [Serializable]
-class Sleep : IController
+class SleepRule : IAiRule
 {
     public float NeedThreshold;   // od jaké únavy
     public DayWindow When;        // časové okno (noc / den / kdykoli pro micro)
     public float Duration;        // ← délka spánku (jediný parametr)
     public bool  NeedSafeSpot;    // micro-pauza nemusí
 
-    public bool Test(in AiContext ctx) =>
-        ctx.Status.SleepNeed >= NeedThreshold
-        && When.Contains(ctx.TimeOfDay)
-        && (!NeedSafeSpot || ctx.Ctrl.IsSafeToSleep());   // ← styl-specifický check
-    public bool CanBeInterrupted => true;                 // nebezpečí spánek přeruší (vyšší controller přebije)
-    public void Begin(in AiContext ctx) => ctx.Ctrl.Sleep.EnterSleep(Duration);
-    public ActionStatus Tick(in AiContext ctx) => ActionStatus.Done;  // další frame už není na listu
+    public bool Test(MonsterBrain brain) =>
+        brain.Status.SleepNeed >= NeedThreshold
+        && When.Contains(Game.Instance.TimeOfDay)
+        && (!NeedSafeSpot || brain.IsSafeToSleep());   // ← styl-specifický check
+    public bool CanBeInterrupted => true;                 // nebezpečí spánek přeruší (vyšší pravidlo přebije)
+    public void Begin(MonsterBrain brain) => brain.Sleep.EnterSleep(Duration);
+    public ActionStatus Tick(MonsterBrain brain) => ActionStatus.Done;  // další frame už není na listu
 }
 ```
 
 Bezpečné místo řeší běžná AI — `IsSafeToSleep()` je jen *Test gate*; styl už averzí k dírám drží
 příšeru na stabilní zemi, jinak `Roam` posouvá dál. Žádný zvláštní pathfinding.
 
-**2) Nedobrovolně — kolaps silou z `MonsterController`**, mimo arbitráž zámku (musí přebít i běžící
+**2) Nedobrovolně — kolaps silou z `MonsterBrain`**, mimo arbitráž zámku (musí přebít i běžící
 *non-interruptible* akci — útěk, bodnutí). Není to rozhodnutí, ale fyziologická pojistka před eval smyčkou:
 
 ```csharp
-// MonsterController tick (jen když je probuzená — spící není na per-frame listu)
+// MonsterBrain tick (jen když je probuzená — spící není na per-frame listu)
 Status.TickSleepNeed(dt);                          // roste, rychleji při aktivitě
 if (Status.SleepNeed >= cfg.CollapseThreshold)     // kdekoli — i visíc na stromě, i u predátora
     { EnterSleep(Status.RecoverDuration()); return; }   // délku = čas zotavení pod WakeableLevel
-// ... teprve pak modifiery + arbitráž controllerů
+// ... teprve pak modifiery + arbitráž pravidel
 ```
 
-> Pozor na názvy: **`Sleep`** = AI pravidlo (rozhodne); **`SleepController`** = lifecycle helper na
-> `MonsterController` (vykoná, je `ISimpleTimerConsumer`). Zůstává jediným místem sahajícím na
-> `Game.Instance.ActivateObject/Deactivate`.
+> Názvy: **`SleepRule`** = AI pravidlo (rozhodne); **`SleepController`** = lifecycle helper na
+> `MonsterBrain` (vykoná, je `ISimpleTimerConsumer`). Převezme `MonsterBrain.ActivateAi/DeactivateAi`
+> — jediné místo sahající na `Game.Instance.ActivateObject/Deactivate`.
 
 ### Probouzení — všechny zdroje přes `TryWake()`
 
@@ -557,18 +622,18 @@ wakefulness se šíří jen z aktivních agentů.
 
 ## Status / drives
 
-> Revidováno. **`Status` poskytuje velikost potřeby spánku** (`SleepNeed`) — je vstupem pro `Sleep`
-> pravidlo i pro kolaps. (HP a `ReduceHealth` zůstávají.)
+> Revidováno. **`Status` poskytuje velikost potřeby spánku** (`SleepNeed`) — je vstupem pro
+> `SleepRule` i pro kolaps. (HP a `ReduceHealth` zůstávají.)
 
 Rozšířit `Status` o normalizovaný `SleepNeed` (0..1) a **branku probuzení**:
-- **`TickSleepNeed(dt)`** — volá `MonsterController` každý frame, dokud je probuzená (roste,
+- **`TickSleepNeed(dt)`** — volá `MonsterBrain` každý frame, dokud je probuzená (roste,
   rychleji při aktivitě). Ve spánku se nepočítá průběžně, ale **lazy** z timestampu
   (`SleepController.CurrentNeed()`, klesá `RecoverRate`).
 - **`CanWake(need)`** = `need <= WakeableLevel` — jediné kritérium probuzení. Z něj vypadne
   „kolaps nelze probudit" (začíná nad hladinou) i „dobrovolný spánek lze hned" (začíná pod ní).
 - **`RecoverDuration()`** = `(SleepNeed − WakeableLevel) / RecoverRate` — délka spánku při kolapsu.
-- Prahy v `MonsterSettings` (per druh, jinak stejný kód): `CollapseThreshold` (~1.0),
-  `WakeableLevel` (~0.7), `RecoverRate`, růstová rychlost; per `Sleep` instanci
+- Prahy v `AiSettings` (per druh, jinak stejný kód): `CollapseThreshold` (~1.0),
+  `WakeableLevel` (~0.7), `RecoverRate`, růstová rychlost; per `SleepRule` instanci
   `NeedThreshold`/`When`/`Duration`.
 
 Pro v1 reálně stačí **`SleepNeed`**; `Energy`/`Hunger` odložit, dokud nebudou pravidla, která je čtou.
@@ -581,36 +646,43 @@ Pro v1 reálně stačí **`SleepNeed`**; `Energy`/`Hunger` odložit, dokud nebud
 |-----|-----------|
 | volba podtřídy stylu na prefabu (`CrawlerStyle`/`FlyStyle`/…) | **styl pohybu** – žádný serializovaný odkaz, vybírá se která komponenta je na prefabu |
 | `ChSettings` (už existuje) | fyzika motoru – speed, accel, jump, nohy/ruce, `MovementMode` |
-| serializovaná pole stylu (na listové komponentě) | ladění stylu – averze k dírám, steering, odraz… |
-| nový `MonsterSettings : ScriptableObject` | spánek (`CollapseThreshold`, `WakeableLevel`, `RecoverRate`, růst `SleepNeed`), wake radius/perioda, `SenseProfile` + `SenseConfig[] SenseOverrides`, `[SerializeReference] IController[] Controllers` (vč. konfig. `Sleep` instancí), `[SerializeReference] IModifier[] Modifiers` (sdílitelný „rule set" napříč těly) |
-| `SenseProfile : ScriptableObject` | sdílený archetyp smyslů (`SenseConfig[]`); per-monster override per-field v `MonsterSettings` |
+| `AiSettings : ScriptableObject` (existuje) | `[SerializeReference, TypePicker] IAiRule[] Rules` (vč. konfig. `SleepRule` instancí), `IAiModifier[] Modifiers`; **konfigurace stylu** pod `[Header]` podle stylu (`Crawler`: `AvoidHoles`); později spánek (`CollapseThreshold`, `WakeableLevel`, `RecoverRate`, růst `SleepNeed`), wake radius/perioda, `SenseProfile` + `SenseConfig[] SenseOverrides` |
+| pole listové komponenty stylu | jen **běhový stav** stylu (`turnTimeout`) a počáteční stav z prefabu (`direction`, reset v `Cleanup` z prototypu) — **ne konfigurace** |
+
+> **Konvence:** ladicí parametry stylu patří do `AiSettings` (sdílený asset druhu), ne na komponentu.
+> Pole stylu, který příšera nemá, jsou mrtvá a nic nestojí (stejná filozofie jako `SenseConfig`).
+> Pozn.: `[SerializeReference]` pole potřebují v inspektoru `[TypePicker]` (vlastní drawer
+> v `EditorExtensions/TypePickerDrawer.cs`) — Unity 6.0 výběr konkrétního typu samo neumí.
+| `SenseProfile : ScriptableObject` | sdílený archetyp smyslů (`SenseConfig[]`); per-monster override per-field v `AiSettings` |
 | `PlaceableSettings.SecondaryMapIndex` | `Beasts` — registrace na sekundární mapu pro probouzení |
 | `Ksid` | typy pro Perception/probouzení: např. `Beast`, `Danger`, `Food`, `Prey` |
 | per-rule serializovaná pole | prahy podmínek, váhy, `maxAge` pro smysly |
 
 ## Mapování na příklady příšer
 
-(„styl" = listová podtřída `MonsterController` na prefabu; „pravidla" = `[SerializeReference]` seznamy.)
+(„styl" = listová podtřída `MonsterBrain` na prefabu; „pravidla" = `[SerializeReference]` seznamy.)
 
-- **Lezoucí (dnešní `SmallMonster`)** → `CrawlerStyle` (`Legged`, averze k dírám/nebezpečí) +
-  minimální seznam controllerů, prázdné modifiery.
+- **Lezoucí (prefab `Small Monster`)** → `CrawlerStyle` (`Legged`, averze k dírám/nebezpečí) +
+  minimální seznam pravidel (dnes jen `RoamRule`), prázdné modifiery.
 - **Po povrchu i hlavou dolů** → `SurfaceStyle` (`Legged` s povrchovou „gravitací"), jeden směr,
   otočka na nebezpečí.
 - **Létající balon / kulečník** → `BounceStyle` (`Free`, gravitace off, odraz).
-- **Létající dravec** → `FlyStyle` (`Free`) + ruce (chytí a odnese kořist) + bohatší controllery.
+- **Létající dravec** → `FlyStyle` (`Free`) + ruce (chytí a odnese kořist) + bohatší pravidla.
 - **S rozhodováním** → kterýkoli styl + bohatší seznam pravidel (později candidate scoring).
 
 ### Připraveno na později: candidate scoring
 
 Style naplní **statický bufr** kandidátních lokací (vzor `armCandidates` v `ChLegsArms`) a nechá
 mozek je ohodnotit součtem `IScorer` pravidel; vrátí nejlepší. Kontrakt se navrhne tak, aby
-`IController` a `IScorer` mohly koexistovat.
+`IAiRule` a `IScorer` mohly koexistovat.
 
 ## Konvence (viz [conventions.md](conventions.md))
 
-- **No-alloc:** podmínky/akce bez alokací; kandidáti přes statické bufry. `AiContext` je `ref struct`.
-- **Pooling:** init v `Awake`, ne `AfterMapPlaced`; reset blackboardu v `AfterMapPlaced`/`Cleanup`.
-  `SenseResult.Target` ověřovat na živost (pooling).
+- **No-alloc:** podmínky/akce bez alokací; kandidáti přes statické bufry.
+- **Pooling:** init v `Awake` (listová třída: `void Awake() => AwakeM();`), ne `AfterMapPlaced`;
+  reset blackboardu v `AfterMapPlaced`, stav stylu v `Cleanup`. `SenseResult.Target` ověřovat na živost.
+- **Namespace** podle složky (`Assets.Scripts.Ai`, pravidla `Assets.Scripts.Ai.Rules`); pravidla
+  s příponou `Rule`/`Modifier`, `[Serializable]`, bezstavová.
 - **KSID místo `is`/`GetComponent`** pro herní interakce (`IsChildOf`/`IsChildOfOrEq`).
 - Nové `.cs` pod `Assets/Scripts` → přidat `Compile Include` do `MainGameAsm.csproj`.
 
@@ -620,12 +692,15 @@ mozek je ohodnotit součtem `IScorer` pravidel; vrátí nejlepší. Kontrakt se 
 
 Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu:
 
-1. **`TimeOfDay`** — zdroj denní doby pro `Sleep.When` (existuje ve hře denní cyklus, nebo zavést
-   prostý `Game` čítač?).
-2. **`IsSafeToSleep()`** — přesný style-specifický check (lezec: na zemi + ne na hraně; příp. žádné
+1. ⚠️ **Zpětná vazba z plnění rozkazu** — styl ví, že rozkaz nejde splnit, pravidla ne. **Musíme
+   dotáhnout v kroku 4**, viz [Zpětná vazba z plnění rozkazu](#zpětná-vazba-z-plnění-rozkazu--musíme-dotáhnout).
+2. **Životnost `scratchTarget`** — viz [Blackboard](#blackboard-centrální-stav-na-monsterbrain).
+3. **`TimeOfDay`** — zdroj denní doby pro `SleepRule.When`: `Game.Instance.TimeOfDay` existuje,
+   ověřit API při kroku 6.
+4. **`IsSafeToSleep()`** — přesný style-specifický check (lezec: na zemi + ne na hraně; příp. žádné
    akutní nebezpečí).
-3. **Smysly** — `enum SenseId` finální seznam + `SenseCount`; signatura `EvalNearestKsid`.
-4. Případně `End()`/cleanup u controllerů (zatím odloženo, viz Mozek).
+5. **Smysly** — `enum SenseId` finální seznam + `SenseCount`; signatura `EvalNearestKsid`.
+6. Případně `End()`/cleanup u pravidel (zatím odloženo, viz Mozek).
 
 ## Implementační pořadí
 
@@ -637,16 +712,23 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
    > Podrobně v [chlegsarms-refactor.md](chlegsarms-refactor.md): kýble A (zpřehlednění)
    > a B (rozdělení GameUpdate/FixedUpdate + oprava hodu) jsou hotové, kýbl C je protříděný —
    > většina bodů zrušena nebo odložena.
-2. **`MonsterController : ChLegsArms`** (abstraktní) — blackboard (3 regiony), `Directive` standing,
-   eval smyčka (modifiery + arbitráž zámku), napojení na `IActiveObject`, `virtual ApplyDirective`.
-3. **`CrawlerStyle : MonsterController`** — port `SmallMonster` crawl/flip + `WantMove` do override
-   `ApplyDirective` (překlad `Directive` → `desired*`); styl-state jako pole, reset v `AfterMapPlaced`.
-4. **`IController` / `IModifier`** + pár konkrétních pravidel a akcí; `Defend`, `SetDirection`,
-   `SeekFood`, `FleePlayer`, `Roam`, `Sleep`.
+2. ✅ **`MonsterBrain : ChLegsArms`** (abstraktní, `Ai/MonsterBrain.cs`) — blackboard (scratch
+   + standing `Directive`), eval smyčka ve fixed kroku (modifiery + arbitráž zámku s `runningIndex`),
+   `virtual ApplyDirective`, `SetDirective` přetížení, `SlowTick(period)` s per-instance offsetem
+   (`Game.FixedStepCounter`), `ActivateAi/DeactivateAi`. Rozhraní `IAiRule`/`IAiModifier`
+   (bez `AiContext`), `AiSettings` (seznamy pravidel), `DirectiveKind.None`.
+3. ✅ **`CrawlerStyle : MonsterBrain`** — vznikl přejmenováním `SmallMonster.cs` se zachováním
+   `.meta` (GUID → prefab `Small Monster` se přepojil sám). Překlad rozkazů (viz
+   [CrawlerStyle](#crawlerstyle--překlad-rozkazu-hotovo)), oprava hlídání hrany v rozjezdu, reset
+   `direction`/`turnTimeout` v `Cleanup` z prototypu (dřív pooling bug). `ChSettings.monsterMoveOnGround`
+   → `AiSettings.AvoidHoles`. První pravidlo `Rules/RoamRule`. Editor: `[TypePicker]` + drawer.
+   **V editoru:** vytvořit `AiSettings` asset pro Small Monster, přidat `RoamRule`, přiřadit prefabu.
+4. **`IAiRule` / `IAiModifier` pravidla** — `DefendRule`, `SetDirectionRule`, `SeekFoodRule`,
+   `FleeRule`, `SleepRule`; **+ zpětná vazba z plnění rozkazu** (viz otevřené drobnosti, bod 1).
 5. **Perception** — `SenseResult` + `SenseConfig`/`SenseKind` switch, `SenseProfile` + per-field
    override resolve, lazy `Sense(id, maxAge)` s freshness, `SlowTick`.
 6. **`Status.SleepNeed`** (+ `CanWake`/`RecoverDuration`) + **`SleepController`** (`ISimpleTimerConsumer`)
-   — jeden `EnterSleep(duration)`, branka `TryWake`, centrální kolaps-guard v `MonsterController`,
+   — jeden `EnterSleep(duration)`, branka `TryWake`, centrální kolaps-guard v `MonsterBrain`,
    lazy `CurrentNeed`, wake přes `Timer.Plan` (rušení časovače `ActiveTag`em).
-7. **`MonsterSettings`** ScriptableObject; sestavení prvních příšer z modulů.
+7. **`AiSettings`** — doplnit spánek a smysly; sestavení prvních příšer z modulů.
 8. (později) `BounceStyle`, povrchový režim, candidate scoring, push-trigger probouzení, `End()` cleanup.

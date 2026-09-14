@@ -9,8 +9,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{D2665D7C-5407-8258-F0B2-65E5242B16D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -65,10 +64,6 @@
     <Compile Include="Assets\Scripts\Bases\CollisionForceToSp.cs" />
     <Compile Include="Assets\Scripts\Core\TimeOfDay.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.cs" />
-    <Compile Include="Assets\Scripts\Ai\MonsterBrain.cs" />
-    <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
-    <Compile Include="Assets\Scripts\Ai\IAiRule.cs" />
-    <Compile Include="Assets\Scripts\Ai\Directive.cs" />
     <Compile Include="Assets\Scripts\Stuff\Knife.cs" />
     <Compile Include="Assets\Scripts\Core\Ksids.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelDirtTest.cs" />
@@ -81,8 +76,10 @@
     <Compile Include="Assets\Scripts\Stuff\Chest.cs" />
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
+    <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\TypePickerDrawer.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelEmpty.cs" />
     <Compile Include="Assets\Scripts\Bases\IKnife.cs" />
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
@@ -122,6 +119,7 @@
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Utils\HoldAnimator.cs" />
+    <Compile Include="Assets\Scripts\Utils\TypePickerAttribute.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />
@@ -147,6 +145,7 @@
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimDebug.cs" />
     <Compile Include="Assets\Scripts\Stuff\ParticleEffect.cs" />
     <Compile Include="Assets\Scripts\Utils\FpsCounter.cs" />
+    <Compile Include="Assets\Scripts\Ai\CrawlerStyle.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\ShadowWorker.cs" />
     <Compile Include="Assets\Scripts\Bases\LabelWithSettings.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpInterface.cs" />
@@ -168,10 +167,11 @@
     <Compile Include="Assets\Scripts\Map\CellUtils.cs" />
     <Compile Include="Assets\Scripts\Stuff\CellDebugger.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates20Sec.cs" />
+    <Compile Include="Assets\Scripts\Ai\Directive.cs" />
     <Compile Include="Assets\Scripts\Stuff\CannonSettings.cs" />
     <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\ElementMargolusJob.cs" />
-    <Compile Include="Assets\Scripts\Stuff\SmallMonster.cs" />
+    <Compile Include="Assets\Scripts\Ai\MonsterBrain.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
     <Compile Include="Assets\Scripts\Map\OBBCellTest.cs" />
@@ -180,6 +180,7 @@
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Stuff\PosDebugger.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
+    <Compile Include="Assets\Scripts\Ai\Rules\RoamRule.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\Inventory.cs" />
     <Compile Include="Assets\Scripts\Stuff\TreeSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\TouchDebugger.cs" />
@@ -202,6 +203,7 @@
     <Compile Include="Assets\Scripts\Bases\RbLabel.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSettings.cs" />
     <Compile Include="Assets\Scripts\Bases\PlaceableSibling.cs" />
+    <Compile Include="Assets\Scripts\Ai\IAiRule.cs" />
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\Stuff\TreeTrunk.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />

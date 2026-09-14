@@ -39,8 +39,6 @@ public class ChSettings : ScriptableObject
 	public int armCatchLayerMask { get; private set; }
 	public int legStandLayerMask { get; private set; }
 
-	public bool monsterMoveOnGround = true;
-
 	// Vychozi rezim pohybu pro druh. ChLegsArms ho smi za behu prepnout (MoveMode).
 	public MovementMode DefaultMovementMode = MovementMode.Legged;
 

@@ -1122,7 +1122,8 @@ MonoBehaviour:
   - {fileID: 5057740291242110320}
   LegSphere: {fileID: 8390175372771104848}
   ArmSphere: {fileID: 8390175371901419850}
-  desiredDirection: -1
+  AiSettings: {fileID: 11400000, guid: cdb5d8b3471dbb94789f6fabf9d62232, type: 2}
+  direction: -1
 --- !u!114 &200132248817074010
 MonoBehaviour:
   m_ObjectHideFlags: 0
