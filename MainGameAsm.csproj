@@ -87,6 +87,7 @@
     <Compile Include="Assets\Scripts\Map\Levels\Level1.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Hold.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
+    <Compile Include="Assets\Scripts\Ai\SenseProfile.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
     <Compile Include="Assets\Scripts\Stuff\InventorySearcher.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="Assets\Scripts\EditorExtensions\Menu.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\InvariantValidator.cs" />
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
+    <Compile Include="Assets\Scripts\Ai\Rules\SeekItemRule.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
@@ -206,9 +208,11 @@
     <Compile Include="Assets\Scripts\Ai\IAiRule.cs" />
     <Compile Include="Assets\Scripts\Core\SimpleCameraController.cs" />
     <Compile Include="Assets\Scripts\Stuff\TreeTrunk.cs" />
+    <Compile Include="Assets\Scripts\Ai\MonsterBrain.Senses.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level2.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceSplitWeighting.cs" />
     <Compile Include="Assets\Scripts\Map\MapSettings.cs" />
+    <Compile Include="Assets\Scripts\Ai\Senses.cs" />
     <Compile Include="Assets\Scripts\Stuff\ElementMedium.cs" />
   </ItemGroup>
   <ItemGroup>

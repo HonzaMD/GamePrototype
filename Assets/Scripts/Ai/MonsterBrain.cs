@@ -17,7 +17,7 @@ namespace Assets.Scripts.Ai
     //
     // Probuzena prisera je na per-frame listu (IActiveObject), spici na nem neni vubec - viz
     // ActivateAi/DeactivateAi (v kroku 6 to prevezme SleepController).
-    public abstract class MonsterBrain : ChLegsArms, IActiveObject
+    public abstract partial class MonsterBrain : ChLegsArms, IActiveObject
     {
         public AiSettings AiSettings;
 
@@ -25,22 +25,20 @@ namespace Assets.Scripts.Ai
 
         public Status Status { get; private set; }
 
+        public Vector2 Center => placeable.Center;
+
         // --- Blackboard: action scratch ---------------------------------------------------
         // Protoze v jednu chvili bezi jen JEDNO pravidlo, staci jedna sdilena sada scratch poli.
         // Begin je inicializuje, Tick aktualizuje, pri Done se uvolni pro dalsi.
+        // Cil se drzi jako POZICE, nikdy jako Label - ten muze byt mezitim poolnut a ozit jako
+        // neco jineho. Dlouhodoba vazba na konkretni objekt jde jen pres Connectable (motor).
         private IAiRule running;
         private int runningIndex;
-        protected float scratchTimer;
-        protected int scratchPhase;
-        protected Vector2 scratchPos;
 
-        // TODO zivotnost cile: Label muze byt mezitim poolnut a ozit jako neco jineho, takze
-        // ulozeny odkaz muze tise ukazovat na cizi objekt. Mame tri moznosti, jak to resit:
-        //   a) Label vubec neukladat (jen pozici a pripadne Ksid, cil si pravidlo znovu najde),
-        //   b) drzet cil pres Connectable (tracking uz existuje a odpojeni chodi callbackem),
-        //   c) tagovaci mechanismus ala GlobalTimerHandler (Label + objTag, kontrola pri cteni).
-        // Je to komplexnejsi vec, rozhodne se az bude prvni realny konzument (krok 4/5).
-        protected Label scratchTarget;
+        public float ScratchTimer;
+        public int ScratchPhase;
+        public Vector2 ScratchPos;
+        public float ScratchValue;
 
         // --- Blackboard: motor command ---------------------------------------------------
         private Directive directive;
@@ -55,6 +53,7 @@ namespace Assets.Scripts.Ai
         {
             AwakeB();
             Status = GetComponent<Status>();
+            AwakeSenses();
         }
 
         // Perioda je na pravidle (zna dulezitost informace): 25 = ~2x za sekundu pri 50 Hz.
@@ -148,6 +147,38 @@ namespace Assets.Scripts.Ai
             directive.SpeedScale = speedScale;
         }
 
+        // --- Hlidani pokroku k cili ------------------------------------------------------
+        // Zpetna vazba pro pravidla bez pomoci stylu: pokrok se meri geometricky (vzdalenost k cili),
+        // takze funguje pro kazde telo. Co udelat pri zaseknuti, rozhoduje pravidlo.
+        // Pouziva scratch: ScratchPos = posledni pozice cile, ScratchValue = nejmensi dosazena
+        // vzdalenost, ScratchTimer = cas posledniho pokroku.
+        private const float MinProgress = 0.1f;   // o kolik se musi priblizit, aby to byl pokrok
+        private const float TargetJump = 0.5f;    // posun cile, ktery se bere jako novy cil
+
+        public void StartApproach(Vector2 target)
+        {
+            ScratchPos = target;
+            ScratchValue = float.PositiveInfinity;
+            ScratchTimer = Time.time;
+        }
+
+        // Volat kazdy Tick. Vrati false, kdyz se prisera k cili uz patience sekund nepriblizila.
+        public bool TrackApproach(Vector2 target, float patience)
+        {
+            if ((target - ScratchPos).sqrMagnitude > TargetJump * TargetJump)
+                StartApproach(target);      // smysl vybral jiny cil nebo cil poskocil
+            ScratchPos = target;
+
+            float dist = (target - Center).magnitude;
+            if (dist < ScratchValue - MinProgress)
+            {
+                ScratchValue = dist;
+                ScratchTimer = Time.time;
+                return true;
+            }
+            return Time.time - ScratchTimer <= patience;
+        }
+
         public override void AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)
         {
             base.AfterMapPlaced(map, placeableSibling, goesFromInventory);
@@ -167,11 +198,12 @@ namespace Assets.Scripts.Ai
         {
             running = null;
             runningIndex = 0;
-            scratchTimer = 0;
-            scratchPhase = 0;
-            scratchPos = default;
-            scratchTarget = null;
+            ScratchTimer = 0;
+            ScratchPhase = 0;
+            ScratchPos = default;
+            ScratchValue = 0;
             directive = default;        // Kind = None
+            ResetSenses();
         }
 
         // Jedine misto, ktere (de)registruje mozek do per-frame smycky. V kroku 6 to prevezme

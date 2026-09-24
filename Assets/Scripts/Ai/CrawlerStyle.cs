@@ -51,7 +51,7 @@ namespace Assets.Scripts.Ai
                     Crawl(d.SpeedScale, flipOnBlock: false);
                     break;
                 case DirectiveKind.GoToward:
-                    float dx = d.Target.x - transform.position.x;
+                    float dx = d.Target.x - Center.x;
                     if (Mathf.Abs(dx) < ArriveDistance)
                     {
                         desiredVelocity.x = 0;

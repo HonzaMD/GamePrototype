@@ -13,8 +13,18 @@ MonoBehaviour:
   m_Name: SmallMonster AI
   m_EditorClassIdentifier: 
   Rules:
+  - rid: 6349271191665770555
   - rid: 6349270946082717696
   Modifiers: []
+  SenseProfile: {fileID: 0}
+  SenseOverrides:
+  - Slot: 0
+    Kind: 1
+    Ksid: 9
+    Radius: 3
+    NeedsSight: 1
+    SkipUnreachable: 1
+    TrackRadius: 0.6
   AvoidHoles: 1
   references:
     version: 2
@@ -22,3 +32,12 @@ MonoBehaviour:
     - rid: 6349270946082717696
       type: {class: RoamRule, ns: Assets.Scripts.Ai.Rules, asm: MainGameAsm}
       data: 
+    - rid: 6349271191665770555
+      type: {class: SeekItemRule, ns: Assets.Scripts.Ai.Rules, asm: MainGameAsm}
+      data:
+        SenceId: 0
+        SenceAge: 1.5
+        SenceTrackAge: 0.4
+        SpeedScale: 1
+        Patience: 1.5
+        GiveUpTime: 15

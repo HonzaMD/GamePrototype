@@ -4,9 +4,11 @@ Návrh frameworku pro skládání chování příšer z vyměnitelných modulů.
 **styl pohybu** a **rozhodovací logiku** nezávisle, bez globálního pathfindingu — vše
 stojí na **lokálním rozhodování**.
 
-> Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, viz
-> [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která návrh
-> upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`…) — dokument je už obsahuje.
+> Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, rozpracovaná featura
+> [Sbírání předmětů](#featura-sbírání-předmětů) (smysly + `SeekItemRule` hotové, pickup + inventář
+> zbývá), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
+> návrh upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`, cíl jen jako pozice…) — dokument
+> je už obsahuje.
 
 ## Stav revize — kde jsme skončili
 
@@ -171,8 +173,8 @@ public enum MovementMode { Legged, Free }
   (`ChLegsArms.MoveMode`, výchozí režim druhu v `ChSettings.DefaultMovementMode`).
   Létání samo zatím neodzkoušené — `Free` nemá konzumenta.
 - Vyčlenit **public API** pro AI: settery `desired*` (případně tenké metody),
-  `Sleep(bool)` (uspí RB, collidery zůstávají). Zpětná vazba „narazil" patří stylu, ne motoru —
-  viz [Zpětná vazba z plnění rozkazu](#zpětná-vazba-z-plnění-rozkazu--musíme-dotáhnout).
+  `Sleep(bool)` (uspí RB, collidery zůstávají). Zpětná vazba „narazil" nepatří motoru —
+  viz [Zpětná vazba z plnění rozkazu](#zpětná-vazba-z-plnění-rozkazu).
 - Při refaktoru zpřehlednit `GameFixedUpdate` (rozdělit pohon / podporu nohou / drag / hold).
 
 ---
@@ -272,7 +274,8 @@ per-pravidlo úložiště — stačí **jedna sdílená sada „scratch" polí**
 | Region | Kdo zapisuje | Co | Životnost |
 |--------|--------------|----|-----------|
 | **Perception cache** | smysly (lazy gettery) | `SenseResult` per typ (pevná pole) | persistentní, freshness řízená pravidlem |
-| **Action scratch** | běžící pravidlo | `scratchTimer`, `scratchPhase`, `scratchPos`, `scratchTarget` | jen po dobu běhu pravidla |
+| **Action scratch** | běžící pravidlo | `ScratchTimer`, `ScratchPhase`, `ScratchPos`, `ScratchValue` (public — pravidla jsou v jiném namespace) | jen po dobu běhu pravidla |
+| **Paměť nedosažitelných míst** | pravidla (`MarkUnreachable`) | `UnreachableSpot[4]` (pozice + `Until`), čte ji smysl | sekundy (`GiveUpTime`) |
 | **Motor command** | pravidlo / styl | `CurrentDirective` (`None`/`Manual`/…) | standing (trvá, dokud se nezmění) |
 
 Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Plus `running`
@@ -281,9 +284,12 @@ Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Pl
 `Begin` inicializuje scratch (timer, *zachytí cíl do scratche*). `Tick` scratch aktualizuje
 (`timer -= dt`). Na `Done` se scratch uvolní pro další.
 
-> **Otevřené — životnost `scratchTarget`:** `Label` může být mezitím poolnut a ožít jako něco
-> jiného. Varianty: (a) `Label` vůbec neukládat (jen pozici/`Ksid`), (b) sledovat přes `Connectable`,
-> (c) tagy à la `GlobalTimerHandler`. Rozhodne se s prvním reálným konzumentem (TODO v kódu).
+> **Rozhodnuto — cíl je vždy POZICE, nikdy `Label`.** `Label` může být mezitím poolnut a ožít jako
+> něco jiného (střela „na label" by pak letěla úplně jinam; na zapamatovanou pozici je to v pořádku).
+> Proto `Label` nepřežije jeden výpočet: žije jen uvnitř vyhodnocení smyslu nebo dotazu motoru
+> v okamžiku uchopení. Do scratche, cache smyslu ani paměti se neukládá — `scratchTarget` zrušen.
+> Dlouhodobou vazbu na konkrétní objekt má jen motor po uchopení, a ta jde přes `Connectable`
+> (pooling-safe: `Cleanup` odpojí connectables → `OnLimbDetached`).
 
 ---
 
@@ -298,7 +304,7 @@ Drives jsou ve `Status`, stav končetin v `ChLegsArms` — **neduplikujeme**. Pl
 Smysl zjistí fakt a uloží `(hodnota, timestamp)`. Konzument (pravidlo) řekne, jak staré to smí být:
 
 ```csharp
-var food = brain.Sense(SenseId.Food, maxAgeMs: 500);  // je-li cache starší, přepočítá teď
+ref readonly var loot = ref brain.Sense(SenseId.Loot, maxAge: 0.5f);  // [s]; je-li cache starší, přepočítá teď
 ```
 
 - **Sdílení:** dvě pravidla čtou stejný `brain.Sense(...)` → spočítá se max 1× za potřebné okno,
@@ -314,10 +320,9 @@ var food = brain.Sense(SenseId.Food, maxAgeMs: 500);  // je-li cache starší, p
 ```csharp
 public struct SenseResult
 {
-    public float Timestamp;   // Time.time posledního výpočtu → freshness
+    public int Step;           // fixed krok (+ slowOffset) posledního výpočtu → freshness
     public bool Found;
-    public Vector2 Position;   // kde / směr
-    public Label Target;       // objekt (volitelné)
+    public Vector2 Position;   // střed nalezeného objektu
     public float Value;        // vzdálenost / množství / skóre — význam dle smyslu
 }
 ```
@@ -325,8 +330,8 @@ public struct SenseResult
 - **Paměť:** blackboard má **pevná pole pro všechny typy smyslů ve hře** (typů bude jednotky →
   paměťově nula; žádný dictionary/alokace; cache-friendly). „Mrtvá" pole u nepoužitého smyslu nic
   nestojí.
-- **Pooling:** `Target` (`Label`) může být mezitím poolnut/zničen — před použitím **ověřit živost**
-  (freshness to z větší části řeší, ale ne vždy).
+- **Pooling:** `SenseResult` **nemá `Label`** — viz [Blackboard](#blackboard-centrální-stav-na-monsterbrain).
+  Konzument pracuje s `Position` (stará max. `maxAge`), takže nikdy nemíří na poolnutý objekt.
 - **Přímé dotazy:** speciální/komplexní jednorázový dotaz smí pravidlo udělat napřímo
   (`brain.ActiveMap.Get(...)`) bez smyslové abstrakce. Smysly jsou jen pro sdílená, opakovaná, cachovatelná
   fakta. Přímý dotaz v `Test` (běží každý frame) ať se zhradí `SlowTick`em.
@@ -339,19 +344,40 @@ a dosah („Potrava" = `Plant` u býložravce, `Prey` u dravce; „Nebezpečí" 
 Druhů výpočtu jsou jednotky → **enum + centrální `switch`** (ne delegáti, ne polymorfní objekty):
 
 ```csharp
-public enum SenseId   { Food, Danger, Prey, Mate, Home, /*…*/ }   // fixní sloty do SenseResult[]
-public enum SenseKind { None, NearestKsid, NearestKsidSec /* sekundární mapa */ }
+public enum SenseId   { Loot, /* později Food, Danger, Prey, Mate, Home… (jen na konec!) */ }
+public enum SenseKind { None, NearestKsid, /* později NearestKsidSec – sekundární mapa */ }
 
 [Serializable]
 public struct SenseConfig
 {
-    public SenseId  Slot;     // který slot plní
-    public SenseKind Kind;    // který výpočet (switch)
-    public Ksid     Ksid;     // co hledá
-    public float    Radius;   // dosah
-    // doplňkové parametry přidáváme SEM stejným stylem; default (0/None/null) = „nezadáno"
+    public SenseId  Slot;          // který slot plní
+    public SenseKind Kind;         // který výpočet (switch)
+    public Ksid     Ksid;          // co hledá
+    public float    Radius;        // dosah
+    public bool     NeedsSight;    // kandidát musí být vidět (raycast na vrstvu Default)
+    public bool     SkipUnreachable; // přeskoč místa z paměti nedosažitelných míst
+    public float    TrackRadius;   // >0 = tunelové vidění, velikost okna kolem posledního nálezu
+    // doplňkové parametry přidáváme SEM stejným stylem; default (0/None/false) = „nezadáno"
 }
 ```
+
+`NearestKsid` (hotovo, `MonsterBrain.Senses.cs`): `map.Get` ve čtverci 2R → filtr kruhem, sebe sama
+a nedosažitelných míst → částečný selection sort; s `NeedsSight` raycastuje max 3 nejbližší
+kandidáty, dokud jeden není vidět. Filtr přepíše kandidáty do `List<Candidate>` s předpočítaným
+`Center` a vzdáleností (`Center` jde přes `transform.position` — nativní volání, počítá se jednou);
+test nedosažitelných míst se úplně přeskočí, když paměť vypršela (`unreachableUntilMax`).
+`NearestKsidSec` přidáme se smyslem, který ho potřebuje (nebezpečí) — pak dostane i pole s výběrem
+sekundární mapy. Perf rezerva do budoucna: sekundární mapa `Items` (předměty registrované přes
+`SecondaryMapIndex`) — až to profiler ukáže nebo bude potřeba velký dosah.
+
+**Tunelové vidění (`TrackRadius > 0`)** — je-li poslední nález nalezený a nejvýš `TrackMaxAge`
+(0,7 s) starý, hledá se nejdřív jen v okně `TrackRadius` kolem něj: kandidát nejblíž k *poslední
+pozici* (ne k příšeře), se stejnými filtry (`Radius` od příšery, nedosažitelná místa) a s `NeedsSight`
+jen jeden raycast. Když nic nenajde nebo cíl není vidět → plné hledání. Přínos: perf (okno 2×2 m =
+16 buněk vs. okruh 5 m = 400) a příšera nepřeskakuje mezi cíli. Proto per smysl: `Loot` ano,
+budoucí `Danger` ne (sledoval by vzdálenějšího predátora a přehlédl bližšího). Fokus končí sám,
+když cíl zmizí, uteče z okna, nebo `MarkUnreachable` zneplatní cache. Vynucené periodické
+přehodnocení fokusu zatím neděláme.
 
 Plochý `struct` (ne `[SerializeReference]`): no-alloc, cache-friendly, sedí na „fixní pole pro
 všechny typy"; override hodnoty je triviální. Exotický smysl → nový `SenseKind`, který nepotřebná
@@ -383,8 +409,13 @@ foreach (var o in SenseOverrides) {                          // merge per-field,
     if (o.Kind   != SenseKind.None) b.Kind   = o.Kind;
     if (o.Ksid   != default)        b.Ksid   = o.Ksid;
     if (o.Radius != 0)              b.Radius = o.Radius;
+    if (o.NeedsSight)               b.NeedsSight = true;   // bool jde overridem jen zapnout
+    if (o.SkipUnreachable)          b.SkipUnreachable = true;
+    if (o.TrackRadius != 0)         b.TrackRadius = o.TrackRadius;
 }
 ```
+
+Cache je `[NonSerialized]` na `AiSettings` (`ResolvedSenses`), `OnValidate` ji zahodí.
 
 Praktický dopad — designér skoro nikdy nekonfiguruje vše:
 
@@ -402,20 +433,30 @@ v profilu se propíše všem; výjimka je jeden řádek override.
 Blackboard drží **per-instance** `SenseResult[] senseCache` + ref na sdílený `resolved`:
 
 ```csharp
-public ref readonly SenseResult Sense(SenseId id, float maxAgeMs)
+public ref readonly SenseResult Sense(SenseId id, float maxAge)   // [s]
 {
     ref var r = ref senseCache[(int)id];
-    if (Time.time - r.Timestamp <= maxAgeMs * 0.001f) return ref r;   // čerstvé → cache
-    ref readonly var cfg = ref resolved[(int)id];
+    int period = Mathf.Max(1, Mathf.RoundToInt(maxAge / Time.fixedDeltaTime));
+    int step = Game.Instance.FixedStepCounter + slowOffset;
+    if (r.Step != InvalidStep && r.Step / period == step / period) return ref r;   // stejné okno → cache
+    ref readonly var cfg = ref AiSettings.ResolvedSenses[(int)id];
     switch (cfg.Kind) {
-        case SenseKind.NearestKsid:    EvalNearestKsid(cfg, secondary:false, ref r); break;
-        case SenseKind.NearestKsidSec: EvalNearestKsid(cfg, secondary:true,  ref r); break;
-        default:                       r.Found = false; break;
+        case SenseKind.NearestKsid: EvalNearestKsid(in cfg, ref r); break;
+        default:                    r.Found = false; break;
     }
-    r.Timestamp = Time.time;
+    r.Step = step;
     return ref r;
 }
 ```
+
+**Rozložení v čase — mřížka oken (stejná myšlenka jako `SlowTick`):** platnost se neměří časem od
+výpočtu, ale oknem `(krok + slowOffset) / period` na mřížce fixed kroků. Hranice oken má každá
+příšera jinde (`slowOffset` se přiděluje postupně), takže příšery umístěné ve stejném kroku (načtení
+levelu) nepřepočítávají synchronně — nezávisle na tom, jak často pravidla čtou. Deterministické,
+v celých krocích. Cena: první čtení po delší pauze spočítá uprostřed okna a na hranici znovu (max
+1 výpočet navíc). Maximální stáří < `maxAge`, průměrné ~poloviční.
+
+`InvalidateSenses()` vynutí přepočet všech slotů (volá ho `MarkUnreachable` a reset blackboardu).
 
 **Editor validace:** varuj, když má profil dva záznamy na stejný `Slot`, nebo když pravidlo čte
 `SenseId` s `Kind == None` v resolved tabulce.
@@ -475,17 +516,38 @@ všech fázích s tlakem, i v rozjezdu** — jinak by opakovaný pokus `GoDirect
 Změna rozkazu nebo směru začíná rozjezdem (jinak by klid po `Stop` vypadal jako zaseknutí).
 `SpeedScale` násobí `ChSettings.maxSpeed`.
 
-### Zpětná vazba z plnění rozkazu — MUSÍME DOTÁHNOUT
+### Zpětná vazba z plnění rozkazu
 
-> ⚠️ **Otevřené, řešit v kroku 4** (s prvními pravidly, která rozkaz vydávají cíleně).
+> ✅ **Rozhodnuto pro cílené pohyby (`GoToward`): pravidlo měří POKROK samo, styl nic nehlásí.**
+> Směrová razítka bloku (varianty níže) odloženo, dokud je nebude potřebovat `FleeRule`.
 
 Rozkaz vydá pravidlo, plní ho styl — a **jen styl ví, že cesta nejde** (zeď, díra). Pravidlo to
-zjistit neumí (je nezávislé na těle, `WantMove` ani „zaseknutí" nezná). Dnes se to pravidlo
-**nedozví**: `FleeRule` s `GoDirection` do zdi by donekonečna cukal (styl opakuje pokus, `Tick`
-vidí nebezpečí → `Running`), `SeekFoodRule` by stál na hraně díry. U `Roam` problém není (styl se
-otočí sám). V `CrawlerStyle.Crawl` je na místě detekce bloku TODO.
+neví přímo, ale u cíleného pohybu to **pozná z výsledku**: když se k cíli `Patience` sekund
+nepřiblížil (o `MinProgress`), vzdá to. Geometrická vzdálenost funguje stejně pro lezce i létavce,
+nepotřebuje projekci směru do „move prostoru" těla ani počítání pokusů — trpělivost je jeden
+parametr pravidla. Pokryje zeď, díru, zaseknutí i cíl nad hlavou.
 
-Varianty, jak blok zveřejnit (styl zapisuje, pravidlo čte na `MonsterBrain`):
+Sdílený helper na `MonsterBrain` (používá scratch: `ScratchPos` = poslední cíl, `ScratchValue` =
+nejmenší vzdálenost, `ScratchTimer` = čas posledního pokroku); co dělat při zaseknutí, rozhoduje
+pravidlo:
+
+```csharp
+brain.StartApproach(target);                          // Begin
+if (!brain.TrackApproach(target, Patience))           // Tick; cíl poskočil o > 0.5 m → začne znovu
+    { brain.MarkUnreachable(target, GiveUpTime); return Done; }
+```
+
+**Paměť nedosažitelných míst** (`MonsterBrain.Senses.cs`) — `UnreachableSpot { Pos; Until }[4]`,
+kruhový buffer (s jedinou položkou by příšera přeskakovala mezi dvěma nedosažitelnými cíli).
+Zapisují ji pravidla (`MarkUnreachable`, zároveň zneplatní cache smyslů), čte ji smysl se
+`SkipUnreachable`: kandidát do 0,5 m od zapamatovaného místa se přeskočí. Pamatuje se **místo, ne
+objekt** — když se předmět pohne, přestane záznamu odpovídat a příšera to zkusí znovu; po
+`GiveUpTime` zkusí tak jako tak (otevřené dveře, odstraněná překážka). Ztráty oproti směrovým
+razítkům: pomalejší reakce (až po `Patience`) a po obejití zdi to nezkusí hned z druhé strany.
+
+Pro `FleeRule` (bez cíle) nejspíš stačí stejný vzor s opačným znaménkem (pokrok = rostoucí
+vzdálenost od nebezpečí). Kdyby ne, varianty zveřejnění bloku stylem (TODO v `CrawlerStyle.Crawl`
+zůstává):
 
 1. **Event `BlockedThisStep`** (true jen v kroku detekce) — **nevhodné**: bezstavová pravidla
    čtou stav, jen když na ně přijde řada (pod jiným pravidlem se `Test` nevolá) → event propásnou.
@@ -497,11 +559,9 @@ Varianty, jak blok zveřejnit (styl zapisuje, pravidlo čte na `MonsterBrain`):
    `bool WasBlocked(int dir, float withinSeconds)` + `protected ReportBlocked(int dir)` pro styl.
    Pravidlo rozhodne **už v `Test`** (`DangerNear && !brain.WasBlocked(awayDir, Memory)`) → přirozeně
    nastoupí nižší pravidlo, po `Memory` s zkusí znovu. Bez oscilace, bez čtení rozkazu, bez scratche.
-   Nevýhoda: `dir` je 1D (lezec); létavec bude chtít 2D (normála bloku + skalární součin) — řešit
-   s `FlyStyle`.
-
-**Směr: varianta 3**, navrhnout finálně až nad `FleeRule`/`SeekFoodRule` (bez konzumenta by to byla
-zbytečná abstrakce).
+   Zobecnění do 2D (probráno): styl hlásí směr pokusu `Vector2`, projekci směru k cíli dělá styl
+   (`virtual ToMoveDir`), razítko drží sérii pokusů (`Attempts`, `FirstTime`/`LastTime`, pozice)
+   a pravidlo zadá práh `IsBlocked(dir, minAttempts)`. Funkční, ale komplexní — proto odloženo.
 
 ---
 
@@ -680,7 +740,11 @@ mozek je ohodnotit součtem `IScorer` pravidel; vrátí nejlepší. Kontrakt se 
 
 - **No-alloc:** podmínky/akce bez alokací; kandidáti přes statické bufry.
 - **Pooling:** init v `Awake` (listová třída: `void Awake() => AwakeM();`), ne `AfterMapPlaced`;
-  reset blackboardu v `AfterMapPlaced`, stav stylu v `Cleanup`. `SenseResult.Target` ověřovat na živost.
+  reset blackboardu v `AfterMapPlaced`, stav stylu v `Cleanup`. **Cíl drž jako pozici, ne `Label`.**
+- **Pozice = `Center`:** „kde je příšera" je jediná definice `MonsterBrain.Position` (`placeable.Center`),
+  cíle smyslů taky `Center`, raycasty `Center3D`. Ne `Pivot`/`transform` (liší se u prefabu, jehož BB
+  není kolem pivotu). Výjimka: interní dotazy stylu na terén pod tělem (`CrawlerStyle.WantMove`).
+  Cena je stejná jako u `Pivot` — obojí stojí na jednom `transform.position`.
 - **Namespace** podle složky (`Assets.Scripts.Ai`, pravidla `Assets.Scripts.Ai.Rules`); pravidla
   s příponou `Rule`/`Modifier`, `[Serializable]`, bezstavová.
 - **KSID místo `is`/`GetComponent`** pro herní interakce (`IsChildOf`/`IsChildOfOrEq`).
@@ -688,18 +752,54 @@ mozek je ohodnotit součtem `IScorer` pravidel; vrátí nejlepší. Kontrakt se 
 
 ---
 
+## Featura: sbírání předmětů
+
+Mimo implementační pořadí — první konkrétní chování nad frameworkem. Příšera se rozhlíží po
+předmětu daného `Ksid`, jde k němu (`GoToward`), sebere ho do inventáře; když už má dost, nesbírá;
+když se k předmětu nedá dostat, vrátí se do Roam.
+
+```
+Rules: [ PickUpItemRule, SeekItemRule, RoamRule ]      (pořadí = priorita)
+Senses: Loot = NearestKsid <Ksid> r<R>, SkipUnreachable, TrackRadius ~1, (NeedsSight)
+```
+
+**A+B — ✅ hotovo:** smysly (viz [Smysly](#smysly--perception)), `SeekItemRule` (`Slot`, `MaxAge`,
+`SpeedScale`, `Patience`, `GiveUpTime`), hlídání pokroku + paměť nedosažitelných míst (viz
+[Zpětná vazba](#zpětná-vazba-z-plnění-rozkazu)).
+
+**C — zbývá: sebrání + inventář.** Rozhodnutí:
+- **Plný `Inventory`** (vzor `Chest`), vytvořený **lazy** při prvním sebrání (spící příšery bez
+  kořisti nestojí nic), **bez Ksid `HasInventory`** — jinak by si ho hráčův `InventorySearcher`
+  nalinkoval a auto-refill by z příšery tahal věci. Při smrti se inventář zabije (později mrtvé tělo
+  s inventářem k prohledání).
+- **Pickup v motoru bez `Label`:** hráč sbírá to, co je pod myší (bod) — zobecníme
+  `GetPickupMousePos` → `GetPickupPoint`; příšera vrátí pozici ze smyslu. `IsPickupAllowed` =
+  `Ksid` ze smyslu, dotaz do mapy přes virtuální `PickupQueryKsid` (dnešní `Settings.HoldType` =
+  `SmallMonsterHolds` nemá potomky). `Label` se najde až v kroku uchopení, dál ho drží `Connectable`.
+- **`PickUpItemRule`** (`Slot`, `MaxCount`, `Timeout`, `GiveUpTime`), nad `SeekItemRule`,
+  `CanBeInterrupted = false` (pravidla nemají `End()`, přerušení by nechalo viset `desiredPickUp`).
+  `Test` = dorazil v ose x (ne „v dosahu ruky" — jinak by pod předmětem na římse stál navždy)
+  a není nasycen. Timeout → `MarkUnreachable` (římsa, těžký předmět).
+- **Saturace:** `MaxCount` přímo na obou pravidlech; počet kusů v inventáři, jejichž `Ksid` je
+  potomkem `Ksid` ze smyslu.
+- Držené předměty neřešíme — příšera je vidí a pokusí se je ukrást.
+
+---
+
 ## Otevřené drobnosti (dořešit při implementaci)
 
 Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu:
 
-1. ⚠️ **Zpětná vazba z plnění rozkazu** — styl ví, že rozkaz nejde splnit, pravidla ne. **Musíme
-   dotáhnout v kroku 4**, viz [Zpětná vazba z plnění rozkazu](#zpětná-vazba-z-plnění-rozkazu--musíme-dotáhnout).
-2. **Životnost `scratchTarget`** — viz [Blackboard](#blackboard-centrální-stav-na-monsterbrain).
+1. ✅ ~~Zpětná vazba z plnění rozkazu~~ — pro `GoToward` rozhodnuto (pokrok v pravidle), viz
+   [Zpětná vazba](#zpětná-vazba-z-plnění-rozkazu). Pro `FleeRule` ověřit, že vzor stačí.
+2. ✅ ~~Životnost `scratchTarget`~~ — cíl jen jako pozice, viz [Blackboard](#blackboard-centrální-stav-na-monsterbrain).
 3. **`TimeOfDay`** — zdroj denní doby pro `SleepRule.When`: `Game.Instance.TimeOfDay` existuje,
    ověřit API při kroku 6.
 4. **`IsSafeToSleep()`** — přesný style-specifický check (lezec: na zemi + ne na hraně; příp. žádné
    akutní nebezpečí).
-5. **Smysly** — `enum SenseId` finální seznam + `SenseCount`; signatura `EvalNearestKsid`.
+5. **Smysly** — `SenseId` roste podle konzumentů (zatím `Loot`); `NearestKsidSec` s prvním smyslem
+   na sekundární mapě. Editor validace čtení slotu s `Kind == None` zatím chybí (duplicitní slot
+   v profilu už varuje).
 6. Případně `End()`/cleanup u pravidel (zatím odloženo, viz Mozek).
 
 ## Implementační pořadí
@@ -724,9 +824,11 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
    → `AiSettings.AvoidHoles`. První pravidlo `Rules/RoamRule`. Editor: `[TypePicker]` + drawer.
    **V editoru:** vytvořit `AiSettings` asset pro Small Monster, přidat `RoamRule`, přiřadit prefabu.
 4. **`IAiRule` / `IAiModifier` pravidla** — `DefendRule`, `SetDirectionRule`, `SeekFoodRule`,
-   `FleeRule`, `SleepRule`; **+ zpětná vazba z plnění rozkazu** (viz otevřené drobnosti, bod 1).
-5. **Perception** — `SenseResult` + `SenseConfig`/`SenseKind` switch, `SenseProfile` + per-field
-   override resolve, lazy `Sense(id, maxAge)` s freshness, `SlowTick`.
+   `FleeRule`, `SleepRule`. (Částečně předběhnuto featurou [Sbírání předmětů](#featura-sbírání-předmětů):
+   `SeekItemRule` + zpětná vazba pro `GoToward`.)
+5. ✅ **Perception** — `SenseResult` + `SenseConfig`/`SenseKind` switch, `SenseProfile` + per-field
+   override resolve, lazy `Sense(id, maxAge)` s freshness (`MonsterBrain.Senses.cs`), `SlowTick`.
+   Hotovo v rámci featury sbírání předmětů.
 6. **`Status.SleepNeed`** (+ `CanWake`/`RecoverDuration`) + **`SleepController`** (`ISimpleTimerConsumer`)
    — jeden `EnterSleep(duration)`, branka `TryWake`, centrální kolaps-guard v `MonsterBrain`,
    lazy `CurrentNeed`, wake přes `Timer.Plan` (rušení časovače `ActiveTag`em).
