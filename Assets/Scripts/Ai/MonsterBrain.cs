@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using System;
 using UnityEngine;
 
 namespace Assets.Scripts.Ai
@@ -35,14 +36,20 @@ namespace Assets.Scripts.Ai
         private IAiRule running;
         private int runningIndex;
 
-        public float ScratchTimer;
-        public int ScratchPhase;
-        public Vector2 ScratchPos;
-        public float ScratchValue;
+        [NonSerialized] public float ScratchTimer;
+        [NonSerialized] public int ScratchPhase;
+        [NonSerialized] public Vector2 ScratchPos;
+        [NonSerialized] public float ScratchValue;
 
         // --- Blackboard: motor command ---------------------------------------------------
         private Directive directive;
-        public ref readonly Directive CurrentDirective => ref directive;
+
+        // --- Ukazatel (kam se prisera diva / miri) ---------------------------------------
+        // Obdoba mysi u hrace: motor ho cte pres GetTargetPointer (sbirani, pozdeji mireni).
+        // Plati na JEDEN krok: na zacatku kroku ho urci styl podle rozkazu (DefaultLookAt - GoToward
+        // na cil, lezec v Roam pred sebe, jinak Center); pravidlo ho muze v Tick prepsat pres LookAt
+        // nebo SetDirectiveAndLookAt.
+        private Vector2 targetPointer;
 
         // Rozhozeni drahych dotazu v case: kazda prisera dostane pri umisteni jiny ofset, takze
         // ~100 probuzenych priser nedela sken ve stejnem fixed kroku (jinak pravidelny spike).
@@ -65,6 +72,11 @@ namespace Assets.Scripts.Ai
 
         public override void GameFixedUpdate()
         {
+            // Prikazy na JEDEN krok - bezici pravidlo je musi v Tick obnovit. Kdyz pravidlo
+            // prebije vyssi, nic nezustane viset (proto pravidla nepotrebuji End()).
+            desiredPickUp = false;
+            LookAt(DefaultLookAt(in directive));
+
             Think();
 
             // Styl prelozi standing rozkaz na desired*. None = jeste nikdo nerozhodl,
@@ -75,6 +87,16 @@ namespace Assets.Scripts.Ai
             AdjustLegsArms(true);
             base.GameFixedUpdate();
         }
+
+        public void LookAt(Vector2 point)
+        {
+            targetPointer = point;
+        }
+
+        protected virtual Vector2 DefaultLookAt(in Directive d)
+            => d.Kind == DirectiveKind.GoToward ? d.Target : Center;
+
+        protected override Vector3 GetTargetPointer(float z) => new Vector3(targetPointer.x, targetPointer.y, z);
 
         private void Think()
         {
@@ -140,11 +162,12 @@ namespace Assets.Scripts.Ai
             directive.SpeedScale = speedScale;
         }
 
-        public void SetDirective(DirectiveKind kind, Vector2 target, float speedScale = 1f)
+        public void SetDirectiveAndLookAt(DirectiveKind kind, Vector2 target, float speedScale = 1f)
         {
             directive.Kind = kind;
             directive.Target = target;
             directive.SpeedScale = speedScale;
+            LookAt(target);
         }
 
         // --- Hlidani pokroku k cili ------------------------------------------------------
@@ -191,6 +214,8 @@ namespace Assets.Scripts.Ai
         {
             DeactivateAi();
             base.Cleanup(goesToInventory);
+            if (!goesToInventory)
+                CleanupInventory();     // predmet v ruce base (DetachAllLimbs) upusti - prisera uz neni v mape
         }
 
         // Reset kvuli poolingu - prefab se vraci s vyplnenym blackboardem po predchozim zivote.

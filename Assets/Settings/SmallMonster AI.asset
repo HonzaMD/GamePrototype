@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SmallMonster AI
   m_EditorClassIdentifier: 
   Rules:
+  - rid: 6538480266406002747
   - rid: 6349271191665770555
   - rid: 6349270946082717696
   Modifiers: []
@@ -41,3 +42,15 @@ MonoBehaviour:
         SpeedScale: 1
         Patience: 1.5
         GiveUpTime: 15
+        MaxCount: 10
+    - rid: 6538480266406002747
+      type: {class: PickUpItemRule, ns: Assets.Scripts.Ai.Rules, asm: MainGameAsm}
+      data:
+        SenceId: 0
+        SenceAge: 1.5
+        SenceTrackAge: 0.4
+        MaxCount: 10
+        Reach: 0.4
+        Timeout: 2
+        GiveUpTime: 15
+        SpeedScale: 0.5

@@ -21,6 +21,7 @@ namespace Assets.Scripts.Ai
         private const float PauseStart = 1f;
         private const float MoveStart = 0.5f;
         private const float ArriveDistance = 0.25f;
+        private const float LookAhead = 1f;     // [m] jak daleko pred sebe se diva v Roam/GoDirection
 
         // Pocatecni smer z prefabu, za behu stav stylu. V Cleanup se vraci na hodnotu z prefabu.
         [FormerlySerializedAs("desiredDirection")]
@@ -65,6 +66,14 @@ namespace Assets.Scripts.Ai
                     break;
             }
         }
+
+        // Bez explicitniho LookAt se lezec diva tam, kam leze.
+        protected override Vector2 DefaultLookAt(in Directive d) => d.Kind switch
+        {
+            DirectiveKind.Roam => Center + new Vector2(direction * LookAhead, 0),
+            DirectiveKind.GoDirection => Center + new Vector2(d.Direction * LookAhead, 0),
+            _ => base.DefaultLookAt(in d),
+        };
 
         private void SetDirection(int dir)
         {

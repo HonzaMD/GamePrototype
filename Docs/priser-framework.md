@@ -4,9 +4,9 @@ Návrh frameworku pro skládání chování příšer z vyměnitelných modulů.
 **styl pohybu** a **rozhodovací logiku** nezávisle, bez globálního pathfindingu — vše
 stojí na **lokálním rozhodování**.
 
-> Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, rozpracovaná featura
-> [Sbírání předmětů](#featura-sbírání-předmětů) (smysly + `SeekItemRule` hotové, pickup + inventář
-> zbývá), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
+> Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, featura
+> [Sbírání předmětů](#featura-sbírání-předmětů) naimplementovaná (smysly, `SeekItemRule`,
+> `PickUpItemRule`, inventář příšery; krok C čeká na test v editoru), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
 > návrh upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`, cíl jen jako pozice…) — dokument
 > je už obsahuje.
 
@@ -741,7 +741,7 @@ mozek je ohodnotit součtem `IScorer` pravidel; vrátí nejlepší. Kontrakt se 
 - **No-alloc:** podmínky/akce bez alokací; kandidáti přes statické bufry.
 - **Pooling:** init v `Awake` (listová třída: `void Awake() => AwakeM();`), ne `AfterMapPlaced`;
   reset blackboardu v `AfterMapPlaced`, stav stylu v `Cleanup`. **Cíl drž jako pozici, ne `Label`.**
-- **Pozice = `Center`:** „kde je příšera" je jediná definice `MonsterBrain.Position` (`placeable.Center`),
+- **Pozice = `Center`:** „kde je příšera" je jediná definice `MonsterBrain.Center` (`placeable.Center`),
   cíle smyslů taky `Center`, raycasty `Center3D`. Ne `Pivot`/`transform` (liší se u prefabu, jehož BB
   není kolem pivotu). Výjimka: interní dotazy stylu na terén pod tělem (`CrawlerStyle.WantMove`).
   Cena je stejná jako u `Pivot` — obojí stojí na jednom `transform.position`.
@@ -767,19 +767,38 @@ Senses: Loot = NearestKsid <Ksid> r<R>, SkipUnreachable, TrackRadius ~1, (NeedsS
 `SpeedScale`, `Patience`, `GiveUpTime`), hlídání pokroku + paměť nedosažitelných míst (viz
 [Zpětná vazba](#zpětná-vazba-z-plnění-rozkazu)).
 
-**C — zbývá: sebrání + inventář.** Rozhodnutí:
+**C — ✅ naimplementováno (čeká na test v editoru): sebrání + inventář.** Kód v
+`MonsterBrain.PickUp.cs` (`PickUp(ksid)`, `CountItems`, `IsSaturated`, lazy inventář),
+`MonsterBrain.LookAt` (ukazatel) a `Rules/PickUpItemRule.cs`; v motoru `GetTargetPointer`,
+`PickupQueryKsid`, `IsHeldByOtherArm`; `Inventory.CountKsid`. Druhá ruka se nechytí předmětu,
+který první už drží nebo sbírá (`IsHeldByOtherArm` v `TryHoldNearItem`, platí i pro hráče — jinak by
+ho při sebrání uložily obě ruce). Rozhodnutí:
+- **Příkazy na jeden krok:** brain na začátku `GameFixedUpdate` zahodí `desiredPickUp` a ukazatel
+  nastaví na výchozí; běžící pravidlo je v každém `Tick` nastaví znovu (`PickUp(ksid)`,
+  `SetDirectiveAndLookAt`/`LookAt`). Když pravidlo
+  přebije vyšší, nic nezůstane viset → `PickUpItemRule.CanBeInterrupted = true` a `End()` dál
+  nepotřebujeme. Ruku, která už předmět táhne, motor dotáhne nebo upustí sám.
+- **Ukazatel (`LookAt`) = obdoba myši u hráče** — motor ho čte přes `GetTargetPointer` (sbírání,
+  později míření držené věci). Na začátku kroku ho určí styl podle rozkazu (`virtual DefaultLookAt`):
+  `GoToward` → cíl, lezec v `Roam`/`GoDirection` → 1 m před sebe, jinak `Center`. Pravidlo ho může
+  v `Tick` přepsat přes `LookAt`, nebo rovnou `SetDirectiveAndLookAt` („jdu tam = dívám se tam";
+  jinam se dívat = potom ještě `LookAt`). Výchozí se počítá z rozkazu minulého kroku — při změně
+  rozkazu bez `LookAt` je ukazatel jeden krok (20 ms) pozadu, což nevadí.
+- **Úspěch sebrání** = vzrostl počet kusů v inventáři (`CountItems` při `Begin` ve `ScratchPhase`) —
+  žádný čítač navíc.
+- Umírající příšera (`!placeable.IsAlive` v `InventoryPickup`) předmět z ruky neukládá, upustí ho do světa.
 - **Plný `Inventory`** (vzor `Chest`), vytvořený **lazy** při prvním sebrání (spící příšery bez
   kořisti nestojí nic), **bez Ksid `HasInventory`** — jinak by si ho hráčův `InventorySearcher`
   nalinkoval a auto-refill by z příšery tahal věci. Při smrti se inventář zabije (později mrtvé tělo
   s inventářem k prohledání).
-- **Pickup v motoru bez `Label`:** hráč sbírá to, co je pod myší (bod) — zobecníme
-  `GetPickupMousePos` → `GetPickupPoint`; příšera vrátí pozici ze smyslu. `IsPickupAllowed` =
+- **Pickup v motoru bez `Label`:** hráč sbírá to, co je pod myší (bod) — sjednoceno do
+  `GetTargetPointer`; příšera vrátí svůj ukazatel. `IsPickupAllowed` =
   `Ksid` ze smyslu, dotaz do mapy přes virtuální `PickupQueryKsid` (dnešní `Settings.HoldType` =
   `SmallMonsterHolds` nemá potomky). `Label` se najde až v kroku uchopení, dál ho drží `Connectable`.
-- **`PickUpItemRule`** (`Slot`, `MaxCount`, `Timeout`, `GiveUpTime`), nad `SeekItemRule`,
-  `CanBeInterrupted = false` (pravidla nemají `End()`, přerušení by nechalo viset `desiredPickUp`).
-  `Test` = dorazil v ose x (ne „v dosahu ruky" — jinak by pod předmětem na římse stál navždy)
-  a není nasycen. Timeout → `MarkUnreachable` (římsa, těžký předmět).
+- **`PickUpItemRule`** (`SenceId`, `MaxCount`, `Reach`, `Timeout`, `GiveUpTime`, `SpeedScale`),
+  nad `SeekItemRule`, přerušitelné. `Test` = blíž než `Reach` (ne „v dosahu ruky" — jinak by pod
+  předmětem na římse stál navždy) a není nasycen; během sbírání pomalu `GoToward` k předmětu.
+  Timeout → `MarkUnreachable` (římsa, těžký předmět).
 - **Saturace:** `MaxCount` přímo na obou pravidlech; počet kusů v inventáři, jejichž `Ksid` je
   potomkem `Ksid` ze smyslu.
 - Držené předměty neřešíme — příšera je vidí a pokusí se je ukrást.

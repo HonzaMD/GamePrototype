@@ -130,15 +130,25 @@ public abstract partial class ChLegsArms
         var center = ArmSphere.transform.position.XY();
         var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
-        map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, Settings.HoldType);
+        map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, PickupQueryKsid);
 
         foreach (var p in placeables)
         {
+            if (IsHeldByOtherArm(p, index))
+                continue;
             if (TryHoldOne(p, index, center3d, tryPickUp: true, tryHold) == HoldOneResult.Attached)
                 break;
         }
 
         placeables.Clear();
+    }
+
+    // Predmet, ktery druha ruka uz drzi nebo sbira, se znovu nechyta - pri sebrani by ho obe ruce
+    // ulozily do inventare (druhy Store na umirajici label). Catch nevadi, ten DetachCatchDuplicatingHold pusti.
+    private bool IsHeldByOtherArm(Label p, int index)
+    {
+        int other = PairedLimb(index);
+        return (limbStatus[other] == Hold || limbStatus[other] == PickUp) && limbTargets[other] == p;
     }
 
     private enum HoldOneResult
@@ -170,9 +180,9 @@ public abstract partial class ChLegsArms
                 pickUpAllowed = IsPickupAllowed(p);
                 if (!tryHold && !pickUpAllowed)
                     return HoldOneResult.NotACandidate;
-                Vector3 mousePos = GetPickupMousePos(p.transform.position.z);
-                var mClose = p.GetClosestPoint(mousePos);
-                if ((mousePos - mClose).sqrMagnitude > 0.1f * 0.1f)
+                Vector3 pickupPoint = GetTargetPointer(p.transform.position.z);
+                var mClose = p.GetClosestPoint(pickupPoint);
+                if ((pickupPoint - mClose).sqrMagnitude > 0.1f * 0.1f)
                     return HoldOneResult.NotACandidate;
             }
 
@@ -360,7 +370,7 @@ public abstract partial class ChLegsArms
         }
         else
         {
-            Vector3 mousePos = GetPickupMousePos(Limbs[index].position.z);
+            Vector3 mousePos = GetTargetPointer(Limbs[index].position.z);
             Vector3 toMouse = mousePos - Limbs[index].position;
             if (toMouse.sqrMagnitude > 0.01f)
             {

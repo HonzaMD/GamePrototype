@@ -4,7 +4,8 @@ namespace Assets.Scripts.Ai.Rules
 {
     // Jdi k predmetu, ktery hlasi smysl (GoToward). Kdyz se k nemu dlouho nepriblizuje (zed, dira,
     // predmet na rimse...), prohlasi misto za nedosazitelne a skonci - nastoupi nizsi pravidlo (Roam).
-    // Pokrok hlida MonsterBrain.TrackApproach (scratch).
+    // Pokrok hlida MonsterBrain.TrackApproach (scratch). Kdyz uz ma dost (MaxCount), nehleda.
+    // Saturace se meni jen sebranim (PickUpItemRule, ktere Seek prebije), staci ji testovat v Test.
     [Serializable]
     public class SeekItemRule : IAiRule
     {
@@ -14,16 +15,18 @@ namespace Assets.Scripts.Ai.Rules
         public float SpeedScale = 1f;
         public float Patience = 1.5f;       // jak dlouho [s] smi byt bez pokroku, nez to vzda
         public float GiveUpTime = 15f;      // jak dlouho [s] si pamatuje misto jako nedosazitelne
+        public int MaxCount = 3;            // saturace: s tolika kusy v inventari uz nehleda
 
         public bool CanBeInterrupted => true;
 
-        public bool Test(MonsterBrain brain) => brain.Sense(SenceId, SenceAge).Found;
+        public bool Test(MonsterBrain brain)
+            => brain.Sense(SenceId, SenceAge).Found && !brain.IsSaturated(SenceId, MaxCount);
 
         public void Begin(MonsterBrain brain)
         {
             var target = brain.Sense(SenceId, SenceAge).Position;
             brain.StartApproach(target);
-            brain.SetDirective(DirectiveKind.GoToward, target, SpeedScale);
+            brain.SetDirectiveAndLookAt(DirectiveKind.GoToward, target, SpeedScale);
         }
 
         public ActionStatus Tick(MonsterBrain brain)
@@ -39,7 +42,7 @@ namespace Assets.Scripts.Ai.Rules
                 return ActionStatus.Done;
             }
 
-            brain.SetDirective(DirectiveKind.GoToward, target, SpeedScale);   // cil se mohl pohnout
+            brain.SetDirectiveAndLookAt(DirectiveKind.GoToward, target, SpeedScale);   // cil se mohl pohnout
             return ActionStatus.Running;
         }
     }

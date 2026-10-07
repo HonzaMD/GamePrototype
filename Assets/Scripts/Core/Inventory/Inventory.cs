@@ -22,7 +22,7 @@ namespace Assets.Scripts.Core.Inventory
             public bool IsLiveObj;
             public int Index;
             public readonly int CountInside => IsActivated ? Count - 1 : Count;
-            public Label LiveObj => CountInside > 0 && IsLiveObj ? Key : null;
+            public readonly Label LiveObj => CountInside > 0 && IsLiveObj ? Key : null;
         }
 
         public InventoryType Type { get; private set; }
@@ -503,6 +503,20 @@ namespace Assets.Scripts.Core.Inventory
             return true;
         }
 
+        // Kolik kusu (jen v tomhle inventari, bez linku) ma Ksid potomkem ksid. Pocita i aktivni kus.
+        public int CountKsid(Ksid ksid) => CountKsid(quickAccess.AsSpan(), ksid) + CountKsid(slots.AsSpan(), ksid);
+
+        private static int CountKsid(Span<Slot> slots, Ksid ksid)
+        {
+            int sum = 0;
+            foreach (ref var slot in slots)
+            {
+                if (slot.Key != null && slot.Key.KsidGet.IsChildOfOrEq(ksid))
+                    sum += slot.Count;
+            }
+            return sum;
+        }
+
         public bool TryGetSlot(Label key, out int slot)
         {
             if (key == null)
@@ -683,5 +697,6 @@ namespace Assets.Scripts.Core.Inventory
         Character,
         Base,
         Chest,
+        Monster,
     }
 }

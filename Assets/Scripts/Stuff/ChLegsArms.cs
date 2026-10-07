@@ -64,7 +64,6 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected bool LegOnGround => limbStatus[0] == Catch || limbStatus[1] == Catch;
     protected bool ArmCatched => limbStatus[2] == Catch || limbStatus[3] == Catch;
     protected bool ArmHolds => limbStatus[2] == Hold || limbStatus[3] == Hold;
-
     private Vector3 legUpDir = Vector3.up;
     private MovementMode movementMode;
 
@@ -173,7 +172,8 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected virtual void InventoryPickup(Label label) { }
     protected virtual void InventoryPickupAndActivate(Label label) { }
 
-    protected virtual Vector3 GetPickupMousePos(float z) => throw new NotSupportedException();
+    protected virtual Vector3 GetTargetPointer(float z) => throw new NotSupportedException();
+    protected virtual Ksid PickupQueryKsid => Settings.HoldType;
     protected virtual bool IsPickupAllowed(Label p) => false;
     protected virtual bool HasMouseControler => false;
 
