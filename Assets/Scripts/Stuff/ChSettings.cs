@@ -53,6 +53,13 @@ public class ChSettings : ScriptableObject
 	public float HoldMoveSpeed = 1f;
 	public float HoldMoveAcceleration = 0.2f;
 
+	[Tooltip("Max. rychlost hodu [m/s] - platí pro lehké předměty.")]
+	public float ThrowMaxSpeed = 11f;
+	[Tooltip("Síla hodu: těžší předměty letí nejvýš ThrowPower/√m [m/s] (omezená energie hodu, m·v² ≤ ThrowPower²).")]
+	public float ThrowPower = 20f;
+
+	public float MaxThrowSpeed(float mass) => Mathf.Min(ThrowMaxSpeed, ThrowPower / Mathf.Sqrt(mass));
+
 	public void Initialize(SphereCollider ArmSphere, Transform[] Limbs)
 	{
 		if (!initialized)

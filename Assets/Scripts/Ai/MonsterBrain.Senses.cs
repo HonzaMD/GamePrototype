@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System;
 using System.Collections.Generic;
@@ -68,7 +69,7 @@ namespace Assets.Scripts.Ai
         public ref readonly SenseResult Sense(SenseId id, float maxAge)
         {
             ref var r = ref senseCache[(int)id];
-            int period = Mathf.Max(1, Mathf.RoundToInt(maxAge / Time.fixedDeltaTime));
+            int period = FixedSteps(maxAge);
             int step = Game.Instance.FixedStepCounter + slowOffset;
             if (r.Step != SenseResult.InvalidStep && r.Step / period == step / period)
                 return ref r;
@@ -110,7 +111,7 @@ namespace Assets.Scripts.Ai
         {
             var last = r.Position;
             var extent = new Vector2(cfg.TrackRadius, cfg.TrackRadius);
-            map.Get(placeables, last - extent, extent * 2, cfg.Ksid);
+            GetPlaceables(placeables, last - extent, extent * 2, in cfg);
             FilterCandidates(placeables, candidates, in cfg, center);
 
             int best = -1;
@@ -125,12 +126,9 @@ namespace Assets.Scripts.Ai
                 }
             }
 
-            bool found = best >= 0 && (!cfg.NeedsSight || CanSee(candidates[best]));
+            bool found = best >= 0 && (!cfg.NeedsSight || CanSee(candidates[best], in cfg));
             if (found)
-            {
-                r.Position = candidates[best].Center;
-                r.Value = Mathf.Sqrt(candidates[best].Dist2);   // r.Found uz je true
-            }
+                SetFound(ref r, candidates[best]);   // r.Found uz je true
 
             placeables.Clear();     // listy se pripadne znovu pouziji pro plne hledani
             candidates.Clear();
@@ -140,7 +138,7 @@ namespace Assets.Scripts.Ai
         private void SearchNearestKsid(in SenseConfig cfg, ref SenseResult r, Vector2 center, List<Placeable> placeables, List<Candidate> candidates)
         {
             var extent = new Vector2(cfg.Radius, cfg.Radius);
-            map.Get(placeables, center - extent, extent * 2, cfg.Ksid);
+            GetPlaceables(placeables, center - extent, extent * 2, in cfg);
             FilterCandidates(placeables, candidates, in cfg, center);
             int count = candidates.Count;
 
@@ -163,14 +161,23 @@ namespace Assets.Scripts.Ai
                 }
                 (candidates[k], candidates[best]) = (candidates[best], candidates[k]);
 
-                if (cfg.NeedsSight && !CanSee(candidates[k]))
+                if (cfg.NeedsSight && !CanSee(candidates[k], in cfg))
                     continue;
 
                 r.Found = true;
-                r.Position = candidates[k].Center;
-                r.Value = Mathf.Sqrt(bestDist2);
+                SetFound(ref r, candidates[k]);
                 break;
             }
+        }
+
+        // Dotaz do mapy, kterou urcuje cfg.SecondaryMap (None = hlavni). Na sekundarni mape jsou jen
+        // objekty, ktere se na ni registruji (PlaceableSettings.SecondaryMapIndex).
+        private void GetPlaceables(List<Placeable> output, Vector2 pos, Vector2 size, in SenseConfig cfg)
+        {
+            if (cfg.SecondaryMap == SecondaryMap.None)
+                map.Get(output, pos, size, cfg.Ksid);
+            else
+                map.Secondary(cfg.SecondaryMap).Get(output, pos, size, cfg.Ksid);
         }
 
         // Odfiltruje nevhodne (sebe, mimo dosah Radius, nedosazitelna mista) a zbytek prepise
@@ -195,13 +202,36 @@ namespace Assets.Scripts.Ai
             }
         }
 
-        private bool CanSee(in Candidate target)
+        private static void SetFound(ref SenseResult r, in Candidate c)
         {
-            var from = placeable.Center3D;
-            var dir = target.P.Center3D - from;
+            r.Position = c.Center;
+            r.Value = Mathf.Sqrt(c.Dist2);
+            r.ZPlanes = ZPlanesOf(c.P);
+        }
+
+        // Bitmaska z rovin, ktere objekt zabira (bit 0 = z 0, bit 1 = z 0.5).
+        public static int ZPlanesOf(Placeable p) => p.CellBlocking.IsDoubleCell() ? 3 : 1 << p.CellZ;
+
+        public static float PlaneZ(int cellZ) => cellZ * Map.Map.CellSize.z;
+
+        // Bez SightPerPlane jeden sikmy paprsek mezi stredy. Se SightPerPlane paprsky v rovine
+        // (Center2d v obou koncich stejne z) - nejdriv v rovine kandidata, pak v te druhe.
+        private bool CanSee(in Candidate target, in SenseConfig cfg)
+        {
+            if (!cfg.SightPerPlane)
+                return CanSee(placeable.Center3D, target.P.Center3D, target.P);
+
+            int z = target.P.CellZ;
+            return CanSee(Center.AddZ(PlaneZ(z)), target.Center.AddZ(PlaneZ(z)), target.P)
+                || CanSee(Center.AddZ(PlaneZ(1 - z)), target.Center.AddZ(PlaneZ(1 - z)), target.P);
+        }
+
+        private static bool CanSee(Vector3 from, Vector3 to, Placeable target)
+        {
+            var dir = to - from;
             if (!Physics.Raycast(from, dir, out var hit, dir.magnitude, sightLayerMask, QueryTriggerInteraction.Ignore))
                 return true;
-            return Label.TryFind(hit.transform, out var hitLabel) && hitLabel == target.P;
+            return Label.TryFind(hit.transform, out var hitLabel) && hitLabel == target;
         }
 
         // Misto, kam se prisera nedostala. Pamatuje se POZICE (ne Label): kdyz se predmet pohne,

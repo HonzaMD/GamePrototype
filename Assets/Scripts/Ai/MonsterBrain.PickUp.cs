@@ -51,6 +51,44 @@ namespace Assets.Scripts.Ai
                 inventory.Store(label);
         }
 
+        public override Label InventoryGet() => inventory != null ? inventory.ActiveObj : null;
+        public override bool IsInventoryActive => inventory != null && inventory.ActiveObj != null;
+        protected override void InventoryReturnRaw() => inventory.ReturnActiveObj();
+        protected override void InventoryDropRaw() => inventory.RemoveObjActive();
+
+        // Drzi v ruce predmet vytazeny z inventare (DrawItem uz uspel).
+        public bool HoldsDrawnItem => IsInventoryActive && GetHoldObject() == inventory.ActiveObj;
+
+        // Prikaz na JEDEN krok (pravidlo ho vola v kazdem Tick): vytahni predmet typu ksid z inventare
+        // do ruky a drz ho. Kdyz ho pravidlo prestane volat, predmet se vrati do inventare sam
+        // (GameFixedUpdate / OnLimbDetached). False = neni co vytahnout.
+        public bool DrawItem(Ksid ksid)
+        {
+            if (IsInventoryActive && !inventory.ActiveObj.KsidGet.IsChildOfOrEq(ksid))
+                InventoryReturn();      // pusti i ruku, ktera ho drzi
+            if (!IsInventoryActive)
+            {
+                if (inventory == null || !inventory.TryFindSlotKsid(ksid, out int slot, out _))
+                    return false;
+                // holdTarget motor nastavi jen pri prvnim uchopeni a sam ho nemeni - bez toho by
+                // prisera drzela vsechno na strane z prvniho hodu
+                holdTarget = HoldOffset(targetPointer.x);
+                if (inventory.ActivateObj(slot, placeable.LevelGroup, ArmSphere.transform.position + holdTarget.AddZ(0), map) == null)
+                    return false;
+            }
+            desiredHold = true;
+            return true;
+        }
+
+        // Kde bude predmet v ruce vuci ArmSphere - strana podle toho, kam se prisera diva.
+        private Vector2 HoldOffset(float towardX)
+        {
+            float dir = towardX >= Center.x ? 1 : -1;
+            return new Vector2(Settings.HoldPosition.x * dir, Settings.HoldPosition.y);
+        }
+
+        private Vector3 HoldPoint(float towardX) => ArmSphere.transform.position + HoldOffset(towardX).AddZ(0);
+
         private void CleanupInventory()
         {
             if (inventory != null)

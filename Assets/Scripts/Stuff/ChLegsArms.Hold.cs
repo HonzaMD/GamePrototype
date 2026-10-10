@@ -81,6 +81,57 @@ public abstract partial class ChLegsArms
             DetachHoldLimb(3);
     }
 
+    // Hod drzene veci rychlosti relVelocity (vuci telu, orizne se na Settings.MaxThrowSpeed).
+    // Ruku pusti hned, impuls az na konci GameFixedUpdate (ApplyThrow) - jinak by ApplyHoldForces
+    // stahla hozenou vec zpatky k ruce.
+    protected void ThrowHeld(Label obj, Vector2 relVelocity)
+    {
+        bodyToThrow = obj.Rigidbody;
+        throwVelocity = Vector2.ClampMagnitude(relVelocity, Settings.MaxThrowSpeed(bodyToThrow.mass));
+        desiredHold = false;
+        InventoryDrop();
+        DetachHold();       // vec, ktera nebyla z inventare
+    }
+
+    // Vrati vytazeny predmet do inventare. Drzi-li ho ruka, nejdriv ji pusti - pripojena ruka
+    // (Connectable pod predmetem) blokuje CanBeInInventory a predmet by misto navratu upadl.
+    public void InventoryReturn()
+    {
+        var item = InventoryGet();
+        if (item == null)
+            return;
+        ReleaseHoldOn(item);        // pri !desiredHold ho vrati uz OnLimbDetached
+        if (IsInventoryActive)
+            InventoryReturnRaw();
+    }
+
+    // Vyradi vytazeny predmet z inventare, zustane ve svete volny - pusti ho i ruka.
+    public void InventoryDrop()
+    {
+        var item = InventoryGet();
+        if (item == null)
+            return;
+        InventoryDropRaw();         // nejdriv drop - OnLimbDetached pak uz nic nevraci
+        ReleaseHoldOn(item);
+    }
+
+    private void ReleaseHoldOn(Label item)
+    {
+        if (limbStatus[2] == Hold && limbTargets[2] == item)
+            DetachHoldLimb(2);
+        if (limbStatus[3] == Hold && limbTargets[3] == item)
+            DetachHoldLimb(3);
+    }
+
+    private void ApplyThrow()
+    {
+        if (bodyToThrow == null)
+            return;
+        bodyToThrow.linearVelocity = (Vector3)throwVelocity + body.linearVelocity;
+        body.AddForce(-throwVelocity, bodyToThrow.mass, VelocityFlags.None);
+        bodyToThrow = null;
+    }
+
     private void DetachHoldLimb(int index)
     {
         ScheduleCollisionRestore(limbTargets[index]);

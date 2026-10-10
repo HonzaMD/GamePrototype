@@ -85,6 +85,9 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected bool desiredCrouch;
     protected Vector2 holdTarget;
 
+    private Rigidbody bodyToThrow;
+    private Vector2 throwVelocity;
+
     private Label pendingCollisionRestore;
     private readonly Action<object, int> OnCollisionRestoreTimerA;
 
@@ -167,6 +170,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         ApplyZMove();                                // POZOR: teleportuje transform, prepoji koncetiny
         ApplyHoldForces();
         ApplyLimbsContactDamage();
+        ApplyThrow();
     }
 
     protected virtual void InventoryPickup(Label label) { }
@@ -179,13 +183,15 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
 
     public virtual Label InventoryGet() => null;
     public virtual bool IsInventoryActive => false;
-    public virtual void InventoryReturn() => throw new NotSupportedException();
-    public virtual void InventoryDrop() => throw new NotSupportedException();
+    // Hole operace inventare - ruku neresi. Mimo motor volej InventoryReturn/InventoryDrop.
+    protected virtual void InventoryReturnRaw() => throw new NotSupportedException();
+    protected virtual void InventoryDropRaw() => throw new NotSupportedException();
 
     public virtual void Cleanup(bool goesToInventory)
     {
         Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
         DetachAllLimbs();
+        bodyToThrow = null;
         map = null;
     }
 

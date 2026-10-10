@@ -84,7 +84,7 @@ namespace Assets.Scripts.Core
                             // TryActivateByThrow uz muze predmetem hnout.
                             UpdateThrowVector(body.transform.position);
                             body.TryActivateByThrow();
-                            character.ThrowObj(body);
+                            character.ThrowObj(body, ComputeThrowForce(character.Settings, body.Rigidbody.mass));
                         }
                     }
                 }
@@ -123,7 +123,7 @@ namespace Assets.Scripts.Core
                         var mBody = marker.GetComponent<Rigidbody>();
                         var throwMass = body.Rigidbody.mass;
                         mBody.mass = throwMass;
-                        Vector2 force = ComputeThrowForce(throwMass);
+                        Vector2 force = ComputeThrowForce(character.Settings, throwMass);
                         mBody.linearVelocity = (Vector3)force + characterVelocity;
                     }
                 }
@@ -134,11 +134,9 @@ namespace Assets.Scripts.Core
             }
         }
 
-        public Vector2 ComputeThrowForce(float throwMass)
-        {
-            var koef = Mathf.Min(5.5f, 10f / Mathf.Sqrt(throwMass));
-            return throwVector * throwForce * koef;
-        }
+        // throwForce je 0..2 (vzdalenost mysi), plna sila = Settings.MaxThrowSpeed.
+        public Vector2 ComputeThrowForce(ChSettings settings, float throwMass)
+            => throwVector * (throwForce * 0.5f * settings.MaxThrowSpeed(throwMass));
 
         private void UpdateThrowVector(Vector3 startPos)
         {

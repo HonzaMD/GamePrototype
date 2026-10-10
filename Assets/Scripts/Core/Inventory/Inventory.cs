@@ -517,6 +517,35 @@ namespace Assets.Scripts.Core.Inventory
             return sum;
         }
 
+        // Prvni slot (jen v tomhle inventari, bez linku), ve kterem lezi aspon jeden kus s Ksid potomkem ksid.
+        public bool TryFindSlotKsid(Ksid ksid, out int slotNum, out Label key)
+        {
+            for (int f = 0; f < quickAccess.Length; f++)
+            {
+                if (IsKsidAvailable(in quickAccess[f], ksid))
+                {
+                    slotNum = f - quickAccess.Length;
+                    key = quickAccess[f].Key;
+                    return true;
+                }
+            }
+            for (int f = 0; f < slots.Count; f++)
+            {
+                if (IsKsidAvailable(in slots[f], ksid))
+                {
+                    slotNum = f;
+                    key = slots[f].Key;
+                    return true;
+                }
+            }
+            slotNum = 0;
+            key = null;
+            return false;
+        }
+
+        private static bool IsKsidAvailable(in Slot slot, Ksid ksid)
+            => slot.Key != null && slot.CountInside > 0 && slot.Key.KsidGet.IsChildOfOrEq(ksid);
+
         public bool TryGetSlot(Label key, out int slot)
         {
             if (key == null)

@@ -160,7 +160,7 @@ public abstract partial class ChLegsArms
     private Transform OnLimbDetached(int index)
     {
         if (limbStatus[index] == Hold && IsInventoryActive && !desiredHold)
-            InventoryReturn();
+            InventoryReturnRaw();   // ruka uz je Off; InventoryReturn by ji odpojoval podruhe
         if (limbStatus[index] == PickUp)
             InventoryPickup(limbTargets[index]);
         limbStatus[index] = Timeout;

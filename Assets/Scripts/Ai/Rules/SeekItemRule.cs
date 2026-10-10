@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Assets.Scripts.Ai.Rules
 {
@@ -9,13 +10,20 @@ namespace Assets.Scripts.Ai.Rules
     [Serializable]
     public class SeekItemRule : IAiRule
     {
+        [Tooltip("Smysl, který hlásí hledaný předmět.")]
         public SenseId SenceId = SenseId.Loot;
-        public float SenceAge = 1.5f;         // freshness smyslu [s]
-        public float SenceTrackAge = 0.4f;         // freshness smyslu [s]
+        [Tooltip("Max. stáří smyslu v Test [s].")]
+        public float SenceAge = 1.5f;
+        [Tooltip("Max. stáří smyslu během cesty k předmětu [s].")]
+        public float SenceTrackAge = 0.4f;
+        [Tooltip("Násobek rychlosti při cestě k předmětu.")]
         public float SpeedScale = 1f;
-        public float Patience = 1.5f;       // jak dlouho [s] smi byt bez pokroku, nez to vzda
-        public float GiveUpTime = 15f;      // jak dlouho [s] si pamatuje misto jako nedosazitelne
-        public int MaxCount = 3;            // saturace: s tolika kusy v inventari uz nehleda
+        [Tooltip("Jak dlouho [s] smí být bez pokroku k cíli, než to vzdá.")]
+        public float Patience = 1.5f;
+        [Tooltip("Jak dlouho [s] si pamatuje místo jako nedosažitelné.")]
+        public float GiveUpTime = 15f;
+        [Tooltip("Saturace: s tolika kusy v inventáři už nehledá.")]
+        public int MaxCount = 3;
 
         public bool CanBeInterrupted => true;
 
@@ -33,7 +41,10 @@ namespace Assets.Scripts.Ai.Rules
         {
             ref readonly var s = ref brain.Sense(SenceId, SenceTrackAge);
             if (!s.Found)
+            {
+                brain.MarkUnreachable(brain.ScratchPos, GiveUpTime);
                 return ActionStatus.Done;
+            }
             var target = s.Position;
 
             if (!brain.TrackApproach(target, Patience))

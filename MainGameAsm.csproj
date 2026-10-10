@@ -88,6 +88,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Hold.cs" />
     <Compile Include="Assets\Scripts\Utils\GlobalTimerHandler.cs" />
     <Compile Include="Assets\Scripts\Ai\SenseProfile.cs" />
+    <Compile Include="Assets\Scripts\Ai\Rules\ThrowItemRule.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
     <Compile Include="Assets\Scripts\Stuff\InventorySearcher.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />
     <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
+    <Compile Include="Assets\Scripts\Ai\MonsterBrain.Throw.cs" />
     <Compile Include="Assets\Scripts\Bases\KillAfterThrow.cs" />
     <Compile Include="Assets\Scripts\Map\MapSecondary.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />

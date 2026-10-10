@@ -16,7 +16,8 @@ namespace Assets.Scripts.Ai
     // Durativni stav patri do scratche na MonsterBrain.
     public interface IAiRule
     {
-        bool Test(MonsterBrain brain);           // vstupni podminka; bezstavova, no-alloc
+        bool Test(MonsterBrain brain);           // vstupni podminka; bezstavova, no-alloc. Scratch smi
+                                                 // pripravit jen kdyz vraci true (Begin nasleduje hned)
         bool CanBeInterrupted { get; }           // smi ho prebit VYSSI pravidlo
         void Begin(MonsterBrain brain);          // jednou pri ziskani zamku (init scratche, efekt)
         ActionStatus Tick(MonsterBrain brain);   // kazdy fixed krok, dokud drzi zamek

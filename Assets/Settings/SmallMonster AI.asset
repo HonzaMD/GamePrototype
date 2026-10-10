@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SmallMonster AI
   m_EditorClassIdentifier: 
   Rules:
+  - rid: 6538480266406002748
   - rid: 6538480266406002747
   - rid: 6349271191665770555
   - rid: 6349270946082717696
@@ -26,6 +27,17 @@ MonoBehaviour:
     NeedsSight: 1
     SkipUnreachable: 1
     TrackRadius: 0.6
+    SightPerPlane: 0
+    SecondaryMap: 0
+  - Slot: 1
+    Kind: 1
+    Ksid: 2
+    Radius: 8
+    NeedsSight: 1
+    SkipUnreachable: 0
+    TrackRadius: 1
+    SightPerPlane: 1
+    SecondaryMap: 1
   AvoidHoles: 1
   references:
     version: 2
@@ -54,3 +66,17 @@ MonoBehaviour:
         Timeout: 2
         GiveUpTime: 15
         SpeedScale: 0.5
+    - rid: 6538480266406002748
+      type: {class: ThrowItemRule, ns: Assets.Scripts.Ai.Rules, asm: MainGameAsm}
+      data:
+        SenceId: 1
+        SenceAge: 0.5
+        SenceTrackAge: 0.2
+        ItemKsid: 9
+        Style:
+          Direct: 1
+          Lob: 1
+          Segments: 4
+        SolveInterval: 0.5
+        DrawTimeout: 1
+        AimTime: 0.4

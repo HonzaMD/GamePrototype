@@ -6,7 +6,8 @@ stojí na **lokálním rozhodování**.
 
 > Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, featura
 > [Sbírání předmětů](#featura-sbírání-předmětů) naimplementovaná (smysly, `SeekItemRule`,
-> `PickUpItemRule`, inventář příšery; krok C čeká na test v editoru), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
+> `PickUpItemRule`, inventář příšery; krok C čeká na test v editoru) a
+> [Házení předmětů](#featura-házení-předmětů) (`ThrowItemRule`, čeká na test v editoru), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
 > návrh upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`, cíl jen jako pozice…) — dokument
 > je už obsahuje.
 
@@ -344,8 +345,8 @@ a dosah („Potrava" = `Plant` u býložravce, `Prey` u dravce; „Nebezpečí" 
 Druhů výpočtu jsou jednotky → **enum + centrální `switch`** (ne delegáti, ne polymorfní objekty):
 
 ```csharp
-public enum SenseId   { Loot, /* později Food, Danger, Prey, Mate, Home… (jen na konec!) */ }
-public enum SenseKind { None, NearestKsid, /* později NearestKsidSec – sekundární mapa */ }
+public enum SenseId   { Loot, Target, /* později Food, Danger, Prey, Mate, Home… (jen na konec!) */ }
+public enum SenseKind { None, NearestKsid, /* později další druhy výpočtu */ }
 
 [Serializable]
 public struct SenseConfig
@@ -357,6 +358,8 @@ public struct SenseConfig
     public bool     NeedsSight;    // kandidát musí být vidět (raycast na vrstvu Default)
     public bool     SkipUnreachable; // přeskoč místa z paměti nedosažitelných míst
     public float    TrackRadius;   // >0 = tunelové vidění, velikost okna kolem posledního nálezu
+    public bool     SightPerPlane; // NeedsSight raycastuje zvlášť v každé z rovině
+    public SecondaryMap SecondaryMap; // None = hlavní mapa, jinak hledá na sekundární mapě
     // doplňkové parametry přidáváme SEM stejným stylem; default (0/None/false) = „nezadáno"
 }
 ```
@@ -366,9 +369,12 @@ a nedosažitelných míst → částečný selection sort; s `NeedsSight` raycas
 kandidáty, dokud jeden není vidět. Filtr přepíše kandidáty do `List<Candidate>` s předpočítaným
 `Center` a vzdáleností (`Center` jde přes `transform.position` — nativní volání, počítá se jednou);
 test nedosažitelných míst se úplně přeskočí, když paměť vypršela (`unreachableUntilMax`).
-`NearestKsidSec` přidáme se smyslem, který ho potřebuje (nebezpečí) — pak dostane i pole s výběrem
-sekundární mapy. Perf rezerva do budoucna: sekundární mapa `Items` (předměty registrované přes
-`SecondaryMapIndex`) — až to profiler ukáže nebo bude potřeba velký dosah.
+**Sekundární mapa je parametr, ne druh výpočtu** (`SenseConfig.SecondaryMap`, `None` = hlavní
+mapa): týž `NearestKsid` hledá na `map.Secondary(id)` — jen mezi objekty, které se na ni registrují
+(`PlaceableSettings.SecondaryMapIndex`), zato levně na velký dosah (buňky 9× větší). Dotaz jde
+přes `GetPlaceables` (tunelové vidění i plné hledání). Perf rezerva do budoucna: sekundární mapa
+`Items` (předměty registrované přes `SecondaryMapIndex`) — až to profiler ukáže nebo bude potřeba
+velký dosah.
 
 **Tunelové vidění (`TrackRadius > 0`)** — je-li poslední nález nalezený a nejvýš `TrackMaxAge`
 (0,7 s) starý, hledá se nejdřív jen v okně `TrackRadius` kolem něj: kandidát nejblíž k *poslední
@@ -404,14 +410,21 @@ tak nové doplňkové parametry: starý config je nechá default a override se j
 // resolve: jednou, lazy, cache na AiSettings (sdíleno všemi instancemi druhu)
 var resolved = new SenseConfig[SenseCount];                 // indexed by (int)Slot
 foreach (var c in SenseProfile.Senses)  resolved[(int)c.Slot] = c;
-foreach (var o in SenseOverrides) {                          // merge per-field, jen nedefaultní
+foreach (var o in SenseOverrides) {
     ref var b = ref resolved[(int)o.Slot];
-    if (o.Kind   != SenseKind.None) b.Kind   = o.Kind;
-    if (o.Ksid   != default)        b.Ksid   = o.Ksid;
-    if (o.Radius != 0)              b.Radius = o.Radius;
-    if (o.NeedsSight)               b.NeedsSight = true;   // bool jde overridem jen zapnout
-    if (o.SkipUnreachable)          b.SkipUnreachable = true;
-    if (o.TrackRadius != 0)         b.TrackRadius = o.TrackRadius;
+    b = new SenseConfig(in b, in o);                         // merge per-field, jen nedefaultní
+}
+
+// SenseConfig - kopy konstruktor pro override:
+public SenseConfig(in SenseConfig b, in SenseConfig o)
+{
+    this = b;
+    Slot = o.Slot;
+    if (o.Kind   != SenseKind.None) Kind   = o.Kind;
+    if (o.Ksid   != default)        Ksid   = o.Ksid;
+    if (o.Radius != 0)              Radius = o.Radius;
+    if (o.NeedsSight)               NeedsSight = true;     // bool jde overridem jen zapnout
+    // ... stejně pro ostatní pole
 }
 ```
 
@@ -425,7 +438,7 @@ Praktický dopad — designér skoro nikdy nekonfiguruje vše:
 | Srnec | `HerbivoreSenses` | `Danger.Radius 12→18` |
 | Vlk | `PredatorSenses` | — |
 
-(`HerbivoreSenses = { Food: NearestKsid Plant r8; Danger: NearestKsidSec Predator r12 }`.) Změna
+(`HerbivoreSenses = { Food: NearestKsid Plant r8; Danger: NearestKsid Predator r12 SecondaryMap=Beasts }`.) Změna
 v profilu se propíše všem; výjimka je jeden řádek override.
 
 ### Runtime — lazy do slotu
@@ -805,6 +818,63 @@ ho při sebrání uložily obě ruce). Rozhodnutí:
 
 ---
 
+## Featura: házení předmětů
+
+> ✅ Naimplementováno (2026-10-08), čeká na test v editoru.
+
+Příšera vidí cíl a má v inventáři předmět daného `Ksid` → vytáhne ho do ruky, chvíli míří a hodí
+ho po cíli obloukem, který si spočítá. Když je to pro zásah potřeba, přendá předmět do druhé z roviny.
+
+```
+Rules: [ ThrowItemRule, PickUpItemRule, SeekItemRule, RoamRule ]
+Senses: Target = NearestKsid Character r8, NeedsSight, SightPerPlane, TrackRadius 1
+```
+
+Rozhodnutí:
+- **Předmět se identifikuje `Ksid`, ne prototypem** — stejně jako sbírání a saturace; hierarchie
+  dovolí obecné pravidlo, preferenci dává pořadí (`ThrowItemRule(bomba)` nad `ThrowItemRule(kámen)`).
+  Inventář: `TryFindSlotKsid`.
+- **Síla hodu v `ChSettings`** (`ThrowMaxSpeed = 11`, `ThrowPower = 20`,
+  `MaxThrowSpeed(m) = min(ThrowMaxSpeed, ThrowPower/√m)` — omezená energie hodu). Dřív natvrdo
+  v `ThrowController`; hráč se nezměnil (`throwForce` 0..2 = poloviční až plná síla). **Provedení hodu
+  je v motoru** (`ChLegsArms.ThrowHeld(obj, relVelocity)` + `ApplyThrow` na konci `GameFixedUpdate`,
+  zpětný ráz) — hráč i příšera jdou stejnou cestou.
+- **Dráha je čistá parabola** (gravitace −9, předměty nemají `linearDamping`) → analyticky
+  (`MonsterBrain.Throw.cs`). Styly hodu (`ThrowStyle` na pravidle): `Direct` = nižší úhel plnou
+  rychlostí (rychlý, plochý), `Lob` = nejmenší energie (přes překážku). Mimo dosah, když
+  `v_min² = g(y + |Δ|) > MaxThrowSpeed²`. Předsazení pohyblivého cíle zatím ne.
+- **Test volné dráhy jen v pravidle** (ne ve smyslu): `Segments` úseků `SphereCast` s poloměrem
+  předmětu v rovině hodu; první zásah rozhoduje (Ksid cíle = volno). Hloupější příšera má méně
+  segmentů a občas hodí do překážky; `Segments = 0` test úplně vypne. Odchylka tětivy od paraboly
+  je `g·(T/n)²/8` (lob 1,3 s: n=4 → ~12 cm, n=2 → ~0,5 m), default 4. Rychlosti obou stylů
+  se počítají jednou (`TrySolveArcs`) — v obou rovinách jsou stejné, liší se jen test dráhy.
+- **Robustnost:** `v_min²` a nižší úhel Direct se počítají ve tvaru bez odčítání blízkých čísel,
+  `v_min² ≤ 0` (degenerace) = mimo dosah; poloměr předmětu ≥ 2 cm; plánuje se na 97 % `vMax`
+  (motor ořezává rychlost relativní k tělu).
+- **Z rovina:** předmět zasáhne jen cíl ve své rovině → hází se v rovině cíle (`SenseResult.ZPlanes`,
+  cíl přes dvě buňky = obě). Pořadí: rovina předmětu, druhá. Přesun `CanZMove` + `MoveZ`
+  (`MoveHeldItemZ`) už na začátku míření, ať je hod čitelný; předměty přes dvě buňky se nepřesouvají.
+- **`SenseConfig.SightPerPlane`** (default vypnuto = jeden šikmý paprsek mezi `Center3D`): paprsky
+  mezi `Center` v rovině — nejdřív v rovině kandidáta, pak ve druhé.
+- **Výpočet dráhy už v `Test`**, ale jen každých `SolveInterval` (0,5 s, `SlowTick`) — pravidlo
+  zůstane bezstavové, bez dráhy se předmět ani nevytahuje a nevznikne smyčka „vytáhni–vrať“.
+  Rovinu z `Test` si pravidlo uloží do `ScratchValue` (Test smí připravit scratch, jen když vrací
+  true — `Begin` následuje hned) a po uchopení do ní předmět přendá. Před hodem se dráha přepočítá
+  (cíl se mohl pohnout); když nejde, konec bez hodu.
+- **Fáze** (`ScratchPhase`): vytažení (`DrawItem`, `DrawTimeout`) → míření (`Stop`, `LookAt`,
+  `AimTime`) → hod. `CanBeInterrupted = false` (krátká jednorázová akce).
+- **Držení je příkaz na jeden krok** jako `desiredPickUp`: brain na začátku kroku nuluje
+  `desiredHold`, `DrawItem` ho obnoví. Když pravidlo skončí bez hodu, brain po `Think` vytažený
+  předmět vrátí do inventáře — držený i neuchopený. Umírající příšera vytažený předmět upustí
+  do světa.
+- **Inventářové API motoru:** `InventoryReturn`/`InventoryDrop` na `ChLegsArms` jsou bezpečné —
+  ruku, která předmět drží, nejdřív pustí. Připojená ruka (`Connectable` pod předmětem) totiž
+  blokuje `CanBeInInventory` a `ReturnActiveObj` by předmět místo návratu upustil. Potomci
+  implementují jen holé `InventoryReturnRaw`/`InventoryDropRaw` (protected); holý návrat volá
+  motor jen v `OnLimbDetached`, kde je ruka už `Off`.
+
+---
+
 ## Otevřené drobnosti (dořešit při implementaci)
 
 Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu:
@@ -816,8 +886,8 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
    ověřit API při kroku 6.
 4. **`IsSafeToSleep()`** — přesný style-specifický check (lezec: na zemi + ne na hraně; příp. žádné
    akutní nebezpečí).
-5. **Smysly** — `SenseId` roste podle konzumentů (zatím `Loot`); `NearestKsidSec` s prvním smyslem
-   na sekundární mapě. Editor validace čtení slotu s `Kind == None` zatím chybí (duplicitní slot
+5. **Smysly** — `SenseId` roste podle konzumentů (zatím `Loot`, `Target`); sekundární mapa je
+   hotová jako parametr `SecondaryMap`. Editor validace čtení slotu s `Kind == None` zatím chybí (duplicitní slot
    v profilu už varuje).
 6. Případně `End()`/cleanup u pravidel (zatím odloženo, viz Mozek).
 

@@ -13,18 +13,23 @@ namespace Assets.Scripts.Ai
     [CreateAssetMenu]
     public class AiSettings : ScriptableObject
     {
+        [Tooltip("Pravidla soupeřící o pohybový zámek. Pořadí = priorita (nahoře nejvyšší); první, jehož Test projde, zabere krok.")]
         [SerializeReference, TypePicker]
         public IAiRule[] Rules = Array.Empty<IAiRule>();
 
+        [Tooltip("Reflexy - vyhodnocují se každý krok všechny, i když běží pravidlo; zámek neberou, mění jen kontext.")]
         [SerializeReference, TypePicker]
         public IAiModifier[] Modifiers = Array.Empty<IAiModifier>();
 
         [Header("Senses")]
-        public SenseProfile SenseProfile;                              // sdileny zaklad
-        public SenseConfig[] SenseOverrides = Array.Empty<SenseConfig>(); // jen odchylky, per-field
+        [Tooltip("Sdílený základ smyslů (archetyp, např. HerbivoreSenses).")]
+        public SenseProfile SenseProfile;
+        [Tooltip("Odchylky od profilu. Uplatní se jen nedefaultní pole záznamu (0/None/false = převzít z profilu; bool jde jen zapnout).")]
+        public SenseConfig[] SenseOverrides = Array.Empty<SenseConfig>();
 
         [Header("Crawler")]
-        public bool AvoidHoles = true;   // nevleze do diry - hlida hranu pred sebou
+        [Tooltip("Nevleze do díry - hlídá hranu před sebou.")]
+        public bool AvoidHoles = true;
 
         [NonSerialized]
         private SenseConfig[] resolvedSenses;
@@ -47,13 +52,7 @@ namespace Assets.Scripts.Ai
             foreach (var o in SenseOverrides)
             {
                 ref var b = ref resolved[(int)o.Slot];
-                b.Slot = o.Slot;
-                if (o.Kind != SenseKind.None) b.Kind = o.Kind;
-                if (o.Ksid != default) b.Ksid = o.Ksid;
-                if (o.Radius != 0) b.Radius = o.Radius;
-                if (o.NeedsSight) b.NeedsSight = true;
-                if (o.SkipUnreachable) b.SkipUnreachable = true;
-                if (o.TrackRadius != 0) b.TrackRadius = o.TrackRadius;
+                b = new SenseConfig(in b, in o);
             }
             return resolved;
         }

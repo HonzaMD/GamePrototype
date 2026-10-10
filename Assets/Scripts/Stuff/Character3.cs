@@ -30,7 +30,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     public Status Status { get; private set; }
 
     private InputController inputController;
-    private Rigidbody bodyToThrow;
     private ControlState cState;
     private bool firstPress;
     private HoldAnimator holdAnimator;
@@ -409,20 +408,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
             ControlledFixedUpdate();
 
         base.GameFixedUpdate();
-        ApplyThrow();
-    }
-
-    private void ApplyThrow()
-    {
-        if (bodyToThrow == null)
-            return;
-        if (inputController)
-        {
-            Vector2 force = inputController.ThrowController.ComputeThrowForce(bodyToThrow.mass);
-            bodyToThrow.linearVelocity = (Vector3)force + this.body.linearVelocity;
-            body.AddForce(-force, bodyToThrow.mass, VelocityFlags.None);
-        }
-        bodyToThrow = null;
     }
 
     public override Label InventoryGet() => inventory.ActiveObj;
@@ -431,31 +416,25 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     public Inventory Inventory => inventory;
 
-    public override void InventoryReturn()
+    protected override void InventoryReturnRaw()
     {
         inventory.ReturnActiveObj();
     }
 
-    public override void InventoryDrop()
+    protected override void InventoryDropRaw()
     {
         inventory.RemoveObjActive();
     }
 
-    internal void ThrowObj(Label obj)
+    internal void ThrowObj(Label obj, Vector2 relVelocity)
     {
-        this.bodyToThrow = obj.Rigidbody;
-        desiredHold = false;
-        if (IsInventoryActive)
+        bool reload = IsInventoryActive && cState == ControlState.Throw && inputController && inputController.Frame.ThrowHeld;
+        ThrowHeld(obj, relVelocity);
+        if (reload)
         {
-            InventoryDrop();
-            if (cState == ControlState.Throw && inputController && inputController.Frame.ThrowHeld)
-            {
-                cState = ControlState.ThrowReload;
-                controlTimeout = 0;
-            }
+            cState = ControlState.ThrowReload;
+            controlTimeout = 0;
         }
-        // Az po InventoryDrop: OnLimbDetached vraci vec do inventare, kdyz je jeste aktivni.
-        DetachHold();
     }
 
     protected override Vector3 GetTargetPointer(float z) => inputController.GetMousePosOnZPlane(z);

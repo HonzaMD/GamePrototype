@@ -8,6 +8,7 @@ namespace Assets.Scripts.Ai
     [CreateAssetMenu]
     public class SenseProfile : ScriptableObject
     {
+        [Tooltip("Smysly archetypu - nejvýš jeden záznam na slot.")]
         public SenseConfig[] Senses = Array.Empty<SenseConfig>();
     }
 }

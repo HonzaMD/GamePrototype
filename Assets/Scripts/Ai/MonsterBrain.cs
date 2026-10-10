@@ -66,6 +66,9 @@ namespace Assets.Scripts.Ai
         // Perioda je na pravidle (zna dulezitost informace): 25 = ~2x za sekundu pri 50 Hz.
         public bool SlowTick(int period) => (Game.Instance.FixedStepCounter + slowOffset) % period == 0;
 
+        // Pocet fixed kroku pro dobu v sekundach (perioda pro SlowTick, okno smyslu), aspon 1.
+        public static int FixedSteps(float seconds) => Mathf.Max(1, Mathf.RoundToInt(seconds / Time.fixedDeltaTime));
+
         public void GameUpdate()
         {
         }
@@ -75,9 +78,14 @@ namespace Assets.Scripts.Ai
             // Prikazy na JEDEN krok - bezici pravidlo je musi v Tick obnovit. Kdyz pravidlo
             // prebije vyssi, nic nezustane viset (proto pravidla nepotrebuji End()).
             desiredPickUp = false;
+            desiredHold = false;
             LookAt(DefaultLookAt(in directive));
 
             Think();
+
+            // Vytazeny predmet vrat hned, i drzeny - InventoryReturn pusti i ruku.
+            if (!desiredHold && IsInventoryActive)
+                InventoryReturn();
 
             // Styl prelozi standing rozkaz na desired*. None = jeste nikdo nerozhodl,
             // Manual = pravidlo si desired* ridi samo - v obou pripadech styl nevolame.
@@ -213,6 +221,7 @@ namespace Assets.Scripts.Ai
         public override void Cleanup(bool goesToInventory)
         {
             DeactivateAi();
+            InventoryDrop();            // vytazeny predmet zustane ve svete, nevraci se do umirajiciho inventare
             base.Cleanup(goesToInventory);
             if (!goesToInventory)
                 CleanupInventory();     // predmet v ruce base (DetachAllLimbs) upusti - prisera uz neni v mape
