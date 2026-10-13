@@ -873,6 +873,57 @@ Rozhodnutí:
   implementují jen holé `InventoryReturnRaw`/`InventoryDropRaw` (protected); holý návrat volá
   motor jen v `OnLimbDetached`, kde je ruka už `Off`.
 
+## Featura: skákání
+
+> 🚧 Krok 1 hotový (2026-10-13): `JumpDetector` — detekce, kam lze skočit. Pravidlo, které skok
+> provede, zatím chybí.
+
+Skok má pevnou sílu odrazu (výška paraboly i doba skoku dané), ale ve vzduchu jde řídit x. Kam
+příšera doskočí, se nezjišťuje simulací za běhu, ale **předem zadanými trajektoriemi**: styl skoku
+je tak pod kontrolou a dotaz je levný. Trajektorie se zatím zadávají ručně, později je může
+vyrábět parametrický generátor (rozsah y, pravidlo pro x, hrubě vykreslená dráha podle velikosti příšery).
+
+**Trajektorie = ASCII mapa** (`JumpTrajectory.Parse`), skok doprava, doleva se zrcadlí `dx`.
+Řádky ohraničené `|` (mezery jsou významné), horní řádek = nejvyšší y, mapa jen obaluje trajektorii:
+
+| znak | význam |
+|------|--------|
+| `*` | podlaha pod příšerou = počátek [0,0], netestuje se |
+| mezera | musí být volno |
+| `#` | musí být doskočiště — právě jedno, je to cíl skoku (offset `*` → `#`) |
+| `x` | nesmí být doskočiště — selže, když by uspěl kratší skok ve stejném směru nebo skok není potřeba |
+| `?` | cokoliv (tělo příšery) |
+
+Sady jsou stringové konstanty v `JumpTrajectories.cs`, jeden `JumpDetector` na druh příšery
+(velikost + síla skoku). Všechny příšery uvažujeme jako half-cell → testuje se jedna z rovina.
+
+**Třída buňky** (`Map.GetJumpCellClass(cell, cellz, exclude)`): `Free` / `Static` (doskočiště) /
+`Other` (pohyblivé). `HasFloor` (`FullEx` nebo písek) → `Static`; bez `Part` → `Free`; jinak pomalá
+cesta přes placeably v buňce: kterýkoli `IsStatic` → `Static` (statické objekty mimo mřížku dávají
+jen `Part`), jinak `Other`. Příšera sama (`exclude`) se ignoruje — zasahuje i do buněk mimo `?`.
+Mimo mapu = `Free` (není tam doskočiště, takže trajektorie stejně neuspěje).
+
+**Automat** (`JumpAutomaton`) otestuje všechny trajektorie (max 64) jedním průchodem:
+- Buňky všech trajektorií se seřadí globálně od nejbližší (`dx² + dy²`). Každý stav testuje
+  jednu buňku a podle třídy jde na jeden ze tří dalších stavů → buňka se testuje nejvýš jednou
+  a blízké buňky (volno nad hlavou) zabijí neplatné trajektorie dřív, než se sáhne na vzdálené.
+- Stav = `(k, alive)`: index další buňky + živé **nerozhodnuté** trajektorie. Hodnoty otestovaných
+  buněk netřeba pamatovat (požadavky jsou konjunkce), stejné klíče se slučují (DAG). Buňky, na
+  kterých žádná živá trajektorie nezávisí, se přeskakují.
+- Trajektorie, která projde svou poslední buňku, se hned ORuje do výsledku (emit na přechodu)
+  a ze stavu zmizí. Varianta s výsledkem až v terminálech nesla v klíči i hotové trajektorie
+  a vybuchla: realistická sada 28 trajektorií 61 tis. stavů místo 2 tis., 42 trajektorií 9,7 tis.
+- Za běhu se čte jen `states[]` (12 B na stav): relativní buňka `Dx, Dy` a pro každou třídu
+  `Next*` + `Emit*` (byte: 0 = nic, 1..64 = jedna trajektorie `1UL << (e-1)`, 65..255 = index do
+  malé tabulky `emits` pro přechod, který dokončí víc trajektorií najednou — v realistických
+  sadách se nevyskytuje).
+- Strop `short.MaxValue` stavů, při překročení výjimka. Automat se staví líně při prvním dotazu
+  (stavba smí alokovat), dotaz je bez alokací (`Run<T>` přes struct `IJumpCellSource`).
+
+API: `JumpDetector.Detect(map, floorCell, cellz, dir, self)` → `ulong` maska trajektorií,
+`TargetOffset(i, dir)` → podlaha doskoku. Testy: `Assets/Tests/JumpAutomatonTests.cs` (porovnání
+s hrubou silou na náhodných i realistických sadách + kontrola, že se žádná buňka netestuje dvakrát).
+
 ---
 
 ## Otevřené drobnosti (dořešit při implementaci)

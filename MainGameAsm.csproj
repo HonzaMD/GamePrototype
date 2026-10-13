@@ -77,6 +77,10 @@
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpAutomaton.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpDetector.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectories.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectory.cs" />
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\TypePickerDrawer.cs" />

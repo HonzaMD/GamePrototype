@@ -452,5 +452,38 @@ namespace Assets.Scripts.Map
         {
             return CellToCell(pos, out var cellPos) ? cells[cellPos].BlockingExcept(exclude) : CellFlags.Free;
         }
+
+        // Trida bunky pro detekci skoku v rovine cellz. Mimo mapu = Free (neni tam doskociste).
+        // Part bez HasFloor muze byt i staticky objekt mimo mrizku nebo sama prisera -> projde placeably.
+        public JumpCellClass GetJumpCellClass(Vector2Int pos, int cellz, Placeable exclude)
+        {
+            if (!CellToCell(pos, out var cellPos))
+                return JumpCellClass.Free;
+            ref var cell = ref cells[cellPos];
+            var blocking = cell.Blocking;
+            if (blocking.HasSubFlag(SubCellFlags.HasFloor, cellz))
+                return JumpCellClass.Static;
+            if (!blocking.IsPartBlock(cellz))
+                return JumpCellClass.Free;
+
+            var ret = JumpCellClass.Free;
+            foreach (var p in cell)
+            {
+                if (p != exclude && p.CellBlocking.IsPartBlock(cellz))
+                {
+                    if (p.IsStatic)
+                        return JumpCellClass.Static;
+                    ret = JumpCellClass.Other;
+                }
+            }
+            return ret;
+        }
+    }
+
+    public enum JumpCellClass : byte
+    {
+        Free,     // volno
+        Static,   // staticky objekt nebo pisek - da se na nej doskocit
+        Other,    // obsazeno necim pohyblivym
     }
 }

@@ -64,6 +64,7 @@
     <Compile Include="Assets\Tests\SpTests.cs" />
     <Compile Include="Assets\Tests\ColliderTouch.cs" />
     <Compile Include="Assets\Tests\OBBCellTestTests.cs" />
+    <Compile Include="Assets\Tests\JumpAutomatonTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Tests\Tests.asmdef" />
