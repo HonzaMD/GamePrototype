@@ -13,8 +13,9 @@ namespace Assets.Scripts.Ai
     //   - hrana (Edge) nebo zaseknuti (Wall) ve smeru k cili
     //   - nova plosina: po vstupu do nove bunky je pred hlavou (dir,1) nebo (dir,2) obsazeno a nad hlavou volno
     //   - cil skoro nad hlavou - oba smery, vzdy
-    // VYBER (v bunkach: bunka tela, bunka dopadu, bunka cile): dopad musi zkratit vzdalenost k cili aspon
-    //   o JumpGain proti soucasne pozici. Kdyz lezec jde (canWalk), i proti chuzi: bunka +1 se bere jako
+    // VYBER (v bunkach: bunka tela, bunka dopadu, bunka cile): dopad musi zkratit vzdalenost k cili proti
+    //   soucasne pozici (ostre - stat je horsi nez jakykoli pokrok; vzdalenosti v bunkach jsou diskretni,
+    //   takze se to nezacykli). Kdyz lezec jde (canWalk), i proti chuzi o JumpGain: bunka +1 se bere jako
     //   dostupna (zed pred ni spusti detekci znovu); u kandidatu od +2 dal se testuje bunka +2 - je-li
     //   pruchozi, bere se chuze jako mozna az na x kandidata, jinak jen o jednu bunku.
     //   Vyhrava nejkratsi vzdalenost (eukleidovska).
@@ -25,7 +26,8 @@ namespace Assets.Scripts.Ai
     //   nohy se nechytily) se ridi stejne a konci stejne. Zmena rozkazu skok neprerusi.
     public class JumperStyle : CrawlerStyle
     {
-        private const float JumpGain = 0.5f;         // [bunky] o kolik musi skok zkratit vzdalenost k cili
+        private const float JumpGain = 0.5f;         // [bunky] o kolik musi skok zkratit vzdalenost k cili proti chuzi
+        private const float JumpMinGain = 0.01f;     // [bunky] totez proti stani na miste
         private const float JumpExtra = 0.25f;       // [m] skace se o tolik vys, nez je potreba
         private const float CornerMargin = 0.1f;     // [m] rezerva od hrany plosiny u skoku nahoru
         private const int AboveCells = 1;            // [bunky] |dx| cile, do ktereho je cil "nad hlavou"
@@ -87,7 +89,7 @@ namespace Assets.Scripts.Ai
             }
 
             var detector = JumpTrajectories.Get(AiSettings.JumpSet);
-            float best = CellDistance(targetCell, bodyCell) - JumpGain;
+            float best = CellDistance(targetCell, bodyCell) - JumpMinGain;
             bool found = false;
             Vector2Int landCell = default;
             int landingDir = 0;

@@ -13,14 +13,17 @@ namespace Assets.Scripts.Ai.Rules
     //
     // Drzeni je prikaz na jeden krok (DrawItem) - kdyz pravidlo skonci bez hodu, predmet se vrati
     // do inventare sam.
+    // Po hodu jeste AfterThrowTime stoji (pravidlo nejde prerusit) - jinak by PickUpItemRule hozeny
+    // predmet hned chytil.
     //
-    // Scratch: ScratchPhase = faze (PhaseDraw/PhaseAim), ScratchTimer = start faze,
+    // Scratch: ScratchPhase = faze (PhaseDraw/PhaseAim/PhaseAfter), ScratchTimer = start faze,
     // ScratchValue = z rovina hodu z Test.
     [Serializable]
     public class ThrowItemRule : IAiRule
     {
         private const int PhaseDraw = 0;
         private const int PhaseAim = 1;
+        private const int PhaseAfter = 2;
 
         [Tooltip("Smysl, který hlásí cíl. Zásah do objektu s jeho Ksid se při testu dráhy bere jako volná cesta.")]
         public SenseId SenceId = SenseId.Target;
@@ -38,6 +41,8 @@ namespace Assets.Scripts.Ai.Rules
         public float DrawTimeout = 1f;
         [Tooltip("Pauza [s] mezi uchopením a hodem (míření).")]
         public float AimTime = 0.4f;
+        [Tooltip("Pauza [s] po hodu - stojí a nic jiného nedělá, jinak by hozený předmět hned sebral.")]
+        public float AfterThrowTime = 0.3f;
 
         // Hod je kratka jednorazova akce - dobehne.
         public bool CanBeInterrupted => false;
@@ -61,6 +66,12 @@ namespace Assets.Scripts.Ai.Rules
 
         public ActionStatus Tick(MonsterBrain brain)
         {
+            if (brain.ScratchPhase == PhaseAfter)
+            {
+                brain.SetDirective(DirectiveKind.Stop);
+                return Time.time - brain.ScratchTimer < AfterThrowTime ? ActionStatus.Running : ActionStatus.Done;
+            }
+
             ref readonly var s = ref brain.Sense(SenceId, SenceTrackAge);
             if (!s.Found)
                 return ActionStatus.Done;       // cil zmizel z dohledu
@@ -90,7 +101,12 @@ namespace Assets.Scripts.Ai.Rules
                 return ActionStatus.Running;
 
             if (brain.HoldsDrawnItem && brain.PlanThrow(in s, brain.SenseKsid(SenceId), ItemKsid, in Style, out var plan))
+            {
                 brain.Throw(in plan);
+                brain.ScratchPhase = PhaseAfter;
+                brain.ScratchTimer = Time.time;
+                return ActionStatus.Running;
+            }
             return ActionStatus.Done;
         }
     }

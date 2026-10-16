@@ -15,6 +15,8 @@ namespace Assets.Scripts.Ai
     // z prisery tahal veci. Pri smrti se zabije i s obsahem.
     public abstract partial class MonsterBrain
     {
+        private const float MaxPickUpSpeed = 1f;    // [m/s] relativni rychlost predmetu vuci prisere
+
         private Inventory inventory;
         private Ksid pickUpKsid;
 
@@ -34,7 +36,9 @@ namespace Assets.Scripts.Ai
         }
 
         protected override Ksid PickupQueryKsid => pickUpKsid;
-        protected override bool IsPickupAllowed(Label p) => p.KsidGet.IsChildOfOrEq(pickUpKsid);
+        // Rychly predmet (napr. prave hozeny) ruka nechyta - tazeni proti jeho hybnosti priseru zranuje.
+        protected override bool IsPickupAllowed(Label p) => p.KsidGet.IsChildOfOrEq(pickUpKsid)
+            && (p.Velocity - body.linearVelocity).sqrMagnitude < MaxPickUpSpeed * MaxPickUpSpeed;
 
         // Vola motor, kdyz ruka v rezimu PickUp dotahne predmet k telu (OnLimbDetached).
         protected override void InventoryPickup(Label label)

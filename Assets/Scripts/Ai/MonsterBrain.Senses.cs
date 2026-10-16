@@ -126,7 +126,7 @@ namespace Assets.Scripts.Ai
                 }
             }
 
-            bool found = best >= 0 && (!cfg.NeedsSight || CanSee(candidates[best], in cfg));
+            bool found = best >= 0;
             if (found)
                 SetFound(ref r, candidates[best]);   // r.Found uz je true
 
@@ -254,6 +254,30 @@ namespace Assets.Scripts.Ai
                     return true;
             }
             return false;
+        }
+
+        private void DrawDebugSenses(Vector2 from)
+        {
+            int step = Game.Instance.FixedStepCounter + slowOffset;
+            int maxSteps = FixedSteps(AiDebug.SenseMaxAge);
+            for (int i = 0; i < senseCache.Length; i++)
+            {
+                ref readonly var r = ref senseCache[i];
+                if (r.Found && r.Step != SenseResult.InvalidStep && step - r.Step <= maxSteps)
+                    AiDebug.Line(from, r.Position, AiDebug.SenseColor, back: true);
+            }
+        }
+
+        private void DrawDebugUnreachable(Vector2 from)
+        {
+            float now = Time.time;
+            if (now >= unreachableUntilMax)
+                return;
+            for (int i = 0; i < unreachable.Length; i++)
+            {
+                if (now < unreachable[i].Until)
+                    AiDebug.Line(from, unreachable[i].Pos, Color.red);
+            }
         }
     }
 }

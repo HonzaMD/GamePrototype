@@ -154,6 +154,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 
         Assets.Scripts.Map.CellSims.CellSimDebug.Render(); // debug overlay cell sim (F9); zakomentuj = vypnuto
+        Assets.Scripts.Ai.AiDebug.Render();                // debug cary AI (F8); zakomentuj = vypnuto
 
         //if (!cameraMode)
         //    Character.GameUpdate();

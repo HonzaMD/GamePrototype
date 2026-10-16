@@ -862,7 +862,10 @@ Rozhodnutí:
   true — `Begin` následuje hned) a po uchopení do ní předmět přendá. Před hodem se dráha přepočítá
   (cíl se mohl pohnout); když nejde, konec bez hodu.
 - **Fáze** (`ScratchPhase`): vytažení (`DrawItem`, `DrawTimeout`) → míření (`Stop`, `LookAt`,
-  `AimTime`) → hod. `CanBeInterrupted = false` (krátká jednorázová akce).
+  `AimTime`) → hod → pauza (`Stop`, `AfterThrowTime` 1 s). `CanBeInterrupted = false` (krátká
+  jednorázová akce), takže pauza blokuje i `PickUpItemRule` — jinak by hozený předmět hned chytil
+  (pomalý lob dolů má jen ~1 m/s, limit relativní rychlosti `MaxPickUpSpeed` v `IsPickupAllowed`
+  na něj nestačí).
 - **Držení je příkaz na jeden krok** jako `desiredPickUp`: brain na začátku kroku nuluje
   `desiredHold`, `DrawItem` ho obnoví. Když pravidlo skončí bez hodu, brain po `Think` vytažený
   předmět vrátí do inventáře — držený i neuchopený. Umírající příšera vytažený předmět upustí
@@ -944,12 +947,14 @@ Sada trajektorií se vybírá polem `JumpSet` v `AiSettings` (`JumpTrajectories.
   skoro nad hlavou (buňka cíle |dx| ≤ 1, výš než buňka těla) — vždy a oba směry. Maska detekce se
   cachuje na buňku podlahy a 1 s, takže se na stejné buňce neopakuje.
 - **Výběr — v buňkách** (buňka těla, buňka těla po dopadu = nad `#`, buňka cíle; přesnou výšku podlah
-  stejně neznáme): dopad musí zkrátit eukleidovskou vzdálenost k cíli aspoň o `JumpGain` (0,5 buňky)
-  proti současné pozici. Když příšera jde (`Moving`/`Starting`), i proti chůzi (jinak by skákala na
-  plošinky, i když cíl je dole): buňka +1 se bere jako dostupná (zeď před ní spustí detekci znovu,
-  skok neuteče); pro kandidáty od +2 dál se testuje buňka +2 (volno + podlaha) — projde-li, bere se
-  chůze jako možná až na x kandidáta, jinak jen o 1 buňku. Vyhrává nejkratší vzdálenost. Každá akce
-  vzdálenost zmenšuje o pevnou rezervu → nezacyklí se.
+  stejně neznáme): dopad musí ostře zkrátit eukleidovskou vzdálenost k cíli proti současné pozici
+  (`JumpMinGain` 0,01 buňky — stát je horší než jakýkoli pokrok; příšera nemůže stát v buňce předmětu,
+  takže skok ze šikmého sousedství nad předmět zkrátí jen 1,41 → 1). Když příšera jde
+  (`Moving`/`Starting`), i proti chůzi o `JumpGain` (0,5 buňky; jinak by skákala na plošinky, i když
+  cíl je dole): buňka +1 se bere jako dostupná (zeď před ní spustí detekci znovu, skok neuteče); pro
+  kandidáty od +2 dál se testuje buňka +2 (volno + podlaha) — projde-li, bere se chůze jako možná až
+  na x kandidáta, jinak jen o 1 buňku. Vyhrává nejkratší vzdálenost. Vzdálenosti v buňkách jsou
+  diskrétní a každý skok je ostře zmenšuje → nezacyklí se.
 - **Dopadový pivot (fyzika):** střed buňky dopadu, ve stejné výšce nad spodkem buňky jako při odrazu
   (podlahy předpokládáme na hranách buněk, stejně jako detektor).
 - **Výška skoku:** čas letu = |dx| / `maxSpeedAir` + rozjezd; za něj musí být pivot ve výšce dy

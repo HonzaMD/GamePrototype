@@ -42,7 +42,7 @@ namespace Assets.Scripts.Ai.Rules
             ref readonly var s = ref brain.Sense(SenceId, SenceTrackAge);
             if (!s.Found)
             {
-                brain.MarkUnreachable(brain.ScratchPos, GiveUpTime);
+               // brain.MarkUnreachable(brain.ScratchPos, GiveUpTime);
                 return ActionStatus.Done;
             }
             var target = s.Position;

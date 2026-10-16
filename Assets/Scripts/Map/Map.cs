@@ -471,7 +471,7 @@ namespace Assets.Scripts.Map
             {
                 if (p != exclude && p.CellBlocking.IsPartBlock(cellz))
                 {
-                    if (p.IsStatic)
+                    if (p.IsStatic || p.IsNonMoving)
                         return JumpCellClass.Static;
                     ret = JumpCellClass.Other;
                 }

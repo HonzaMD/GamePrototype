@@ -62,7 +62,7 @@ MonoBehaviour:
         SenceAge: 1.5
         SenceTrackAge: 0.4
         MaxCount: 10
-        Reach: 0.4
+        Reach: 0.6
         Timeout: 2
         GiveUpTime: 15
         SpeedScale: 0.5

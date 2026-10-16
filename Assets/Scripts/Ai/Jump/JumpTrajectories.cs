@@ -192,6 +192,10 @@ namespace Assets.Scripts.Ai.Jump
             |?x  |
             |?xx |
             |?xx#|
+
+",@"
+            |? |
+            |*#|
 "
         };
 

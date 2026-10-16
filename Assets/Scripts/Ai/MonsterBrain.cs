@@ -74,6 +74,17 @@ namespace Assets.Scripts.Ai
 
         public void GameUpdate()
         {
+            if (AiDebug.Active)
+                DrawDebug();
+        }
+
+        private void DrawDebug()
+        {
+            var from = Center;
+            if (directive.Kind == DirectiveKind.GoToward)
+                AiDebug.Line(from, directive.Target, Color.green);
+            DrawDebugUnreachable(from);
+            DrawDebugSenses(from);
         }
 
         public override void GameFixedUpdate()
