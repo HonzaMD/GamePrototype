@@ -875,8 +875,9 @@ Rozhodnutí:
 
 ## Featura: skákání
 
-> 🚧 Krok 1 hotový (2026-10-13): `JumpDetector` — detekce, kam lze skočit. Pravidlo, které skok
-> provede, zatím chybí.
+> 🚧 Krok 1 hotový (2026-10-13): `JumpDetector` — detekce, kam lze skočit.
+> Krok 2 naimplementován (2026-10-15), čeká na test v editoru: `JumperStyle` skáče v `GoToward`.
+> Další krok: skákání v `Roam`.
 
 Skok má pevnou sílu odrazu (výška paraboly i doba skoku dané), ale ve vzduchu jde řídit x. Kam
 příšera doskočí, se nezjišťuje simulací za běhu, ale **předem zadanými trajektoriemi**: styl skoku
@@ -917,12 +918,57 @@ Mimo mapu = `Free` (není tam doskočiště, takže trajektorie stejně neuspěj
   `Next*` + `Emit*` (byte: 0 = nic, 1..64 = jedna trajektorie `1UL << (e-1)`, 65..255 = index do
   malé tabulky `emits` pro přechod, který dokončí víc trajektorií najednou — v realistických
   sadách se nevyskytuje).
-- Strop `short.MaxValue` stavů, při překročení výjimka. Automat se staví líně při prvním dotazu
-  (stavba smí alokovat), dotaz je bez alokací (`Run<T>` přes struct `IJumpCellSource`).
+- Strop `short.MaxValue` stavů, při překročení výjimka. Detektor (i s automatem) se staví líně v
+  `JumpTrajectories.Get` (stavba smí alokovat), dotaz je bez alokací (`Run<T>` přes struct `IJumpCellSource`).
 
 API: `JumpDetector.Detect(map, floorCell, cellz, dir, self)` → `ulong` maska trajektorií,
 `TargetOffset(i, dir)` → podlaha doskoku. Testy: `Assets/Tests/JumpAutomatonTests.cs` (porovnání
-s hrubou silou na náhodných i realistických sadách + kontrola, že se žádná buňka netestuje dvakrát).
+s hrubou silou na náhodných i realistických sadách + kontrola, že se žádná buňka netestuje dvakrát)
+a `Assets/Tests/JumpDetectorTests.cs` — herní sady z `JumpTrajectories` (nový detektor přidat do
+`Detectors`): statistiky (stavy, nejhorší počet testů na dotaz, průměr testů v terénu), každá trajektorie uspěje ve svém
+světě v obou směrech, volno nad cílem, unikátní cíle, v jednom řádku cílů nejvýš jedna úspěšná
+trajektorie (statická kontrola slučitelnosti), shoda s hrubou silou v náhodném terénu a každá
+trajektorie v něm aspoň jednou uspěje.
+
+### Skokan: `JumperStyle : CrawlerStyle` (skákání v `GoToward`)
+
+Skákání patří stylu. `CrawlerStyle` zůstává bez skoku, jen vrací stav kroku lezení (`ApplyCrawl` → `CrawlStatus`:
+`Stopped / Paused / Starting / Moving / Edge / Wall`), podle kterého skokan pozná hranu a zaseknutí.
+Sada trajektorií se vybírá polem `JumpSet` v `AiSettings` (`JumpTrajectories.Get`).
+
+- **Konvence pivotu:** `transform.position` je u příšer uprostřed x a dole v y. Jeho buňka je buňka
+  příšery, buňka pod ní odrazová podlaha (počátek detektoru), i když to přesně neodpovídá. Nohy
+  nejsou delší než 1 buňka.
+- **Kdy se detekuje** (jen na nohou): hrana nebo zaseknutí ve směru k cíli; nová plošina — po vstupu
+  do nové buňky je před hlavou (dir,1) nebo (dir,2) obsazeno a nad hlavou (0,1), (0,2) volno; cíl
+  skoro nad hlavou (buňka cíle |dx| ≤ 1, výš než buňka těla) — vždy a oba směry. Maska detekce se
+  cachuje na buňku podlahy a 1 s, takže se na stejné buňce neopakuje.
+- **Výběr — v buňkách** (buňka těla, buňka těla po dopadu = nad `#`, buňka cíle; přesnou výšku podlah
+  stejně neznáme): dopad musí zkrátit eukleidovskou vzdálenost k cíli aspoň o `JumpGain` (0,5 buňky)
+  proti současné pozici. Když příšera jde (`Moving`/`Starting`), i proti chůzi (jinak by skákala na
+  plošinky, i když cíl je dole): buňka +1 se bere jako dostupná (zeď před ní spustí detekci znovu,
+  skok neuteče); pro kandidáty od +2 dál se testuje buňka +2 (volno + podlaha) — projde-li, bere se
+  chůze jako možná až na x kandidáta, jinak jen o 1 buňku. Vyhrává nejkratší vzdálenost. Každá akce
+  vzdálenost zmenšuje o pevnou rezervu → nezacyklí se.
+- **Dopadový pivot (fyzika):** střed buňky dopadu, ve stejné výšce nad spodkem buňky jako při odrazu
+  (podlahy předpokládáme na hranách buněk, stejně jako detektor).
+- **Výška skoku:** čas letu = |dx| / `maxSpeedAir` + rozjezd; za něj musí být pivot ve výšce dy
+  (`vy = (g·t² + 2·dy) / 2t`), u skoku nahoru navíc vrchol aspoň dy. Vždy + `JumpExtra` (0,25 m),
+  strop `jumpHeight`. Motor: `ChLegsArms.desiredJumpHeight` (0 = `jumpHeight`, po odrazu se nuluje).
+- **Řízení x ve vzduchu:** plnou rychlostí `ChSettings.maxSpeedAir` (0 = `maxSpeed`) k cíli, brzdná
+  křivka s polovičním zrychlením motoru. U skoku nahoru se příšera nepustí do sloupce cíle (hrana −
+  půl šířky − rezerva), dokud by vlezla pod plošinu (vršek těla pod spodkem plošiny + rezerva) —
+  případně nejdřív couvne. Pak hned k cíli, i za cenu nárazu do boku plošiny: po nárazu do stropu
+  by na „bezpečnou“ výšku nad plošinou už nemusela doletět. Spodek plošiny = spodek buňky podlahy
+  dopadu (plošina se bere jako jedna buňka, buňky se netestují).
+- **Konec:** dopad (nohy po odlepení zase na zemi a už nestoupá) nebo timeout (předpokládaný čas letu
+  + 0,5 s). Nepovedený skok (náraz v půlce, minutí, nohy se nechytily) se řídí stejně a končí
+  stejně. Po skoku lezení začne rozjezdem.
+- **Změna rozkazu:** běžící skok styl dotáhne bez ohledu na `Kind` (`Manual`/`None` styl nevolá —
+  zatím neřešeno). `MonsterBrain.IsJumping` — `ThrowItemRule` ve vzduchu nezačne. Blokující pravidlo
+  až kdyby bylo potřeba.
+- **Small Monster:** `jumpHeight 2`, `maxSpeedAir 4` — spočteno pro sadu `Small` (nejdelší skok (9,0)
+  ~2 m výšky odrazu, (1,3) ~1,75 m). K vyladění v editoru.
 
 ---
 

@@ -4,35 +4,22 @@ using UnityEngine;
 namespace Assets.Scripts.Ai.Jump
 {
     // Detekce skoku pro jeden druh prisery (velikost + sila skoku). Trajektorie jsou ASCII mapy
-    // pro skok doprava, doleva se zrcadli. Automat se stavi line pri prvnim dotazu.
+    // pro skok doprava, doleva se zrcadli. Automat se stavi v konstruktoru (line az JumpTrajectories.Get).
     public sealed class JumpDetector
     {
-        private readonly string[] maps;
-        private JumpTrajectory[] trajectories;
-        private JumpAutomaton automaton;
+        private readonly JumpTrajectory[] trajectories;
+        public JumpAutomaton Automaton { get; }
 
         public JumpDetector(params string[] maps)
         {
-            this.maps = maps;
+            trajectories = new JumpTrajectory[maps.Length];
+            for (int i = 0; i < maps.Length; i++)
+                trajectories[i] = JumpTrajectory.Parse(maps[i]);
+            Automaton = JumpAutomaton.Build(trajectories);
         }
 
-        public int Count => maps.Length;
-
-        public JumpAutomaton Automaton
-        {
-            get
-            {
-                if (automaton == null)
-                {
-                    var parsed = new JumpTrajectory[maps.Length];
-                    for (int i = 0; i < maps.Length; i++)
-                        parsed[i] = JumpTrajectory.Parse(maps[i]);
-                    automaton = JumpAutomaton.Build(parsed);
-                    trajectories = parsed;
-                }
-                return automaton;
-            }
-        }
+        public int Count => trajectories.Length;
+        public JumpTrajectory GetTrajectory(int i) => trajectories[i];
 
         // Maska trajektorii, kterymi lze skocit. floorCell = podlaha pod priserou, dir = +1 doprava, -1 doleva.
         // self = prisera; muze zasahovat i do bunek mimo '?' a nesmi se pocitat jako prekazka.
@@ -45,8 +32,7 @@ namespace Assets.Scripts.Ai.Jump
         // Podlaha doskoku relativne k podlaze pod priserou.
         public Vector2Int TargetOffset(int trajectory, int dir)
         {
-            _ = Automaton;
-            var t = trajectories[trajectory].Target;
+            var t = GetTrajectory(trajectory).Target;
             return new Vector2Int(t.x * dir, t.y);
         }
     }

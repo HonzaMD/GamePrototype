@@ -95,10 +95,12 @@ public abstract partial class ChLegsArms
         {
             if (LegOnGround)
             {
-                var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * Settings.jumpHeight) - body.linearVelocity.y;
+                float height = desiredJumpHeight > 0 ? Mathf.Min(desiredJumpHeight, Settings.jumpHeight) : Settings.jumpHeight;
+                var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * height) - body.linearVelocity.y;
                 body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
                 ApplyReactionToLegs(new Vector3(0, jumpForce, 0), true);
                 desiredJump = false;
+                desiredJumpHeight = 0;
                 DetachAllLegs();
                 return true;
             }

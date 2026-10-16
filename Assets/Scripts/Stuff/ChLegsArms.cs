@@ -77,6 +77,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected Vector2 desiredVelocity;
     protected int lastXOrientation = 1;
     protected bool desiredJump;
+    protected float desiredJumpHeight;   // [m] vyska odrazu, 0 = Settings.jumpHeight (strop); po odrazu se nuluje
     protected float desiredZMove;
     protected bool desiredCatch;
     protected bool desiredHold;
@@ -191,6 +192,8 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     {
         Debug.Assert(!goesToInventory, "Nepodporuju imistovani do inventare");
         DetachAllLimbs();
+        desiredJump = false;
+        desiredJumpHeight = 0;
         bodyToThrow = null;
         map = null;
     }

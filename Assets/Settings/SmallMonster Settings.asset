@@ -16,7 +16,8 @@ MonoBehaviour:
   maxAcceleration: 0.3
   maxSpeedFloat: 7
   maxAccelerationFloat: 0.1
-  jumpHeight: 0.6
+  jumpHeight: 2
+  maxSpeedAir: 4
   LegTimeout: 5
   LegForce: 0.7
   LegForceDampening: 0.3

@@ -28,6 +28,9 @@ namespace Assets.Scripts.Ai
 
         public Vector2 Center => placeable.Center;
 
+        // Styl prave provadi skok - dotahne ho bez ohledu na rozkaz. Pravidla, ktera potrebuji zem, cekaji.
+        public virtual bool IsJumping => false;
+
         // --- Blackboard: action scratch ---------------------------------------------------
         // Protoze v jednu chvili bezi jen JEDNO pravidlo, staci jedna sdilena sada scratch poli.
         // Begin je inicializuje, Tick aktualizuje, pri Done se uvolni pro dalsi.

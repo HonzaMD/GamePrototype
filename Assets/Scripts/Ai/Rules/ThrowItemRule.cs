@@ -44,7 +44,7 @@ namespace Assets.Scripts.Ai.Rules
 
         public bool Test(MonsterBrain brain)
         {
-            if (!brain.SlowTick(MonsterBrain.FixedSteps(SolveInterval)) || brain.CountItems(ItemKsid) == 0)
+            if (brain.IsJumping || !brain.SlowTick(MonsterBrain.FixedSteps(SolveInterval)) || brain.CountItems(ItemKsid) == 0)
                 return false;
             ref readonly var s = ref brain.Sense(SenceId, SenceAge);
             if (!s.Found || !brain.PlanThrow(in s, brain.SenseKsid(SenceId), ItemKsid, in Style, out var plan))

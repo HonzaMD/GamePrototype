@@ -77,13 +77,10 @@
     <Compile Include="Assets\Scripts\Map\CellStateCahnges.cs" />
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
-    <Compile Include="Assets\Scripts\Ai\Jump\JumpAutomaton.cs" />
-    <Compile Include="Assets\Scripts\Ai\Jump\JumpDetector.cs" />
-    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectories.cs" />
-    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectory.cs" />
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\TypePickerDrawer.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpAutomaton.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelEmpty.cs" />
     <Compile Include="Assets\Scripts\Bases\IKnife.cs" />
     <Compile Include="Assets\Scripts\Bases\LevelLabel.cs" />
@@ -105,6 +102,7 @@
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
     <Compile Include="Assets\Scripts\Ai\Rules\SeekItemRule.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpDetector.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
     <Compile Include="Assets\Scripts\Map\Level.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\FindFallenWorker.cs" />
@@ -132,11 +130,13 @@
     <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />
     <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectory.cs" />
     <Compile Include="Assets\Scripts\Ai\MonsterBrain.Throw.cs" />
     <Compile Include="Assets\Scripts\Bases\KillAfterThrow.cs" />
     <Compile Include="Assets\Scripts\Map\MapSecondary.cs" />
     <Compile Include="Assets\Scripts\Stuff\PlankSegment.cs" />
     <Compile Include="Assets\Scripts\Bases\ICanActivate.cs" />
+    <Compile Include="Assets\Scripts\Ai\JumperStyle.cs" />
     <Compile Include="Assets\Scripts\Utils\BinaryHeap.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkCaster.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
@@ -180,6 +180,7 @@
     <Compile Include="Assets\Scripts\Utils\ConnectablesPool.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\ElementMargolusJob.cs" />
     <Compile Include="Assets\Scripts\Ai\MonsterBrain.cs" />
+    <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectories.cs" />
     <Compile Include="Assets\Scripts\Ai\MonsterBrain.PickUp.cs" />
     <Compile Include="Assets\Scripts\Bases\Label.cs" />
     <Compile Include="Assets\Scripts\Map\Cell.cs" />

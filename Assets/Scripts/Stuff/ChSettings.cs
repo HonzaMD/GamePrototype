@@ -25,6 +25,11 @@ public class ChSettings : ScriptableObject
     [SerializeField, Range(0f, 10f)]
 	public float jumpHeight = 1.2f;
 
+    [SerializeField, Range(0f, 50f), Tooltip("Rychlost x ve vzduchu při řízeném skoku (AI). 0 = jako maxSpeed.")]
+    public float maxSpeedAir = 0f;
+
+    public float MaxSpeedAir => maxSpeedAir > 0 ? maxSpeedAir : maxSpeed;
+
 	public float LegTimeout = 5 * 1.3f;
 
 	public float LegForce = 1.5f;

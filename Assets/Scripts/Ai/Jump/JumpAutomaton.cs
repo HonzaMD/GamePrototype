@@ -40,6 +40,7 @@ namespace Assets.Scripts.Ai.Jump
         private readonly ulong[] emits;
 
         public int StateCount => states.Length;
+        public ReadOnlySpan<State> States => states;   // Next* < 0 = konec
 
         private JumpAutomaton(State[] states, ulong[] emits)
         {

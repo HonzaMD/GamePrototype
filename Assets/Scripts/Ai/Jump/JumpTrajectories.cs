@@ -3,29 +3,211 @@ namespace Assets.Scripts.Ai.Jump
     // Sady trajektorii skoku pro druhy prisery. Format viz JumpTrajectory.
     public static class JumpTrajectories
     {
-        // Ukazkova sada pro priseru s telem v jedne bunce - k nahrazeni rucne vyladenou sadou.
-        public const string SmallStepUp1 = @"
-            |  |
-            |?#|
-            |*?|";
-
-        public const string SmallStepUp2 = @"
+        private static readonly string[] SmallTrajectories = new string[] {
+          @"|  |
+            | #|
+            | ?|
+            |??|
+            |*?|
+",@"
+            |   |
+            |  #|
+            |  ?|
+            |?x?|
+            |*??|
+",@"
+            |?   |
+            |   #|
+            |   ?|
+            |?xx?|
+            |*???|
+",@"
             |  |
             | #|
             |??|
-            |*?|";
-
-        public const string SmallGap1 = @"
+            |*?|
+",@"
             |   |
-            |?  |
-            |*x#|";
-
-        public const string SmallGap2 = @"
-            |    |
-            |    |
+            |  #|
+            |?x?|
+            |*??|
+",@"
             |?   |
-            |*xx#|";
+            |   #|
+            |?xx?|
+            |*???|
+",@"
+            |?    |
+            |    #|
+            |?xxx?|
+            |*????|
+",@"
+            |?     |
+            |     #|
+            |? xxx?|
+            |*?????|
+",@"
+            |  |
+            |?#|
+            |*?|
+",@"
+            |   |
+            |? #|
+            |*??|
+",@"
+            |?   |
+            |    |
+            |? x#|
+            |*???|
+",@"
+            |?    |
+            |     |
+            |? xx#|
+            |*????|
+",@"
+            |?     |
+            |      |
+            |? xxx#|
+            |*?????|
+",@"
+            |??     |
+            |       |
+            |?  xxx#|
+            |*x?????|
+",@"
+            |??     ?|
+            |        |
+            |?  xxxx#|
+            |*x??????|
+",@"
+            |   |
+            |?x |
+            |*x#|
+",@"
+            |    |
+            |?xx |
+            |*xx#|
+",@"
+            |     |
+            |?    |
+            |*xxx#|
+",@"
+            |?    ?|
+            |      |
+            |?     |
+            |*xxxx#|
+",@"
+            |??    ?|
+            |       |
+            |?  x   |
+            |*xxxxx#|
+",@"
+            |??    ??|
+            |        |
+            |?  xx   |
+            |*xxxxxx#|
+",@"
+            |??     ??|
+            |         |
+            |?  xxx   |
+            |*xxxxxxx#|
+",@"
+            |??      ??|
+            |         ?|
+            |?  xxxx   |
+            |*xxxxxxxx#|
+",@"
+            |? |
+            |* |
+            |?#|
+",@"
+            |?  |
+            |*  |
+            |?x#|
+",@"
+            |?   |
+            |*   |
+            |?xx#|
+",@"
+            |    ?|
+            |?    |
+            |*xx  |
+            |?xxx#|
+",@"
+            |     ?|
+            |?     |
+            |*xxx  |
+            |?xxxx#|
+",@"
+            |     ??|
+            |?      |
+            |*xxxx  |
+            |?xxxxx#|
+",@"
+            |      ??|
+            |?       |
+            |*xxxxx  |
+            |?xxxxxx#|
+",@"
+            |? |
+            |* |
+            |? |
+            |?#|
+",@"
+            |?  |
+            |*  |
+            |?x |
+            |?x#|
+",@"
+            |?  ?|
+            |*   |
+            |?x  |
+            |?xx#|
+",@"
+            |?   ?|
+            |*    |
+            |?xx  |
+            |?xxx#|
+",@"
+            |?    ?|
+            |?    ?|
+            |*xx   |
+            |?xxx  |
+            |?xxxx#|
+",@"
+            |? |
+            |* |
+            |? |
+            |? |
+            |?#|
+",@"
+            |?  |
+            |*  |
+            |?x |
+            |?x |
+            |?x#|
+",@"
+            |?  ?|
+            |*   |
+            |?x  |
+            |?xx |
+            |?xx#|
+"
+        };
 
-        public static readonly JumpDetector Small = new JumpDetector(SmallStepUp1, SmallStepUp2, SmallGap1, SmallGap2);
+        private static JumpDetector small;
+
+        // Detektor se stavi line pri prvnim pozadavku.
+        public static JumpDetector Get(JumpSet set) => set switch
+        {
+            JumpSet.Small => small ??= new JumpDetector(SmallTrajectories),
+            _ => throw new System.ArgumentOutOfRangeException(nameof(set), set, null),
+        };
+    }
+
+    // Vyber sady trajektorii na prefabu (sady jsou v kodu).
+    public enum JumpSet
+    {
+        Small,
     }
 }

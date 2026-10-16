@@ -74,14 +74,36 @@ public class JumpAutomatonTests
         Assert.AreEqual(tested.Count, new HashSet<Vector2Int>(tested).Count, "Bunka testovana vic nez jednou");
     }
 
-    private static readonly JumpDetector small = new JumpDetector(
-        JumpTrajectories.SmallStepUp1, JumpTrajectories.SmallStepUp2, JumpTrajectories.SmallGap1, JumpTrajectories.SmallGap2);
+    // Mala testovaci sada pro telo v jedne bunce (nezavisla na hernich sadach v JumpTrajectories).
+    private const string MapStepUp1 = @"
+        |  |
+        |?#|
+        |*?|";
+
+    private const string MapStepUp2 = @"
+        |  |
+        | #|
+        |??|
+        |*?|";
+
+    private const string MapGap1 = @"
+        |   |
+        |?  |
+        |*x#|";
+
+    private const string MapGap2 = @"
+        |    |
+        |    |
+        |?   |
+        |*xx#|";
+
+    private static readonly JumpDetector small = new JumpDetector(MapStepUp1, MapStepUp2, MapGap1, MapGap2);
     private const ulong MStepUp1 = 1, MStepUp2 = 2, MGap1 = 4, MGap2 = 8;   // bity v masce vysledku
 
     [Test]
     public void Parse_OffsetsAndTarget()
     {
-        var t = JumpTrajectory.Parse(JumpTrajectories.SmallGap1);
+        var t = JumpTrajectory.Parse(MapGap1);
         Assert.AreEqual(new Vector2Int(2, 0), t.Target);
         Assert.AreEqual(7, t.Cells.Length);
 
@@ -315,7 +337,7 @@ public class JumpAutomatonTests
     [Test]
     public void TooManyTrajectories_Throws()
     {
-        var t = JumpTrajectory.Parse(JumpTrajectories.SmallGap1);
+        var t = JumpTrajectory.Parse(MapGap1);
         Assert.Throws<ArgumentException>(() => JumpAutomaton.Build(Enumerable.Repeat(t, 65).ToArray()));
     }
 }

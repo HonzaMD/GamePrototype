@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Assets\Tests\SpTests.cs" />
     <Compile Include="Assets\Tests\ColliderTouch.cs" />
+    <Compile Include="Assets\Tests\JumpDetectorTests.cs" />
     <Compile Include="Assets\Tests\OBBCellTestTests.cs" />
     <Compile Include="Assets\Tests\JumpAutomatonTests.cs" />
   </ItemGroup>

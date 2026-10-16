@@ -1,3 +1,4 @@
+using Assets.Scripts.Ai.Jump;
 using Assets.Scripts.Utils;
 using System;
 using UnityEngine;
@@ -30,6 +31,10 @@ namespace Assets.Scripts.Ai
         [Header("Crawler")]
         [Tooltip("Nevleze do díry - hlídá hranu před sebou.")]
         public bool AvoidHoles = true;
+
+        [Header("Jumper")]
+        [Tooltip("Sada trajektorií skoku (JumpTrajectories) - podle velikosti a síly skoku příšery.")]
+        public JumpSet JumpSet;
 
         [NonSerialized]
         private SenseConfig[] resolvedSenses;

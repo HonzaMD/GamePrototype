@@ -23,6 +23,17 @@ namespace Assets.Scripts.Ai
         private const float ArriveDistance = 0.25f;
         private const float LookAhead = 1f;     // [m] jak daleko pred sebe se diva v Roam/GoDirection
 
+        // Vysledek kroku lezeni - potomek (skokan) podle nej pozna hranu a zaseknuti.
+        protected enum CrawlStatus
+        {
+            Stopped,    // stoji na rozkaz (Stop, GoToward u cile)
+            Paused,     // pauza po zastaveni
+            Starting,   // rozjezd
+            Moving,
+            Edge,       // zastavil pred dirou (AvoidHoles)
+            Wall,       // zaseknuty
+        }
+
         // Pocatecni smer z prefabu, za behu stav stylu. V Cleanup se vraci na hodnotu z prefabu.
         [FormerlySerializedAs("desiredDirection")]
         public int direction = -1;
@@ -31,7 +42,10 @@ namespace Assets.Scripts.Ai
 
         void Awake() => AwakeM();
 
-        protected override void ApplyDirective(in Directive d)
+        protected override void ApplyDirective(in Directive d) => ApplyCrawl(in d);
+
+        // Krok lezeni podle rozkazu - potomek (skokan) podle vysledku pozna hranu a zaseknuti.
+        protected CrawlStatus ApplyCrawl(in Directive d)
         {
             if (d.Kind != lastKind)
             {
@@ -43,27 +57,24 @@ namespace Assets.Scripts.Ai
             {
                 case DirectiveKind.Stop:
                     desiredVelocity.x = 0;
-                    break;
+                    return CrawlStatus.Stopped;
                 case DirectiveKind.Roam:
-                    Crawl(d.SpeedScale, flipOnBlock: true);
-                    break;
+                    return Crawl(d.SpeedScale, flipOnBlock: true);
                 case DirectiveKind.GoDirection:
                     SetDirection(d.Direction);
-                    Crawl(d.SpeedScale, flipOnBlock: false);
-                    break;
+                    return Crawl(d.SpeedScale, flipOnBlock: false);
                 case DirectiveKind.GoToward:
                     float dx = d.Target.x - Center.x;
                     if (Mathf.Abs(dx) < ArriveDistance)
                     {
                         desiredVelocity.x = 0;
                         turnTimeout = MoveStart;
+                        return CrawlStatus.Stopped;
                     }
-                    else
-                    {
-                        SetDirection(dx < 0 ? -1 : 1);
-                        Crawl(d.SpeedScale, flipOnBlock: false);
-                    }
-                    break;
+                    SetDirection(dx < 0 ? -1 : 1);
+                    return Crawl(d.SpeedScale, flipOnBlock: false);
+                default:
+                    return CrawlStatus.Stopped;
             }
         }
 
@@ -75,7 +86,7 @@ namespace Assets.Scripts.Ai
             _ => base.DefaultLookAt(in d),
         };
 
-        private void SetDirection(int dir)
+        protected void SetDirection(int dir)
         {
             if (dir != direction)
             {
@@ -84,13 +95,16 @@ namespace Assets.Scripts.Ai
             }
         }
 
-        private void Crawl(float speedScale, bool flipOnBlock)
+        // Po akci, ktera lezeni prerusila (skok): dalsi lezeni zacne rozjezdem, ne testem zaseknuti.
+        protected void RestartCrawl() => turnTimeout = MoveStart;
+
+        private CrawlStatus Crawl(float speedScale, bool flipOnBlock)
         {
             if (turnTimeout > MoveStart)
             {
                 turnTimeout -= Time.fixedDeltaTime * 4;
                 desiredVelocity.x = 0;
-                return;
+                return CrawlStatus.Paused;
             }
 
             bool moving = turnTimeout <= 0;
@@ -99,16 +113,18 @@ namespace Assets.Scripts.Ai
 
             // TODO zpetna vazba pro pravidla: tady styl vi, ze rozkaz nejde splnit, ale pravidla se
             // to nedozvi (FleeRule by cukal u zdi). Viz priser-framework.md, krok 4.
-            if (!WantMove() || (moving && body.linearVelocity.x * direction <= 0.001f))
+            bool edge = !WantMove();
+            if (edge || (moving && body.linearVelocity.x * direction <= 0.001f))
             {
                 desiredVelocity.x = 0;
                 turnTimeout = PauseStart;
                 if (flipOnBlock)
                     direction = -direction;
-                return;
+                return edge ? CrawlStatus.Edge : CrawlStatus.Wall;
             }
 
             desiredVelocity.x = Settings.maxSpeed * speedScale * direction;
+            return moving ? CrawlStatus.Moving : CrawlStatus.Starting;
         }
 
         private bool WantMove()
