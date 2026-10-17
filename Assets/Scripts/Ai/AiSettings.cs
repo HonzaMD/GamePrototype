@@ -1,4 +1,5 @@
 using Assets.Scripts.Ai.Jump;
+using Assets.Scripts.Core;
 using Assets.Scripts.Utils;
 using System;
 using UnityEngine;
@@ -27,6 +28,10 @@ namespace Assets.Scripts.Ai
         public SenseProfile SenseProfile;
         [Tooltip("Odchylky od profilu. Uplatní se jen nedefaultní pole záznamu (0/None/false = převzít z profilu; bool jde jen zapnout).")]
         public SenseConfig[] SenseOverrides = Array.Empty<SenseConfig>();
+
+        [Header("Danger")]
+        [Tooltip("Čemu se vyhýbá (vč. potomků v hierarchii Ksid): nevleze do buňky s tím ani na to neskočí. Unknown = ničemu. Když v nebezpečí už stojí, test se vypne, ať z něj vyleze.")]
+        public Ksid DangerKsid;
 
         [Header("Crawler")]
         [Tooltip("Nevleze do díry - hlídá hranu před sebou.")]

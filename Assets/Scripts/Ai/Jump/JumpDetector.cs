@@ -1,3 +1,4 @@
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using UnityEngine;
 
@@ -23,9 +24,10 @@ namespace Assets.Scripts.Ai.Jump
 
         // Maska trajektorii, kterymi lze skocit. floorCell = podlaha pod priserou, dir = +1 doprava, -1 doleva.
         // self = prisera; muze zasahovat i do bunek mimo '?' a nesmi se pocitat jako prekazka.
-        public ulong Detect(Map.Map map, Vector2Int floorCell, int cellz, int dir, Placeable self)
+        // danger = Ksid nebezpeci (Unknown = zadne), viz Map.GetJumpCellClass.
+        public ulong Detect(Map.Map map, Vector2Int floorCell, int cellz, int dir, Placeable self, Ksid danger)
         {
-            var cells = new MapJumpCells(map, cellz, self);
+            var cells = new MapJumpCells(map, cellz, self, danger);
             return Automaton.Run(ref cells, floorCell, dir);
         }
 
@@ -42,14 +44,16 @@ namespace Assets.Scripts.Ai.Jump
         private readonly Map.Map map;
         private readonly int cellz;
         private readonly Placeable self;
+        private readonly Ksid danger;
 
-        public MapJumpCells(Map.Map map, int cellz, Placeable self)
+        public MapJumpCells(Map.Map map, int cellz, Placeable self, Ksid danger)
         {
             this.map = map;
             this.cellz = cellz;
             this.self = self;
+            this.danger = danger;
         }
 
-        public JumpCellClass Get(Vector2Int cell) => map.GetJumpCellClass(cell, cellz, self);
+        public JumpCellClass Get(Vector2Int cell) => map.GetJumpCellClass(cell, cellz, self, danger);
     }
 }

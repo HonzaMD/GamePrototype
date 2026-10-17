@@ -1,4 +1,5 @@
 using Assets.Scripts.Ai.Jump;
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using UnityEngine;
 
@@ -89,22 +90,23 @@ namespace Assets.Scripts.Ai
             }
 
             var detector = JumpTrajectories.Get(AiSettings.JumpSet);
+            var danger = DangerToAvoid();
             float best = CellDistance(targetCell, bodyCell) - JumpMinGain;
             bool found = false;
             Vector2Int landCell = default;
             int landingDir = 0;
-            Consider(detector, targetCell, bodyCell, cellz, dir, canWalk, ref best, ref found, ref landCell, ref landingDir);
+            Consider(detector, targetCell, bodyCell, cellz, danger, dir, canWalk, ref best, ref found, ref landCell, ref landingDir);
             if (above)
-                Consider(detector, targetCell, bodyCell, cellz, -dir, false, ref best, ref found, ref landCell, ref landingDir);
+                Consider(detector, targetCell, bodyCell, cellz, danger, -dir, false, ref best, ref found, ref landCell, ref landingDir);
 
             if (found)
                 StartJump(bodyCell, landCell, landingDir);
         }
 
-        private void Consider(JumpDetector detector, Vector2Int targetCell, Vector2Int bodyCell, int cellz, int dir, bool canWalk,
+        private void Consider(JumpDetector detector, Vector2Int targetCell, Vector2Int bodyCell, int cellz, Ksid danger, int dir, bool canWalk,
             ref float best, ref bool found, ref Vector2Int landCell, ref int landingDir)
         {
-            ulong mask = Detect(detector, bodyCell + Vector2Int.down, cellz, dir);
+            ulong mask = Detect(detector, bodyCell + Vector2Int.down, cellz, danger, dir);
             float walkOne = canWalk ? CellDistance(targetCell, bodyCell + new Vector2Int(dir, 0)) : float.PositiveInfinity;
             int walkFar = 0;    // chuze dal nez o 1 bunku: 0 = netestovano, 1 = mozna, -1 = ne
             for (int i = 0; mask != 0; i++, mask >>= 1)
@@ -119,7 +121,7 @@ namespace Assets.Scripts.Ai
                     if ((land.x - bodyCell.x) * dir >= 2)
                     {
                         if (walkFar == 0)
-                            walkFar = CanStand(bodyCell + new Vector2Int(2 * dir, 0), cellz) ? 1 : -1;
+                            walkFar = CanStand(bodyCell + new Vector2Int(2 * dir, 0), cellz, danger) ? 1 : -1;
                         if (walkFar > 0)
                             walk = CellDistance(targetCell, new Vector2Int(land.x, bodyCell.y));
                     }
@@ -138,26 +140,28 @@ namespace Assets.Scripts.Ai
 
         private static float CellDistance(Vector2Int a, Vector2Int b) => ((Vector2)(a - b)).magnitude;
 
-        private ulong Detect(JumpDetector detector, Vector2Int floor, int cellz, int dir)
+        private ulong Detect(JumpDetector detector, Vector2Int floor, int cellz, Ksid danger, int dir)
         {
             int i = dir > 0 ? 1 : 0;
             if (Time.time - cacheTime[i] >= JumpCacheTime)
             {
                 cacheTime[i] = Time.time;
-                cacheMask[i] = detector.Detect(map, floor, cellz, dir, placeable);
+                cacheMask[i] = detector.Detect(map, floor, cellz, dir, placeable, danger);
             }
             return cacheMask[i];
         }
 
+        // Jen spoustec detekce - schvalne bez nebezpeci, at zustane levny.
         private bool NewPlatformAhead(Vector2Int bodyCell, int dir, int cellz)
-            => (Occupied(bodyCell + new Vector2Int(dir, 1), cellz) || Occupied(bodyCell + new Vector2Int(dir, 2), cellz))
-            && !Occupied(bodyCell + new Vector2Int(0, 1), cellz) && !Occupied(bodyCell + new Vector2Int(0, 2), cellz);
+            => (Occupied(bodyCell + new Vector2Int(dir, 1), cellz, Ksid.Unknown) || Occupied(bodyCell + new Vector2Int(dir, 2), cellz, Ksid.Unknown))
+            && !Occupied(bodyCell + new Vector2Int(0, 1), cellz, Ksid.Unknown) && !Occupied(bodyCell + new Vector2Int(0, 2), cellz, Ksid.Unknown);
 
-        private bool Occupied(Vector2Int cell, int cellz) => map.GetJumpCellClass(cell, cellz, placeable) != JumpCellClass.Free;
+        private bool Occupied(Vector2Int cell, int cellz, Ksid danger)
+            => map.GetJumpCellClass(cell, cellz, placeable, danger) != JumpCellClass.Free;
 
-        // Bunka je volna a pod ni je podlaha.
-        private bool CanStand(Vector2Int cell, int cellz)
-            => !Occupied(cell, cellz) && map.GetJumpCellClass(cell + Vector2Int.down, cellz, placeable) == JumpCellClass.Static;
+        // Bunka je volna a pod ni je podlaha (obe bez nebezpeci).
+        private bool CanStand(Vector2Int cell, int cellz, Ksid danger)
+            => !Occupied(cell, cellz, danger) && map.GetJumpCellClass(cell + Vector2Int.down, cellz, placeable, danger) == JumpCellClass.Static;
 
         // Ocekavany pivot po dopadu: uprostred bunky landCell, ve stejne vysce nad spodkem bunky jako ted
         // (podlahy predpokladame na hranach bunek, stejne jako detektor).

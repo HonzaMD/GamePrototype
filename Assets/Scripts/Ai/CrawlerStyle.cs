@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace Assets.Scripts.Ai
     //   (1, 0.5]  pauza po zastaveni  - stoji
     //   (0.5, 0]  rozjezd             - tlaci; zaseknuti se netestuje (z klidu je rychlost 0)
     //   <= 0      pohyb               - tlaci a testuje zaseknuti
-    // Hrana (AvoidHoles) se testuje ve VSECH fazich s tlakem, i v rozjezdu - jinak by opakovany
+    // Hrana (AvoidHoles, nebezpeci pred sebou) se testuje ve VSECH fazich s tlakem, i v rozjezdu - jinak by opakovany
     // pokus GoDirection tlacil do diry.
     // Pri bloku: Roam se otoci; GoDirection/GoToward smer drzi a po pauze to zkusi znovu.
     [RequireComponent(typeof(PlaceableSibling), typeof(Rigidbody), typeof(Status))]
@@ -30,7 +31,7 @@ namespace Assets.Scripts.Ai
             Paused,     // pauza po zastaveni
             Starting,   // rozjezd
             Moving,
-            Edge,       // zastavil pred dirou (AvoidHoles)
+            Edge,       // zastavil pred dirou (AvoidHoles) nebo nebezpecim (DangerKsid)
             Wall,       // zaseknuty
         }
 
@@ -129,14 +130,24 @@ namespace Assets.Scripts.Ai
 
         private bool WantMove()
         {
+            var cell = map.WorldToCell(transform.position);
             if (AiSettings.AvoidHoles)
             {
-                var cell = map.WorldToCell(transform.position);
                 var surface = CellUtils.Combine(SubCellFlags.HasFloor, transform);
 
                 if ((map.GetCellBlocking(cell + Vector2Int.down) & surface) != 0
                     && map.IsXNearNextCell(transform.position.x, direction)
                     && (map.GetCellBlocking(cell + new Vector2Int(direction, -1)) & surface) == 0)
+                    return false;
+            }
+
+            // nebezpeci v bunce pred sebou nebo v podlaze pred sebou
+            if (AiSettings.DangerKsid != Ksid.Unknown && map.IsXNearNextCell(transform.position.x, direction))
+            {
+                var danger = DangerToAvoid();
+                var ahead = cell + new Vector2Int(direction, 0);
+                if (danger != Ksid.Unknown
+                    && (map.ContainsType(ahead, danger, placeable) || map.ContainsType(ahead + Vector2Int.down, danger, placeable)))
                     return false;
             }
 

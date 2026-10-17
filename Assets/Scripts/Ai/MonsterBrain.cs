@@ -1,4 +1,5 @@
 using Assets.Scripts.Bases;
+using Assets.Scripts.Core;
 using System;
 using UnityEngine;
 
@@ -30,6 +31,21 @@ namespace Assets.Scripts.Ai
 
         // Styl prave provadi skok - dotahne ho bez ohledu na rozkaz. Pravidla, ktera potrebuji zem, cekaji.
         public virtual bool IsJumping => false;
+
+        // Nebezpeci, kteremu se ma styl prave vyhybat (AiSettings.DangerKsid). Unknown = zadne: neni
+        // nastavene, nebo v nem prisera uz stoji (bunka pivotu nebo podlaha pod ni) - pak se test vypne,
+        // at se nezastavi uprostred vetsi nebezpecne oblasti a vyleze z ni.
+        protected Ksid DangerToAvoid()
+        {
+            var danger = AiSettings.DangerKsid;
+            if (danger == Ksid.Unknown)
+                return danger;
+            var cell = map.WorldToCell(placeable.Pivot);
+            // ContainsType testuje obe z roviny - plyn nema CellBlocking, rovinu nepozname
+            if (map.ContainsType(cell, danger, placeable) || map.ContainsType(cell + Vector2Int.down, danger, placeable))
+                return Ksid.Unknown;
+            return danger;
+        }
 
         // --- Blackboard: action scratch ---------------------------------------------------
         // Protoze v jednu chvili bezi jen JEDNO pravidlo, staci jedna sdilena sada scratch poli.

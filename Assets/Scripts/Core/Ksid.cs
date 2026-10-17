@@ -65,6 +65,7 @@ namespace Assets.Scripts.Core
         CausesShatter,
         DirtBuilder,
         AimsInHand,
+        SmallMonsterDanger,
     }
 
     public static class KsidX

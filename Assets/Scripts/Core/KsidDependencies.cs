@@ -117,6 +117,9 @@ namespace Assets.Scripts.Core
                 (Ksid.Character, Ksid.ActivatesCannon),
                 (Ksid.SmallMonster, Ksid.ActivatesCannon),
                 (Ksid.Light, Ksid.ActivatesCannon),
+
+                (Ksid.HotBlock, Ksid.SmallMonsterDanger),
+                (Ksid.PoisonGas, Ksid.SmallMonsterDanger),
             })
         {
         }

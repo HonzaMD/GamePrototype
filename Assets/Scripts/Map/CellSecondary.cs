@@ -13,6 +13,8 @@ namespace Assets.Scripts.Map
 
         public static CellSecondary Empty;
 
+        public bool IsEmpty => listInfo.Size == 0;
+
         public void Add(Placeable p, Ksids ksids)
         {
             int size = listInfo.Size;

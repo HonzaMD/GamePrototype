@@ -38,6 +38,7 @@ MonoBehaviour:
     TrackRadius: 1
     SightPerPlane: 1
     SecondaryMap: 1
+  DangerKsid: 56
   AvoidHoles: 1
   references:
     version: 2

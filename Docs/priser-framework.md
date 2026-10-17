@@ -524,7 +524,8 @@ Přepočet jen když se něco změní (cíl se hnul, rozkaz nejde splnit). I kro
 | `GoToward` | směr = `sign(Target.x − x)`, jinak jako `GoDirection`; blíž než 0.25 m ⇒ stůj |
 
 Automat: pauza (stojí) → rozjezd (tlačí, zaseknutí podle rychlosti se netestuje — z klidu je
-rychlost 0) → pohyb (tlačí, testuje zaseknutí). **Hrana (`AiSettings.AvoidHoles`) se testuje ve
+rychlost 0) → pohyb (tlačí, testuje zaseknutí). **Hrana (`AiSettings.AvoidHoles`, nebezpečí před
+sebou `DangerKsid`) se testuje ve
 všech fázích s tlakem, i v rozjezdu** — jinak by opakovaný pokus `GoDirection` tlačil do díry.
 Změna rozkazu nebo směru začíná rozjezdem (jinak by klid po `Stop` vypadal jako zaseknutí).
 `SpeedScale` násobí `ChSettings.maxSpeed`.
@@ -719,7 +720,7 @@ Pro v1 reálně stačí **`SleepNeed`**; `Energy`/`Hunger` odložit, dokud nebud
 |-----|-----------|
 | volba podtřídy stylu na prefabu (`CrawlerStyle`/`FlyStyle`/…) | **styl pohybu** – žádný serializovaný odkaz, vybírá se která komponenta je na prefabu |
 | `ChSettings` (už existuje) | fyzika motoru – speed, accel, jump, nohy/ruce, `MovementMode` |
-| `AiSettings : ScriptableObject` (existuje) | `[SerializeReference, TypePicker] IAiRule[] Rules` (vč. konfig. `SleepRule` instancí), `IAiModifier[] Modifiers`; **konfigurace stylu** pod `[Header]` podle stylu (`Crawler`: `AvoidHoles`); později spánek (`CollapseThreshold`, `WakeableLevel`, `RecoverRate`, růst `SleepNeed`), wake radius/perioda, `SenseProfile` + `SenseConfig[] SenseOverrides` |
+| `AiSettings : ScriptableObject` (existuje) | `[SerializeReference, TypePicker] IAiRule[] Rules` (vč. konfig. `SleepRule` instancí), `IAiModifier[] Modifiers`; **konfigurace stylu** pod `[Header]` podle stylu (`Danger`: `DangerKsid`; `Crawler`: `AvoidHoles`; `Jumper`: `JumpSet`); později spánek (`CollapseThreshold`, `WakeableLevel`, `RecoverRate`, růst `SleepNeed`), wake radius/perioda, `SenseProfile` + `SenseConfig[] SenseOverrides` |
 | pole listové komponenty stylu | jen **běhový stav** stylu (`turnTimeout`) a počáteční stav z prefabu (`direction`, reset v `Cleanup` z prototypu) — **ne konfigurace** |
 
 > **Konvence:** ladicí parametry stylu patří do `AiSettings` (sdílený asset druhu), ne na komponentu.
@@ -901,8 +902,9 @@ vyrábět parametrický generátor (rozsah y, pravidlo pro x, hrubě vykreslená
 Sady jsou stringové konstanty v `JumpTrajectories.cs`, jeden `JumpDetector` na druh příšery
 (velikost + síla skoku). Všechny příšery uvažujeme jako half-cell → testuje se jedna z rovina.
 
-**Třída buňky** (`Map.GetJumpCellClass(cell, cellz, exclude)`): `Free` / `Static` (doskočiště) /
-`Other` (pohyblivé). `HasFloor` (`FullEx` nebo písek) → `Static`; bez `Part` → `Free`; jinak pomalá
+**Třída buňky** (`Map.GetJumpCellClass(cell, cellz, exclude, danger)`): `Free` / `Static` (doskočiště) /
+`Other` (pohyblivé). Nebezpečí (`danger`) → `Other`, testuje se první (viz
+[Vyhýbání se nebezpečí](#featura-vyhýbání-se-nebezpečí)). `HasFloor` (`FullEx` nebo písek) → `Static`; bez `Part` → `Free`; jinak pomalá
 cesta přes placeably v buňce: kterýkoli `IsStatic` → `Static` (statické objekty mimo mřížku dávají
 jen `Part`), jinak `Other`. Příšera sama (`exclude`) se ignoruje — zasahuje i do buněk mimo `?`.
 Mimo mapu = `Free` (není tam doskočiště, takže trajektorie stejně neuspěje).
@@ -974,6 +976,32 @@ Sada trajektorií se vybírá polem `JumpSet` v `AiSettings` (`JumpTrajectories.
   až kdyby bylo potřeba.
 - **Small Monster:** `jumpHeight 2`, `maxSpeedAir 4` — spočteno pro sadu `Small` (nejdelší skok (9,0)
   ~2 m výšky odrazu, (1,3) ~1,75 m). K vyladění v editoru.
+
+---
+
+## Featura: vyhýbání se nebezpečí
+
+> Implementováno 2026-10-17, čeká na test v editoru.
+
+`AiSettings.DangerKsid` (Small Monster: `SmallMonsterDanger` = `PoisonGas`, `HotBlock`; `Unknown` =
+ničemu). Příšera nevleze do buňky s takovým objektem (vč. potomků Ksid) a nedoskočí na ni.
+
+- **Test buňky** `MapBase.ContainsType(cell, danger, exclude)` — projde placeably buňky (prázdná buňka =
+  hned ne). Obě z roviny: plyn nemá `CellBlocking`, rovinu nepoznáme.
+- **`GetJumpCellClass(…, danger)`** testuje nebezpečí **před flagy** (plyn je `Free`, horký blok má
+  `HasFloor`) a vrací `Other` — automat beze změny: mezera i `#` selžou (skrz plyn neskočí, na
+  horký blok ani do plynu nedoskočí), `x` a `?` projdou (skok může nebezpečí v `?` „škrtnout“;
+  čtvrtá třída `Danger` až kdyby to vadilo).
+- **Chůze** (`CrawlerStyle.WantMove`): blízko další buňky (`IsXNearNextCell`) test buňky těla
+  (dir,0) a podlahy (dir,−1) před sebou → `Edge`. `Roam` se otočí, skokan v `GoToward` zkusí
+  nebezpečí přeskočit. Nezávislé na `AvoidHoles`.
+- **Už stojí v nebezpečí** (`MonsterBrain.ActiveDanger`: buňka pivotu nebo podlaha pod ní) → test se
+  úplně vypne (chůze i skoky), ať se nezastaví uprostřed větší nebezpečné oblasti a vyleze z ní.
+- **Spouštěče** detailní detekce (`NewPlatformAhead`) nebezpečí netestují — mají zůstat levné.
+  Test chůze o 2 buňky ve výběru skoku (`CanStand`) ano.
+- Maska skoků se cachuje 1 s → pohyb plynu se projeví se zpožděním.
+- Později: předfiltr přes sekundární mapu (nebezpečné objekty na hrubé mřížce), až bude test drahý;
+  smysl „nejbližší nebezpečí“ + pravidlo útěku pro nebezpečí, které se blíží.
 
 ---
 

@@ -455,11 +455,15 @@ namespace Assets.Scripts.Map
 
         // Trida bunky pro detekci skoku v rovine cellz. Mimo mapu = Free (neni tam doskociste).
         // Part bez HasFloor muze byt i staticky objekt mimo mrizku nebo sama prisera -> projde placeably.
-        public JumpCellClass GetJumpCellClass(Vector2Int pos, int cellz, Placeable exclude)
+        // danger != Unknown: bunka s objektem tohoto Ksid (vc. potomku) je Other - neda se do ni vlezt
+        // ani na ni doskocit. Testuje se pred flagy: plyn je Free, horky blok ma podlahu.
+        public JumpCellClass GetJumpCellClass(Vector2Int pos, int cellz, Placeable exclude, Ksid danger)
         {
             if (!CellToCell(pos, out var cellPos))
                 return JumpCellClass.Free;
             ref var cell = ref cells[cellPos];
+            if (danger != Ksid.Unknown && ContainsType(ref cell, danger, exclude))
+                return JumpCellClass.Other;
             var blocking = cell.Blocking;
             if (blocking.HasSubFlag(SubCellFlags.HasFloor, cellz))
                 return JumpCellClass.Static;

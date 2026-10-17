@@ -11,6 +11,7 @@ namespace Assets.Scripts.Map
         void Add(Placeable p, Ksids ksids);
         public void Remove(Placeable p, Ksids ksids);
         public Cell.Enumerator GetEnumerator();
+        public bool IsEmpty { get; }
     }
 
     public abstract class MapBase<T>
@@ -109,41 +110,26 @@ namespace Assets.Scripts.Map
         }
 
 
-        public bool ContainsType(Vector2 pos, Ksid ksid)
+        // Je v bunce objekt Ksid (vc. potomku)? exclude se preskoci (typicky dotazujici se objekt).
+        public bool ContainsType(Vector2 pos, Ksid ksid, Placeable exclude = null)
+            => WorldToCell(pos, out var cellPos) && ContainsType(ref cells[cellPos], ksid, exclude);
+
+        public bool ContainsType(Vector2Int pos, Ksid ksid, Placeable exclude = null)
+            => CellToCell(pos, out var cellPos) && ContainsType(ref cells[cellPos], ksid, exclude);
+
+        public bool ContainsType(ref T cell, Ksid ksid, Placeable exclude = null)
         {
-            if (WorldToCell(pos, out var cellPos))
-            {
-                foreach (var p in cells[cellPos])
-                {
-                    if (ksids.IsParentOrEqual(p.Ksid, ksid))
-                        return true;
-                }
-            }
-            return false;
-        }
-        public bool ContainsType(Vector2Int pos, Ksid ksid)
-        {
-            if (CellToCell(pos, out var cellPos))
-            {
-                foreach (var p in cells[cellPos])
-                {
-                    if (ksids.IsParentOrEqual(p.Ksid, ksid))
-                        return true;
-                }
-            }
-            return false;
-        }
-        public bool ContainsType(ref T cell, Ksid ksid)
-        {
+            if (cell.IsEmpty)
+                return false;
             foreach (var p in cell)
             {
-                if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                if (p != exclude && ksids.IsParentOrEqual(p.Ksid, ksid))
                     return true;
             }
             return false;
         }
 
-        public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid)
+        public bool ContainsType(Vector2 pos, Vector2 size, Ksid ksid, Placeable exclude = null)
         {
             int tag = GetNextTag();
 
@@ -167,12 +153,15 @@ namespace Assets.Scripts.Map
             {
                 for (int x = posFl.x; x < pos2Cl.x; x++)
                 {
-                    foreach (var p in cells[cellPosY + x])
+                    ref var cell = ref cells[cellPosY + x];
+                    if (cell.IsEmpty)
+                        continue;
+                    foreach (var p in cell)
                     {
                         if (p.Tag != tag)
                         {
                             p.Tag = tag;
-                            if (ksids.IsParentOrEqual(p.Ksid, ksid))
+                            if (p != exclude && ksids.IsParentOrEqual(p.Ksid, ksid))
                                 return true;
                         }
                     }
