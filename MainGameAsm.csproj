@@ -94,6 +94,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\GraphWorker.cs" />
     <Compile Include="Assets\Scripts\Utils\LinkedListM.cs" />
     <Compile Include="Assets\Scripts\Stuff\InventorySearcher.cs" />
+    <Compile Include="Assets\Scripts\Ai\WallFollowerStyle.cs" />
     <Compile Include="Assets\Scripts\Map\CellList.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DCManager.cs" />
     <Compile Include="Assets\Scripts\Bases\StaticBehaviour.cs" />
@@ -163,6 +164,7 @@
     <Compile Include="Assets\Scripts\Map\MapBase.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\WallFollower.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\Hud.cs" />
     <Compile Include="Assets\Scripts\Map\RegionMap.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\AddColorWorker.cs" />

@@ -14,13 +14,13 @@ namespace Assets.Scripts.Ai.Jump
             |  #|
             |  ?|
             |?x?|
-            |*??|
+            |*x?|
 ",@"
             |?   |
             |   #|
             |   ?|
             |?xx?|
-            |*???|
+            |*xx?|
 ",@"
             |  |
             | #|
@@ -30,22 +30,22 @@ namespace Assets.Scripts.Ai.Jump
             |   |
             |  #|
             |?x?|
-            |*??|
+            |*x?|
 ",@"
             |?   |
             |   #|
             |?xx?|
-            |*???|
+            |*xx?|
 ",@"
             |?    |
             |    #|
             |?xxx?|
-            |*????|
+            |*xxx?|
 ",@"
             |?     |
             |     #|
             |? xxx?|
-            |*?????|
+            |*xxxx?|
 ",@"
             |  |
             |?#|
@@ -53,32 +53,32 @@ namespace Assets.Scripts.Ai.Jump
 ",@"
             |   |
             |? #|
-            |*??|
+            |*x?|
 ",@"
             |?   |
             |    |
             |? x#|
-            |*???|
+            |*xx?|
 ",@"
             |?    |
             |     |
             |? xx#|
-            |*????|
+            |*xxx?|
 ",@"
             |?     |
             |      |
             |? xxx#|
-            |*?????|
+            |*xxxx?|
 ",@"
             |??     |
             |       |
             |?  xxx#|
-            |*x?????|
+            |*xxxxx?|
 ",@"
             |??     ?|
             |        |
             |?  xxxx#|
-            |*x??????|
+            |*xxxxxx?|
 ",@"
             |   |
             |?x |
@@ -97,7 +97,7 @@ namespace Assets.Scripts.Ai.Jump
             |?     |
             |*xxxx#|
 ",@"
-            |??    ?|
+            |?     ?|
             |       |
             |?  x   |
             |*xxxxx#|
@@ -113,7 +113,7 @@ namespace Assets.Scripts.Ai.Jump
             |*xxxxxxx#|
 ",@"
             |??      ??|
-            |         ?|
+            |          |
             |?  xxxx   |
             |*xxxxxxxx#|
 ",@"

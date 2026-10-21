@@ -10,6 +10,7 @@ public class PrefabsStore : ScriptableObject
     public Placeable Block;
     public PlankSegment LadderSegment;
     public Placeable SmallMonster;
+    public Placeable WallFollower;
     public Placeable RopeSegment;
     public Placeable Stone;
     public Placeable Gravel;

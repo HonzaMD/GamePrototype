@@ -15,6 +15,7 @@ namespace Assets.Scripts.Core
                 (Ksid.TreeTrunk, Ksid.Catch),
                 (Ksid.Rope, Ksid.CharacterHolds),
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
+                (Ksid.WallFollower, Ksid.CharacterHolds),
                 (Ksid.InventoryItem, Ksid.CharacterHolds),
                 (Ksid.Ladder, Ksid.CharacterHolds),
                 (Ksid.Cannon, Ksid.CharacterHolds),
@@ -47,7 +48,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Stone, Ksid.DamagedByExplosion),
                 (Ksid.Explosive, Ksid.DamagedByExplosion),
                 (Ksid.SandCombiner, Ksid.DamagedByExplosion),
-                (Ksid.SmallMonster, Ksid.DamagedByExplosion),
+                (Ksid.Monster, Ksid.DamagedByExplosion),
                 (Ksid.Character, Ksid.DamagedByExplosion),
                 (Ksid.Cannon, Ksid.DamagedByExplosion),
                 (Ksid.JoinerGlue, Ksid.DamagedByExplosion),
@@ -98,28 +99,31 @@ namespace Assets.Scripts.Core
                 (Ksid.DirtBuilder, Ksid.AimsInHand),
 
                 (Ksid.Character, Ksid.DamagedByImpact),
-                (Ksid.SmallMonster, Ksid.DamagedByImpact),
+                (Ksid.Monster, Ksid.DamagedByImpact),
                 (Ksid.Light, Ksid.DamagedByImpact),
                 (Ksid.Cannon, Ksid.DamagedByImpact),
                 (Ksid.Dirt, Ksid.DamagedByImpact),
 
                 (Ksid.Knife, Ksid.DealsKnifeDamage),
                 (Ksid.Character, Ksid.DamagedByKnife),
-                (Ksid.SmallMonster, Ksid.DamagedByKnife),
+                (Ksid.Monster, Ksid.DamagedByKnife),
 
                 (Ksid.Character, Ksid.DamagedByContact),
-                (Ksid.SmallMonster, Ksid.DamagedByContact),
+                (Ksid.Monster, Ksid.DamagedByContact),
                 (Ksid.Ladder, Ksid.DamagedByContact),
                 (Ksid.Chest, Ksid.DamagedByContact),
                 (Ksid.PoisonGas, Ksid.DealsContactDamage),
                 (Ksid.HotBlock, Ksid.DealsContactDamage),
 
                 (Ksid.Character, Ksid.ActivatesCannon),
-                (Ksid.SmallMonster, Ksid.ActivatesCannon),
+                (Ksid.Monster, Ksid.ActivatesCannon),
                 (Ksid.Light, Ksid.ActivatesCannon),
 
                 (Ksid.HotBlock, Ksid.SmallMonsterDanger),
                 (Ksid.PoisonGas, Ksid.SmallMonsterDanger),
+
+                (Ksid.SmallMonster, Ksid.Monster),
+                (Ksid.WallFollower, Ksid.Monster),
             })
         {
         }

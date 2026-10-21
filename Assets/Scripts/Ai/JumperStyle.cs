@@ -23,6 +23,8 @@ namespace Assets.Scripts.Ai
     // SKOK: pivot po dopadu = stred bunky dopadu, ve stejne vysce nad podlahou jako pri odrazu. Vyska =
     //   potrebna + JumpExtra (strop jumpHeight). Ve vzduchu ridi x co nejrychleji nad cil a zabrzdi; u skoku
     //   nahoru nevleze do sloupce cile, dokud by vlezl pod plosinu (vrsek tela pod jejim spodkem).
+    //   Kdyz telo do sloupce cile uz zasahuje (napr. tesne za koncem plosiny nad hlavou), nejdriv po zemi
+    //   vyjde ven (Prepare) a skoci az pak - ve vzduchu by to pri rychlem stoupani nestihla a narazila.
     //   Konci dopadem (nohy po odlepeni zase na zemi) nebo timeoutem. Nepovedeny skok (naraz, minuti,
     //   nohy se nechytily) se ridi stejne a konci stejne. Zmena rozkazu skok neprerusi.
     public class JumperStyle : CrawlerStyle
@@ -35,12 +37,14 @@ namespace Assets.Scripts.Ai
         private const float JumpCacheTime = 1f;      // [s] jak dlouho plati maska detekce na stejne bunce
         private const float TimeoutExtra = 0.5f;     // [s] rezerva k predpokladanemu casu letu
         private const float LandMaxVy = 0.1f;        // [m/s] dopad = nohy na zemi a uz nestoupa
+        private const float PrepareTimeout = 1f;     // [s] nejdel tak dlouho vychazi zpod plosiny, pak skoci i tak
 
-        private enum JumpPhase : byte { None, Takeoff, Air }
+        private enum JumpPhase : byte { None, Prepare, Takeoff, Air }
 
         private JumpPhase jumpPhase;
         private float jumpTimer;         // zbyvajici cas do timeoutu
         private Vector2 jumpLanding;     // ocekavany pivot po dopadu
+        private Vector2Int startBodyCell;// bunka odrazu - pred odrazem (Prepare, Takeoff do odrazu motoru) z ni nesmi odejit
         private float jumpHoldX;         // skok nahoru: x, pres ktere se nesmi, dokud by prisera vlezla pod plosinu; NaN = bez omezeni
         private float jumpHoldY;         // spodek plosiny cile [m]
         private int jumpDir;
@@ -82,12 +86,6 @@ namespace Assets.Scripts.Ai
                 || (canWalk && newCell && NewPlatformAhead(bodyCell, dir, cellz));
             if (!forward && !above)
                 return;
-
-            if (floor != cacheFloor)
-            {
-                cacheFloor = floor;
-                cacheTime[0] = cacheTime[1] = float.NegativeInfinity;
-            }
 
             var detector = JumpTrajectories.Get(AiSettings.JumpSet);
             var danger = DangerToAvoid();
@@ -140,8 +138,14 @@ namespace Assets.Scripts.Ai
 
         private static float CellDistance(Vector2Int a, Vector2Int b) => ((Vector2)(a - b)).magnitude;
 
-        private ulong Detect(JumpDetector detector, Vector2Int floor, int cellz, Ksid danger, int dir)
+        // Maska skoku z podlahy floor ve smeru dir - cachuje se na bunku podlahy a JumpCacheTime.
+        protected ulong Detect(JumpDetector detector, Vector2Int floor, int cellz, Ksid danger, int dir)
         {
+            if (floor != cacheFloor)
+            {
+                cacheFloor = floor;
+                cacheTime[0] = cacheTime[1] = float.NegativeInfinity;
+            }
             int i = dir > 0 ? 1 : 0;
             if (Time.time - cacheTime[i] >= JumpCacheTime)
             {
@@ -152,7 +156,7 @@ namespace Assets.Scripts.Ai
         }
 
         // Jen spoustec detekce - schvalne bez nebezpeci, at zustane levny.
-        private bool NewPlatformAhead(Vector2Int bodyCell, int dir, int cellz)
+        protected bool NewPlatformAhead(Vector2Int bodyCell, int dir, int cellz)
             => (Occupied(bodyCell + new Vector2Int(dir, 1), cellz, Ksid.Unknown) || Occupied(bodyCell + new Vector2Int(dir, 2), cellz, Ksid.Unknown))
             && !Occupied(bodyCell + new Vector2Int(0, 1), cellz, Ksid.Unknown) && !Occupied(bodyCell + new Vector2Int(0, 2), cellz, Ksid.Unknown);
 
@@ -160,7 +164,7 @@ namespace Assets.Scripts.Ai
             => map.GetJumpCellClass(cell, cellz, placeable, danger) != JumpCellClass.Free;
 
         // Bunka je volna a pod ni je podlaha (obe bez nebezpeci).
-        private bool CanStand(Vector2Int cell, int cellz, Ksid danger)
+        protected bool CanStand(Vector2Int cell, int cellz, Ksid danger)
             => !Occupied(cell, cellz, danger) && map.GetJumpCellClass(cell + Vector2Int.down, cellz, placeable, danger) == JumpCellClass.Static;
 
         // Ocekavany pivot po dopadu: uprostred bunky landCell, ve stejne vysce nad spodkem bunky jako ted
@@ -168,10 +172,40 @@ namespace Assets.Scripts.Ai
         private Vector2 LandingPivot(Vector2 pivot, Vector2Int bodyCell, Vector2Int landCell)
             => map.CellToWorld(landCell) + new Vector2(Map.Map.CellSize.x * 0.5f, pivot.y - map.CellToWorld(bodyCell).y);
 
-        private void StartJump(Vector2Int bodyCell, Vector2Int landCell, int dir)
+        protected void StartJump(Vector2Int bodyCell, Vector2Int landCell, int dir)
         {
             Vector2 pivot = placeable.Pivot;
-            var landing = LandingPivot(pivot, bodyCell, landCell);
+            jumpLanding = LandingPivot(pivot, bodyCell, landCell);
+            startBodyCell = bodyCell;
+            jumpDir = dir;
+            jumpHoldX = float.NaN;
+            jumpPhase = JumpPhase.Takeoff;
+            if (jumpLanding.y > pivot.y)
+            {
+                float edge = jumpLanding.x - dir * Map.Map.CellSize.x * 0.5f;
+                jumpHoldX = edge - dir * (placeable.Size.x * 0.5f + CornerMargin);
+                jumpHoldY = map.CellToWorld(landCell).y;   // plosina = jedna bunka podlahy
+                if ((pivot.x - ClearX()) * dir > 0)
+                {
+                    jumpPhase = JumpPhase.Prepare;          // telo zasahuje do sloupce cile - nejdriv ven
+                    jumpTimer = PrepareTimeout;
+                }
+            }
+
+            SetDirection(dir);
+            if (jumpPhase == JumpPhase.Takeoff)
+                Takeoff();
+            SteerJump();
+        }
+
+        // x pivotu, pri kterem je telo prave mimo sloupec cile (jumpHoldX bez rezervy).
+        private float ClearX() => jumpHoldX + jumpDir * CornerMargin;
+
+        // Odraz z aktualni pozice.
+        private void Takeoff()
+        {
+            Vector2 pivot = placeable.Pivot;
+            var landing = jumpLanding;
             float dx = landing.x - pivot.x;
             float dy = landing.y - pivot.y;
             float g = -Physics.gravity.y;
@@ -193,28 +227,30 @@ namespace Assets.Scripts.Ai
 
             jumpPhase = JumpPhase.Takeoff;
             jumpTimer = flight + TimeoutExtra;
-            jumpLanding = landing;
-            jumpDir = dir;
-            jumpHoldX = float.NaN;
-            if (dy > 0)
-            {
-                float edge = landing.x - dir * Map.Map.CellSize.x * 0.5f;
-                jumpHoldX = edge - dir * (placeable.Size.x * 0.5f + CornerMargin);
-                jumpHoldY = map.CellToWorld(landCell).y;   // plosina = jedna bunka podlahy
-            }
-
             desiredJump = true;
             desiredJumpHeight = height;
-            SetDirection(dir);
-            SteerJump();
         }
 
         private void SteerJump()
         {
             jumpTimer -= Time.fixedDeltaTime;
             bool onGround = LegOnGround;
-            if (jumpPhase == JumpPhase.Takeoff && !onGround)
+            bool beforeTakeoff = jumpPhase == JumpPhase.Prepare || (jumpPhase == JumpPhase.Takeoff && desiredJump);
+            if (beforeTakeoff && map.WorldToCell(placeable.Pivot) != startBodyCell)
+            {
+                EndJump();                      // pred odrazem opustila bunku odrazu (odsunuta, sjela z hrany) - skok uz neplati
+                return;
+            }
+
+            if (jumpPhase == JumpPhase.Prepare)
+            {
+                if ((placeable.Pivot.x - ClearX()) * jumpDir <= 0 || jumpTimer <= 0)
+                    Takeoff();
+            }
+            else if (jumpPhase == JumpPhase.Takeoff && !desiredJump && !onGround)
+            { // az po odrazu motoru (nohy muzou nahodne ztratit kontakt)
                 jumpPhase = JumpPhase.Air;
+            }
             else if ((jumpPhase == JumpPhase.Air && onGround && body.linearVelocity.y <= LandMaxVy) || jumpTimer <= 0)
             {
                 EndJump();
@@ -232,7 +268,8 @@ namespace Assets.Scripts.Ai
             // Plnou rychlosti, pak brzdna krivka s polovicnim zrychlenim motoru - zastavi nad goalX.
             float err = goalX - pivot.x;
             float accel = Settings.maxAcceleration / Time.fixedDeltaTime;
-            float speed = Mathf.Min(Settings.MaxSpeedAir, Mathf.Sqrt(accel * Mathf.Abs(err)));
+            float maxSpeed = jumpPhase == JumpPhase.Prepare ? Settings.maxSpeed : Settings.MaxSpeedAir;
+            float speed = Mathf.Min(maxSpeed, Mathf.Sqrt(accel * Mathf.Abs(err)));
             desiredVelocity.x = err < 0 ? -speed : speed;
         }
 

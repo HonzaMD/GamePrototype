@@ -12,30 +12,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c7fc85761698dd46932147af66a0383, type: 3}
   m_Name: SmallMonster
   m_EditorClassIdentifier: 
+  Prototype: {fileID: 200132248817074010, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
+    type: 3}
+  Icon: {fileID: 0}
+  IconOrder: 0
+  SimMaterial: 0
   HasSubPlaceables: 0
+  Unseparable: 0
+  AutoAtachRB: 0
+  IsStatic: 0
+  SecondaryMapIndex: 1
+  IsTrigger: 0
+  RecomputeBB: 0
+  IsOBB: 0
+  BBPosOffset: {x: 0, y: 0}
+  BBSize: {x: 0.5, y: 0.5}
   UseSimpleBBCollisions: 0
   Mass: 0
   Density: 1000
   DensityMode: 0
-  Prototype: {fileID: 0}
-  Unseparable: 0
-  AutoAtachRB: 0
-  IsTrigger: 0
-  SecondaryMapIndex: 1
-  Icon: {fileID: 0}
-  IconOrder: 0
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  RecievesOnCollisionEnter: 0
+  RecievesOnCollisionStay: 0
+  HasMultiplePhysicsEvents: 0
+  KnifeDmg: 0
+  KnifeJointCutStretchLimit: 0
+  ContactDmgPerFrame: 0
+  MaxHealth: 100
+  DamageResistances: []
   ActivityAnimation:
     serializedVersion: 2
     m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  KnifeDmg: 0
-  MaxHealth: 100
-  DamageResistances: []
   HitEffect: {fileID: -2507574495529057384, guid: 36cd2a5ee834c69479f3e9de5b1d98d8,
     type: 3}
   DeathEffect: {fileID: -2507574495529057384, guid: 36cd2a5ee834c69479f3e9de5b1d98d8,

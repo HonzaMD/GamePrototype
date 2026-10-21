@@ -46,7 +46,8 @@ namespace Assets.Scripts.Ai
         protected override void ApplyDirective(in Directive d) => ApplyCrawl(in d);
 
         // Krok lezeni podle rozkazu - potomek (skokan) podle vysledku pozna hranu a zaseknuti.
-        protected CrawlStatus ApplyCrawl(in Directive d)
+        // flipOnBlock: Roam se pri bloku otoci sam; potomek, ktery smer v Roam rozhoduje sam (WallFollowerStyle), preda false.
+        protected CrawlStatus ApplyCrawl(in Directive d, bool flipOnBlock = true)
         {
             if (d.Kind != lastKind)
             {
@@ -60,7 +61,7 @@ namespace Assets.Scripts.Ai
                     desiredVelocity.x = 0;
                     return CrawlStatus.Stopped;
                 case DirectiveKind.Roam:
-                    return Crawl(d.SpeedScale, flipOnBlock: true);
+                    return Crawl(d.SpeedScale, flipOnBlock);
                 case DirectiveKind.GoDirection:
                     SetDirection(d.Direction);
                     return Crawl(d.SpeedScale, flipOnBlock: false);

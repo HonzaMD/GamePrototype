@@ -881,7 +881,8 @@ Rozhodnutí:
 
 > 🚧 Krok 1 hotový (2026-10-13): `JumpDetector` — detekce, kam lze skočit.
 > Krok 2 naimplementován (2026-10-15), čeká na test v editoru: `JumperStyle` skáče v `GoToward`.
-> Další krok: skákání v `Roam`.
+> Krok 3 naimplementován (2026-10-18), čeká na test v editoru: `WallFollowerStyle` skáče v `Roam`
+> podle pravidla ruky.
 
 Skok má pevnou sílu odrazu (výška paraboly i doba skoku dané), ale ve vzduchu jde řídit x. Kam
 příšera doskočí, se nezjišťuje simulací za běhu, ale **předem zadanými trajektoriemi**: styl skoku
@@ -965,17 +966,54 @@ Sada trajektorií se vybírá polem `JumpSet` v `AiSettings` (`JumpTrajectories.
 - **Řízení x ve vzduchu:** plnou rychlostí `ChSettings.maxSpeedAir` (0 = `maxSpeed`) k cíli, brzdná
   křivka s polovičním zrychlením motoru. U skoku nahoru se příšera nepustí do sloupce cíle (hrana −
   půl šířky − rezerva), dokud by vlezla pod plošinu (vršek těla pod spodkem plošiny + rezerva) —
-  případně nejdřív couvne. Pak hned k cíli, i za cenu nárazu do boku plošiny: po nárazu do stropu
+  případně nejdřív couvne. Když tělo do sloupce cíle zasahuje už při startu (typicky těsně za koncem
+  plošiny nad hlavou), nejdřív po zemi vyjde ven (fáze `Prepare`, chůzí, nejdéle 1 s) a odrazí se
+  až pak — ve vzduchu by to nestihla: hlava je ~0,5 m pod plošinou, stoupá ~6 m/s (≈ 4 fixed kroky),
+  ale tělo musí uhnout ~0,15 m z rozjezdu ~1 m/s. Pak hned k cíli, i za cenu nárazu do boku plošiny: po nárazu do stropu
   by na „bezpečnou“ výšku nad plošinou už nemusela doletět. Spodek plošiny = spodek buňky podlahy
   dopadu (plošina se bere jako jedna buňka, buňky se netestují).
 - **Konec:** dopad (nohy po odlepení zase na zemi a už nestoupá) nebo timeout (předpokládaný čas letu
   + 0,5 s). Nepovedený skok (náraz v půlce, minutí, nohy se nechytily) se řídí stejně a končí
-  stejně. Po skoku lezení začne rozjezdem.
+  stejně. Před odrazem (`Prepare` a `Takeoff`, dokud motor neskočil — nohy můžou na chvíli ztratit
+  kontakt) skok zruší opuštění buňky odrazu: odsunutá nebo sjetá z hrany příšera by jinak skočila
+  odjinud, než se počítalo. `Takeoff` přejde do `Air` až po odrazu motoru. Po skoku lezení začne rozjezdem.
 - **Změna rozkazu:** běžící skok styl dotáhne bez ohledu na `Kind` (`Manual`/`None` styl nevolá —
   zatím neřešeno). `MonsterBrain.IsJumping` — `ThrowItemRule` ve vzduchu nezačne. Blokující pravidlo
   až kdyby bylo potřeba.
 - **Small Monster:** `jumpHeight 2`, `maxSpeedAir 4` — spočteno pro sadu `Small` (nejdelší skok (9,0)
   ~2 m výšky odrazu, (1,3) ~1,75 m). K vyladění v editoru.
+
+### Wall follower: `WallFollowerStyle : JumperStyle` (skákání v `Roam`)
+
+Pravidlo ruky z bludišť: příšera se drží stěny (místa, kam nemůže) jednou rukou (`hand` na prefabu:
+`Left` / `Right`) a nikde se nepustí → cyklický pohyb. Z boku: pravá ruka při chůzi doprava drží
+podlahu (seskakuje z hran), doleva strop (vyskakuje). „Točivost“ se nepoužívá — pravá ruka obíhá
+místnost zevnitř proti směru hodin, ostrůvek po směru. Ostatní rozkazy jako skokan. Potřebuje
+`AvoidHoles`, jinak by z hran padala. `Roam` se v lezci neotáčí (`ApplyCrawl(in d, flipOnBlock: false)`),
+otočku rozhoduje křižovatka. `hand` se v `Cleanup` obnovuje z prototypu.
+
+- **Platná buňka a směr:** platná = buňka pivotu na nohou mimo skok (jinak padá, buňky se ignorují).
+  Směr (`heading`) = vektor posledního pohybu mezi platnými buňkami: chůze = rozdíl sousedních, skok =
+  skutečný dopad − odraz (i nepovedený skok se vyhodnotí podle toho, kde opravdu skončil). Při volbě
+  otočky nebo skoku se nastaví hned na zvolený pohyb. Chůze vpřed ho nemění: na úzké plošině se po
+  dopadu nabídne (lezec hranu ještě nevidí), hned narazí na `Edge` ve stejné buňce a další křižovatka
+  musí vzít další možnost podle **stejného** směru (vektor skoku). Kdyby se směr přepsal na `(dir,0)`,
+  pořadí kandidátů by se změnilo a vznikal cyklus.
+- **Křižovatka** (jen na nohou): `Edge` / `Wall`; dopad po skoku; neplánovaný skok (změna y platné
+  buňky o 2 a víc — o 1 je ještě chůze); a jen s rukou nahoře po vstupu do nové buňky plošina, která
+  začíná o buňku před nebo končí o buňku za (`NewPlatformAhead(dir)` / `(−dir)`).
+- **Kandidáti:** chůze vpřed, když není zablokovaná (`Paused` / `Starting` / `Moving` — chůzi ověří
+  lezec), chůze vzad (`CanStand`), skoky z obou masek detektoru. Když není nic (jen zablokovaná
+  `Edge` / `Wall`), otočí se bez testu — lezec otočku ověří, případně se otočí znovu (jako původní `Roam`).
+- **Řazení — úhel bez ohledu na délku:** příšera se vždy točí, co to jde. Třída podle poloroviny vůči
+  přímce směru: k ruce → přesně vpřed → od ruky → přesně zpět (odkud přišla, poslední). Uvnitř
+  poloroviny znaménko vektorového součinu `cross(a,b) = a.x·b.y − a.y·b.x` (= |a||b|·sin, délky
+  nevadí; v otevřené polorovině je rozdíl úhlů < 180°, takže je řazení tranzitivní). Ohmatává se
+  zezadu — pravá ruka proti směru hodin. Délka jen při přesně stejném směru (kratší vyhrává).
+  Vzdálená plošina pod ostřejším úhlem vyhraje nad bližší — příšera to vezme zkratkou.
+- **Uvěznění:** zvláštní logika není. Nepovedený skok zpět do stejné buňky nechá směr na vektoru
+  skoku, takže další křižovatka dá přednost kandidátům na straně ruky od něj (příšera se točí dál,
+  typicky se vrátí). Když jde jen otočka a skok, který se nedaří, střídá je — oscilace o půl kruhu.
 
 ---
 

@@ -66,6 +66,8 @@ namespace Assets.Scripts.Core
         DirtBuilder,
         AimsInHand,
         SmallMonsterDanger,
+        Monster,
+        WallFollower,
     }
 
     public static class KsidX

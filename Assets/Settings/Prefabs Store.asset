@@ -17,6 +17,8 @@ MonoBehaviour:
     type: 3}
   SmallMonster: {fileID: 200132248817074010, guid: bbc8d0f5fa92dfe42b367b1c09ddd7a2,
     type: 3}
+  WallFollower: {fileID: 200132248817074010, guid: 713d37d26b6f6e941b20e9956dd5af6c,
+    type: 3}
   RopeSegment: {fileID: 7127492873149735316, guid: 01bc336835831fd408af76b2f4d98dc7,
     type: 3}
   Stone: {fileID: 6544102931580577880, guid: 7bf408d9ec08be84b851da813604a0e3, type: 3}
