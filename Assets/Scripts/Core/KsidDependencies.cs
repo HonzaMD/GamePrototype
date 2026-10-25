@@ -124,6 +124,7 @@ namespace Assets.Scripts.Core
 
                 (Ksid.SmallMonster, Ksid.Monster),
                 (Ksid.WallFollower, Ksid.Monster),
+                (Ksid.BalloonMonster, Ksid.Monster),
             })
         {
         }

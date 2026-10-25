@@ -1712,7 +1712,7 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 2075615587}
+  MapWorlds: {fileID: 165257667}
   InventoryRoot: {fileID: 224758079}
   Hud: {fileID: 1427786098}
   TimeOfDay: {fileID: 1866069384}
