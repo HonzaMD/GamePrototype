@@ -38,6 +38,29 @@ MonoBehaviour:
   DangerKsid: 56
   AvoidHoles: 1
   JumpSet: 0
+  BounceStyle: 2
+  FixedAngle: 30
+  BounceSpread: 30
+  BounceMargin: 0.2
+  BounceHold: 0.5
+  TurnRate: 90
+  ArriveMargin: 0
+  RoamPattern:
+    Terms:
+    - Amplitude: 0.3
+      Period: 3
+      Phase: 0
+      RotateHeading: 0
+    - Amplitude: 0.3
+      Period: -3
+      Phase: 180
+      RotateHeading: 0
+    Chaos: 0.38
+    NoiseTime: 1
+  TowardPattern:
+    Terms: []
+    Chaos: 0
+    NoiseTime: 1
   references:
     version: 2
     RefIds:

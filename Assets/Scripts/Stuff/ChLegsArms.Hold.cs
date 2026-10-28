@@ -286,7 +286,8 @@ public abstract partial class ChLegsArms
     {
         var p = label.PlaceableC;
         int myCellZ = placeable.CellZ;
-        if (!p.CellBlocking.IsDoubleCell() && p.CellZ != myCellZ)
+        // double-cell drzitel je v obou rovinach - zadnou nepreferuje, predmet nechava, kde je
+        if (!p.CellBlocking.IsDoubleCell() && !placeable.CellBlocking.IsDoubleCell() && p.CellZ != myCellZ)
         {
             if (p.CanZMove(myCellZ * Map.CellSize.z, placeable))
                 p.MoveZ(myCellZ * Map.CellSize.z, map);

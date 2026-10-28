@@ -9,6 +9,8 @@ namespace Assets.Scripts.Ai
     //   zelena  - GoToward: cara k cili rozkazu
     //   cervena - aktivni nedosazitelna mista (MarkUnreachable)
     //   zluta   - nalezy smyslu ne starsi nez SenseMaxAge (vzadu, za ostatnimi)
+    //   azurova - letec: heading
+    //   modra   - letec: pozadovana rychlost
     public static class AiDebug
     {
         private const KeyCode ToggleKey = KeyCode.F8;

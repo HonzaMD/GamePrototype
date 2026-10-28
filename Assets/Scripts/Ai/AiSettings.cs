@@ -41,6 +41,26 @@ namespace Assets.Scripts.Ai
         [Tooltip("Sada trajektorií skoku (JumpTrajectories) - podle velikosti a síly skoku příšery.")]
         public JumpSet JumpSet;
 
+        [Header("Flyer")]
+        [Tooltip("Odraz od překážky: Exact podle normály, Axis podle normály zaokrouhlené na osu a srovná úhel na FixedAngle, Random podle normály ± BounceSpread.")]
+        public BounceStyle BounceStyle;
+        [Tooltip("Axis: úhel letu vůči podlaze [°], který nastaví při každém odrazu.")]
+        public float FixedAngle = 30;
+        [Tooltip("Random: rozptyl odrazu [°].")]
+        public float BounceSpread = 30;
+        [Tooltip("Rezerva [m] k brzdné dráze, ve které se od překážky odrazí.")]
+        public float BounceMargin = 0.2f;
+        [Tooltip("GoToward/GoDirection: jak dlouho [s] po odrazu letí rovně, než se zase stáčí k cíli.")]
+        public float BounceHold = 0.5f;
+        [Tooltip("GoToward/GoDirection: rychlost stáčení k cíli [°/s]. Motor zvládne nejvýš maxAccelerationFloat / (fixedDeltaTime · maxSpeedFloat) rad/s.")]
+        public float TurnRate = 90;
+        [Tooltip("GoToward: jak daleko [m od těla] od cíle se má zastavit. Brzdnou dráhu si příšera spočítá sama z rychlosti a zrychlení.")]
+        public float ArriveMargin = 0;
+        [Tooltip("Křivka letu v Roam.")]
+        public FlightPattern RoamPattern = new FlightPattern();
+        [Tooltip("Křivka letu v GoToward a GoDirection.")]
+        public FlightPattern TowardPattern = new FlightPattern();
+
         [NonSerialized]
         private SenseConfig[] resolvedSenses;
 

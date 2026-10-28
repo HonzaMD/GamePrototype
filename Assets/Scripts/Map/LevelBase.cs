@@ -95,6 +95,7 @@ namespace Assets.Scripts.Map
                 case 'P': return SearchRope(ch, x, y);
                 case 'm': return prefabsStore.SmallMonster;
                 case 'o': return prefabsStore.WallFollower;
+                case 'b': return prefabsStore.BalloonMonster;
                 case 's': return prefabsStore.Stone;
                 case '*': return prefabsStore.PointLight;
                 case 'A': return prefabsStore.Character;

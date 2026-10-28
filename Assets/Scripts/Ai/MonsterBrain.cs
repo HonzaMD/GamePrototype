@@ -101,6 +101,11 @@ namespace Assets.Scripts.Ai
                 AiDebug.Line(from, directive.Target, Color.green);
             DrawDebugUnreachable(from);
             DrawDebugSenses(from);
+            DrawDebugStyle(from);
+        }
+
+        protected virtual void DrawDebugStyle(Vector2 from)
+        {
         }
 
         public override void GameFixedUpdate()
@@ -193,7 +198,8 @@ namespace Assets.Scripts.Ai
             directive.SpeedScale = speedScale;
         }
 
-        public void SetDirective(DirectiveKind kind, int direction, float speedScale = 1f)
+        // direction nemusi byt normalizovany, viz Directive.Direction
+        public void SetDirective(DirectiveKind kind, Vector2 direction, float speedScale = 1f)
         {
             directive.Kind = kind;
             directive.Direction = direction;
@@ -223,7 +229,10 @@ namespace Assets.Scripts.Ai
             ScratchTimer = Time.time;
         }
 
-        // Volat kazdy Tick. Vrati false, kdyz se prisera k cili uz patience sekund nepriblizila.
+        // O kolik [s] styl zdrzuje pokrok k cili (smycky, odrazy) - pricita se k trpelivosti pravidla.
+        protected virtual float ApproachSlack => 0;
+
+        // Volat kazdy Tick. Vrati false, kdyz se prisera k cili uz patience (+ ApproachSlack) sekund nepriblizila.
         public bool TrackApproach(Vector2 target, float patience)
         {
             if ((target - ScratchPos).sqrMagnitude > TargetJump * TargetJump)
@@ -237,7 +246,7 @@ namespace Assets.Scripts.Ai
                 ScratchTimer = Time.time;
                 return true;
             }
-            return Time.time - ScratchTimer <= patience;
+            return Time.time - ScratchTimer <= patience + ApproachSlack;
         }
 
         public override void AfterMapPlaced(Map.Map map, Placeable placeableSibling, bool goesFromInventory)

@@ -19,7 +19,9 @@ namespace Assets.Scripts.Ai
     public struct Directive
     {
         public DirectiveKind Kind;
-        public int Direction;      // -1/+1 pro lezce (GoDirection)
+        // 2D smer (GoDirection). Nemusi byt normalizovany - styly berou jen smer: letec se k nemu staci,
+        // lezec ho promitne do 1D (znamenko x; x == 0 = stoji).
+        public Vector2 Direction;
         public Vector2 Target;     // cil (GoToward)
         public float SpeedScale;   // 0..1 - zrychli (strach) / zpomali (unava)
     }

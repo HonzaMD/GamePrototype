@@ -17,7 +17,9 @@ namespace Assets.Scripts.Map
         LevelSLT,
         DirtTest,
         WallFollover,
-        
+        BallonTests,
+
+
         DebugLvl = 100,
     }
 
@@ -34,6 +36,7 @@ namespace Assets.Scripts.Map
             new LevelSLT(),
             new LevelDirtTest(),
             new WallFollower(),
+            new BallonTests(),
         };
 
         public static LevelBase Get(LevelName name) => levels[(int)name];

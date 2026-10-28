@@ -63,7 +63,14 @@ namespace Assets.Scripts.Ai
                 case DirectiveKind.Roam:
                     return Crawl(d.SpeedScale, flipOnBlock);
                 case DirectiveKind.GoDirection:
-                    SetDirection(d.Direction);
+                    int dir1D = ProjectDirection(d.Direction);
+                    if (dir1D == 0)
+                    {
+                        desiredVelocity.x = 0;      // svisly smer - lezec tam nemuze
+                        turnTimeout = MoveStart;
+                        return CrawlStatus.Stopped;
+                    }
+                    SetDirection(dir1D);
                     return Crawl(d.SpeedScale, flipOnBlock: false);
                 case DirectiveKind.GoToward:
                     float dx = d.Target.x - Center.x;
@@ -84,9 +91,12 @@ namespace Assets.Scripts.Ai
         protected override Vector2 DefaultLookAt(in Directive d) => d.Kind switch
         {
             DirectiveKind.Roam => Center + new Vector2(direction * LookAhead, 0),
-            DirectiveKind.GoDirection => Center + new Vector2(d.Direction * LookAhead, 0),
+            DirectiveKind.GoDirection => Center + new Vector2(ProjectDirection(d.Direction) * LookAhead, 0),
             _ => base.DefaultLookAt(in d),
         };
+
+        // 2D smer rozkazu promitnuty do 1D lezce: -1/+1, 0 = svisly (nikam).
+        private static int ProjectDirection(Vector2 dir) => dir.x < 0 ? -1 : dir.x > 0 ? 1 : 0;
 
         protected void SetDirection(int dir)
         {

@@ -38,6 +38,7 @@ public class ChSettings : ScriptableObject
 	public float DragCoef = 1f;
 	public float ArmInForceCoef = 2f;
 
+	[Tooltip("Nejstrmější svah, který ještě bere jako zem [°].")]
 	public float maxGroundAngle = 40f;
 	public float minGroundDotProduct { get; private set; }
 

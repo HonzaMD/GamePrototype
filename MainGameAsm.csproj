@@ -191,6 +191,7 @@
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
+    <Compile Include="Assets\Scripts\Map\Levels\BallonTests.cs" />
     <Compile Include="Assets\Scripts\Stuff\PosDebugger.cs" />
     <Compile Include="Assets\Scripts\Map\ILevelPlaceabe.cs" />
     <Compile Include="Assets\Scripts\Ai\Rules\RoamRule.cs" />
@@ -205,9 +206,11 @@
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimWorld.cs" />
+    <Compile Include="Assets\Scripts\Ai\FlyingStyle.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\VCore.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\ForceWorker.cs" />
+    <Compile Include="Assets\Scripts\Ai\FlightPattern.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\LevelLevelSLT.cs" />
     <Compile Include="Assets\Scripts\Utils\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Core\ThrowController.cs" />

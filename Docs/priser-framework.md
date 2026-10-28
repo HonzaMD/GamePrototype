@@ -7,7 +7,8 @@ stojí na **lokálním rozhodování**.
 > Stav: návrh zrevidovaný, **implementace probíhá** — kroky 1–3 hotové, featura
 > [Sbírání předmětů](#featura-sbírání-předmětů) naimplementovaná (smysly, `SeekItemRule`,
 > `PickUpItemRule`, inventář příšery; krok C čeká na test v editoru) a
-> [Házení předmětů](#featura-házení-předmětů) (`ThrowItemRule`, čeká na test v editoru), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
+> [Házení předmětů](#featura-házení-předmětů) (`ThrowItemRule`, čeká na test v editoru) a
+> [Létání](#featura-létání) (`FlyingStyle`, čeká na test v editoru), viz [Implementační pořadí](#implementační-pořadí). Při implementaci padla rozhodnutí, která
 > návrh upřesňují (jména, zrušený `AiContext`, `SlowTick(period)`, cíl jen jako pozice…) — dokument
 > je už obsahuje.
 
@@ -493,7 +494,7 @@ public enum DirectiveKind
 public struct Directive
 {
     public DirectiveKind Kind;
-    public int Direction;     // -1/+1 pro lezce
+    public Vector2 Direction; // 2D směr pro GoDirection, nemusí být normalizovaný (lezec bere sign(x))
     public Vector2 Target;    // pro GoToward
     public float SpeedScale;  // 0..1 – zrychlí (strach) / zpomalí (únava)
 }
@@ -520,7 +521,7 @@ Přepočet jen když se něco změní (cíl se hnul, rozkaz nejde splnit). I kro
 |--------|-------|
 | `Stop` | `desiredVelocity.x = 0` |
 | `Roam` | lez; při zaseknutí nebo hraně **otoč** (původní `SmallMonster`) |
-| `GoDirection` | lez daným směrem; při bloku **drží směr**: pauza → rozjezd → zkusí znovu |
+| `GoDirection` | lez směrem `sign(Direction.x)` (svislý směr ⇒ stůj); při bloku **drží směr**: pauza → rozjezd → zkusí znovu |
 | `GoToward` | směr = `sign(Target.x − x)`, jinak jako `GoDirection`; blíž než 0.25 m ⇒ stůj |
 
 Automat: pauza (stojí) → rozjezd (tlačí, zaseknutí podle rychlosti se netestuje — z klidu je
@@ -1043,6 +1044,84 @@ ničemu). Příšera nevleze do buňky s takovým objektem (vč. potomků Ksid) 
 
 ---
 
+## Featura: létání
+
+> Implementováno 2026-10-27 (`FlyingStyle`, `FlightPattern`), čeká na test v editoru. První konzument:
+> Balloon Monster (1,5 × 1,5 m, double-cell). Nebezpečí (`DangerKsid`) létavec zatím nehlídá.
+
+`FlyingStyle : MonsterBrain` — přímý potomek mozku, z lezce nic nepotřebuje. Motor ve `Free` režimu
+(`ChSettings.DefaultMovementMode`): gravitace vypnutá, plný 2D regulátor k `desiredVelocity`
+s limitem `maxAccelerationFloat` za krok (balon 0,1 → a ≈ 5 m/s²), rychlost `maxSpeedFloat · SpeedScale`.
+
+**Heading** (jednotkový směr, `heading` na prefabu = počáteční směr, obnovuje se v `Cleanup` z prototypu)
++ **křivka** v jeho soustavě. Kód je pro všechny rozkazy stejný, liší se jen stáčení headingu a brzdění:
+
+| Rozkaz | Heading | Křivka |
+|--------|---------|--------|
+| `Stop` | — | visí, `v = 0` |
+| `Roam` | stáčí ho jen člen křivky s `RotateHeading` | `RoamPattern` |
+| `GoDirection` | stáčí se k `Direction` (2D) | `TowardPattern` |
+| `GoToward` | stáčí se k cíli; u cíle brzdí a neodráží se | `TowardPattern` |
+
+Stáčení je konstantní rychlostí `TurnRate` (kruhový oblouk), po odrazu `BounceHold` s letí rovně
+po odražené trajektorii. U cíle jen zpomalí a nechá se přisunout co nejblíž (zatím bez „kroužení nad cílem“).
+
+**Brzdění u cíle** si příšera spočítá sama: `d` = vzdálenost cíle od těla − `ArriveMargin` (výchozí 0),
+rychlost `min(V, √(2·0.8a·d))` — zastaví v `ArriveMargin`, brzdí o 20 % mírněji, než motor umí (reaguje
+o krok později). Neodráží se, když `d < V²/(2a) + BounceMargin` — tam by ji jinak odrazila překážka,
+na které cíl leží (předmět na zemi).
+
+### Křivka — epicykly (`FlightPattern`)
+
+```
+u = h + Σ Aᵢ · rot(h, φᵢ)        φᵢ += ωᵢ·dt,  ωᵢ = 2π/Periodᵢ (znaménko = směr)
+v = V · u / (1 + Σ Aᵢ)            → |v| ≤ V
+```
+
+Rotující vektory jsou vztažené k headingu — obrazec se natáčí se směrem letu (i po odrazu). Jeden člen =
+trochoida: dopředu V/(1+A), smyčky od A > 1, poloměr `r = V·A/((1+A)·ω)`, dostředivé zrychlení
+`V·A·ω/(1+A)` musí být ≤ a, jinak motor obrazec zploští. **Brzdění u cíle zmenšuje V → i smyčky → nálet
+po spirále.** Příklady (V = 2): smyčky (1.5, 2 s); had = (0.6, 1.6 s) + (0.6, −1.6 s, fáze 180°);
+květina (1.2, 2 s) + (0.5, −0.7 s); velké oblouky = člen `RotateHeading` s periodou.
+
+**`Chaos`** — jediný mechanismus náhodnosti: ω i A každého členu × `(1 + Chaos·N(t))`, N = Perlin
+v ⟨−1, 1⟩ s měřítkem `NoiseTime`, seed per příšera (hejno se nesynchronizuje). `Chaos > 1` občas otočí
+směr rotace — u `RotateHeading` členu to dává bloudění. `Chaos = 0` = přesná, předvídatelná křivka.
+
+### Odraz (měkký — jen povoleným zrychlením)
+
+- **Detekce:** `BoxCast` obdélníkem těla (`Size − skin`) ve směru požadované rychlosti, v z přes roviny,
+  které příšera zabírá (double-cell obě). Do všeho v `CollisionLayaerMask`, kromě sebe a drženého předmětu.
+  Délka = brzdná dráha skutečné rychlosti + `BounceMargin`. Collidery, které box už na začátku překrývá
+  (vzdálenost 0), se ignorují — zasáhly by v každém směru a příšera by se na místě odrážela tam a zpět.
+  Box má ostré rohy, tělo je zaoblené, takže k překryvu dojde hlavně na rozích terénu; když do takové
+  překážky tlačí, odrazí ji detekce zaseknutí.
+- **Spoušť:** překážka blíž než `vn²/(2a) + BounceMargin`, kde `vn` je normálová složka skutečné rychlosti —
+  šikmo se odrazí blíž ke zdi, při klouzání podél ní vůbec. Pak:
+  1. **odraz** headingu (jednorázově, jen když heading míří do překážky),
+  2. **ořez** složky požadované rychlosti do překážky (vždy — křivka nedrhne o zeď).
+- **Styly** (`AiSettings.BounceStyle`): `Exact` podle normály; `Axis` podle normály zaokrouhlené na osu
+  (na šikmé ploše, kam heading nemíří, ta druhá) a heading srovná na ±`FixedAngle` vůči podlaze — úhel se
+  nastavuje jen při odrazu, v `GoToward` se nedrží; `Random` podle normály ± `BounceSpread`, aspoň 15° od povrchu.
+  Bez náhodnosti se může odrážet tam a zpět — záměr.
+- **Zaseknutí** (cast nic neviděl, strčil do ní hráč): skutečná rychlost < 25 % požadované po 0,5 s →
+  odraz od protisměru pohybu (jako lezec, který vejde do zdi).
+- Později: tvrdý odraz nohama (jako skok od stěny).
+
+### Navazující úpravy
+
+- **`TrackApproach`:** k trpělivosti pravidla se přičítá `virtual ApproachSlack` stylu — létavec:
+  nejdelší |Period| členů `TowardPattern` + `BounceHold` (smyčky a odrazy zdrží pokrok).
+- **Double-cell:** `ChLegsArms.TryCorrectZPos` u double-cell držitele předmět mezi rovinami nepřesouvá
+  (příšera žádnou rovinu nepreferuje). Dosahy (`Reach`) se měří ve 2D od středu — u velké příšery stačí
+  větší hodnota v konfiguraci. Lezec/skokan (`WantMove`, `DangerToAvoid`, `JumperStyle`) dál počítá
+  s pivotem dole a tělem o jedné buňce — pro velké lezce by se musel zobecnit.
+- **Ladění (F8):** azurová = heading, modrá = požadovaná rychlost.
+- Později: sakády (moucha — skokové otočky headingu brané jako odraz), `OnValidate` kontrola
+  dostředivého zrychlení členů, kroužení nad cílem.
+
+---
+
 ## Otevřené drobnosti (dořešit při implementaci)
 
 Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu:
@@ -1064,7 +1143,7 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
 1. **Refaktor `ChLegsArms`** — ✅ v podstatě hotový. `MovementMode` (`Legged`/`Free`, gravitace
    off) je v kódu včetně přepínání za běhu; zobecnění počtu končetin je odloženo (nikdo ho
    nežádá); public API pro AI (`desired*` settery, `DropAllLimbs`) se dodělá až s krokem 2, kdy
-   bude vidět, co pravidla potřebují. Zbývá ověřit, že `Free` opravdu lítá (balon).
+   bude vidět, co pravidla potřebují. `Free` má konzumenta — [létání](#featura-létání) (balon), čeká na test.
    RB neuspáváme — to dělá Unity samo.
    > Podrobně v [chlegsarms-refactor.md](chlegsarms-refactor.md): kýble A (zpřehlednění)
    > a B (rozdělení GameUpdate/FixedUpdate + oprava hodu) jsou hotové, kýbl C je protříděný —
@@ -1090,4 +1169,4 @@ Hlavní návrh je zrevidovaný. Zbývají drobnosti, které se dořeší v kódu
    — jeden `EnterSleep(duration)`, branka `TryWake`, centrální kolaps-guard v `MonsterBrain`,
    lazy `CurrentNeed`, wake přes `Timer.Plan` (rušení časovače `ActiveTag`em).
 7. **`AiSettings`** — doplnit spánek a smysly; sestavení prvních příšer z modulů.
-8. (později) `BounceStyle`, povrchový režim, candidate scoring, push-trigger probouzení, `End()` cleanup.
+8. (později) povrchový režim, candidate scoring, push-trigger probouzení, `End()` cleanup.
