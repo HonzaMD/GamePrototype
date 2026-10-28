@@ -12,6 +12,7 @@ public class PrefabsStore : ScriptableObject
     public Placeable SmallMonster;
     public Placeable WallFollower;
     public Placeable BalloonMonster;
+    public Placeable ButterFlyMonster;
     public Placeable RopeSegment;
     public Placeable Stone;
     public Placeable Gravel;

@@ -17,7 +17,7 @@ MonoBehaviour:
   Icon: {fileID: 0}
   IconOrder: 0
   SimMaterial: 0
-  HasSubPlaceables: 0
+  HasSubPlaceables: 1
   Unseparable: 0
   AutoAtachRB: 0
   IsStatic: 0

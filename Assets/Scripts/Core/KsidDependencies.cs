@@ -16,6 +16,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Rope, Ksid.CharacterHolds),
                 (Ksid.SmallMonster, Ksid.CharacterHolds),
                 (Ksid.WallFollower, Ksid.CharacterHolds),
+                (Ksid.ButterFlyMonster, Ksid.CharacterHolds),
                 (Ksid.InventoryItem, Ksid.CharacterHolds),
                 (Ksid.Ladder, Ksid.CharacterHolds),
                 (Ksid.Cannon, Ksid.CharacterHolds),
@@ -125,6 +126,7 @@ namespace Assets.Scripts.Core
                 (Ksid.SmallMonster, Ksid.Monster),
                 (Ksid.WallFollower, Ksid.Monster),
                 (Ksid.BalloonMonster, Ksid.Monster),
+                (Ksid.ButterFlyMonster, Ksid.Monster),
             })
         {
         }

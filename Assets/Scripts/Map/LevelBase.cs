@@ -96,6 +96,7 @@ namespace Assets.Scripts.Map
                 case 'm': return prefabsStore.SmallMonster;
                 case 'o': return prefabsStore.WallFollower;
                 case 'b': return prefabsStore.BalloonMonster;
+                case 'f': return prefabsStore.ButterFlyMonster;
                 case 's': return prefabsStore.Stone;
                 case '*': return prefabsStore.PointLight;
                 case 'A': return prefabsStore.Character;

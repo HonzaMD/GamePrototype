@@ -69,6 +69,7 @@ namespace Assets.Scripts.Core
         Monster,
         WallFollower,
         BalloonMonster,
+        ButterFlyMonster,
     }
 
     public static class KsidX

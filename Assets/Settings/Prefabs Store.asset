@@ -21,6 +21,8 @@ MonoBehaviour:
     type: 3}
   BalloonMonster: {fileID: 1375742954085966466, guid: b5e9080d342429c41b07d57967b61561,
     type: 3}
+  ButterFlyMonster: {fileID: 5231458440503603705, guid: 3b6cadcf6fe357e4aaa5e0724a31d3d8,
+    type: 3}
   RopeSegment: {fileID: 7127492873149735316, guid: 01bc336835831fd408af76b2f4d98dc7,
     type: 3}
   Stone: {fileID: 6544102931580577880, guid: 7bf408d9ec08be84b851da813604a0e3, type: 3}
