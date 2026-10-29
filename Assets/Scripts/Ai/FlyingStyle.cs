@@ -78,9 +78,25 @@ namespace Assets.Scripts.Ai
                     break;
             }
 
+            ReturnFromMapOutside();
+
             var patternDir = AdvancePattern(d.Kind == DirectiveKind.Roam ? s.RoamPattern : s.TowardPattern, d.Kind == DirectiveKind.Roam);
             heading.Normalize();
             desiredVelocity = AvoidObstacles(patternDir, speed, canBounce);
+        }
+
+        private void ReturnFromMapOutside()
+        {
+            // mimo mapu: slozku headingu, ktera miri ven, otoci dovnitr
+            var ret = MapReturnDir();
+            if (heading.x * ret.x < 0 || heading.y * ret.y < 0)
+            {
+                if (heading.x * ret.x < 0)
+                    heading.x = -heading.x;
+                if (heading.y * ret.y < 0)
+                    heading.y = -heading.y;
+                lastBounceTime = Time.time;
+            }
         }
 
         // Bez explicitniho LookAt se letec diva tam, kam leti.

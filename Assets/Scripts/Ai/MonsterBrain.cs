@@ -47,6 +47,14 @@ namespace Assets.Scripts.Ai
             return danger;
         }
 
+        // Smer zpet do mapy po osach (-1/0/+1), kdyz je stred tela mimo mapu; uvnitr (0, 0).
+        protected Vector2Int MapReturnDir()
+        {
+            var c = map.WorldToCell(Center);
+            return new Vector2Int(c.x < 0 ? 1 : c.x >= map.mapSize.x ? -1 : 0,
+                                  c.y < 0 ? 1 : c.y >= map.mapSize.y ? -1 : 0);
+        }
+
         // --- Blackboard: action scratch ---------------------------------------------------
         // Protoze v jednu chvili bezi jen JEDNO pravidlo, staci jedna sdilena sada scratch poli.
         // Begin je inicializuje, Tick aktualizuje, pri Done se uvolni pro dalsi.

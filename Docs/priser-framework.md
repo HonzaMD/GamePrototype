@@ -530,6 +530,8 @@ sebou `DangerKsid`) se testuje ve
 všech fázích s tlakem, i v rozjezdu** — jinak by opakovaný pokus `GoDirection` tlačil do díry.
 Změna rozkazu nebo směru začíná rozjezdem (jinak by klid po `Stop` vypadal jako zaseknutí).
 `SpeedScale` násobí `ChSettings.maxSpeed`.
+**Okraj mapy:** je-li střed těla mimo mapu a `direction` míří dál ven, je to hrana (`Edge`) — `Roam` se
+otočí a vrátí, ostatní rozkazy stojí. Hranice je měkká (vyjde kousek ven); spolehlivější později.
 
 ### Zpětná vazba z plnění rozkazu
 
@@ -1106,6 +1108,8 @@ směr rotace — u `RotateHeading` členu to dává bloudění. `Chaos = 0` = p�
   Bez náhodnosti se může odrážet tam a zpět — záměr.
 - **Zaseknutí** (cast nic neviděl, strčil do ní hráč): skutečná rychlost < 25 % požadované po 0,5 s →
   odraz od protisměru pohybu (jako lezec, který vejde do zdi).
+- **Okraj mapy:** je-li střed těla mimo mapu, složka headingu mířící ven se převrátí (odraz od osy, bez
+  `BounceStyle`) a běží `BounceHold`. Hranice je měkká (vyletí kousek ven a vrátí se); spolehlivější později.
 - Později: tvrdý odraz nohama (jako skok od stěny).
 
 ### Navazující úpravy

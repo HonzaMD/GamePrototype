@@ -141,6 +141,9 @@ namespace Assets.Scripts.Ai
 
         private bool WantMove()
         {
+            if (MapReturnDir().x == -direction)
+                return false;       // mimo mapu a jde ven
+
             var cell = map.WorldToCell(transform.position);
             if (AiSettings.AvoidHoles)
             {
