@@ -284,7 +284,7 @@ public abstract partial class ChLegsArms
 
     private void PlaceLimbAtOwnZ(int index, ref RaycastHit hitInfo)
     {
-        Limbs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.limbZ[index] + transform.position.z);
+        Limbs[index].position = new Vector3(hitInfo.point.x, hitInfo.point.y, Settings.limbZ[index] + ArmSphere.transform.position.z);
         Limbs[index].rotation = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
         limbStatus[index] = Catch;
     }

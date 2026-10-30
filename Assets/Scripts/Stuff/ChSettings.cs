@@ -52,7 +52,7 @@ public class ChSettings : ScriptableObject
 	private bool initialized;
 	[NonSerialized]
 	private Vector2Int armCellRadius;
-	public float[] limbZ { get; private set; }
+	public float[] limbZ { get; private set; }   // z koncetin vuci ArmSphere
 
 	public Vector2 HoldPosition;
 	public Ksid HoldType;
@@ -71,7 +71,7 @@ public class ChSettings : ScriptableObject
 		if (!initialized)
 		{
 			initialized = true;
-			limbZ = Limbs.Select(l => l.position.z).ToArray();
+			limbZ = Limbs.Select(l => l.position.z - ArmSphere.transform.position.z).ToArray();
 			armCatchLayerMask = LayerMask.GetMask("Default", "Catches", "SmallObjs", "MovingObjs");
 			legStandLayerMask = LayerMask.GetMask("Default", "Catches", "MovingObjs");
 			armCellRadius.x = Mathf.CeilToInt(ArmSphere.radius * Map.CellSize2dInv.x);

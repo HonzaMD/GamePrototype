@@ -16,6 +16,8 @@ public abstract partial class ChLegsArms
 {
     private const float HoldReachCoef = 1.4f;   // dosah uchopeni predmetu v nasobcich ArmSphere.radius
 
+    private static readonly RaycastHit[] holdRayHits = new RaycastHit[16];
+
     // Bod (stred predmetu) je v dosahu uchopeni - motor meri k nejblizsimu bodu collideru, ten je vzdy bliz.
     public bool IsInHoldReach(Vector2 point)
     {
@@ -247,7 +249,7 @@ public abstract partial class ChLegsArms
 
             if ((center3d - pos).magnitude <= radius)
             {
-                if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
+                if (RaycastSkipOwnBody(center3d, pos - center3d, radius, out var hitInfo))
                 {
                     if (holdsAtHandle || (hitInfo.point - pos).sqrMagnitude < 0.001)
                     {
@@ -271,6 +273,24 @@ public abstract partial class ChLegsArms
             }
         }
         return HoldOneResult.NotACandidate;
+    }
+
+    // Nejblizsi zasah ruky krome vlastniho rigidbody - telo a Chyt na nem nesmi zaclanet predmetu.
+    private bool RaycastSkipOwnBody(Vector3 origin, Vector3 direction, float length, out RaycastHit hitInfo)
+    {
+        int count = Physics.RaycastNonAlloc(origin, direction, holdRayHits, length, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore);
+        hitInfo = default;
+        float nearest = float.PositiveInfinity;
+        for (int i = 0; i < count; i++)
+        {
+            ref readonly var hit = ref holdRayHits[i];
+            if (hit.distance < nearest && hit.rigidbody != body)
+            {
+                nearest = hit.distance;
+                hitInfo = hit;
+            }
+        }
+        return nearest < float.PositiveInfinity;
     }
 
     // Vola se az po uspesnem TryAttachLimbTo - vsechny side efekty uchopeni na jednom miste:

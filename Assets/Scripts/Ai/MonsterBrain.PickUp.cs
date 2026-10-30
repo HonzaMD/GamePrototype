@@ -77,7 +77,9 @@ namespace Assets.Scripts.Ai
                 // holdTarget motor nastavi jen pri prvnim uchopeni a sam ho nemeni - bez toho by
                 // prisera drzela vsechno na strane z prvniho hodu
                 holdTarget = HoldOffset(targetPointer.x);
-                if (inventory.ActivateObj(slot, placeable.LevelGroup, ArmSphere.transform.position + holdTarget.AddZ(0), map) == null)
+                // v rovine prisery - ArmSphere double-cell prisery je mezi rovinami, odkud by predmet neslo prendat
+                var spawnPos = (ArmSphere.transform.position.XY() + holdTarget).AddZ(PlaneZ(placeable.CellZ));
+                if (inventory.ActivateObj(slot, placeable.LevelGroup, spawnPos, map) == null)
                     return false;
             }
             desiredHold = true;
