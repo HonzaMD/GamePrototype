@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Assets.Scripts.Ai.Rules
 {
     // U predmetu ho sebere do inventare. Patri NAD SeekItemRule.
-    // Test schvalne neresi dosah ruky - jinak by prisera pod predmetem na rimse stala navzdy
-    // (Seek by ji drzel na miste). Vsechny pripady "dosel, ale nesebral" (rimsa, moc tezky
-    // predmet) skonci timeoutem a mistem v pameti nedosazitelnych mist.
+    // Test resi jen vzdalenost od ArmSphere, ne jestli ruka predmet opravdu chytne - jinak by prisera
+    // pod predmetem na rimse stala navzdy (Seek by ji drzel na miste). Vsechny pripady "dosel, ale
+    // nesebral" (rimsa, moc tezky predmet) skonci timeoutem a mistem v pameti nedosazitelnych mist.
     //
     // Scratch: ScratchPhase = pocet kusu v inventari pri startu (vic = sebrano), ScratchTimer = start.
     [Serializable]
@@ -20,8 +20,6 @@ namespace Assets.Scripts.Ai.Rules
         public float SenceTrackAge = 0.4f;
         [Tooltip("Saturace: s tolika kusy v inventáři už nesbírá.")]
         public int MaxCount = 3;
-        [Tooltip("Vzdálenost [m] od předmětu, od které zkouší sebrat.")]
-        public float Reach = 0.4f;
         [Tooltip("Čas [s] na sebrání, pak to vzdá a označí místo jako nedosažitelné.")]
         public float Timeout = 2f;
         [Tooltip("Jak dlouho [s] si pamatuje místo jako nedosažitelné.")]
@@ -37,7 +35,7 @@ namespace Assets.Scripts.Ai.Rules
         {
             ref readonly var s = ref brain.Sense(SenceId, SenceAge);
             return s.Found
-                && (s.Position - brain.Center).sqrMagnitude < Reach * Reach
+                && brain.IsInHoldReach(s.Position)
                 && !brain.IsSaturated(SenceId, MaxCount);
         }
 
@@ -64,7 +62,7 @@ namespace Assets.Scripts.Ai.Rules
             var target = s.Position;
             brain.ScratchPos = target;
 
-            if ((target - brain.Center).sqrMagnitude > Reach * Reach)
+            if (!brain.IsInHoldReach(target))
                 return ActionStatus.Done;
 
             if (Time.time - brain.ScratchTimer > Timeout)

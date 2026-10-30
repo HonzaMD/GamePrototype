@@ -812,9 +812,11 @@ ho při sebrání uložily obě ruce). Rozhodnutí:
   `GetTargetPointer`; příšera vrátí svůj ukazatel. `IsPickupAllowed` =
   `Ksid` ze smyslu, dotaz do mapy přes virtuální `PickupQueryKsid` (dnešní `Settings.HoldType` =
   `SmallMonsterHolds` nemá potomky). `Label` se najde až v kroku uchopení, dál ho drží `Connectable`.
-- **`PickUpItemRule`** (`SenceId`, `MaxCount`, `Reach`, `Timeout`, `GiveUpTime`, `SpeedScale`),
-  nad `SeekItemRule`, přerušitelné. `Test` = blíž než `Reach` (ne „v dosahu ruky" — jinak by pod
-  předmětem na římse stál navždy) a není nasycen; během sbírání pomalu `GoToward` k předmětu.
+- **`PickUpItemRule`** (`SenceId`, `MaxCount`, `Timeout`, `GiveUpTime`, `SpeedScale`),
+  nad `SeekItemRule`, přerušitelné. `Test` = předmět blíž než dosah uchopení od `ArmSphere`
+  (`IsInHoldReach`, 1,4 × poloměr, stejná konstanta jako v motoru; jen vzdálenost, ne jestli ruka
+  opravdu chytne — jinak by pod předmětem na římse stál navždy) a není nasycen; během sbírání pomalu
+  `GoToward` k předmětu.
   Timeout → `MarkUnreachable` (římsa, těžký předmět).
 - **Saturace:** `MaxCount` přímo na obou pravidlech; počet kusů v inventáři, jejichž `Ksid` je
   potomkem `Ksid` ze smyslu.
@@ -1117,8 +1119,8 @@ směr rotace — u `RotateHeading` členu to dává bloudění. `Chaos = 0` = p�
 - **`TrackApproach`:** k trpělivosti pravidla se přičítá `virtual ApproachSlack` stylu — létavec:
   nejdelší |Period| členů `TowardPattern` + `BounceHold` (smyčky a odrazy zdrží pokrok).
 - **Double-cell:** `ChLegsArms.TryCorrectZPos` u double-cell držitele předmět mezi rovinami nepřesouvá
-  (příšera žádnou rovinu nepreferuje). Dosahy (`Reach`) se měří ve 2D od středu — u velké příšery stačí
-  větší hodnota v konfiguraci. Lezec/skokan (`WantMove`, `DangerToAvoid`, `JumperStyle`) dál počítá
+  (příšera žádnou rovinu nepreferuje). Dosah sbírání se měří ve 2D od `ArmSphere`, takže roste s její
+  velikostí. Lezec/skokan (`WantMove`, `DangerToAvoid`, `JumperStyle`) dál počítá
   s pivotem dole a tělem o jedné buňce — pro velké lezce by se musel zobecnit.
 - **Ladění (F8):** azurová = heading, modrá = požadovaná rychlost.
 - Později: sakády (moucha — skokové otočky headingu brané jako odraz), `OnValidate` kontrola

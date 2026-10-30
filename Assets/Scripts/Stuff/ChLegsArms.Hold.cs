@@ -14,6 +14,14 @@ using UnityEngine.Serialization;
 // Drzeni a sbirani predmetu: vyber predmetu, uchopeni, inventar, kolize, sila drzeni.
 public abstract partial class ChLegsArms
 {
+    private const float HoldReachCoef = 1.4f;   // dosah uchopeni predmetu v nasobcich ArmSphere.radius
+
+    // Bod (stred predmetu) je v dosahu uchopeni - motor meri k nejblizsimu bodu collideru, ten je vzdy bliz.
+    public bool IsInHoldReach(Vector2 point)
+    {
+        float reach = ArmSphere.radius * HoldReachCoef;
+        return (point - ArmSphere.transform.position.XY()).sqrMagnitude < reach * reach;
+    }
 
     private void TryHoldOrPickUp()
     {
@@ -159,7 +167,7 @@ public abstract partial class ChLegsArms
         var center = ArmSphere.transform.position.XY();
         var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
-        map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, Settings.HoldType);
+        map.Get(placeables, center - radius2 * HoldReachCoef, 2 * HoldReachCoef * radius2, Settings.HoldType);
 
         if (pendingCollisionRestore != null)
         {
@@ -181,7 +189,7 @@ public abstract partial class ChLegsArms
         var center = ArmSphere.transform.position.XY();
         var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
         var radius2 = new Vector2(ArmSphere.radius, ArmSphere.radius) * 1.2f;
-        map.Get(placeables, center - radius2 * 1.4f, 2.8f * radius2, PickupQueryKsid);
+        map.Get(placeables, center - radius2 * HoldReachCoef, 2 * HoldReachCoef * radius2, PickupQueryKsid);
 
         foreach (var p in placeables)
         {
@@ -221,7 +229,7 @@ public abstract partial class ChLegsArms
             var zDiff = center3d.z - pos.z;
             var radius = p == pendingCollisionRestore
                 ? ArmSphere.radius * 1.5f
-                : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius * 1.4f * 1.4f);
+                : Mathf.Sqrt(zDiff * zDiff + ArmSphere.radius * ArmSphere.radius * HoldReachCoef * HoldReachCoef);
             if (holdsAtHandle)
                 radius *= 1.2f * 1.2f;
 
