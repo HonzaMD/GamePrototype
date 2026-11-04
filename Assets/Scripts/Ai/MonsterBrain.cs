@@ -25,8 +25,6 @@ namespace Assets.Scripts.Ai
 
         public bool PendingRemove { get; set; }
 
-        public Status Status { get; private set; }
-
         public Vector2 Center => placeable.Center;
 
         // Styl prave provadi skok - dotahne ho bez ohledu na rozkaz. Pravidla, ktera potrebuji zem, cekaji.
@@ -86,7 +84,6 @@ namespace Assets.Scripts.Ai
         protected void AwakeM()
         {
             AwakeB();
-            Status = GetComponent<Status>();
             AwakeSenses();
         }
 

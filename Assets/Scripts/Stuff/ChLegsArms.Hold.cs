@@ -156,7 +156,10 @@ public abstract partial class ChLegsArms
         }
         else if (desiredPickUp || pickupToHold)
         {
-            TryHoldNearItem(index, tryHold || pickupToHold);
+            if (Status.CanDo(EnergyAction.PickUp))
+                TryHoldNearItem(index, tryHold || pickupToHold);
+            else
+                ReportNotEnoughEnergy();
         }
         else if (tryHold)
         {
@@ -198,7 +201,10 @@ public abstract partial class ChLegsArms
             if (IsHeldByOtherArm(p, index))
                 continue;
             if (TryHoldOne(p, index, center3d, tryPickUp: true, tryHold) == HoldOneResult.Attached)
+            {
+                Status.Pay(EnergyAction.PickUp);
                 break;
+            }
         }
 
         placeables.Clear();

@@ -27,7 +27,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     private float resetHoldTimeout;
 
     private Inventory inventory;
-    public Status Status { get; private set; }
 
     private InputController inputController;
     private ControlState cState;
@@ -54,7 +53,6 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
     void Awake()
     {
         AwakeB();
-        Status = GetComponent<Status>();
     }
 
     public override void AfterMapPlaced(Map map, Placeable placeableSibling, bool goesFromInventory)
@@ -71,7 +69,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         var name = CharacterNames.GiveMeName();
         inventory.SetupIdentity(name, InventoryType.Character, placeable.Settings.Icon);
         Status.SetupIdentity(name);
-        inventory.StoreProto(Game.Instance.PrefabsStore.Gravel, 5);
+        inventory.StoreProto(Game.Instance.PrefabsStore.Gravel, 50);
         inventory.SetQuickSlot(-9, Game.Instance.PrefabsStore.Gravel);
         inventory.StoreProto(Game.Instance.PrefabsStore.StickyBomb, 30);
         inventory.SetQuickSlot(-8, Game.Instance.PrefabsStore.StickyBomb);
@@ -288,15 +286,15 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
         if (ArmCatched)          
         {
-            desiredVelocity = input.MoveAxes * Settings.maxSpeed * speedMode;
+            desiredVelocity = input.MoveAxes * MaxSpeed * speedMode;
         }
         else if (MoveMode == MovementMode.Free)
         {
-            desiredVelocity = input.MoveAxes * Settings.maxSpeedFloat * speedMode;
+            desiredVelocity = input.MoveAxes * MaxSpeedFloat * speedMode;
         }
         else
         {
-            desiredVelocity.x = input.MoveAxes.x * Settings.maxSpeed * speedMode;
+            desiredVelocity.x = input.MoveAxes.x * MaxSpeed * speedMode;
             desiredVelocity.y = 0;
         }
 
@@ -439,6 +437,15 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     protected override Vector3 GetTargetPointer(float z) => inputController.GetMousePosOnZPlane(z);
     protected override bool HasMouseControler => inputController != null;
+
+    public override void ReportNotEnoughEnergy() => Announce(Announcements.NotEnoughEnergy, AnnounceStyle.Warning);
+
+    // Hlasi jen aktivni hrac (s navazanym InputControllerem).
+    public void Announce(string text, AnnounceStyle style)
+    {
+        if (inputController != null)
+            Game.Instance.Hud.Announcer.Announce(text, style);
+    }
 
     protected override bool IsPickupAllowed(Label p) => p.KsidGet.IsChildOf(Ksid.InventoryItem);
 

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e31955be25d3bba419b078a7e61c7ad1, type: 3}
+  m_Name: Character Energy Settings
+  m_EditorClassIdentifier: 
+  HealRate: 0.5
+  SleepRate: 0.33333334
+  GoodSleepRate: 0.6666667
+  MetabolicSpeed: 2
+  DieByLowEnergy: 0
+  PayByHealth: 0
+  IdleCost: 0.3472222
+  MoveDiscountEnergy: 40
+  Jump:
+    Cost: 3
+    MinEnergy: 10
+  Catch:
+    Cost: 1
+    MinEnergy: 8
+  PickUp:
+    Cost: 0.5
+    MinEnergy: 0
+  Throw:
+    Cost: 3
+    MinEnergy: 5
+  KnifeStab:
+    Cost: 5
+    MinEnergy: 10
+  DirtBuild:
+    Cost: 10
+    MinEnergy: 15

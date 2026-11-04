@@ -1,3 +1,4 @@
+using Assets.Scripts.Bases;
 using System;
 using UnityEngine;
 
@@ -28,7 +29,8 @@ namespace Assets.Scripts.Ai.Rules
         public bool CanBeInterrupted => true;
 
         public bool Test(MonsterBrain brain)
-            => brain.Sense(SenceId, SenceAge).Found && !brain.IsSaturated(SenceId, MaxCount);
+            => brain.Sense(SenceId, SenceAge).Found && !brain.IsSaturated(SenceId, MaxCount)
+                && brain.Status.CanDo(EnergyAction.PickUp);     // jinak by u predmetu stala, dokud nedojde trpelivost
 
         public void Begin(MonsterBrain brain)
         {

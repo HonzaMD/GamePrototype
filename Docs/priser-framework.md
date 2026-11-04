@@ -25,8 +25,8 @@ existuje jednodušší varianta?). Všechny sekce zrevidovány; zbývají jen
 | Mozek (Rule/Modifier, blackboard, eval) | ✅ zrevidováno |
 | Smysly / Perception | ✅ zrevidováno (vč. konfigurace: `SenseConfig` + `SenseProfile` + per-field override) |
 | Directive | ✅ zrevidováno |
-| Sleep / Wake | ✅ zrevidováno (jeden stav, vstup `EnterSleep(duration)`, branka `Status.CanWake`, časovač přes `ActiveTag`) |
-| Status / drives | ✅ zrevidováno (`SleepNeed` poskytuje `Status`; pro v1 stačí) |
+| Sleep / Wake | ✅ zrevidováno (jeden stav, vstup `EnterSleep(duration)`, branka `Status.CanWakeUp`, časovač přes `ActiveTag`) |
+| Status / drives | ✅ zrevidováno (energie, jídlo, spánek, `EnergySettings`; `Metabolize` zatím bez volajícího) |
 | Konfigurační body, mapování příkladů | ✅ zrevidováno |
 
 ## Filosofie
@@ -586,6 +586,9 @@ zůstává):
 
 > Revidováno. Spánek je **chování i perf nástroj** zároveň. Funkcionalitu mají **všechny příšery**,
 > liší se jen parametry (v `AiSettings`).
+>
+> Pozor: `SleepNeed` a `CanWake(need)` v této sekci jsou původní návrh. Skutečné API `Status` je
+> v sekci [Status / drives](#status--drives), mechanismus spánku platí dál.
 
 Cíl: tisíce příšer existuje, ~100 je probuzených. **Spící přísera je inertní z hlediska AI** — není
 na žádném per-frame ani cyklickém listu. **RB neuspáváme my** — příšera zůstává v Unity fyzice
@@ -699,21 +702,18 @@ wakefulness se šíří jen z aktivních agentů.
 
 ## Status / drives
 
-> Revidováno. **`Status` poskytuje velikost potřeby spánku** (`SleepNeed`) — je vstupem pro
-> `SleepRule` i pro kolaps. (HP a `ReduceHealth` zůstávají.)
+> Revidováno. `Status` drží `Energy`, `Food`, `Waste` a `SleepEnergy`; `SleepNeed` z návrhu spánku
+> výše nahradila `SleepEnergy` s opačnou škálou (0 = vyčerpaná, 100+ = odpočatá). `Status.CanWakeUp`
+> nahrazuje `CanWake(need)`, `NeedSleep`/`NeedSleepCriticly` prahy pro `SleepRule` a kolaps.
+> (HP a `ReduceHealth` zůstávají.)
 
-Rozšířit `Status` o normalizovaný `SleepNeed` (0..1) a **branku probuzení**:
-- **`TickSleepNeed(dt)`** — volá `MonsterBrain` každý frame, dokud je probuzená (roste,
-  rychleji při aktivitě). Ve spánku se nepočítá průběžně, ale **lazy** z timestampu
-  (`SleepController.CurrentNeed()`, klesá `RecoverRate`).
-- **`CanWake(need)`** = `need <= WakeableLevel` — jediné kritérium probuzení. Z něj vypadne
-  „kolaps nelze probudit" (začíná nad hladinou) i „dobrovolný spánek lze hned" (začíná pod ní).
-- **`RecoverDuration()`** = `(SleepNeed − WakeableLevel) / RecoverRate` — délka spánku při kolapsu.
-- Prahy v `AiSettings` (per druh, jinak stejný kód): `CollapseThreshold` (~1.0),
-  `WakeableLevel` (~0.7), `RecoverRate`, růstová rychlost; per `SleepRule` instanci
-  `NeedThreshold`/`When`/`Duration`.
-
-Pro v1 reálně stačí **`SleepNeed`**; `Energy`/`Hunger` odložit, dokud nebudou pravidla, která je čtou.
+- **`Metabolize(state, dt)`** — převádí `Food` a `SleepEnergy` na `Energy` a vyrábí `Waste`. Zatím
+  ho nikdo nevolá; kdo a jak často, je otevřené. Bez jídla se jen zastaví růst energie.
+- **`EnergySettings`** — rychlosti metabolismu a cena každé akce (`Cost`, `MinEnergy`), odkaz
+  z `PlaceableSettings`. Prahy jsou zatím konstanty ve `Status`.
+- **Akce:** `Status.CanDo(action)` jen testuje, `Pay` odečte, `TryDo` obojí. Pravidlo volá `CanDo`
+  v `Test`, jinak by příšera šla k cíli, na který pak nemá. Motor odmítnutý skok zahodí.
+- Akce, které závisí na energii plynule (rychlost, výška skoku), čtou přímo `Status.Energy`.
 
 ---
 

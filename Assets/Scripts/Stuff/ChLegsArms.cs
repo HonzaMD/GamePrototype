@@ -54,6 +54,8 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
 
     public ChSettings Settings;
 
+    public Status Status { get; private set; }
+
     // Poradi je nosne: 0,1 = nohy, 2,3 = ruce.
     [FormerlySerializedAs("Legs")]
     public Transform[] Limbs;
@@ -64,6 +66,14 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected bool LegOnGround => limbStatus[0] == Catch || limbStatus[1] == Catch;
     protected bool ArmCatched => limbStatus[2] == Catch || limbStatus[3] == Catch;
     protected bool ArmHolds => limbStatus[2] == Hold || limbStatus[3] == Hold;
+
+    // Pohybove limity snizene unavou (Status.MoveFactor). Pohyb cte tyto, ne Settings primo.
+    // Zrychleni se nesnizuje - s nizsim zrychlenim motor neubrzdi setrvacnost (prisera ujizdi).
+    // Sily Holdu a hazeni se zatim nesnizuji.
+    protected float MaxSpeed => Settings.maxSpeed * Status.MoveFactor;
+    protected float MaxSpeedFloat => Settings.maxSpeedFloat * Status.MoveFactor;
+    protected float MaxSpeedAir => Settings.MaxSpeedAir * Status.MoveFactor;
+    protected float JumpHeight => Settings.jumpHeight * Status.MoveFactor;
     private Vector3 legUpDir = Vector3.up;
     private MovementMode movementMode;
 
@@ -77,7 +87,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected Vector2 desiredVelocity;
     protected int lastXOrientation = 1;
     protected bool desiredJump;
-    protected float desiredJumpHeight;   // [m] vyska odrazu, 0 = Settings.jumpHeight (strop); po odrazu se nuluje
+    protected float desiredJumpHeight;   // [m] vyska odrazu, 0 = JumpHeight (strop); po odrazu se nuluje
     protected float desiredZMove;
     protected bool desiredCatch;
     protected bool desiredHold;
@@ -108,6 +118,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     {
         body = GetComponent<Rigidbody>();
         placeable = GetComponent<Placeable>();
+        Status = GetComponent<Status>();
         Settings.Initialize(ArmSphere, Limbs);
         InitConnectables();
         movementMode = Settings.DefaultMovementMode;
@@ -151,6 +162,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         DetachUnwantedLimbs(allowHoldDrop);
         TryCatchWithFreeLeg();
         TryCatchWithFreeArm();
+        PayForArmCatch();                      // az po chytani - plati se za stav po tomto kroku
         TryHoldOrPickUp();
         DetachCatchDuplicatingHold();
     }
@@ -172,6 +184,8 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
         ApplyHoldForces();
         ApplyLimbsContactDamage();
         ApplyThrow();
+
+        Status.Metabolize(MetabolicState.None, Time.fixedDeltaTime);
     }
 
     protected virtual void InventoryPickup(Label label) { }
@@ -181,6 +195,8 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     protected virtual Ksid PickupQueryKsid => Settings.HoldType;
     protected virtual bool IsPickupAllowed(Label p) => false;
     protected virtual bool HasMouseControler => false;
+    // Akce odmitnuta kvuli energii. Hlasi jen hrac s navazanym InputControllerem.
+    public virtual void ReportNotEnoughEnergy() { }
 
     public virtual Label InventoryGet() => null;
     public virtual bool IsInventoryActive => false;

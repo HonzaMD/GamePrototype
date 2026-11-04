@@ -135,7 +135,7 @@ namespace Assets.Scripts.Ai
                 return edge ? CrawlStatus.Edge : CrawlStatus.Wall;
             }
 
-            desiredVelocity.x = Settings.maxSpeed * speedScale * direction;
+            desiredVelocity.x = MaxSpeed * speedScale * direction;
             return moving ? CrawlStatus.Moving : CrawlStatus.Starting;
         }
 

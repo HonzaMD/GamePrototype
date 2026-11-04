@@ -109,6 +109,8 @@ namespace Assets.Scripts.Bases
         public float MaxHealth;
         [Tooltip("Rezistence a armor pro jednotlivé typy poškození")]
         public DamageResistance[] DamageResistances;
+        [Tooltip("Metabolismus a ceny akci druhu. Null = objekt nema system energie, akce jsou zdarma")]
+        public EnergySettings EnergySettings;
 
         [Header("VFX")]
         [Tooltip("Pro animaci akci, jako je pouziti objektu")]

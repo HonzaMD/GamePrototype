@@ -1,4 +1,5 @@
 using Assets.Scripts.Ai.Jump;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using UnityEngine;
 
@@ -115,8 +116,11 @@ namespace Assets.Scripts.Ai
                 Offer(ref choice, h, forward, false, direction);
             if (CanStand(cell - forward, cellz, danger))
                 Offer(ref choice, h, -forward, false, -direction);
-            OfferJumps(ref choice, h, detector, cell, cellz, danger, -1);
-            OfferJumps(ref choice, h, detector, cell, cellz, danger, 1);
+            if (Status.CanDo(EnergyAction.Jump))
+            {
+                OfferJumps(ref choice, h, detector, cell, cellz, danger, -1);
+                OfferJumps(ref choice, h, detector, cell, cellz, danger, 1);
+            }
             if (!choice.Found)
                 choice = new Choice { Found = true, Dir = -direction, Move = -forward };    // otocka bez testu
 

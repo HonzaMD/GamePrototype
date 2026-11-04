@@ -107,14 +107,16 @@ namespace Assets.Scripts.Ai
         }
 
         // Hodi drzeny predmet podle planu. Rychlost planu je absolutni, motor chce relativni k telu.
-        public void Throw(in ThrowPlan plan)
+        // False = nic nedrzi, nebo na hod nema energii.
+        public bool Throw(in ThrowPlan plan)
         {
             var item = GetHoldObject();
-            if (item == null)
-                return;
+            if (item == null || !Status.TryDo(EnergyAction.Throw))
+                return false;
             MoveHeldItemZ(plan.CellZ);
             item.TryActivateByThrow();
             ThrowHeld(item, plan.Velocity - body.linearVelocity.XY());
+            return true;
         }
 
         private bool CanMoveThrowItem(Label item, Vector2 start, float radius, int z)

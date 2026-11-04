@@ -79,6 +79,7 @@
     <Compile Include="Assets\Scripts\Stuff\RopeSegment.cs" />
     <Compile Include="Assets\Scripts\Ai\AiSettings.cs" />
     <Compile Include="Assets\Scripts\Map\MapWorlds.cs" />
+    <Compile Include="Assets\Scripts\Bases\EnergySettings.cs" />
     <Compile Include="Assets\Scripts\Bases\Placeable.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\TypePickerDrawer.cs" />
     <Compile Include="Assets\Scripts\Ai\Jump\JumpAutomaton.cs" />
@@ -144,7 +145,9 @@
     <Compile Include="Assets\Scripts\Map\Visibility\MeshBuilder.cs" />
     <Compile Include="Assets\Scripts\Stuff\DeepGlue.cs" />
     <Compile Include="Assets\Scripts\Map\LevelPairing.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\EnergyCostDrawer.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimJobs.cs" />
+    <Compile Include="Assets\Scripts\Core\Inventory\Announcer.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\Cell.cs" />
     <Compile Include="Assets\Scripts\Utils\SpConnectionFinder.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />

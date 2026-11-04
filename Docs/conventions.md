@@ -417,6 +417,37 @@ Extension metody `Create<T>` a `CreateCL<T>` jsou na `Label`. Nikde jinde se `In
 
 ---
 
+## 12. Energie a ceny akcí
+
+`EnergySettings` je `ScriptableObject` s metabolismem a cenou každé akce. Druh na něj odkazuje z `PlaceableSettings.EnergySettings`; `null` znamená, že objekt systém energie nemá a akce jsou zdarma (projektily se `Status`).
+
+```csharp
+if (status.TryDo(EnergyAction.Jump)) { … }        // test + platba naráz
+
+if (status.CanDo(EnergyAction.Build) && …)        // platit až po úspěchu, když akce může selhat jinde
+    status.Pay(EnergyAction.Build);
+
+if (!status.TryDo(EnergyAction.Catch, Time.fixedDeltaTime))   // průběžná akce: Cost je cena za sekundu
+    … // akci ukonči
+```
+
+Průběžná akce se ověřuje a platí každý fixed krok. `MinEnergy` je i hladina, pod kterou se ukončí. Zahájení gateuj `CanDo`, jinak by akce začínala a hned končila dokola. Příklad: `Catch` se platí jen při visení na rukou bez opory nohou; za letu (`MovementMode.Free`) je zdarma (`ChLegsArms.PayForArmCatch`).
+
+Únava: pod `EnergySettings.MoveDiscountEnergy` klesají max rychlosti a výška skoku lineárně až k 0 (`Status.MoveFactor`). Pohyb proto čte `ChLegsArms.MaxSpeed`, `MaxSpeedFloat`, `MaxSpeedAir` a `JumpHeight`, ne `Settings` přímo. Zrychlení se nesnižuje: s nižším zrychlením motor neubrzdí setrvačnost. Síly Holdu a hodu se zatím nesnižují.
+
+Odmítnutí kvůli energii hlas přes `ChLegsArms.ReportNotEnoughEnergy()`. Ozve se jen aktivní hráč.
+
+### Nová akce
+Hodnota v enumu `EnergyAction` a **stejnojmenný** field `EnergyCost` v `EnergySettings`, případně s výchozí cenou. Starým assetům se doplní výchozí hodnota z inicializátoru. Shodu kontroluje `EnergySettingsTests`. Pořadí v enumu nic nenese, přejmenování fieldu jde přes `FormerlySerializedAs`.
+
+### Pravidla
+- Čti jen přes `Status.EnergySettings` a nekešuj si ho. Později tam může být custom kopie jedné instance (hráč, NPC, vývoj postavy); dočasné buffy touto cestou nepůjdou.
+- Sdílený asset je za běhu jen ke čtení. V Editoru by se zápis propsal do souboru.
+- Platí se za provedenou akci, ne za pokus. Gate je tam, kde už je jasné, že se akce stane.
+- AI pravidla testují `CanDo` už v `Test`, aby příšera nešla k cíli, na který nemá.
+
+---
+
 ## Přehledová tabulka
 
 | Systém | Klíčové třídy | Složka |
@@ -433,3 +464,4 @@ Extension metody `Create<T>` a `CreateCL<T>` jsou na `Label`. Nikde jinde se `In
 | Propojení | `Connectable`, `ConnectableLabel` | `Bases/` |
 | Triggery | `Trigger` | `Bases/` |
 | Továrna | `PrefabsStore` | `Map/` |
+| Energie akcí | `EnergySettings`, `Status` | `Bases/` |

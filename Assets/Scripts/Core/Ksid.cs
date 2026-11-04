@@ -70,6 +70,7 @@ namespace Assets.Scripts.Core
         WallFollower,
         BalloonMonster,
         ButterFlyMonster,
+        DamagedByFatigue,
     }
 
     public static class KsidX

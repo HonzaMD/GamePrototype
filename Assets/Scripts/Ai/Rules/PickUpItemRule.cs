@@ -1,3 +1,4 @@
+using Assets.Scripts.Bases;
 using System;
 using UnityEngine;
 
@@ -36,7 +37,8 @@ namespace Assets.Scripts.Ai.Rules
             ref readonly var s = ref brain.Sense(SenceId, SenceAge);
             return s.Found
                 && brain.IsInHoldReach(s.Position)
-                && !brain.IsSaturated(SenceId, MaxCount);
+                && !brain.IsSaturated(SenceId, MaxCount)
+                && brain.Status.CanDo(EnergyAction.PickUp);
         }
 
         public void Begin(MonsterBrain brain)

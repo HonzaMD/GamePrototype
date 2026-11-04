@@ -1,8 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UI%20Toolkit/MainStyles.uss?fileID=7433441132597879392&amp;guid=275e50c977dd1ae4b97ce3572656973f&amp;type=3#MainStyles" />
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between; border-left-color: rgb(255, 255, 255); border-right-color: rgb(255, 255, 255); border-top-color: rgb(255, 255, 255); border-bottom-color: rgb(255, 255, 255);">
-        <ui:VisualElement name="Top">
-            <ui:VisualElement name="StatusRow" style="flex-direction: row; padding-top: 4px; padding-left: 4px;" />
+        <ui:VisualElement name="Top" style="flex-direction: column-reverse;">
             <ui:VisualElement style="flex-direction: row;">
                 <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 50px; margin-right: 10px; margin-left: 10px; display: none; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
                     <ui:VisualElement style="flex-direction: row;">
@@ -56,6 +55,10 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:VisualElement name="StatusRow" style="flex-direction: row-reverse; justify-content: flex-end; padding-top: 4px; padding-left: 4px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="AnnouncerArea" picking-mode="Ignore" style="flex-grow: 1; justify-content: center; align-items: center;">
+            <ui:Label name="AnnouncerLabel" picking-mode="Ignore" class="Announcer" />
         </ui:VisualElement>
         <ui:VisualElement name="Bottom" style="flex-direction: row; align-items: flex-end;">
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center; padding-top: 2px; padding-right: 2px; padding-bottom: 2px; padding-left: 2px;">

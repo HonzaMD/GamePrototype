@@ -1,4 +1,5 @@
 using Assets.Scripts.Ai.Jump;
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using UnityEngine;
@@ -66,7 +67,7 @@ namespace Assets.Scripts.Ai
             }
 
             var crawl = ApplyCrawl(in d);
-            if (d.Kind == DirectiveKind.GoToward && LegOnGround && !ArmCatched)
+            if (d.Kind == DirectiveKind.GoToward && LegOnGround && !ArmCatched && Status.CanDo(EnergyAction.Jump))
                 TryJumpToward(d.Target, crawl);
         }
 
@@ -209,7 +210,7 @@ namespace Assets.Scripts.Ai
             float dx = landing.x - pivot.x;
             float dy = landing.y - pivot.y;
             float g = -Physics.gravity.y;
-            float vAir = Settings.MaxSpeedAir;
+            float vAir = MaxSpeedAir;
             float accel = Settings.maxAcceleration / Time.fixedDeltaTime;
 
             // Cas letu, za ktery x dojede k cili plnou rychlosti (vcetne rozjezdu z nuly). Za nej musi
@@ -219,7 +220,7 @@ namespace Assets.Scripts.Ai
             if (dy > 0)
                 vy = Mathf.Max(vy, Mathf.Sqrt(2 * g * dy));
             float height = vy > 0 ? vy * vy / (2 * g) : 0;
-            height = Mathf.Min(height + JumpExtra, Settings.jumpHeight);
+            height = Mathf.Min(height + JumpExtra, JumpHeight);
 
             float vy0 = Mathf.Sqrt(2 * g * height);
             float disc = vy0 * vy0 - 2 * g * dy;
@@ -236,9 +237,9 @@ namespace Assets.Scripts.Ai
             jumpTimer -= Time.fixedDeltaTime;
             bool onGround = LegOnGround;
             bool beforeTakeoff = jumpPhase == JumpPhase.Prepare || (jumpPhase == JumpPhase.Takeoff && desiredJump);
-            if (beforeTakeoff && map.WorldToCell(placeable.Pivot) != startBodyCell)
+            if (beforeTakeoff && (map.WorldToCell(placeable.Pivot) != startBodyCell || !Status.CanDo(EnergyAction.Jump)))
             {
-                EndJump();                      // pred odrazem opustila bunku odrazu (odsunuta, sjela z hrany) - skok uz neplati
+                EndJump();                      // pred odrazem opustila bunku odrazu (odsunuta, sjela z hrany) nebo nema energii - skok uz neplati
                 return;
             }
 
@@ -268,7 +269,7 @@ namespace Assets.Scripts.Ai
             // Plnou rychlosti, pak brzdna krivka s polovicnim zrychlenim motoru - zastavi nad goalX.
             float err = goalX - pivot.x;
             float accel = Settings.maxAcceleration / Time.fixedDeltaTime;
-            float maxSpeed = jumpPhase == JumpPhase.Prepare ? Settings.maxSpeed : Settings.MaxSpeedAir;
+            float maxSpeed = jumpPhase == JumpPhase.Prepare ? MaxSpeed : MaxSpeedAir;
             float speed = Mathf.Min(maxSpeed, Mathf.Sqrt(accel * Mathf.Abs(err)));
             desiredVelocity.x = err < 0 ? -speed : speed;
         }

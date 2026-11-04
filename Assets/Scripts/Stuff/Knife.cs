@@ -35,6 +35,11 @@ namespace Assets.Scripts.Stuff
 
         public void Activate(Character3 character)
         {
+            if (!character.Status.TryDo(EnergyAction.KnifeStab))
+            {
+                character.ReportNotEnoughEnergy();
+                return;
+            }
             var settings = GetComponent<PlaceableSibling>().Settings;
             character.ActivateHoldAnimation(settings.ActivityAnimation, 0.55f, 2f);
             SetActive(0.55f);

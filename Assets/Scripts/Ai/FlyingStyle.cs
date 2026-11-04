@@ -61,7 +61,7 @@ namespace Assets.Scripts.Ai
             }
 
             var s = AiSettings;
-            float speed = Settings.maxSpeedFloat * d.SpeedScale;
+            float speed = MaxSpeedFloat * d.SpeedScale;
             bool canBounce = true;
             switch (d.Kind)
             {

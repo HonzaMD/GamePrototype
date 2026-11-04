@@ -35,8 +35,31 @@ public abstract partial class ChLegsArms
     private void TryCatchWithFreeArm()
     {
         if (desiredCatch && TrySelectFreeArm(out var index))
-        {
             TryCatchArm(index);
+    }
+
+    // Zdarma s oporou nohou nebo za letu (telo se nevesi).
+    private bool ArmCatchIsFree => LegOnGround || movementMode == MovementMode.Free;
+
+    // Vola se az u nalezeneho chytu - bez opory v dosahu se nic nehlasi.
+    // Bez opory nohou by viseni hned stalo energii - bez ni se ruka ani nechyti (jinak by chytala a poustela dokola).
+    private bool RefuseArmCatch()
+    {
+        if (ArmCatchIsFree || Status.CanDo(EnergyAction.Catch))
+            return false;
+        ReportNotEnoughEnergy();
+        return true;
+    }
+
+    // Viseni na rukou bez opory nohou stoji energii za kazdy fixed krok. Kdyz nejde zaplatit, ruce se pusti.
+    private void PayForArmCatch()
+    {
+        if (!ArmCatched || ArmCatchIsFree)
+            return;
+        if (!Status.TryDo(EnergyAction.Catch, Time.fixedDeltaTime))
+        {
+            DetachAllCaughtArms();
+            ReportNotEnoughEnergy();
         }
     }
 
@@ -176,6 +199,14 @@ public abstract partial class ChLegsArms
             DetachLimb(1);
     }
 
+    private void DetachAllCaughtArms()
+    {
+        if (limbStatus[2] == Catch)
+            DetachLimb(2);
+        if (limbStatus[3] == Catch)
+            DetachLimb(3);
+    }
+
     private void DetachAllCaughtLimbs()
     {
         for (int f = 0; f < Limbs.Length; f++)
@@ -266,14 +297,20 @@ public abstract partial class ChLegsArms
 
     bool TryAttachLimbTo(int index, ref RaycastHit hitInfo, Label reqLabel = null)
     {
-        if (Label.TryFind(hitInfo.collider.transform, out var label) && (reqLabel == null || label == reqLabel))
-        {
-            DisconnectTargetsOwnJoints(label);
-            limbTargets[index] = label;
-            limbConnectors[index].ConnectTo(label, ConnectableType.LegArm, true);
-            return true;
-        }
-        return false;
+        if (!FindLimbTarget(ref hitInfo, reqLabel, out var label))
+            return false;
+        AttachLimbTo(index, label);
+        return true;
+    }
+
+    private static bool FindLimbTarget(ref RaycastHit hitInfo, Label reqLabel, out Label label)
+        => Label.TryFind(hitInfo.collider.transform, out label) && (reqLabel == null || label == reqLabel);
+
+    private void AttachLimbTo(int index, Label label)
+    {
+        DisconnectTargetsOwnJoints(label);
+        limbTargets[index] = label;
+        limbConnectors[index].ConnectTo(label, ConnectableType.LegArm, true);
     }
 
     private void DisconnectTargetsOwnJoints(Label label)
@@ -339,6 +376,7 @@ public abstract partial class ChLegsArms
     }
 
     // Faze 1: chytit se uz existujiciho Placeable typu Catch v dosahu ruky.
+    // True = chyt nalezen (pripojen, nebo odmitnut pro energii) - dal se nehleda.
     private bool TryCatchNearbyObject(int index, bool otherPlaced, Vector2 center)
     {
         var center3d = ArmSphere.transform.position + new Vector3(0, 0, Settings.limbZ[index]);
@@ -353,10 +391,14 @@ public abstract partial class ChLegsArms
             {
                 if (Physics.Raycast(center3d, pos - center3d, out var hitInfo, ArmSphere.radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
                 {
-                    if ((hitInfo.point - pos).sqrMagnitude < 0.001 && TryAttachLimbTo(index, ref hitInfo, p))
+                    if ((hitInfo.point - pos).sqrMagnitude < 0.001 && FindLimbTarget(ref hitInfo, p, out var label))
                     {
-                        PlaceLimbAtHitZ(index, ref hitInfo, null, Catch);
-                        ApplyLimbImpactDamage(index);
+                        if (!RefuseArmCatch())
+                        {
+                            AttachLimbTo(index, label);
+                            PlaceLimbAtHitZ(index, ref hitInfo, null, Catch);
+                            ApplyLimbImpactDamage(index);
+                        }
                         placeables.Clear();
                         return true;
                     }
@@ -415,14 +457,19 @@ public abstract partial class ChLegsArms
         armCandidates.Clear();
     }
 
+    // True = chyt nalezen (pripojen, nebo odmitnut pro energii) - dal se nehleda.
     private bool TryCatchArmAt(int index, Vector3 candidate, float radius)
     {
         if (Physics.Raycast(ArmSphere.transform.position, candidate - ArmSphere.transform.position, out var hitInfo, radius, Settings.armCatchLayerMask, QueryTriggerInteraction.Ignore))
         {
-            if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && TryAttachLimbTo(index, ref hitInfo))
+            if ((hitInfo.point - candidate).sqrMagnitude < 0.001 && FindLimbTarget(ref hitInfo, null, out var label))
             {
-                PlaceLimbAtOwnZ(index, ref hitInfo);
-                ApplyLimbImpactDamage(index);
+                if (!RefuseArmCatch())
+                {
+                    AttachLimbTo(index, label);
+                    PlaceLimbAtOwnZ(index, ref hitInfo);
+                    ApplyLimbImpactDamage(index);
+                }
                 return true;
             }
         }

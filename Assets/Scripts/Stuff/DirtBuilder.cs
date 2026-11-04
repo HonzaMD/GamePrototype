@@ -1,5 +1,6 @@
 using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
+using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utils;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace Assets.Scripts.Stuff
         int ISimpleTimerConsumer.ActiveTag { get => activeTag; set => activeTag = value; }
         private bool OnCooldown => (activeTag & 1) != 0;
 
-        private enum AimState { None, Free, Blocked }
+        private enum AimState { None, OutOfReach, NoMaterial, Free, Blocked }   // None = cooldown
 
         private void Awake()
         {
@@ -52,11 +53,34 @@ namespace Assets.Scripts.Stuff
             var toKill = ListPool<Placeable>.Rent();
             // Defenzivne: test se dela znovu pri aktivaci, nespolehame na posledni vysledek z UpdateAim.
             var state = Evaluate(character, toKill, out var map, out var cell);
-            if (state == AimState.Free && character.Inventory.TryConsume(Game.Instance.PrefabsStore.Gravel, GravelCost))
+            switch (state)
             {
-                DirtFactory.BuildDirt(map, cell, placeable.LevelGroup, toKill);
-                //character.ActivateHoldAnimation(placeable.Settings.ActivityAnimation, 0.55f, 2f);
-                StartCooldown();
+                case AimState.Free:
+                    if (!character.Status.CanDo(EnergyAction.DirtBuild))
+                    {
+                        character.ReportNotEnoughEnergy();
+                    }
+                    else if (character.Inventory.TryConsume(Game.Instance.PrefabsStore.Gravel, GravelCost))
+                    {
+                        character.Status.Pay(EnergyAction.DirtBuild);
+                        DirtFactory.BuildDirt(map, cell, placeable.LevelGroup, toKill);
+                        //character.ActivateHoldAnimation(placeable.Settings.ActivityAnimation, 0.55f, 2f);
+                        StartCooldown();
+                    }
+                    else
+                    {
+                        character.Announce(Announcements.NotEnoughMaterial, AnnounceStyle.Warning);
+                    }
+                    break;
+                case AimState.Blocked:
+                    character.Announce(Announcements.BuildBlocked, AnnounceStyle.Warning);
+                    break;
+                case AimState.OutOfReach:
+                    character.Announce(Announcements.OutOfReach, AnnounceStyle.Warning);
+                    break;
+                case AimState.NoMaterial:
+                    character.Announce(Announcements.NotEnoughMaterial, AnnounceStyle.Warning);
+                    break;
             }
             toKill.Return();
         }
@@ -74,10 +98,10 @@ namespace Assets.Scripts.Stuff
 
             Vector2 handle = placeable.GetHoldHandle().position.XY();
             if ((mouse.XY() - handle).sqrMagnitude > Reach * Reach)
-                return AimState.None;
+                return AimState.OutOfReach;
 
             if (character.Inventory.CountConsumable(Game.Instance.PrefabsStore.Gravel) < GravelCost)
-                return AimState.None;
+                return AimState.NoMaterial;
 
             return DirtFactory.CollectCellForDirt(map, cell, toKill) ? AimState.Free : AimState.Blocked;
         }

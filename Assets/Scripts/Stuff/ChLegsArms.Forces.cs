@@ -91,11 +91,20 @@ public abstract partial class ChLegsArms
     // Vraci true, pokud se v tomto kroku odrazil skok - pak se neaplikuje drag.
     private bool ApplyJumpOrLegSupport()
     {
+        // Odmitnuty skok se zahodi - s visicim desiredJump by nohy nedrzely telo.
+        if (desiredJump && LegOnGround && !Status.TryDo(EnergyAction.Jump))
+        {
+            ReportNotEnoughEnergy();
+            desiredJump = false;
+            desiredJumpHeight = 0;
+        }
+
         if (desiredJump)
         {
             if (LegOnGround)
             {
-                float height = desiredJumpHeight > 0 ? Mathf.Min(desiredJumpHeight, Settings.jumpHeight) : Settings.jumpHeight;
+                float maxHeight = JumpHeight;
+                float height = desiredJumpHeight > 0 ? Mathf.Min(desiredJumpHeight, maxHeight) : maxHeight;
                 var jumpForce = Mathf.Sqrt(-2f * Physics.gravity.y * height) - body.linearVelocity.y;
                 body.AddForce(0, jumpForce, 0, ForceMode.VelocityChange);
                 ApplyReactionToLegs(new Vector3(0, jumpForce, 0), true);

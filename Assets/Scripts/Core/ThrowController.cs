@@ -80,11 +80,18 @@ namespace Assets.Scripts.Core
                         var body = character.GetHoldObject();
                         if (body != null)
                         {
-                            // Mireni se cte az ted. Marker z Update je o frame stary a
-                            // TryActivateByThrow uz muze predmetem hnout.
-                            UpdateThrowVector(body.transform.position);
-                            body.TryActivateByThrow();
-                            character.ThrowObj(body, ComputeThrowForce(character.Settings, body.Rigidbody.mass));
+                            if (character.Status.TryDo(EnergyAction.Throw))
+                            {
+                                // Mireni se cte az ted. Marker z Update je o frame stary a
+                                // TryActivateByThrow uz muze predmetem hnout.
+                                UpdateThrowVector(body.transform.position);
+                                body.TryActivateByThrow();
+                                character.ThrowObj(body, ComputeThrowForce(character.Settings, body.Rigidbody.mass));
+                            }
+                            else
+                            {
+                                character.ReportNotEnoughEnergy();
+                            }
                         }
                     }
                 }

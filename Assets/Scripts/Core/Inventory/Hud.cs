@@ -25,13 +25,10 @@ namespace Assets.Scripts.Core.Inventory
         private bool guiInFocus;
         private const string StatusEntrySelectedClass = "StatusEntrySelected";
         private VisualElement statusRow;
-        private int statusRowCount;
         private bool statusRowDirty;
-        private VisualElement[] statusHealthFills = Array.Empty<VisualElement>();
-        private VisualElement[] statusEntries = Array.Empty<VisualElement>();
-        private UiLabel[] statusHealthLabels = Array.Empty<UiLabel>();
-        private int[] statusHealthCache = Array.Empty<int>();
+        private StatusEntryView[] statusViews = Array.Empty<StatusEntryView>();
 
+        public Announcer Announcer { get; private set; }
         public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
         public bool GuiInFocus => guiInFocus;
 
@@ -51,6 +48,7 @@ namespace Assets.Scripts.Core.Inventory
             InitQuickSlots(quickSlots);
             inventoryWindow.style.display = DisplayStyle.None;
             inventoryVisualizer = new InventoryVisualizer(inventory, inventoryWindow, ColumnTree, itemDragElement, scrollView);
+            Announcer = new Announcer(doc.rootVisualElement);
 
             Application.logMessageReceived += Application_logMessageReceived;
             inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);
@@ -94,6 +92,7 @@ namespace Assets.Scripts.Core.Inventory
             }
 
             UpdateStatusRow();
+            Announcer.Update(Time.unscaledDeltaTime);
 
             if (Input.GetKeyDown(KeyCode.I))
             {
@@ -145,42 +144,49 @@ namespace Assets.Scripts.Core.Inventory
                 RebuildStatusRow(chars, ic);
             }
 
+            bool detail = inventoryVisualizer.Visible;
             for (int i = 0; i < chars.Count; i++)
-            {
-                var status = chars[i].Status;
-
-                bool selected = chars[i] == ic.Character;
-                statusEntries[i].EnableInClassList(StatusEntrySelectedClass, selected);
-
-                int healthInt = (int)status.CurrentHealth;
-                float pct = status.MaxHealth > 0 ? status.CurrentHealth / status.MaxHealth : 0;
-                statusHealthFills[i].style.height = Length.Percent(Mathf.Clamp01(pct) * 100f);
-
-                if (statusHealthCache[i] != healthInt)
-                {
-                    // TODO, pokud predelame tooltipy na neco robustnejsiho. Predelat i zde.
-                    statusHealthCache[i] = healthInt;
-                    statusHealthLabels[i].text = NumberToString.Convert(healthInt);
-                }
-            }
+                statusViews[i].Update(chars[i].Status, chars[i] == ic.Character, detail);
         }
 
         private void RebuildStatusRow(List<Character3> chars, InputController ic)
         {
             statusRow.Clear();
-            statusRowCount = chars.Count;
-            statusEntries = new VisualElement[chars.Count];
-            statusHealthFills = new VisualElement[chars.Count];
-            statusHealthLabels = new UiLabel[chars.Count];
-            statusHealthCache = new int[chars.Count];
-            Array.Fill(statusHealthCache, -1);
+            statusViews = new StatusEntryView[chars.Count];
 
             for (int i = 0; i < chars.Count; i++)
             {
-                var status = chars[i].Status;
+                var view = new StatusEntryView(chars[i].Status);
+                int index = i;
+                view.Entry.RegisterCallback<ClickEvent>(evt => ic.SetCharacter(index));
+                // UI Toolkit kresli v poradi deti. StatusRow je row-reverse => prvni postava je posledni dite a jeji tooltip
+                // se kresli nad dalsimi postavami. Ze stejneho duvodu je StatusRow v Top (column-reverse) az za inventarem.
+                statusRow.Insert(0, view.Entry);
+                statusViews[i] = view;
+            }
+        }
 
-                var entry = new VisualElement();
-                entry.AddToClassList("StatusEntry");
+        /// <summary>
+        /// Polozka postavy ve StatusRow. Strucny rezim: zdravi, energie, varovani. Detail (otevreny inventar): navic Food, SleepEnergy, Waste.
+        /// </summary>
+        private sealed class StatusEntryView
+        {
+            public readonly VisualElement Entry;
+            private readonly StatusBar health;
+            private readonly StatusBar energy;
+            private readonly VisualElement detail;
+            private readonly StatusBar food;
+            private readonly StatusBar sleepEnergy;
+            private readonly StatusBar waste;
+            private readonly VisualElement warnings;
+            private readonly VisualElement hungry;
+            private readonly VisualElement needSleep;
+            private readonly VisualElement needShit;
+
+            public StatusEntryView(Status status)
+            {
+                Entry = new VisualElement();
+                Entry.AddToClassList("StatusEntry");
 
                 var left = new VisualElement();
                 left.AddToClassList("StatusLeft");
@@ -196,30 +202,159 @@ namespace Assets.Scripts.Core.Inventory
                 nameLabel.text = status.Name ?? "";
                 left.Add(nameLabel);
 
-                entry.Add(left);
+                Entry.Add(left);
 
-                var healthBar = new VisualElement();
-                healthBar.AddToClassList("StatusHealthBar");
+                health = new StatusBar(Entry, "StatusFillHealth", "Zdraví:");
+                energy = new StatusBar(Entry, "StatusFillEnergy", "Energie:");
 
-                var healthFill = new VisualElement();
-                healthFill.AddToClassList("StatusHealthFill");
-                healthFill.style.height = Length.Percent(100f);
-                healthBar.Add(healthFill);
+                detail = new VisualElement();
+                detail.AddToClassList("StatusDetail");
+                Entry.Add(detail);
+                food = new StatusBar(detail, "StatusFillFood", "Jídlo:");
+                sleepEnergy = new StatusBar(detail, "StatusFillSleep", "Spánek:");
+                waste = new StatusBar(detail, "StatusFillWaste", "Hnědá:");
 
-                var healthLabel = new UiLabel();
-                healthLabel.AddToClassList("StatusHealthLabel");
-                healthLabel.pickingMode = PickingMode.Ignore;
-                healthBar.Add(healthLabel);
+                warnings = new VisualElement();
+                warnings.AddToClassList("StatusWarnings");
+                Entry.Add(warnings);
+                hungry = AddWarning("StatusFillFood", "Potřebuješ jíst.");
+                needSleep = AddWarning("StatusFillSleep", "Potřebuješ spát.");
+                needShit = AddWarning("StatusFillWaste", "Potřebuješ na záchod.");
+            }
 
-                entry.Add(healthBar);
+            private VisualElement AddWarning(string colorClass, string text)
+            {
+                var w = new VisualElement();
+                w.AddToClassList("StatusWarning");
+                w.AddToClassList(colorClass);
+                AddTooltip(w, text);
+                warnings.Add(w);
+                return w;
+            }
 
-                int index = i;
-                entry.RegisterCallback<ClickEvent>(evt => ic.SetCharacter(index));
+            public void Update(Status status, bool selected, bool showDetail)
+            {
+                Entry.EnableInClassList(StatusEntrySelectedClass, selected);
 
-                statusRow.Add(entry);
-                statusEntries[i] = entry;
-                statusHealthFills[i] = healthFill;
-                statusHealthLabels[i] = healthLabel;
+                float max = status.MaxHealth;
+                health.SetFraction(max > 0 ? status.CurrentHealth / max : 0, status.CurrentHealth);
+                energy.SetSegmented(status.Energy);
+
+                SetVisible(detail, showDetail);
+                if (showDetail)
+                {
+                    food.SetSegmented(status.Food);
+                    sleepEnergy.SetSegmented(status.SleepEnergy);
+                    waste.SetSegmented(status.Waste);
+                }
+
+                bool isHungry = status.Hungry;
+                bool isSleepy = status.NeedSleep;
+                bool isFull = status.NeedShit || status.IsOverEated;
+                SetVisible(hungry, isHungry);
+                SetVisible(needSleep, isSleepy);
+                SetVisible(needShit, isFull);
+                SetVisible(warnings, isHungry || isSleepy || isFull);
+            }
+
+            private static void SetVisible(VisualElement e, bool visible) => e.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        /// <summary>
+        /// Tooltip zobrazeny pri hoveru nad parentem (viz USS). Staticky text se nastavi jednou; promennou cast lze pridat dalsim labelem do vraceneho kontejneru.
+        /// </summary>
+        // TODO, pokud predelame tooltipy na neco robustnejsiho. Predelat i zde.
+        private static VisualElement AddTooltip(VisualElement parent, string text)
+        {
+            var tooltip = new VisualElement();
+            tooltip.AddToClassList("StatusTooltip");
+            tooltip.pickingMode = PickingMode.Ignore;
+            tooltip.Add(CreateTooltipText(text));
+            parent.Add(tooltip);
+            return tooltip;
+        }
+
+        private static UiLabel CreateTooltipText(string text)
+        {
+            var label = new UiLabel(text);
+            label.AddToClassList("StatusTooltipText");
+            label.pickingMode = PickingMode.Ignore;
+            return label;
+        }
+
+        /// <summary>
+        /// Svisly bar. Bud jeden segment 0..max (SetFraction), nebo segmenty po 100 vedle sebe, ktere se objevuji a mizi podle hodnoty a plni se zleva (SetSegmented).
+        /// </summary>
+        private sealed class StatusBar
+        {
+            private const float SegmentSize = 100;
+            private readonly VisualElement root;
+            private readonly string fillClass;
+            private readonly UiLabel label;
+            private readonly List<VisualElement> segments = new();
+            private readonly List<VisualElement> fills = new();
+            private int shownSegments;
+            private int shownValue = int.MinValue;
+
+            public StatusBar(VisualElement parent, string fillClass, string caption)
+            {
+                this.fillClass = fillClass;
+                root = new VisualElement();
+                root.AddToClassList("StatusBar");
+                // caption a cislo jako 2 labely, cislo z cache NumberToString => bez alokaci
+                label = CreateTooltipText("");
+                label.AddToClassList("StatusTooltipValue");
+                AddTooltip(root, caption).Add(label);
+                parent.Add(root);
+            }
+
+            public void SetFraction(float fraction, float value)
+            {
+                SetSegmentCount(1);
+                SetFill(0, fraction);
+                SetLabel(value);
+            }
+
+            public void SetSegmented(float value)
+            {
+                int count = Mathf.Max(1, Mathf.CeilToInt(value / SegmentSize));
+                SetSegmentCount(count);
+                for (int i = 0; i < count; i++)
+                    SetFill(i, (value - i * SegmentSize) / SegmentSize);
+                SetLabel(value);
+            }
+
+            private void SetSegmentCount(int count)
+            {
+                if (count == shownSegments)
+                    return;
+                while (segments.Count < count)
+                {
+                    var segment = new VisualElement();
+                    segment.AddToClassList("StatusBarSegment");
+                    var fill = new VisualElement();
+                    fill.AddToClassList("StatusBarFill");
+                    fill.AddToClassList(fillClass);
+                    segment.Add(fill);
+                    root.Insert(segments.Count, segment); // tooltip zustava posledni, kresli se navrch
+                    segments.Add(segment);
+                    fills.Add(fill);
+                }
+                for (int i = 0; i < segments.Count; i++)
+                    segments[i].style.display = i < count ? DisplayStyle.Flex : DisplayStyle.None;
+                shownSegments = count;
+            }
+
+            private void SetFill(int index, float fraction) => fills[index].style.height = Length.Percent(Mathf.Clamp01(fraction) * 100f);
+
+            private void SetLabel(float value)
+            {
+                int v = (int)value;
+                if (v != shownValue)
+                {
+                    shownValue = v;
+                    label.text = NumberToString.Convert(v);
+                }
             }
         }
 

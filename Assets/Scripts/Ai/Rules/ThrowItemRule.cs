@@ -1,3 +1,4 @@
+using Assets.Scripts.Bases;
 using Assets.Scripts.Core;
 using System;
 using UnityEngine;
@@ -49,7 +50,8 @@ namespace Assets.Scripts.Ai.Rules
 
         public bool Test(MonsterBrain brain)
         {
-            if (brain.IsJumping || !brain.SlowTick(MonsterBrain.FixedSteps(SolveInterval)) || brain.CountItems(ItemKsid) == 0)
+            if (brain.IsJumping || !brain.SlowTick(MonsterBrain.FixedSteps(SolveInterval)) || brain.CountItems(ItemKsid) == 0
+                || !brain.Status.CanDo(EnergyAction.Throw))
                 return false;
             ref readonly var s = ref brain.Sense(SenceId, SenceAge);
             if (!s.Found || !brain.PlanThrow(in s, brain.SenseKsid(SenceId), ItemKsid, in Style, out var plan))
@@ -100,9 +102,8 @@ namespace Assets.Scripts.Ai.Rules
             if (Time.time - brain.ScratchTimer < AimTime)
                 return ActionStatus.Running;
 
-            if (brain.HoldsDrawnItem && brain.PlanThrow(in s, brain.SenseKsid(SenceId), ItemKsid, in Style, out var plan))
+            if (brain.HoldsDrawnItem && brain.PlanThrow(in s, brain.SenseKsid(SenceId), ItemKsid, in Style, out var plan) && brain.Throw(in plan))
             {
-                brain.Throw(in plan);
                 brain.ScratchPhase = PhaseAfter;
                 brain.ScratchTimer = Time.time;
                 return ActionStatus.Running;
