@@ -39,7 +39,25 @@ namespace Assets.Scripts.Core
         public Transform Moon2;
         public Volume VolumeWithSky;
 
-        public float[] BakeTimes;
+        [Serializable]
+        public struct BakePoint
+        {
+            [Range(0f, 360)]
+            public float BakeTime;
+            [Tooltip("Herni cas (stupne), kdy se prepne na dalsi BakePoint")]
+            [Range(0f, 360)]
+            public float ChangeTime;
+            [Tooltip("Time (stupne), na ktery se promita zacatek intervalu")]
+            [Range(0f, 360)]
+            public float IntervalFrom;
+            [Tooltip("Time (stupne), na ktery se promita konec intervalu")]
+            [Range(0f, 360)]
+            public float IntervalTo;
+        }
+
+        public const float DayLength = 24 * 60; // s, 360 stupnu
+
+        public BakePoint[] BakePoints;
         public int SelectedBakeTime;
         private bool isBLighting;
         public bool IsBLighting => isBLighting;
@@ -57,15 +75,60 @@ namespace Assets.Scripts.Core
         private Data[] data;
         private float scenarioBlendFactor;
 
-        public int NumScenarios => BakeTimes.Length;
+        public int NumScenarios => BakePoints.Length;
 
         private void OnValidate()
         {
-            if (BakeTimes != null && SelectedBakeTime < BakeTimes.Length && SelectedBakeTime >= 0)
+            if (!Application.isPlaying && BakePoints != null && SelectedBakeTime < BakePoints.Length && SelectedBakeTime >= 0)
             {
-                Time = BakeTimes[SelectedBakeTime];
+                Time = BakePoints[SelectedBakeTime].BakeTime;
             }
             SetSunPosition();
+        }
+
+        /// <summary>
+        /// Nastavi herni cas (s). Pri prechodu do jineho intervalu prepne scenar.
+        /// </summary>
+        public void SetGameTime(float gameTime)
+        {
+            int slot = FindSlot(ToDegrees(gameTime), out Time);
+            if (slot != SelectedBakeTime)
+            {
+                SelectedBakeTime = slot;
+                SetNextScenarioInit();
+            }
+            else
+            {
+                UpdateScenarioBlend();
+            }
+            SetSunPosition();
+        }
+
+        private static float ToDegrees(float gameTime) => Mathf.Repeat(gameTime / DayLength * 360f, 360f);
+
+        /// <summary>
+        /// Najde interval (ChangeTime predchoziho .. ChangeTime aktualniho) a promitne do nej cas na IntervalFrom .. IntervalTo.
+        /// </summary>
+        private int FindSlot(float gameDeg, out float time)
+        {
+            int n = BakePoints != null ? BakePoints.Length : 0;
+            for (int i = 0; i < n; i++)
+            {
+                float start = BakePoints[(i + n - 1) % n].ChangeTime;
+                float length = Mathf.Repeat(BakePoints[i].ChangeTime - start, 360f);
+                if (length == 0)
+                    length = 360f;
+                float offset = Mathf.Repeat(gameDeg - start, 360f);
+                if (offset < length)
+                {
+                    ref var p = ref BakePoints[i];
+                    float span = Mathf.Repeat(p.IntervalTo - p.IntervalFrom, 360f);
+                    time = Mathf.Repeat(p.IntervalFrom + offset / length * span, 360f);
+                    return i;
+                }
+            }
+            time = Time;
+            return SelectedBakeTime;
         }
 
         public void ChangeLightVariant(bool insideB)
@@ -77,19 +140,10 @@ namespace Assets.Scripts.Core
             }
         }
 
-        public void SetNextScenario()
-        {
-            SelectedBakeTime++;
-            if (SelectedBakeTime >= BakeTimes.Length)
-                SelectedBakeTime = 0;
-            SetNextScenarioInit();
-        }
-
         public void SetNextScenarioInit()
         {
             scenario = $"Sc{(isBLighting ? 'B' : 'A')}{SelectedBakeTime}";
             Game.Instance.MapWorlds.SelectedMap.WorldBuilder.SetLightScenario(SelectedBakeTime);
-            OnValidate();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             scenarioBlendFactor = 0.2f;
@@ -97,7 +151,7 @@ namespace Assets.Scripts.Core
             Debug.Log($"{probeRefVolume.lightingScenario} => {probeRefVolume.otherScenario}");
         }
 
-        public void SetNextScenario2()
+        private void UpdateScenarioBlend()
         {
             if (scenarioBlendFactor > 0f)
             {
@@ -154,23 +208,34 @@ namespace Assets.Scripts.Core
             {
                 if (data[i].hdLight)
                 {
-                    bool on = !shadowEnabled && IsAboveHorizon(i);
+                    float visibility = shadowEnabled ? 0 : DiskVisibility(i);
+                    bool on = visibility > 0;
                     if (on)
                         shadowEnabled = true;
                     if (on != data[i].on)
                     {
                         data[i].on = on;
                         data[i].hdLight.EnableShadows(on);
-                        data[i].hdLight.lightDimmer = on ? 1 : 0;
                     }
+                    data[i].hdLight.lightDimmer = visibility;
                 }
             }
         }
 
-        private bool IsAboveHorizon(int i)
+        /// <summary>
+        /// Viditelna cast kotouce nad obzorem (0..1). Smoothstep aproximuje plochu kruhove usece.
+        /// </summary>
+        private float DiskVisibility(int i)
         {
-            var lightDir = data[i].hdLight.transform.rotation * Vector3.back;
-            return Vector3.Dot(Vector3.up, lightDir) >= 0;
+            var hdLight = data[i].hdLight;
+            var lightDir = hdLight.transform.rotation * Vector3.back;
+            float sinElevation = Vector3.Dot(Vector3.up, lightDir);
+            float sinRadius = Mathf.Sin(0.5f * hdLight.angularDiameter * Mathf.Deg2Rad);
+            if (sinRadius <= 0)
+                return sinElevation >= 0 ? 1 : 0;
+            if (sinElevation < -sinRadius)
+                return 0;
+            return Mathf.SmoothStep(0, 1, (sinElevation + sinRadius) / (2 * sinRadius));
         }
 
         private void InitData()
@@ -206,7 +271,7 @@ namespace Assets.Scripts.Core
             }
         }
 
-        internal void CopySettingsFrom(TimeOfDay timeOfDay)
+        internal void CopySettingsFrom(TimeOfDay timeOfDay, float gameTime)
         {
             if (!timeOfDay)
                 return;
@@ -216,9 +281,10 @@ namespace Assets.Scripts.Core
             AxisTilt = timeOfDay.AxisTilt;
             WorldPos = timeOfDay.WorldPos;
             WorldOrientation = timeOfDay.WorldOrientation;
-            BakeTimes = timeOfDay.BakeTimes;
-            if (SelectedBakeTime > 0)
-                SelectedBakeTime = SelectedBakeTime % BakeTimes.Length;
+            BakePoints = timeOfDay.BakePoints;
+            SelectedBakeTime = FindSlot(ToDegrees(gameTime), out Time);
+            scenarioBlendFactor = 0;
+            SetSunPosition();
         }
 
         internal void ResetAPVs(bool isBLights, WorldBuilder worldBuilder)

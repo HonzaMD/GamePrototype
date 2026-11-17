@@ -151,7 +151,7 @@ namespace Assets.Scripts.Map
         {
             Debug.Log("WORLD SWITCH " + id);
             SelectedMap = Maps[id];
-            Game.Instance.TimeOfDay.CopySettingsFrom(SelectedMap.WorldBuilder.GetComponent<TimeOfDay>());
+            Game.Instance.TimeOfDay.CopySettingsFrom(SelectedMap.WorldBuilder.GetComponent<TimeOfDay>(), Game.Instance.GameTime);
             var isBLights = Game.Instance.InputController.IsBLightVariant();
             Game.Instance.TimeOfDay.ResetAPVs(isBLights, SelectedMap.WorldBuilder);
         }

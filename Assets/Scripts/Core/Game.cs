@@ -35,6 +35,9 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public GameState State { get; private set; }
 
     public TimeOfDay TimeOfDay;
+    [Tooltip("Herni cas (s) na zacatku hry; den = TimeOfDay.DayLength")]
+    public float StartTime = 300;
+    public float GameTime { get; private set; }
 
     private List<Trigger> triggersNext = new();
     private List<Trigger> triggersCurrent = new();
@@ -119,10 +122,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         if (!IsPaused)
         {
-            if (Input.GetKeyDown(KeyCode.KeypadPlus))
-                TimeOfDay.SetNextScenario();
-            else                
-                TimeOfDay.SetNextScenario2();
+            GameTime += Time.deltaTime;
+            TimeOfDay.SetGameTime(GameTime);
 
             InputController.GameUpdate();
             swStart = sw.Elapsed;
@@ -196,6 +197,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         if (State == GameState.Awaked)
         {
             PauseGame();
+            GameTime = StartTime;
             State = GameState.CreatingLevels;
             MapWorlds.CreateMaps(Ksids);
         }

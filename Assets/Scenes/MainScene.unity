@@ -1712,10 +1712,11 @@ MonoBehaviour:
   ConnectablePool: {fileID: 222245416}
   PrefabsStore: {fileID: 11400000, guid: b3c9161d66877b748a92a12308df3674, type: 2}
   OccludersRoot: {fileID: 739283312}
-  MapWorlds: {fileID: 2075615587}
+  MapWorlds: {fileID: 165257667}
   InventoryRoot: {fileID: 224758079}
   Hud: {fileID: 1427786098}
   TimeOfDay: {fileID: 1866069384}
+  StartTime: 300
   UpdateTimes:
   - 0
   - 0
@@ -2678,11 +2679,23 @@ MonoBehaviour:
   Moon: {fileID: 1505782376}
   Moon2: {fileID: 1520554145}
   VolumeWithSky: {fileID: 653260036}
-  BakeTimes:
-  - 78
-  - 220
-  - 282
-  - 0
+  BakePoints:
+  - BakeTime: 78
+    ChangeTime: 90
+    IntervalFrom: 74
+    IntervalTo: 87
+  - BakeTime: 220
+    ChangeTime: 270
+    IntervalFrom: 200
+    IntervalTo: 240
+  - BakeTime: 282
+    ChangeTime: 300
+    IntervalFrom: 280
+    IntervalTo: 284
+  - BakeTime: 0
+    ChangeTime: 60
+    IntervalFrom: 340
+    IntervalTo: 20
   SelectedBakeTime: 1
 --- !u!1001 &1872268151
 PrefabInstance:

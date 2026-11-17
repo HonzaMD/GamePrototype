@@ -35705,11 +35705,23 @@ MonoBehaviour:
   Moon: {fileID: 0}
   Moon2: {fileID: 0}
   VolumeWithSky: {fileID: 0}
-  BakeTimes:
-  - 78
-  - 220
-  - 282
-  - 0
+  BakePoints:
+  - BakeTime: 78
+    ChangeTime: 90
+    IntervalFrom: 74
+    IntervalTo: 87
+  - BakeTime: 220
+    ChangeTime: 270
+    IntervalFrom: 200
+    IntervalTo: 240
+  - BakeTime: 282
+    ChangeTime: 300
+    IntervalFrom: 280
+    IntervalTo: 284
+  - BakeTime: 0
+    ChangeTime: 60
+    IntervalFrom: 340
+    IntervalTo: 20
   SelectedBakeTime: 3
 --- !u!1001 &355251127
 PrefabInstance:
