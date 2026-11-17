@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -38,6 +39,23 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     [Tooltip("Herni cas (s) na zacatku hry; den = TimeOfDay.DayLength")]
     public float StartTime = 300;
     public float GameTime { get; private set; }
+    /// <summary>Zrychleny cas (KeypadPlus); kod si muze cist a neco vypnout/zjednodusit.</summary>
+    public bool FastMode => fastMode.IsOn;
+    private readonly FastModeDriver fastMode = new();
+
+    private static readonly ProfilerMarker markerInput = new("MyGame.Input");
+    private static readonly ProfilerMarker markerTriggers = new("MyGame.Triggers");
+    private static readonly ProfilerMarker markerObjects = new("MyGame.Objects");
+    private static readonly ProfilerMarker markerTimer = new("MyGame.Timer");
+    private static readonly ProfilerMarker markerPeriodic = new("MyGame.Periodic");
+    private static readonly ProfilerMarker markerVisibility = new("MyGame.Visibility");
+    private static readonly ProfilerMarker markerCellStateTests = new("MyGame.CellStateTests");
+    private static readonly ProfilerMarker markerCamera = new("MyGame.Camera");
+    private static readonly ProfilerMarker markerFixedObjects = new("MyGame.FixedObjects");
+    private static readonly ProfilerMarker markerFixedOnce = new("MyGame.FixedOnce");
+    private static readonly ProfilerMarker markerMapRefresh = new("MyGame.MapRefresh");
+    private static readonly ProfilerMarker markerSpUpdate = new("MyGame.SpUpdate");
+    private static readonly ProfilerMarker markerCellSim = new("MyGame.CellSim");
 
     private List<Trigger> triggersNext = new();
     private List<Trigger> triggersCurrent = new();
@@ -116,8 +134,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         if (!IsPaused)
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(KeyCode.Tab) && !FastMode)
                 InputController.SetNextCharacter();
+            if (Input.GetKeyDown(KeyCode.KeypadPlus))
+                fastMode.Toggle(GameTime);
         }
 
         if (!IsPaused)
@@ -125,41 +145,57 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             GameTime += Time.deltaTime;
             TimeOfDay.SetGameTime(GameTime);
 
-            InputController.GameUpdate();
+            using (markerInput.Auto())
+                InputController.GameUpdate();
             swStart = sw.Elapsed;
-            UpdateTriggers();
+            using (markerTriggers.Auto())
+                UpdateTriggers();
             UpdateTimes[1] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             UpdateTimes[2] = mapRefreshTime; // RefreshMapPositions ze simulaci tohoto framu
             mapRefreshTime = 0;
-            UpdateObjects();
+            using (markerObjects.Auto())
+                UpdateObjects();
             UpdateTimes[3] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-            Timer.GameUpdate();
+            using (markerTimer.Auto())
+                Timer.GameUpdate();
             UpdateTimes[4] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
-            fpsCounter.GameUpdate();
-            gameUpdates1Sec.GameUpdate();
-            gameUpdates20Sec.GameUpdate();
+            using (markerPeriodic.Auto())
+            {
+                fpsCounter.GameUpdate();
+                gameUpdates1Sec.GameUpdate();
+                gameUpdates20Sec.GameUpdate();
+            }
             UpdateTimes[7] = (sw.Elapsed - swStart).TotalMilliseconds; swStart = sw.Elapsed;
             if (updateTicker % visibilityPeriod == 3 && InputController.Character)
             {
-                visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
-                visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
-                UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
+                // ve FastMode se vynecha jen Compute, at ProcessCellStateTests bezi ve stejnem tempu
+                if (!FastMode)
+                {
+                    using (markerVisibility.Auto())
+                        visibility.Compute(InputController.Character.ArmSphere.transform.position, MapWorlds.SelectedMap);
+                    visibility.ReportDiagnostics(VisibiltyTimes, VisibiltyCounters);
+                    UpdateTimes[6] = (sw.Elapsed - swStart).TotalMilliseconds;
+                }
             }
             else
             {
-                MapWorlds.ProcessCellStateTests(10);
+                using (markerCellStateTests.Auto())
+                    MapWorlds.ProcessCellStateTests(10);
                 UpdateTimes[5] = (sw.Elapsed - swStart).TotalMilliseconds;
             }
             //UpdateReflectionProbes();
             updateTicker++;
         }
 
-        Assets.Scripts.Map.CellSims.CellSimDebug.Render(); // debug overlay cell sim (F9); zakomentuj = vypnuto
-        Assets.Scripts.Ai.AiDebug.Render();                // debug cary AI (F8); zakomentuj = vypnuto
+        if (!FastMode)
+        {
+            Assets.Scripts.Map.CellSims.CellSimDebug.Render(); // debug overlay cell sim (F9); zakomentuj = vypnuto
+            Assets.Scripts.Ai.AiDebug.Render();                // debug cary AI (F8); zakomentuj = vypnuto
 
-        //if (!cameraMode)
-        //    Character.GameUpdate();
-        InputController.Camera.GameUpdate();
+            using (markerCamera.Auto())
+                InputController.Camera.GameUpdate();
+        }
+        fastMode.Update(GameTime);
         sw.Stop();
         UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
 
@@ -230,6 +266,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private void PauseGame()
     {
+        fastMode.Stop();
         Time.timeScale = 0;
         IsPaused = true;
     }
@@ -265,7 +302,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         while (true)
         {
             yield return waitForFixedUpdate;
-            RefreshMapPositions();
+            using (markerMapRefresh.Auto())
+                RefreshMapPositions();
         }
     }
 
@@ -399,6 +437,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
     private void OnEnable() => StartCoroutine(MapRefreshLoop());
 
+    private void OnDisable() => fastMode.Stop(); // vrati VSync/targetFrameRate i pri ukonceni Play mode
+
     public void OnBeforeSerialize()
     {
     }
@@ -414,38 +454,48 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     void FixedUpdate()
     {
         InputController.GameFixedUpdate();
-        int write = 0;
-        for (int i = 0; i < activeObjects.Count; i++)
+        using (markerFixedObjects.Auto())
         {
-            var o = activeObjects[i];
-            if (o.PendingRemove)
+            int write = 0;
+            for (int i = 0; i < activeObjects.Count; i++)
             {
-                o.PendingRemove = false;
-                continue;
+                var o = activeObjects[i];
+                if (o.PendingRemove)
+                {
+                    o.PendingRemove = false;
+                    continue;
+                }
+                o.GameFixedUpdate();
+                activeObjects[write++] = o;
             }
-            o.GameFixedUpdate();
-            activeObjects[write++] = o;
+            if (write < activeObjects.Count)
+                activeObjects.RemoveRange(write, activeObjects.Count - write);
         }
-        if (write < activeObjects.Count)
-            activeObjects.RemoveRange(write, activeObjects.Count - write);
 
-        (fixedUpdateCurrent, fixedUpdateNext) = (fixedUpdateNext, fixedUpdateCurrent);
-        for (int i = 0; i < fixedUpdateCurrent.Count; i++)
+        using (markerFixedOnce.Auto())
         {
-            var (obj, tag) = fixedUpdateCurrent[i];
-            if (obj.ActiveTag == tag)
-                obj.DoFixedUpdate();
+            (fixedUpdateCurrent, fixedUpdateNext) = (fixedUpdateNext, fixedUpdateCurrent);
+            for (int i = 0; i < fixedUpdateCurrent.Count; i++)
+            {
+                var (obj, tag) = fixedUpdateCurrent[i];
+                if (obj.ActiveTag == tag)
+                    obj.DoFixedUpdate();
+            }
+            fixedUpdateCurrent.Clear();
         }
-        fixedUpdateCurrent.Clear();
 
-        StaticPhysics.Update();
+        using (markerSpUpdate.Auto())
+            StaticPhysics.Update();
         Pool.UpdateAgeAtPhysicsUpdate();
         ConnectablePool.UpdateAgeAtPhysicsUpdate();
 
         var maps = MapWorlds.Maps;
         int slot = fixedUpdateTicker % 10;
         if (slot < maps.Length && maps[slot] != null)
-            maps[slot].CellSim.Step();
+        {
+            using (markerCellSim.Auto())
+                maps[slot].CellSim.Step();
+        }
         fixedUpdateTicker++;
     }
 

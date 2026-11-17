@@ -134,6 +134,7 @@
     <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level3.cs" />
     <Compile Include="Assets\Scripts\Ai\Jump\JumpTrajectory.cs" />
+    <Compile Include="Assets\Scripts\Core\FastModeDriver.cs" />
     <Compile Include="Assets\Scripts\Ai\MonsterBrain.Throw.cs" />
     <Compile Include="Assets\Scripts\Bases\KillAfterThrow.cs" />
     <Compile Include="Assets\Scripts\Map\MapSecondary.cs" />

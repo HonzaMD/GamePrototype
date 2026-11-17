@@ -2697,6 +2697,7 @@ MonoBehaviour:
     IntervalFrom: 340
     IntervalTo: 20
   SelectedBakeTime: 1
+  TimeStep: 0.01
 --- !u!1001 &1872268151
 PrefabInstance:
   m_ObjectHideFlags: 0

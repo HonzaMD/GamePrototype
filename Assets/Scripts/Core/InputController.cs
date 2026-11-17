@@ -181,6 +181,13 @@ namespace Assets.Scripts.Core
 
         public void GameUpdate()
         {
+            if (Game.Instance.FastMode)
+            {
+                // bez vstupu: vynulovat i level signaly, jinak by drzene klavesy z okamziku zapnuti platily dal
+                pending = default;
+                return;
+            }
+
             if (Character)
                 Camera.SetAbsolutePosition(Character.transform.position);
 

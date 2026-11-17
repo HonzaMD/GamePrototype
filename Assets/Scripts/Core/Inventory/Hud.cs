@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UiLabel = UnityEngine.UIElements.Label;
 
@@ -20,6 +21,8 @@ namespace Assets.Scripts.Core.Inventory
         private VisualElement inventoryWindow;
         private float fpsTimeStamp;
         private int framesCount;
+        private float announcerDt;
+        private bool wasFastMode;
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
         private bool guiInFocus;
@@ -91,9 +94,6 @@ namespace Assets.Scripts.Core.Inventory
                 fpsTimeStamp = 0;
             }
 
-            UpdateStatusRow();
-            Announcer.Update(Time.unscaledDeltaTime);
-
             if (Input.GetKeyDown(KeyCode.I))
             {
                 inventoryVisualizer.CancelManipulators();
@@ -101,7 +101,22 @@ namespace Assets.Scripts.Core.Inventory
                 inventoryWindow.style.display = inventoryVisualizer.Visible ? DisplayStyle.Flex : DisplayStyle.None;
                 if (inventoryVisualizer.Visible)
                     inventoryVisualizer.SetupIfDirty();
-            }                   
+            }
+
+            // ve FastMode jen na vykreslovanych framech
+            announcerDt += Time.unscaledDeltaTime;
+            bool fastMode = Game.Instance.FastMode;
+            if (fastMode && !OnDemandRendering.willCurrentFrameRender)
+                return;
+
+            UpdateStatusRow();
+            if (fastMode)
+                Announcer.Announce(Announcements.FastMode, AnnounceStyle.Info); // opakovane volani drzi zpravu bez fade
+            else if (wasFastMode)
+                Announcer.Remove(Announcements.FastMode, AnnounceStyle.Info);
+            wasFastMode = fastMode;
+            Announcer.Update(announcerDt);
+            announcerDt = 0;
         }
 
         internal void SetupInventory(Inventory inventory)
@@ -158,7 +173,11 @@ namespace Assets.Scripts.Core.Inventory
             {
                 var view = new StatusEntryView(chars[i].Status);
                 int index = i;
-                view.Entry.RegisterCallback<ClickEvent>(evt => ic.SetCharacter(index));
+                view.Entry.RegisterCallback<ClickEvent>(evt =>
+                {
+                    if (!Game.Instance.FastMode)
+                        ic.SetCharacter(index);
+                });
                 // UI Toolkit kresli v poradi deti. StatusRow je row-reverse => prvni postava je posledni dite a jeji tooltip
                 // se kresli nad dalsimi postavami. Ze stejneho duvodu je StatusRow v Top (column-reverse) az za inventarem.
                 statusRow.Insert(0, view.Entry);

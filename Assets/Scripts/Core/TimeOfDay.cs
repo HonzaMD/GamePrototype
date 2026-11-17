@@ -62,7 +62,7 @@ namespace Assets.Scripts.Core
 
         [Tooltip("Minimalni zmena Time (stupne), nez se pohnou svetla - omezuje mihotani stinu. Nekopiruje se ze sveta.")]
         [Min(0)]
-        public float TimeStep = 0.02f;
+        public float TimeStep = 0.01f;
         private bool diskCrossing;
         private bool isBLighting;
         public bool IsBLighting => isBLighting;

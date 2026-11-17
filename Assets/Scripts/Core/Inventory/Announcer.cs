@@ -18,6 +18,7 @@ namespace Assets.Scripts.Core.Inventory
         public const string BuildBlocked = "Stavba blokována.";
         public const string OutOfReach = "Mimo dosah.";
         public const string NotEnoughMaterial = "Nedostatek materiálu.";
+        public const string FastMode = "Zrychlen čas.";
     }
 
     /// <summary>
@@ -83,6 +84,27 @@ namespace Assets.Scripts.Core.Inventory
             if (queue.Count == 0)
                 ShortenCurrent();
             queue.Enqueue(msg);
+        }
+
+        /// <summary>
+        /// Okamzite odstrani zpravu z fronty i z obrazovky (bez fade). Zobrazena zprava se nahradi dalsi z fronty.
+        /// </summary>
+        public void Remove(string text, AnnounceStyle style)
+        {
+            for (int n = queue.Count; n > 0; n--)
+            {
+                var m = queue.Dequeue();
+                if (!m.Same(text, style))
+                    queue.Enqueue(m);
+            }
+
+            if (showing && current.Same(text, style))
+            {
+                if (queue.Count > 0)
+                    Show(queue.Dequeue());
+                else
+                    Hide();
+            }
         }
 
         public void Update(float deltaTime)
