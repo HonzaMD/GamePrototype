@@ -59,6 +59,11 @@ namespace Assets.Scripts.Core
 
         public BakePoint[] BakePoints;
         public int SelectedBakeTime;
+
+        [Tooltip("Minimalni zmena Time (stupne), nez se pohnou svetla - omezuje mihotani stinu. Nekopiruje se ze sveta.")]
+        [Min(0)]
+        public float TimeStep = 0.02f;
+        private bool diskCrossing;
         private bool isBLighting;
         public bool IsBLighting => isBLighting;
         private string scenario;
@@ -91,17 +96,24 @@ namespace Assets.Scripts.Core
         /// </summary>
         public void SetGameTime(float gameTime)
         {
-            int slot = FindSlot(ToDegrees(gameTime), out Time);
+            int slot = FindSlot(ToDegrees(gameTime), out float time);
             if (slot != SelectedBakeTime)
             {
                 SelectedBakeTime = slot;
                 SetNextScenarioInit();
+                Time = time;
+                SetSunPosition();
             }
             else
             {
                 UpdateScenarioBlend();
+                // pri prechodu kotouce pres obzor plynule kvuli lightDimmer
+                if (diskCrossing || Mathf.Abs(Mathf.DeltaAngle(Time, time)) >= TimeStep)
+                {
+                    Time = time;
+                    SetSunPosition();
+                }
             }
-            SetSunPosition();
         }
 
         private static float ToDegrees(float gameTime) => Mathf.Repeat(gameTime / DayLength * 360f, 360f);
@@ -204,11 +216,14 @@ namespace Assets.Scripts.Core
         private void SetupShadows()
         {
             bool shadowEnabled = false;
+            diskCrossing = false;
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i].hdLight)
                 {
                     float visibility = shadowEnabled ? 0 : DiskVisibility(i);
+                    if (visibility > 0 && visibility < 1)
+                        diskCrossing = true;
                     bool on = visibility > 0;
                     if (on)
                         shadowEnabled = true;
