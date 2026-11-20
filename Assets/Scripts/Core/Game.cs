@@ -132,16 +132,16 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         }
 #endif
 
-        if (!IsPaused)
+        if (!IsPaused && !FastMode && Input.GetKeyDown(KeyCode.Tab))
         {
-            if (Input.GetKeyDown(KeyCode.Tab) && !FastMode)
-                InputController.SetNextCharacter();
-            if (Input.GetKeyDown(KeyCode.KeypadPlus))
-                fastMode.Toggle(GameTime);
+            InputController.SetNextCharacter();
         }
 
         if (!IsPaused)
         {
+            if (Input.GetKeyDown(KeyCode.KeypadPlus))
+                fastMode.Toggle(GameTime);
+
             GameTime += Time.deltaTime;
             TimeOfDay.SetGameTime(GameTime);
 
@@ -195,11 +195,13 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
             using (markerCamera.Auto())
                 InputController.Camera.GameUpdate();
         }
+        
         fastMode.Update(GameTime);
-        sw.Stop();
-        UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
 
         LogGC();
+
+        sw.Stop();
+        UpdateTimes[0] = sw.Elapsed.TotalMilliseconds;
     }
 
     private void UpdateReflectionProbes()
@@ -486,6 +488,7 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
 
         using (markerSpUpdate.Auto())
             StaticPhysics.Update();
+        
         Pool.UpdateAgeAtPhysicsUpdate();
         ConnectablePool.UpdateAgeAtPhysicsUpdate();
 
