@@ -193,6 +193,7 @@
     <Compile Include="Assets\Scripts\Map\Cell.cs" />
     <Compile Include="Assets\Scripts\Map\OBBCellTest.cs" />
     <Compile Include="Assets\Scripts\Bases\IActiveObject.cs" />
+    <Compile Include="Assets\Scripts\Core\MovingObjects.cs" />
     <Compile Include="Assets\Scripts\Bases\Trigger.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\BallonTests.cs" />

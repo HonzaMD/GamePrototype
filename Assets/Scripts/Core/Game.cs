@@ -62,15 +62,12 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     private readonly List<IActiveObject> activeObjects = new();
     private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateCurrent = new();
     private List<(IFixedUpdateOnce obj, int tag)> fixedUpdateNext = new();
-    private readonly List<(Placeable Obj, int Tag, Map Map)> movingObjects = new();
+    /// <summary>Objekty s aktivnim RB promitane do mapy po kazde simulaci. Vznika v Awake (nativni pole).</summary>
+    public MovingObjects MovingObjects { get; private set; }
     private readonly FpsCounter fpsCounter = new();
     private readonly GameUpdates1Sec gameUpdates1Sec;
     private readonly GameUpdates20Sec gameUpdates20Sec = new();
     private readonly VCore visibility = new();
-    private int movingObjectInserterPtr;
-    private int movingObjectWorkPtr;
-    private const int movingObjectMaxPtr = 20;
-    private int slowPassFrame = -1;
     private const int visibilityPeriod = 10;
     private int updateTicker;
     private int fixedUpdateTicker;
@@ -140,7 +137,10 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         if (!IsPaused)
         {
             if (Input.GetKeyDown(KeyCode.KeypadPlus))
+            {
                 fastMode.Toggle(GameTime);
+                MovingObjects.ResetStats();
+            }
 
             GameTime += Time.deltaTime;
             TimeOfDay.SetGameTime(GameTime);
@@ -196,7 +196,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
                 InputController.Camera.GameUpdate();
         }
         
-        fastMode.Update(GameTime);
+        if (fastMode.Update(GameTime))
+            MovingObjects.LogStats();
 
         LogGC();
 
@@ -305,73 +306,11 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         {
             yield return waitForFixedUpdate;
             using (markerMapRefresh.Auto())
-                RefreshMapPositions();
-        }
-    }
-
-    private void RefreshMapPositions()
-    {
-        mapRefreshSw.Restart();
-        // round robin (plny Move + MovingObjTest) jen v prvni simulaci framu -> perioda v framech
-        bool slowPass = slowPassFrame != Time.frameCount;
-        slowPassFrame = Time.frameCount;
-
-        int write = 0;
-        for (int i = 0; i < movingObjects.Count; i++)
-        {
-            var (obj, tag, map) = movingObjects[i];
-            if (obj.PendingMovingObjRemove > 0)
             {
-                obj.PendingMovingObjRemove--;
-                continue;
+                mapRefreshSw.Restart();
+                MovingObjects.RefreshMapPositions();
+                mapRefreshTime += mapRefreshSw.Elapsed.TotalMilliseconds;
             }
-
-            try
-            {
-                if (slowPass && tag == movingObjectWorkPtr)
-                {
-                    map.Move(obj);
-                    MovingObjTest(obj, map);
-                }
-                else if (obj.AlwaysMapMove)
-                {
-                    map.Move(obj);
-                }
-                else
-                {
-                    obj.UpdateMapPosIfMoved(map);
-                }
-            }
-            catch (Exception e)
-            {
-                // vyjimka mimo smycku by ukoncila coroutinu a mapa by se prestala obnovovat
-                UnityEngine.Debug.LogException(e);
-            }
-
-            movingObjects[write++] = movingObjects[i];
-        }
-
-        if (write < movingObjects.Count)
-            movingObjects.RemoveRange(write, movingObjects.Count - write);
-
-        if (slowPass)
-        {
-            movingObjectWorkPtr++;
-            if (movingObjectWorkPtr >= movingObjectMaxPtr)
-                movingObjectWorkPtr = 0;
-        }
-        mapRefreshTime += mapRefreshSw.Elapsed.TotalMilliseconds;
-    }
-
-    private void MovingObjTest(Placeable p, Map map)
-    {
-        if (Ksids.IsParentOrEqual(p.Ksid, Ksid.SandLike) && p.IsNonMoving)
-        {
-            float y = Mathf.Repeat(p.Pivot.y, Map.CellSize.y);
-            float dy = p.PosOffset.y + p.Size.y;
-
-            if (y + dy > Map.CellSizeY3div4)
-                map.AddCellStateTest(map.WorldToCell(p.Pivot), p.CellZ == 0 ? CellStateCahnge.CompactSand0 : CellStateCahnge.CompactSand1);
         }
     }
 
@@ -408,23 +347,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public void ActivateObject(IActiveObject20Sec o) => gameUpdates20Sec.Activate(o);
     public void DeactivateObject(IActiveObject20Sec o) => gameUpdates20Sec.Deactivate(o);
 
-    internal void AddMovingObject(Placeable p, Map map)
-    {
-        if (p.IsInMovingObjects)
-            RemoveMovingObject(p);
-        movingObjects.Add((p, movingObjectInserterPtr++, map));
-        p.IsInMovingObjects = true;
-        if (movingObjectInserterPtr >= movingObjectMaxPtr)
-            movingObjectInserterPtr = 0;
-    }
-    internal void RemoveMovingObject(Placeable p)
-    {
-        if (p.IsInMovingObjects)
-        {
-            p.PendingMovingObjRemove++;
-            p.IsInMovingObjects = false;
-        }
-    }
+    internal void AddMovingObject(Placeable p, Map map) => MovingObjects.Add(p, map);
+    internal void RemoveMovingObject(Placeable p) => MovingObjects.Remove(p);
 
 
     private void Awake()
@@ -435,11 +359,18 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
         if (StaticPhysics == null)
             StaticPhysics = new SpInterface();
         CollisionLayaerMask = LayerMask.GetMask("Default", "MovingObjs");
+        MovingObjects ??= new MovingObjects();
     }
 
     private void OnEnable() => StartCoroutine(MapRefreshLoop());
 
     private void OnDisable() => fastMode.Stop(); // vrati VSync/targetFrameRate i pri ukonceni Play mode
+
+    private void OnDestroy()
+    {
+        MovingObjects?.Dispose();
+        MovingObjects = null;
+    }
 
     public void OnBeforeSerialize()
     {

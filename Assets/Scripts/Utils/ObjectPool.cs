@@ -19,6 +19,10 @@ namespace Assets.Scripts.Utils
 
         public void Store(TLabel obj, TLabel prototype)
         {
+            // zivy objekt v poolu = neuplny Cleanup; dvoji Store pak vyda jednu instanci dvakrat
+            if (obj is Label label && label.IsAlive)
+                throw new InvalidOperationException("Do poolu ukladas zivy objekt " + obj.name);
+
             obj.gameObject.SetActive(false);
             obj.transform.parent = transform;
             obj.transform.localRotation = prototype.transform.localRotation;

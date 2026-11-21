@@ -212,7 +212,7 @@ Game.FixedUpdate()
   └─ StaticPhysics (background thread sync)
 
 WaitForFixedUpdate (po každé Physics.Simulate)
-  └─ RefreshMapPositions()    ← pozice movingObjects do mapy
+  └─ RefreshMapPositions()    ← pozice Game.MovingObjects do mapy (Burst job + průchod)
 ```
 
 `IActiveObject` se registruje ručně — `Game.Instance.ActivateObject(this)` typicky v `AfterMapPlaced`, `DeactivateObject(this)` v `Cleanup`. Samotná implementace interfacu nic neregistruje. Dvojí registrace ani deregistrace neregistrovaného objektu se nehlídá. Přímé volání `Update()` je anti-pattern.

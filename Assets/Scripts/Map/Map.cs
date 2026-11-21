@@ -278,6 +278,19 @@ namespace Assets.Scripts.Map
             }
         }
 
+        /// <summary>
+        /// Bod je dal nez distance od okraje mapy (v libovolnem smeru).
+        /// </summary>
+        public bool IsFarOutside(Vector2 pos, float distance)
+        {
+            var min = mapOffset;
+            var max = min + new Vector2(mapSize.x * CellSize.x, mapSize.y * CellSize.y);
+            return pos.x < min.x - distance
+                || pos.x > max.x + distance
+                || pos.y < min.y - distance
+                || pos.y > max.y + distance;
+        }
+
         private bool TrySecondaryMove(Placeable p, Vector2 placedPositionOld, Vector2 sizeOld)
         {
             if (p.Settings.SecondaryMapIndex != SecondaryMap.None)

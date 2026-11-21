@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 
 [Flags]
@@ -50,16 +51,30 @@ public class Placeable : Label, ILevelPlaceabe
     public Ksid Ksid;
     public CellFlags CellBlocking;
     public SubCellFlags SubCellFlags;
-    // RefreshMapPositions dela plny map.Move kazdou simulaci misto prahu 0,1 m. Lze menit za behu, Cleanup vraci hodnotu z prototypu.
-    public bool AlwaysMapMove;
+    [SerializeField, FormerlySerializedAs("AlwaysMapMove")]
+    private bool alwaysMapMove;
+    // index v Game.MovingObjects, -1 = neregistrovany
     [NonSerialized]
-    public byte PendingMovingObjRemove;
-    [NonSerialized]
-    public bool IsInMovingObjects;
+    public int MovingIndex = -1;
     [HideInInspector, NonSerialized]
     public int Tag;
     public PlaceableSettings Settings;
     private int spNodeIndex;
+
+    public bool IsInMovingObjects => MovingIndex >= 0;
+
+    /// <summary>
+    /// RefreshMapPositions dela plny map.Move kazdou simulaci misto prahu 0,1 m. Lze menit za behu, Cleanup vraci hodnotu z prototypu.
+    /// </summary>
+    public bool AlwaysMapMove
+    {
+        get => alwaysMapMove;
+        set
+        {
+            alwaysMapMove = value;
+            Game.Instance.MovingObjects.RefreshAlwaysMapMove(this);
+        }
+    }
 
     public bool IsMapPlaced => PlacedPosition != NotInMap;
     public override bool IsAlive => IsMapPlaced;
@@ -72,21 +87,23 @@ public class Placeable : Label, ILevelPlaceabe
 
     public virtual void RefreshCoordinates()
     {
+        var pos = transform.position;
         if (Settings.IsOBB || Settings.RecomputeBB)
-            RefreshBounds(Settings.BBPosOffset, Settings.BBSize);
-        PlacedPosition = Pivot + PosOffset;
+            RefreshBounds(Settings.BBPosOffset, Settings.BBSize, pos);
+        PlacedPosition = pos.XY() + PosOffset;
         if (SubCellFlags != SubCellFlags.Free)
-            CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, transform);
+            CellBlocking = CellUtils.Combine(SubCellFlags, CellBlocking, pos.z);
         if (IsInMovingObjects)
             CellBlocking = CellBlocking & ~CellFlags.AllFullEx;
     }
 
-    protected void RefreshBounds(Vector3 offset, Vector3 size)
+    private void RefreshBounds(Vector3 offset, Vector3 size, Vector3 pos)
     {
-        TempObbC0 = transform.TransformPoint(offset);
-        TempObbC1 = transform.TransformPoint(offset.PlusX(size.x));
-        TempObbC2 = transform.TransformPoint(offset + size);
-        TempObbC3 = transform.TransformPoint(offset.PlusY(size.y));
+        var m = transform.localToWorldMatrix;
+        TempObbC0 = m.MultiplyPoint3x4(offset);
+        TempObbC1 = m.MultiplyPoint3x4(offset.PlusX(size.x));
+        TempObbC2 = m.MultiplyPoint3x4(offset + size);
+        TempObbC3 = m.MultiplyPoint3x4(offset.PlusY(size.y));
 
         Vector2 start = TempObbC0;
         Vector2 end = TempObbC0;
@@ -94,7 +111,7 @@ public class Placeable : Label, ILevelPlaceabe
         TryExtendBounds(ref start, ref end, TempObbC2);
         TryExtendBounds(ref start, ref end, TempObbC3);
 
-        PosOffset = start - Pivot;
+        PosOffset = start - pos.XY();
         Size = end - start;
     }
 
@@ -212,12 +229,6 @@ public class Placeable : Label, ILevelPlaceabe
         }
     }
 
-
-    public void UpdateMapPosIfMoved(Map map)
-    {
-        if ((transform.position.XY() + PosOffset - PlacedPosition).sqrMagnitude > 0.1f * 0.1f)
-            map.Move(this);
-    }
 
     public void AttachRigidBody(bool startMoving, bool incConnection)
     {

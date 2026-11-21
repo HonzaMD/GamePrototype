@@ -21,7 +21,7 @@ jen na frame rate.
 
 | Kdo | Kde se obnovoval | Politika |
 |---|---|---|
-| `movingObjects` | `Game.Update` → `UpdateMovingObjects()` | práh 0,1 m každý frame + plný `map.Move` po round robinu (perioda 20 framů) |
+| `movingObjects` (dnes `Game.MovingObjects`) | `Game.Update` → `UpdateMovingObjects()` | práh 0,1 m každý frame + plný `map.Move` po round robinu (perioda 20 framů) |
 | aktivní objekty (`Character3`, `SmallMonster`) | `AdjustLegsArms()` uvnitř smyčky `activeObjects` | bezpodmínečný `map.Move`, každý fixed krok |
 
 `Placeable.PlaceToMap` dělil buď/anebo: `IActiveObject` komponenta → `ActivateObject`,
@@ -44,8 +44,8 @@ atomický průchod mimo smyčku `activeObjects`.
 **4. Díra mezi poslední simulací framu a prvním `Update`.** Řešeno — refresh běží po
 každé simulaci, tedy i po poslední.
 
-**5. Rotace a změna `Size` obcházejí práh 0,1 m.** `UpdateMapPosIfMoved` porovnává
-jen pozici. Orientaci a velikost přebírá až `RefreshCoordinates` → `RefreshBounds`,
+**5. Rotace a změna `Size` obcházejí práh 0,1 m.** Test posunu (`MovingObjects`
+job) porovnává jen pozici. Orientaci a velikost přebírá až `RefreshCoordinates` → `RefreshBounds`,
 kterou volá plný `map.Move` (round robin nebo `AlwaysMapMove`). Kdo mění `Size`
 nebo rotuje mimo fyziku, **musí zavolat `map.Move` v místě změny**.
 
@@ -57,7 +57,7 @@ na začátku `Update`.
 se to propíše v refreshi po nejbližší simulaci.
 
 **8. Kontrakt `IActiveObject` placeable nebyl vynucený.** Řešeno rozpojením —
-členství v `movingObjects` určuje jen aktivní RB, nezávisle na `IActiveObject`.
+členství v `Game.MovingObjects` určuje jen aktivní RB, nezávisle na `IActiveObject`.
 
 **9. `IsInMovingObjects` strhává blokovací bity** (`AllFullEx` v `RefreshCoordinates`).
 To je pro pohyblivé objekty správně a zůstává. Postavy mají `SubCellFlags: Part`,
@@ -67,7 +67,7 @@ takže je pro ně strhávání no-op.
 
 ### `RefreshMapPositions()` v `WaitForFixedUpdate` coroutině
 
-`Game.MapRefreshLoop` (spouštěná v `OnEnable`) volá `RefreshMapPositions()` po
+`Game.MapRefreshLoop` (spouštěná v `OnEnable`) volá `MovingObjects.RefreshMapPositions()` po
 každé `Physics.Simulate`. Přesně jeden refresh na jednu simulaci vychází z
 konstrukce, žádný gate není potřeba; frame bez fixed kroku refresh nespustí.
 
@@ -86,14 +86,23 @@ Game.Update             ← mapa po poslední simulaci
   visibility            ← vlastní čítač (updateTicker)
 ```
 
-Jeden průchod `movingObjects`:
+Nejdřív Burst job (`IJobParallelForTransform.ScheduleReadOnly`, sync) paralelně přečte
+pozice všech objektů a označí posunuté o víc než 0,1 m oproti pivotu při posledním
+`map.Move` (`PlacedPosition − PosOffset`). Pak jeden průchod `Game.MovingObjects`:
 
 ```
 for each entry:
-   slowPass && tag == workPtr → map.Move + MovingObjTest     (round robin)
+   slowPass && tag == workPtr → daleko za mapou (50 m)? Kill
+                                jinak map.Move + MovingObjTest   (round robin)
    AlwaysMapMove               → map.Move
-   jinak                       → UpdateMapPosIfMoved (práh 0,1 m)
+   moved (job)                 → map.Move
+   jinak                       → nic, na objekt se nesahá
 ```
+
+Rozhodovací data (`tag`, zrcadlo `AlwaysMapMove`, výsledek jobu) leží v souvislých
+polích, takže stojící objekty (drtivá většina) průchod nestojí skoro nic. Když
+`map.Move` zavolá někdo jiný, referenční pivot zastará — job objekt jednou označí
+navíc a zbytečný `map.Move` ho srovná.
 
 `slowPass` = první refresh v daném framu (`Time.frameCount`). Round robin tak má
 periodu 20 framů se simulací; framy bez simulace ho přeskočí (fyzikálně se nic
@@ -104,16 +113,22 @@ mapa by se přestala obnovovat.
 
 ### Členství
 
-- **`movingObjects`** — kdo má aktivní RB. Přidává `PlaceToMap` (objekt s RB při
+- **`Game.MovingObjects`** — kdo má aktivní RB. Přidává `PlaceToMap` (objekt s RB při
   umístění, včetně postav s vlastním `Rigidbody`) a `RbLabel.Init`/`StopMoving`
-  při připojení/odpojení RB.
+  při připojení/odpojení RB. SoA pole + `TransformAccessArray` se stejným indexem,
+  `Placeable.MovingIndex` do nich ukazuje (−1 = neregistrovaný). Odebírání je
+  swap-back; během průchodu (`BeginStepAndFindMoved`..`EndStep`) se odkládá, aby se neposunuly
+  indexy — odebraná položka má `Obj = null`. Položky přidané během průchodu se
+  zpracují až v dalším kroku (nemají výsledek jobu).
 - **`activeObjects`** — nezávislé; registruje objekt ručně
   (`Game.Instance.ActivateObject`/`DeactivateObject`), typicky v
   `AfterMapPlaced`/`Cleanup`. Obrana proti dvojí registraci ani deregistraci
   neregistrovaného objektu není — odpovědnost volajícího.
-- **`Placeable.AlwaysMapMove`** — serializovaný bool (nastaven na prefabech
-  `Character3` a `Small Monster`), měnitelný za běhu, `Cleanup` ho vrací z
-  prototypu.
+- **`Placeable.AlwaysMapMove`** — property nad serializovaným bool (nastaven na
+  prefabech postav a příšer), měnitelná za běhu (setter přepíše zrcadlo v
+  `MovingObjects`), `Cleanup` ji vrací z prototypu.
+- **Objekty 50 m za mapou** (v libovolném směru) zabije round robin — typicky to,
+  co vypadlo z mapy a padá donekonečna.
 
 ## Vědomé kompromisy
 

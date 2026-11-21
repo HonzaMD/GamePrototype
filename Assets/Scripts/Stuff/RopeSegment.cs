@@ -14,9 +14,8 @@ public class RopeSegment : Placeable
 
     public override void RefreshCoordinates()
     {
-        var start = transform.position;
-        var end = transform.TransformPoint(new Vector3(0, -segmentSize, 0));
-        var dir = end - start;
+        // = TransformPoint(konec) - position, jednim volanim
+        var dir = transform.TransformVector(new Vector3(0, -segmentSize, 0));
 
         if (dir.x < 0)
         {
@@ -46,6 +45,7 @@ public class RopeSegment : Placeable
 
     public override void Cleanup(bool goesToInventory)
     {
+        base.Cleanup(goesToInventory);
         GetComponent<Rigidbody>().Cleanup();
     }
 

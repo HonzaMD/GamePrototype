@@ -66,10 +66,11 @@ namespace Assets.Scripts.Core
         /// Jednou za realnou sekundu zaloguje zrychleni a prepocita interval vykreslovani.
         /// Interval se nemeni kazdy frame, protoze Unity renderuje podle frameCount % interval.
         /// </summary>
-        public void Update(float gameTime)
+        /// <returns>true, kdyz v tomto framu logoval (volajici muze pridat vlastni statistiky)</returns>
+        public bool Update(float gameTime)
         {
             if (!IsOn)
-                return;
+                return false;
 
             statsFrames++;
             double now = realTime.Elapsed.TotalSeconds;
@@ -84,7 +85,9 @@ namespace Assets.Scripts.Core
                 statsStart = now;
                 statsGameStart = gameTime;
                 statsFrames = 0;
+                return true;
             }
+            return false;
         }
     }
 }
