@@ -168,6 +168,7 @@
     <Compile Include="Assets\Scripts\Map\MapBase.cs" />
     <Compile Include="Assets\Scripts\Stuff\Character3.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\SpNode.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\ComponentTypeConverter.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\WallFollower.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\Hud.cs" />
     <Compile Include="Assets\Scripts\Map\RegionMap.cs" />
@@ -211,6 +212,7 @@
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimWorld.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\GameObjectSetupWizard.cs" />
     <Compile Include="Assets\Scripts\Ai\FlyingStyle.cs" />
     <Compile Include="Assets\Scripts\Bases\ColorVariations.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\VCore.cs" />

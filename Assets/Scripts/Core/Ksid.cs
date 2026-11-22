@@ -71,6 +71,7 @@ namespace Assets.Scripts.Core
         BalloonMonster,
         ButterFlyMonster,
         DamagedByFatigue,
+        Fruit,
     }
 
     public static class KsidX

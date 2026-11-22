@@ -42,4 +42,5 @@ public class PrefabsStore : ScriptableObject
     public Placeable BasicDirt;
     public Placeable DirtElSrc;
     public Placeable DirtBuilder;
+    public Placeable Fruit;
 }
