@@ -41,7 +41,10 @@ MonoBehaviour:
   KnifeJointCutStretchLimit: 0
   ContactDmgPerFrame: 0
   MaxHealth: 0
-  DamageResistances: []
+  DamageResistances:
+  - DamageType: 33
+    Resistance: 0
+    Armor: 40
   EnergySettings: {fileID: 0}
   ActivityAnimation:
     serializedVersion: 2

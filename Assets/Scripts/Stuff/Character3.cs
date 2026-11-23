@@ -83,6 +83,7 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
         inventory.SetQuickSlot(-4, Game.Instance.PrefabsStore.DeepGlue);
         inventory.StoreProto(Game.Instance.PrefabsStore.DirtBuilder, 1);
         inventory.SetQuickSlot(-3, Game.Instance.PrefabsStore.DirtBuilder);
+        inventory.StoreProto(Game.Instance.PrefabsStore.Fruit, 4);
     }
 
     // Vstup vzorkuje InputController, prezentaci pro hrace si od postavy vola taky on

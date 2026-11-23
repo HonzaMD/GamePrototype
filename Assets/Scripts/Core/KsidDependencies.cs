@@ -29,6 +29,7 @@ namespace Assets.Scripts.Core
                 (Ksid.DirtBuilder, Ksid.InventoryItem),
                 (Ksid.JoinerGlue, Ksid.InventoryItem),
                 (Ksid.DeepGlue, Ksid.InventoryItem),
+                (Ksid.Fruit, Ksid.InventoryItem),
                 (Ksid.StickyBomb, Ksid.Explosive),
                 (Ksid.DirtBuilder, Ksid.Explosive),
                 (Ksid.MultiActivatesByThrow, Ksid.ActivatesByThrow),
@@ -47,6 +48,7 @@ namespace Assets.Scripts.Core
 
                 (Ksid.Light, Ksid.DamagedByExplosion),
                 (Ksid.Stone, Ksid.DamagedByExplosion),
+                (Ksid.Fruit, Ksid.DamagedByExplosion),
                 (Ksid.Explosive, Ksid.DamagedByExplosion),
                 (Ksid.SandCombiner, Ksid.DamagedByExplosion),
                 (Ksid.Monster, Ksid.DamagedByExplosion),
@@ -104,6 +106,7 @@ namespace Assets.Scripts.Core
                 (Ksid.Light, Ksid.DamagedByImpact),
                 (Ksid.Cannon, Ksid.DamagedByImpact),
                 (Ksid.Dirt, Ksid.DamagedByImpact),
+                (Ksid.Fruit, Ksid.DamagedByImpact),
 
                 (Ksid.Knife, Ksid.DealsKnifeDamage),
                 (Ksid.Character, Ksid.DamagedByKnife),
