@@ -19,13 +19,15 @@ namespace Assets.Scripts.Core.Inventory
         private VisualElement inventory;
         private VisualElement quickSlots;
         private VisualElement inventoryWindow;
+        private VisualElement actionButtons;
         private float fpsTimeStamp;
         private int framesCount;
         private float announcerDt;
         private bool wasFastMode;
         private InventoryVisualizer inventoryVisualizer;
         private Label[] quickSlotKeys = new Label[10];
-        private bool guiInFocus;
+        private bool inventoryHovered;
+        private bool actionButtonsHovered;
         private const string StatusEntrySelectedClass = "StatusEntrySelected";
         private VisualElement statusRow;
         private bool statusRowDirty;
@@ -33,7 +35,7 @@ namespace Assets.Scripts.Core.Inventory
 
         public Announcer Announcer { get; private set; }
         public Label SelectedInventoryKey => inventoryVisualizer.SelectedKey;
-        public bool GuiInFocus => guiInFocus;
+        public bool GuiInFocus => inventoryHovered || actionButtonsHovered;
 
         private void OnEnable()
         {
@@ -46,6 +48,8 @@ namespace Assets.Scripts.Core.Inventory
             var scrollView = inventoryWindow.Q<ScrollView>();
             var itemDragElement = doc.rootVisualElement.Q<VisualElement>("itemDragElement");
             statusRow = doc.rootVisualElement.Q<VisualElement>("StatusRow");
+            actionButtons = doc.rootVisualElement.Q<VisualElement>("ActionButtons");
+            actionButtons.Q<Button>("ShitButton").clicked += () => Game.Instance.InputController.RequestShit();
             DisableFocus(doc.rootVisualElement);
 
             InitQuickSlots(quickSlots);
@@ -54,8 +58,10 @@ namespace Assets.Scripts.Core.Inventory
             Announcer = new Announcer(doc.rootVisualElement);
 
             Application.logMessageReceived += Application_logMessageReceived;
-            inventoryWindow.RegisterCallback<MouseEnterEvent>(GuiOnMouseEnter);
-            inventoryWindow.RegisterCallback<MouseLeaveEvent>(GuiOnMouseLeave);
+            inventoryWindow.RegisterCallback<MouseEnterEvent>(evt => inventoryHovered = true);
+            inventoryWindow.RegisterCallback<MouseLeaveEvent>(evt => inventoryHovered = false);
+            actionButtons.RegisterCallback<MouseEnterEvent>(evt => actionButtonsHovered = true);
+            actionButtons.RegisterCallback<MouseLeaveEvent>(evt => actionButtonsHovered = false);
         }
 
         private void DisableFocus(VisualElement rootVisualElement)
@@ -98,9 +104,19 @@ namespace Assets.Scripts.Core.Inventory
             {
                 inventoryVisualizer.CancelManipulators();
                 inventoryVisualizer.Visible = !inventoryVisualizer.Visible;
-                inventoryWindow.style.display = inventoryVisualizer.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+                var display = inventoryVisualizer.Visible ? DisplayStyle.Flex : DisplayStyle.None;
+                inventoryWindow.style.display = display;
+                actionButtons.style.display = display;
                 if (inventoryVisualizer.Visible)
+                {
                     inventoryVisualizer.SetupIfDirty();
+                }
+                else
+                {
+                    // skryty panel nemusi poslat MouseLeave
+                    inventoryHovered = false;
+                    actionButtonsHovered = false;
+                }
             }
 
             // ve FastMode jen na vykreslovanych framech
@@ -375,17 +391,6 @@ namespace Assets.Scripts.Core.Inventory
                     label.text = NumberToString.Convert(v);
                 }
             }
-        }
-
-        private void GuiOnMouseEnter(MouseEnterEvent evt)
-        {
-            guiInFocus = true;
-        }
-
-
-        private void GuiOnMouseLeave(MouseLeaveEvent evt)
-        {
-            guiInFocus = false;
         }
     }
 }

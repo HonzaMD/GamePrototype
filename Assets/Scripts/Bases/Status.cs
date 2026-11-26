@@ -99,17 +99,33 @@ namespace Assets.Scripts.Bases
             }
         }
 
-        public void Eat(float foodEnergy)
+        public void Eat(float foodEnergy, float foodWaste)
         {
-            foodEnergy = Mathf.Max(0, Mathf.Min(foodEnergy, 100 - OverEated));
-            Food += foodEnergy;
+            if (foodEnergy < 0 || foodWaste < 0)
+                throw new InvalidOperationException("Nechci zaporne jidlo");
+
+            float limit = Mathf.Min(foodEnergy + foodWaste, 100 - OverEated);
+            if (limit <= 0)
+                return;
+
+            Food += foodEnergy * limit / (foodEnergy + foodWaste);
+            Waste += foodWaste * limit / (foodEnergy + foodWaste);
         }
 
-        public float Shit()
+        public bool Shit(float ammount)
         {
-            float ret = Waste;
-            Waste = 0;
-            return ret;
+            if (Waste > ammount)
+            {
+                Waste -= ammount;
+                return true;
+            }
+            else if (IsOverEated && Waste + Food >= ammount)
+            {
+                Food -= ammount - Waste;
+                Waste = 0;
+                return true;
+            }
+            return false;
         }
 
         public void ConsumeEnergy(float energyLoss, bool useHealth)

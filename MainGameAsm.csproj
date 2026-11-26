@@ -127,9 +127,9 @@
     <Compile Include="Assets\Scripts\Utils\TimerHandler.cs" />
     <Compile Include="Assets\Scripts\Stuff\SandCombiner.cs" />
     <Compile Include="Assets\Scripts\Utils\HoldAnimator.cs" />
+    <Compile Include="Assets\Scripts\EditorExtensions\KsidTableWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\TypePickerAttribute.cs" />
     <Compile Include="Assets\Scripts\Utils\Timer.cs" />
-    <Compile Include="Assets\Scripts\EditorExtensions\KsidTableWindow.cs" />
     <Compile Include="Assets\Scripts\Utils\SpanList.cs" />
     <Compile Include="Assets\Scripts\Map\Visibility\DarkBorders.cs" />
     <Compile Include="Assets\Scripts\Utils\PhysicsConsts.cs" />
@@ -216,6 +216,7 @@
     <Compile Include="Assets\Scripts\Utils\KsidTable.cs" />
     <Compile Include="Assets\Scripts\Map\MapExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\GameUpdates1Sec.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Consumable.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimWorld.cs" />
     <Compile Include="Assets\Scripts\EditorExtensions\GameObjectSetupWizard.cs" />
     <Compile Include="Assets\Scripts\Ai\FlyingStyle.cs" />

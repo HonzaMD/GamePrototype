@@ -3,6 +3,28 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.Utils
 {
+    // Klic bunky pro KsidTableResolver. Implementuj na structu - generika pak vola bez boxingu.
+    public interface IKsidPair
+    {
+        Ksid Row { get; }
+        Ksid Col { get; }
+    }
+
+    // Klic bez hodnoty (editor, testy).
+    public readonly struct KsidPair : IKsidPair
+    {
+        public Ksid Row { get; }
+        public Ksid Col { get; }
+
+        public KsidPair(Ksid row, Ksid col)
+        {
+            Row = row;
+            Col = col;
+        }
+
+        public static implicit operator KsidPair((Ksid Row, Ksid Col) t) => new(t.Row, t.Col);
+    }
+
     // Hledani bunky v KsidTable, obe osy najednou (Docs/ksid-table.md):
     // kandidati = vyplnene bunky, jejichz radek je predek-nebo-rovno row a sloupec predek-nebo-rovno col.
     // Kandidat vypada, kdyz jiny kandidat je specifictejsi-nebo-stejny na obou osach.
@@ -10,7 +32,8 @@ namespace Assets.Scripts.Utils
     public static class KsidTableResolver
     {
         // winners: indexy do filled. Vraci jejich pocet.
-        public static int Resolve(Ksids ksids, IReadOnlyList<(Ksid Row, Ksid Col)> filled, Ksid row, Ksid col, List<int> winners)
+        public static int Resolve<T>(Ksids ksids, IReadOnlyList<T> filled, Ksid row, Ksid col, List<int> winners)
+            where T : IKsidPair
         {
             winners.Clear();
             for (int i = 0; i < filled.Count; i++)
@@ -27,7 +50,7 @@ namespace Assets.Scripts.Utils
                 for (int b = 0; b < winners.Count; b++)
                 {
                     var y = filled[winners[b]];
-                    if (b != a && y != x && ksids.IsParentOrEqual(y.Row, x.Row) && ksids.IsParentOrEqual(y.Col, x.Col))
+                    if (b != a && (y.Row != x.Row || y.Col != x.Col) && ksids.IsParentOrEqual(y.Row, x.Row) && ksids.IsParentOrEqual(y.Col, x.Col))
                     {
                         winners.RemoveAt(a);
                         break;

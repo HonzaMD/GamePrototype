@@ -31,19 +31,19 @@ public class KsidTableResolverTests
         });
     }
 
-    private int Resolve(List<(Ksid, Ksid)> filled, Ksid row, Ksid col)
+    private int Resolve(List<KsidPair> filled, Ksid row, Ksid col)
         => KsidTableResolver.Resolve(ksids, filled, row, col, winners);
 
     [Test]
     public void Empty_None()
     {
-        Assert.AreEqual(0, Resolve(new List<(Ksid, Ksid)>(), Fruit, Monster));
+        Assert.AreEqual(0, Resolve(new List<KsidPair>(), Fruit, Monster));
     }
 
     [Test]
     public void Explicit_Wins()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster), (Fruit, SmallMonster), (Fruit, Monster) };
+        var filled = new List<KsidPair> { (Food, Monster), (Fruit, SmallMonster), (Fruit, Monster) };
         Assert.AreEqual(1, Resolve(filled, Fruit, SmallMonster));
         Assert.AreEqual(1, winners[0]);
     }
@@ -51,7 +51,7 @@ public class KsidTableResolverTests
     [Test]
     public void InheritsFromParentRow()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster) };
+        var filled = new List<KsidPair> { (Food, Monster) };
         Assert.AreEqual(1, Resolve(filled, Stone, Monster));
         Assert.AreEqual(0, winners[0]);
     }
@@ -59,7 +59,7 @@ public class KsidTableResolverTests
     [Test]
     public void InheritsFromParentColumn()
     {
-        var filled = new List<(Ksid, Ksid)> { (Fruit, Monster) };
+        var filled = new List<KsidPair> { (Fruit, Monster) };
         Assert.AreEqual(1, Resolve(filled, Fruit, SmallMonster));
         Assert.AreEqual(0, winners[0]);
     }
@@ -67,7 +67,7 @@ public class KsidTableResolverTests
     [Test]
     public void SpecificOnBothAxesBeatsGeneral()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster), (Fruit, Monster), (Food, SmallMonster), (Fruit, SmallMonster) };
+        var filled = new List<KsidPair> { (Food, Monster), (Fruit, Monster), (Food, SmallMonster), (Fruit, SmallMonster) };
         Assert.AreEqual(1, Resolve(filled, Fruit, SmallMonster));
         Assert.AreEqual(3, winners[0]);
     }
@@ -75,7 +75,7 @@ public class KsidTableResolverTests
     [Test]
     public void SpecificRowWinsWhenColumnSame()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster), (Fruit, Monster) };
+        var filled = new List<KsidPair> { (Food, Monster), (Fruit, Monster) };
         Assert.AreEqual(1, Resolve(filled, Fruit, SmallMonster));
         Assert.AreEqual(1, winners[0]);
     }
@@ -83,14 +83,14 @@ public class KsidTableResolverTests
     [Test]
     public void Crossing_Conflict()
     {
-        var filled = new List<(Ksid, Ksid)> { (Fruit, Monster), (Food, SmallMonster) };
+        var filled = new List<KsidPair> { (Fruit, Monster), (Food, SmallMonster) };
         Assert.AreEqual(2, Resolve(filled, Fruit, SmallMonster));
     }
 
     [Test]
     public void CrossingResolvedByExplicitCell()
     {
-        var filled = new List<(Ksid, Ksid)> { (Fruit, Monster), (Food, SmallMonster), (Fruit, SmallMonster) };
+        var filled = new List<KsidPair> { (Fruit, Monster), (Food, SmallMonster), (Fruit, SmallMonster) };
         Assert.AreEqual(1, Resolve(filled, Fruit, SmallMonster));
         Assert.AreEqual(2, winners[0]);
     }
@@ -98,14 +98,14 @@ public class KsidTableResolverTests
     [Test]
     public void TwoUnrelatedParents_Conflict()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster), (Food2, Monster) };
+        var filled = new List<KsidPair> { (Food, Monster), (Food2, Monster) };
         Assert.AreEqual(2, Resolve(filled, Fruit, Monster));
     }
 
     [Test]
     public void TwoUnrelatedParents_OnlyOneMatchesOtherChild()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Monster), (Food2, Monster) };
+        var filled = new List<KsidPair> { (Food, Monster), (Food2, Monster) };
         Assert.AreEqual(1, Resolve(filled, Stone, Monster));
         Assert.AreEqual(0, winners[0]);
     }
@@ -113,14 +113,14 @@ public class KsidTableResolverTests
     [Test]
     public void UnrelatedCellsIgnored()
     {
-        var filled = new List<(Ksid, Ksid)> { (Food, Character), (Stone, Monster) };
+        var filled = new List<KsidPair> { (Food, Character), (Stone, Monster) };
         Assert.AreEqual(0, Resolve(filled, Fruit, Monster));
     }
 
     [Test]
     public void ParentDoesNotSeeChildCell()
     {
-        var filled = new List<(Ksid, Ksid)> { (Fruit, SmallMonster) };
+        var filled = new List<KsidPair> { (Fruit, SmallMonster) };
         Assert.AreEqual(0, Resolve(filled, Food, Monster));
     }
 }

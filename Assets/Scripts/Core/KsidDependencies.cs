@@ -99,6 +99,7 @@ namespace Assets.Scripts.Core
                 (Ksid.MultiActivatesInHand, Ksid.ActivatesInHand),
                 (Ksid.Knife, Ksid.ActivatesInHand),
                 (Ksid.DirtBuilder, Ksid.ActivatesInHand),
+                (Ksid.Fruit, Ksid.ActivatesInHand),
                 (Ksid.DirtBuilder, Ksid.AimsInHand),
 
                 (Ksid.Character, Ksid.DamagedByImpact),

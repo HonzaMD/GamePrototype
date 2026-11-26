@@ -131,6 +131,9 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
         ConsumeInventoryRequests(input);
 
+        if (input.ShitPressed)
+            Shit();
+
         controlTimeout += Time.fixedDeltaTime;
         if (cState == ControlState.Pickup && controlTimeout > 2f)
             ResetControl();
@@ -438,6 +441,12 @@ public class Character3 : ChLegsArms, IActiveObject, IHasInventory
 
     protected override Vector3 GetTargetPointer(float z) => inputController.GetMousePosOnZPlane(z);
     protected override bool HasMouseControler => inputController != null;
+
+    public void Shit()
+    {
+        if (!Status.Shit(50))
+            Announce(Announcements.CantDoNow, AnnounceStyle.Warning);
+    }
 
     public override void ReportNotEnoughEnergy() => Announce(Announcements.NotEnoughEnergy, AnnounceStyle.Warning);
 

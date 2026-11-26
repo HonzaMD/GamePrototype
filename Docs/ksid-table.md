@@ -63,4 +63,8 @@ Fieldy v pořadí deklarace oddělené `;`, např. `20; 2`. Desetinná čárka i
 
 ## Za běhu
 
-Zatím neimplementováno. Plán: při načtení předpočítat hustou matici `[Ksid × Ksid]` se stavem Hodnota / Nic / Konflikt pomocí `KsidTableResolver`. API `TryGet(row, col, out value)` (false = nic) a `Get(row, col)` (výjimka = nic); konflikt hodí výjimku v obou.
+- `TryGet(row, col, out value)` – false = nic; `Get(row, col)` – výjimka = nic. Konflikt hodí výjimku v obou.
+- **Lazy cache**: `Dictionary<(Ksid, Ksid), int>` – index do `entries`, nebo příznak nic / konflikt. Výsledek se spočítá `KsidTableResolver`em při prvním dotazu na dvojici.
+- Cache drží indexy, proto se maže v `OnValidate` (každá změna dat).
+- Hustá matice `[Ksid × Ksid]` by byla rychlejší, ale s mnoha Ksid zbytečně velká. Vrátit se k ní, pokud se dotaz dostane na hot path.
+- `KsidTableResolver.Resolve<T>` je generická přes `IKsidPair` (implementuje `KsidTableEntry<TCell>` i `KsidPair`) – na structech bez boxingu.

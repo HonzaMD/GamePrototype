@@ -12,36 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73a26e639e73248448dbe79e843b2293, type: 3}
   m_Name: Food Table
   m_EditorClassIdentifier: 
-  Rows: 3e000000190000001a000000
-  Columns: 020000000500000039000000
+  Rows: 3e000000
+  Columns: 02000000
   entries:
   - Row: 62
-    Col: 57
-    Value:
-      Energy: 43
-      Waste: 4
-  - Row: 26
-    Col: 57
-    Value:
-      Energy: 4
-      Waste: 3
-  - Row: 25
     Col: 2
     Value:
-      Energy: 434
-      Waste: 6
-  - Row: 26
-    Col: 2
-    Value:
-      Energy: 4
-      Waste: 6
-  - Row: 26
-    Col: 5
-    Value:
-      Energy: 4
-      Waste: 31
-  - Row: 62
-    Col: 5
-    Value:
-      Energy: 4
-      Waste: 5
+      Energy: 50
+      Waste: 10

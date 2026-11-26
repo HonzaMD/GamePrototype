@@ -3,7 +3,7 @@
     <ui:VisualElement style="flex-grow: 1; justify-content: space-between; border-left-color: rgb(255, 255, 255); border-right-color: rgb(255, 255, 255); border-top-color: rgb(255, 255, 255); border-bottom-color: rgb(255, 255, 255);">
         <ui:VisualElement name="Top" style="flex-direction: column-reverse;">
             <ui:VisualElement style="flex-direction: row;">
-                <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 50px; margin-right: 10px; margin-left: 10px; display: none; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
+                <ui:VisualElement name="InventoryWindow" style="flex-direction: column; margin-top: 0; margin-right: 10px; margin-left: 10px; display: none; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
                     <ui:VisualElement style="flex-direction: row;">
                         <ui:VisualElement class="InvLeftButtonPanel" style="flex-shrink: 0;">
                             <ui:VisualElement style="flex-direction: row; margin-top: 0; margin-right: 2px; margin-bottom: 0; margin-left: 2px;">
@@ -54,6 +54,9 @@
                         </ui:ScrollView>
                     </ui:VisualElement>
                 </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="ActionButtons" style="flex-direction: row; align-self: flex-start; margin-top: 50px; margin-bottom: 50px; margin-left: 10px; margin-right: 10px; display: none;">
+                <ui:Button text="Ulev si" name="ShitButton" class="InventoryButton" style="font-size: 20px; padding-left: 6px; padding-right: 6px;" />
             </ui:VisualElement>
             <ui:VisualElement name="StatusRow" style="flex-direction: row-reverse; justify-content: flex-end; padding-top: 4px; padding-left: 4px;" />
         </ui:VisualElement>

@@ -1717,6 +1717,7 @@ MonoBehaviour:
   Hud: {fileID: 1427786098}
   TimeOfDay: {fileID: 1866069384}
   StartTime: 300
+  FoodTable: {fileID: 11400000, guid: 2e0e4f4a42fb70d47b95d8252e815c63, type: 2}
   UpdateTimes:
   - 0
   - 0

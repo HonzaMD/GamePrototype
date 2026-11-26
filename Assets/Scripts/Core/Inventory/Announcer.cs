@@ -19,6 +19,7 @@ namespace Assets.Scripts.Core.Inventory
         public const string OutOfReach = "Mimo dosah.";
         public const string NotEnoughMaterial = "Nedostatek materiálu.";
         public const string FastMode = "Zrychlen čas.";
+        public const string CantDoNow = "Zrovna to nejde.";
     }
 
     /// <summary>

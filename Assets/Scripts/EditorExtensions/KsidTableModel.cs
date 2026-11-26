@@ -41,7 +41,7 @@ namespace Assets.Scripts.EditorExtensions
         private readonly SerializedProperty entriesProp;
 
         private bool dirty = true;
-        private readonly List<(Ksid Row, Ksid Col)> filled = new();
+        private readonly List<KsidPair> filled = new();
         private readonly List<string> filledText = new();
         private readonly Dictionary<(Ksid, Ksid), int> index = new();
         private KsidCellInfo[,] grid = new KsidCellInfo[0, 0];

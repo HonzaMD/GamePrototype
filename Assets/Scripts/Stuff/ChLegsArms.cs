@@ -55,6 +55,7 @@ public abstract partial class ChLegsArms : MonoBehaviour, IHasCleanup, IHasAfter
     public ChSettings Settings;
 
     public Status Status { get; private set; }
+    public Placeable Placeable => placeable;
 
     // Poradi je nosne: 0,1 = nohy, 2,3 = ruce.
     [FormerlySerializedAs("Legs")]

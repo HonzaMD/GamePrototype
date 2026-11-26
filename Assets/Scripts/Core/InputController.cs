@@ -38,6 +38,7 @@ namespace Assets.Scripts.Core
         public float JumpPressTime;             // plati jen s JumpPressed
         public int InventorySlot;               // klavesy 0-9, 0 = zadny
         public Label InventoryKey;              // klik v InventoryVisualizer
+        public bool ShitPressed;                // tlacitko "Ulev si" v HUD
         public Vector2 HoldAdjustShift;         // pohyb mysi kolmo na holdTarget, pro ItemAdjust
         public bool MoveModeTogglePressed;      // TEST MoveMode (smazat) - G
 
@@ -53,6 +54,7 @@ namespace Assets.Scripts.Core
             JumpPressed = false;
             InventorySlot = 0;
             InventoryKey = null;
+            ShitPressed = false;
             HoldAdjustShift = Vector2.zero;
         }
     }
@@ -263,6 +265,12 @@ namespace Assets.Scripts.Core
         public void RequestInventoryAccess(Label key)
         {
             pending.InventoryKey = key;
+        }
+
+        // Tlacitko "Ulev si" v HUD. Provede ho postava ve fixed kroku.
+        public void RequestShit()
+        {
+            pending.ShitPressed = true;
         }
 
         // Rozpracovane hrany patri postave, pro kterou je hrac zmackl. Prenesene na jinou

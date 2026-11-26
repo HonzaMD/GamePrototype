@@ -43,6 +43,8 @@ public class Game : MonoBehaviour, ISerializationCallbackReceiver
     public bool FastMode => fastMode.IsOn;
     private readonly FastModeDriver fastMode = new();
 
+    public FoodTable FoodTable;
+
     private static readonly ProfilerMarker markerInput = new("MyGame.Input");
     private static readonly ProfilerMarker markerTriggers = new("MyGame.Triggers");
     private static readonly ProfilerMarker markerObjects = new("MyGame.Objects");
