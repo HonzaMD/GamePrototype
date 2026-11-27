@@ -28,3 +28,4 @@ MonoBehaviour:
   SpStretchLimit: 1000
   SpCompressLimit: 1000
   SpMomentLimit: 1000
+  RecievesOnCollisionEnter: 1

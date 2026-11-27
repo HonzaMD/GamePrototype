@@ -85,7 +85,7 @@ namespace Assets.Scripts.Stuff
                     DisableCollider();
                     var rbj = CreateRbJoint(dirt);
                     rbj.SetupSp();
-                    rbj.EnableRbjCleanup();
+                    rbj.EnableRbjCleanup(this);
                 } 
                 else
                 {
@@ -376,7 +376,7 @@ namespace Assets.Scripts.Stuff
             // Propoj statickou fyzikou s parentem
             var rbj = parentTrunk.CreateRbJoint(newTrunk);
             rbj.SetupSp();
-            rbj.OtherConnectable.EnableRbjCleanup();
+            rbj.OtherConnectable.EnableRbjCleanup(newTrunk);
 
             // Podzemni: deaktivuj collider a propoj s hlinou
             if (underground)
@@ -384,7 +384,7 @@ namespace Assets.Scripts.Stuff
                 newTrunk.DisableCollider();
                 var dirtRbj = newTrunk.CreateRbJoint(dirtTarget);
                 dirtRbj.SetupSp();
-                dirtRbj.EnableRbjCleanup();
+                dirtRbj.EnableRbjCleanup(newTrunk);
             }
 
             PropagateCountChange(parentTrunk, 1, balanceDelta);

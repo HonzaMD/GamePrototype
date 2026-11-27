@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7976501457985078537}
   - component: {fileID: 8798010282438559145}
   - component: {fileID: 7712705059514611096}
+  - component: {fileID: 7308165675972948625}
   m_Layer: 10
   m_Name: Shit
   m_TagString: Untagged
@@ -80,7 +81,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 8
+  m_Constraints: 56
   m_CollisionDetection: 0
 --- !u!114 &7712705059514611096
 MonoBehaviour:
@@ -94,6 +95,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fa26ee389962cf4ab734fa71aaae723, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7308165675972948625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7976501457985078535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95bfec53faea6ab4d9b21c1a88a90786, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BreakLimit: 50
+  WeakBreakLimit: 30
+  Spring: 200
+  Damper: 20
 --- !u!1 &8488131876497498569
 GameObject:
   m_ObjectHideFlags: 0

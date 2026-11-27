@@ -15,7 +15,6 @@ namespace Assets.Scripts.Bases
         {
             None = 0,
             RbConnection = 1,
-            OwnsJoint = 2,
             SpConnection = 4,
         }
 
@@ -25,7 +24,7 @@ namespace Assets.Scripts.Bases
         public Placeable OtherObj;
         public RbJoint OtherConnectable;
         public State state;
-        private bool doRbjCleanup;
+        private IHasRbJointCleanup cleanupOwner;
 
         public bool IsConnected => (state & State.SpConnection) != 0 || Joint;
 
@@ -46,13 +45,13 @@ namespace Assets.Scripts.Bases
             OtherConnectable.ActiveDebugLine();
         }
 
-        public void EnableRbjCleanup() => doRbjCleanup = true;
+        public void EnableRbjCleanup(IHasRbJointCleanup owner) => cleanupOwner = owner;
 
         public override void Disconnect() => Disconnect(true);
 
         public void Disconnect(bool trueKill)
         {
-            if (Joint && (state & State.OwnsJoint) != 0)
+            if (Joint)
                 Destroy(Joint);
             if ((state & State.SpConnection) != 0 && MyObj.SpNodeIndex != 0 && OtherObj.SpNodeIndex != 0)
                 Game.Instance.StaticPhysics.RemoveJoint(MyObj.SpNodeIndex, OtherObj.SpNodeIndex);
@@ -66,8 +65,8 @@ namespace Assets.Scripts.Bases
             if ((state & State.RbConnection) != 0)
                 MyObj.DetachRigidBody(false, true);
 
-            if (trueKill && doRbjCleanup)
-                MyObj.GetComponent<IHasRbJointCleanup>().RbJointCleanup(this);
+            if (trueKill && cleanupOwner != null)
+                cleanupOwner.RbJointCleanup(this);
 
             DeactivateDebugLine();
 
@@ -76,7 +75,7 @@ namespace Assets.Scripts.Bases
 
             if (trueKill)
             {
-                doRbjCleanup = false;
+                cleanupOwner = null;
                 MyObj = null;
                 OtherObj = null;
                 OtherConnectable = null;
@@ -85,15 +84,15 @@ namespace Assets.Scripts.Bases
         }
 
 
-        internal void SetupRb(Joint j, bool passJointOwnership)
+        internal void SetupRb(Joint j)
         {
-            SetupRb1(passJointOwnership);
+            SetupRb1();
             SetupRb2(j);
         }
 
         internal void SetupRb()
         {
-            SetupRb1(true);
+            SetupRb1();
             var j = MyObj.Rigidbody.gameObject.AddComponent<FixedJoint>();
             var (breakForce, breakTorque) = UnityLimits();
             j.breakForce = breakForce;
@@ -115,11 +114,11 @@ namespace Assets.Scripts.Bases
         }
 
 
-        internal void SetupRb1(bool passJointOwnership)
+        internal void SetupRb1()
         {
             if (state != State.None)
                 throw new InvalidOperationException("Necekal jsem pripojeny Joint");
-            SetState(passJointOwnership ? State.RbConnection | State.OwnsJoint : State.RbConnection);
+            SetState(State.RbConnection);
             MyObj.AttachRigidBody(false, true);
             OtherObj.AttachRigidBody(false, true);
         }

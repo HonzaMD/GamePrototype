@@ -420,7 +420,7 @@ public class Placeable : Label, ILevelPlaceabe
             joint.ClearSp();
             if (joint.state == RbJoint.State.None)
             {
-                joint.SetupRb1(true);
+                joint.SetupRb1();
                 var j = Rigidbody.gameObject.AddComponent<FixedJoint>();
                 j.breakForce = MathF.Min(cmd.compressLimit, cmd.stretchLimit) * PhysicsConsts.SpToRbLimitsMultiplier;
                 j.breakTorque = cmd.momentLimit * PhysicsConsts.SpToRbLimitsMultiplier;

@@ -104,6 +104,7 @@
     <Compile Include="Assets\Scripts\Core\StaticPhysics\InvariantValidator.cs" />
     <Compile Include="Assets\Scripts\Bases\RbJoint.cs" />
     <Compile Include="Assets\Scripts\Ai\Rules\SeekItemRule.cs" />
+    <Compile Include="Assets\Scripts\Stuff\Shit.cs" />
     <Compile Include="Assets\Scripts\Map\Levels\Level4.cs" />
     <Compile Include="Assets\Scripts\Ai\Jump\JumpDetector.cs" />
     <Compile Include="Assets\Scripts\Core\StaticPhysics\EdgeEnd.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Assets\Scripts\Stuff\StickyBomb2.cs" />
     <Compile Include="Assets\Scripts\Bases\Connectable.cs" />
     <Compile Include="Assets\Scripts\Core\Inventory\KeysToInventory.cs" />
+    <Compile Include="Assets\Scripts\Bases\StickyBase.cs" />
     <Compile Include="Assets\Scripts\Utils\ExposureMaskPass.cs" />
     <Compile Include="Assets\Scripts\Core\KsidDependencies.cs" />
     <Compile Include="Assets\Scripts\Core\InputController.cs" />
@@ -156,6 +158,7 @@
     <Compile Include="Assets\Scripts\Stuff\ChSettings.cs" />
     <Compile Include="Assets\Scripts\Stuff\Cannon.cs" />
     <Compile Include="Assets\Scripts\Stuff\ChLegsArms.Forces.cs" />
+    <Compile Include="Assets\Scripts\Bases\StickyRingBase.cs" />
     <Compile Include="Assets\Scripts\Utils\ListPool.cs" />
     <Compile Include="Assets\Scripts\Stuff\DirtFactory.cs" />
     <Compile Include="Assets\Scripts\Map\CellSims\CellSimDebug.cs" />
