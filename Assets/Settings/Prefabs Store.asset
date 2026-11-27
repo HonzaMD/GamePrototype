@@ -75,3 +75,4 @@ MonoBehaviour:
   DirtBuilder: {fileID: 6305871483602145192, guid: 2012e8de97baffe4e999dd1715089792,
     type: 3}
   Fruit: {fileID: 7849347726978654617, guid: 8c4193cc61961d443a1e05a7e82e553c, type: 3}
+  Shit: {fileID: 7976501457985078537, guid: 6e3c6e15881109c4a9e3842c172f8b2a, type: 3}
